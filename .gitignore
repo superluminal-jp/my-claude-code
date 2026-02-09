@@ -1,0 +1,21 @@
+# Local overrides (do not commit)
+settings.local.json
+*.local.json
+*.local.md
+
+# Cache and ephemeral data
+cache/
+debug/
+file-history/
+paste-cache/
+projects/
+shell-snapshots/
+statsig/
+todos/
+tasks/
+ide/
+plans/
+stats-cache.json
+
+# Plugins (reinstall via Claude Code UI on each environment)
+plugins/
