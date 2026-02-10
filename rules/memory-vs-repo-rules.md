@@ -11,7 +11,7 @@
 **Use for:**
 - **User-preference**: Coding style (Black, PEP8, ESLint/Prettier, strict TypeScript), error-handling and logging policy, observability expectations, security posture.
 - **Semantic facts**: High-level stack preferences (e.g. Next.js + shadcn, AWS IaC defaults), that `.claude/` and `.cursor/` rules are authoritative.
-- **Episodic changes**: Rare but lasting shifts (e.g. "I now use Vitest instead of Jest", "Amplify Gen 2 only").
+- **Episodic changes**: Rare but lasting shifts (e.g. "I now use Vitest for all TypeScript projects", "Amplify Gen 2 only").
 
 **Do not put in memory:**
 - Project-specific layout, module boundaries, or dependency choices.
@@ -30,7 +30,7 @@
 - **Project layout**: Directory structure, `src/` vs `tests/` vs `docs/`, naming conventions.
 - **Module boundaries**: Which packages or services exist, how they communicate.
 - **Dependency and tool choices**: Versions, frameworks, and libraries used in this repo only.
-- **Project-specific exceptions**: e.g. "This repo still uses Jest; do not migrate to Vitest."
+- **Project-specific exceptions**: e.g. "This repo uses Mocha; do not migrate to Vitest."
 - **Detailed standards**: Full style guides, API contracts, architecture decision records (ADRs).
 
 **Where it lives:**
