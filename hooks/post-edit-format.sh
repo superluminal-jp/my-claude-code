@@ -78,14 +78,16 @@ case "$FILE_PATH" in
     *test*.*)
         echo "  → Run tests: npm test (or appropriate test command)"
         ;;
-    */src/*|*/lib/*)
+    */src/*|*/lib/*|*/api/*|*/routes/*|*/handlers/*)
         echo "  → Consider running tests for affected modules"
+        echo "  → Remember: update CHANGELOG.md before committing"
         ;;
     README.md|CHANGELOG.md)
         echo "  → Validate documentation: /validate-docs"
         ;;
     package.json|requirements.txt|Cargo.toml)
         echo "  → Install dependencies and test"
+        echo "  → Update README.md if dependencies changed"
         ;;
 esac
 

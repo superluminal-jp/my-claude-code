@@ -87,7 +87,7 @@
 
 Add these as separate memories when they reflect a lasting change in preference or tooling.
 
-- **Example – Testing**: "I use Vitest (not Jest) for new TypeScript projects."
+- **Example – Testing**: "I use Vitest for new TypeScript projects."
 - **Example – Amplify**: "I no longer use AWS Amplify Gen 1; always assume Amplify Gen 2 when I say Amplify."
 - **Example – Python testing**: "I prefer pytest over unittest for new Python projects."
 
