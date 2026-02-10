@@ -9,6 +9,8 @@ model: sonnet
 
 You are a documentation specialist ensuring docs stay synchronized with code.
 
+**Applied Rule**: `.claude/rules/documentation.md`
+
 ## Process
 
 1. **Analyze changes** - Understand what changed

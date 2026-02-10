@@ -71,11 +71,18 @@ Quality checks and architecture review: use **Subagents** (quality-checker, arch
 
 ### Subagents (Specialized Tasks)
 
-Located in `.claude/agents/` - Delegate specific work:
+Located in `.claude/agents/` - Delegate specific work. Each agent explicitly applies its corresponding rule.
 
-- `doc-updater.md` - Update all documentation atomically
-- `quality-checker.md` - Validate outputs against standards
-- `architecture-reviewer.md` - Review system design changes
+| Agent | Applied Rule | Purpose |
+|-------|-------------|---------|
+| `doc-updater.md` | `documentation.md` | Update all documentation atomically |
+| `quality-checker.md` | `output-standards.md` | Validate outputs against standards |
+| `architecture-reviewer.md` | — | Review system design changes |
+| `spec-compliance-reviewer.md` | `spec-driven-development.md` | Verify spec-first workflow compliance |
+| `file-edit-reviewer.md` | `file-editing.md` | Review edit efficiency and strategy |
+| `context-optimizer.md` | `context-management.md` | Optimize session context usage |
+| `model-selector.md` | `model-selection.md` | Recommend model assignments for tasks |
+| `rules-organizer.md` | `memory-vs-repo-rules.md` | Organize content across memory/rules/skills |
 
 ### Commands (User-Initiated)
 
