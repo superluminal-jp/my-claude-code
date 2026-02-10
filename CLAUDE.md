@@ -56,6 +56,7 @@ Rules are the always-applied convention files CLAUDE.md references; they load ev
 - `context-management.md` - Memory, caching, token optimization
 - `memory-vs-repo-rules.md` - What lives in Claude Code memory vs. repo rules and skills
 - `documentation.md` - Keep docs synchronized with code
+- `git-branch-naming.md` - Git branch naming conventions
 
 ### Skills (Auto-Invoked)
 
