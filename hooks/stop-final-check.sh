@@ -1,6 +1,7 @@
 #!/bin/bash
 # Stop final check hook
-# Final validation before task completion
+# Dynamic documentation validation based on actual git changes.
+# Replaces static checklist with computed results.
 # Per Claude Code docs: when stop_hook_active is true, skip output to avoid infinite loop.
 
 set -e
@@ -18,103 +19,137 @@ fi
 
 echo ""
 echo "═══════════════════════════════════════"
-echo "✓ Task Complete - Final Check"
+echo "  Task Complete - Documentation Check"
 echo "═══════════════════════════════════════"
 echo ""
 
-# Check for uncommitted changes
-if git status --short 2>/dev/null | grep -q '^'; then
-    echo "📝 Uncommitted Changes"
+# --- Gather all changed files (staged + unstaged + untracked) ---
+CHANGED_FILES=""
+STAGED=$(git diff --cached --name-only 2>/dev/null || true)
+UNSTAGED=$(git diff --name-only HEAD 2>/dev/null || true)
+UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null || true)
+
+# Combine and deduplicate
+CHANGED_FILES=$(printf '%s\n%s\n%s' "$STAGED" "$UNSTAGED" "$UNTRACKED" | sort -u | grep -v '^$' || true)
+
+if [ -z "$CHANGED_FILES" ]; then
+    echo "  No uncommitted changes detected."
     echo ""
-    git status --short 2>/dev/null
+    echo "═══════════════════════════════════════"
     echo ""
-    
-    # Categorize changes
-    MODIFIED=$(git status --short 2>/dev/null | grep '^ M' | wc -l)
-    ADDED=$(git status --short 2>/dev/null | grep '^A' | wc -l)
-    DELETED=$(git status --short 2>/dev/null | grep '^ D' | wc -l)
-    UNTRACKED=$(git status --short 2>/dev/null | grep '^??' | wc -l)
-    
-    echo "Summary:"
-    [ $MODIFIED -gt 0 ] && echo "  Modified: $MODIFIED files"
-    [ $ADDED -gt 0 ] && echo "  Added: $ADDED files"
-    [ $DELETED -gt 0 ] && echo "  Deleted: $DELETED files"
-    [ $UNTRACKED -gt 0 ] && echo "  Untracked: $UNTRACKED files"
-    echo ""
+    exit 0
 fi
 
-# Pre-commit checklist
-echo "📋 Pre-Commit Checklist"
-echo ""
-echo "Before committing, verify:"
-echo ""
-echo "  Code Quality:"
-echo "    [ ] Code changes tested and working"
-echo "    [ ] No syntax errors or warnings"
-echo "    [ ] Follows project coding standards"
-echo ""
-echo "  Documentation:"
-echo "    [ ] README.md updated (if needed)"
-echo "    [ ] CHANGELOG.md entry added"
-echo "    [ ] API docs synchronized"
-echo "    [ ] Code comments added for complex logic"
-echo ""
-echo "  Testing:"
-echo "    [ ] Unit tests pass"
-echo "    [ ] Integration tests pass"
-echo "    [ ] New tests added for new functionality"
-echo ""
-echo "  Review:"
-echo "    [ ] Changes reviewed (git diff)"
-echo "    [ ] No sensitive data committed"
-echo "    [ ] No large files (>1MB) without reason"
-echo "    [ ] If spec/requirements changed, .speckit/ artifacts updated"
-echo ""
-echo "  Quality:"
-echo "    [ ] Quality check: quality-checker subagent or /quality-check"
+# --- Display change summary ---
+CHANGE_COUNT=$(echo "$CHANGED_FILES" | wc -l)
+echo "📝 Changed Files ($CHANGE_COUNT):"
+echo "$CHANGED_FILES" | head -15 | sed 's/^/   /'
+if [ "$CHANGE_COUNT" -gt 15 ]; then
+    echo "   ... and $((CHANGE_COUNT - 15)) more"
+fi
 echo ""
 
-# Suggest validation commands
-echo "🔧 Validation Commands"
-echo ""
-echo "  Run pre-commit validation:"
-echo "    .claude/hooks/pre-commit-validate.sh"
-echo ""
-echo "  Quality and spec:"
-echo "    /quality-check    # or invoke quality-checker subagent"
-echo "    /speckit.analyze  # spec–plan–implementation consistency"
-echo ""
-echo "  Review changes:"
-echo "    git diff"
-echo "    git diff --cached (for staged changes)"
-echo ""
-echo "  Test (adjust for your project):"
-echo "    npm test        # JavaScript/TypeScript"
-echo "    pytest          # Python"
-echo "    cargo test      # Rust"
-echo "    go test ./...   # Go"
-echo ""
+# --- Classify files ---
+CODE_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx|py|rs|go|java|c|cpp|h|hpp|rb|php|swift|kt)$' | grep -vE '(test|spec|Test|Spec)' || true)
+DOC_FILES=$(echo "$CHANGED_FILES" | grep -E '(README\.md|CHANGELOG\.md|docs/)' || true)
+TEST_FILES=$(echo "$CHANGED_FILES" | grep -iE '(test|spec)\.' || true)
 
-# Commit reminder
-if git status --short 2>/dev/null | grep -q '^'; then
-    echo "✅ Ready to Commit?"
+CODE_COUNT=0
+[ -n "$CODE_FILES" ] && CODE_COUNT=$(echo "$CODE_FILES" | wc -l)
+
+# If no code files changed, minimal check
+if [ "$CODE_COUNT" -eq 0 ]; then
+    echo "  No source code files changed. Documentation check skipped."
     echo ""
-    echo "  git add ."
-    echo "  git commit -m 'type: description'"
+    echo "═══════════════════════════════════════"
     echo ""
-    echo "  Commit types:"
-    echo "    feat:     New feature"
-    echo "    fix:      Bug fix"
-    echo "    docs:     Documentation only"
-    echo "    style:    Formatting, missing semicolons, etc"
-    echo "    refactor: Code change that neither fixes nor adds feature"
-    echo "    test:     Adding tests"
-    echo "    chore:    Updating build tasks, package manager configs, etc"
-    echo ""
+    exit 0
 fi
 
-echo "═══════════════════════════════════════"
-echo "✓ All checks complete"
+echo "📋 Documentation Checklist ($CODE_COUNT code file(s) changed):"
+echo ""
+
+# --- Dynamic checks ---
+ISSUES=0
+
+# Check 1: CHANGELOG.md
+if echo "$DOC_FILES" | grep -q "CHANGELOG\.md"; then
+    echo "  [x] CHANGELOG.md updated"
+else
+    echo "  [ ] CHANGELOG.md NOT updated"
+    echo "      → Run: /update-changelog"
+    ISSUES=$((ISSUES + 1))
+fi
+
+# Check 2: README.md (if core files changed)
+CORE_CHANGED=$(echo "$CODE_FILES" | grep -E '(index|main|app|server)\.' || true)
+if [ -n "$CORE_CHANGED" ]; then
+    if echo "$DOC_FILES" | grep -q "README\.md"; then
+        echo "  [x] README.md updated (core files changed)"
+    else
+        echo "  [ ] README.md NOT updated (core files changed)"
+        echo "      → Run: /update-readme"
+        ISSUES=$((ISSUES + 1))
+    fi
+else
+    echo "  [-] README.md (no core file changes, skip)"
+fi
+
+# Check 3: API docs (if API-related files changed)
+API_CHANGED=$(echo "$CODE_FILES" | grep -E '(api|routes|endpoints|handlers)/' || true)
+if [ -n "$API_CHANGED" ]; then
+    if echo "$DOC_FILES" | grep -q "docs/"; then
+        echo "  [x] API docs updated (API code changed)"
+    else
+        echo "  [ ] API docs NOT updated (API code changed)"
+        echo "      → Update docs/api/ to reflect API changes"
+        ISSUES=$((ISSUES + 1))
+    fi
+else
+    echo "  [-] API docs (no API code changes, skip)"
+fi
+
+# Check 4: Tests
+if [ -n "$TEST_FILES" ]; then
+    TEST_COUNT=$(echo "$TEST_FILES" | wc -l)
+    echo "  [x] Tests updated ($TEST_COUNT test file(s))"
+else
+    echo "  [ ] No test files changed"
+    echo "      → Consider adding tests for new functionality"
+    ISSUES=$((ISSUES + 1))
+fi
+
+echo ""
+
+# --- Session tracker summary ---
+PROJECT_HASH=$(echo "${CLAUDE_PROJECT_DIR:-$PWD}" | cksum | cut -d' ' -f1)
+TRACKER_FILE="/tmp/.claude-doc-tracker-${PROJECT_HASH}"
+
+if [ -f "$TRACKER_FILE" ]; then
+    TRACKED_COUNT=$(sort -u "$TRACKER_FILE" | wc -l)
+    echo "📊 Session Summary: $TRACKED_COUNT source file(s) edited"
+    sort -u "$TRACKER_FILE" | head -5 | sed 's/^/   /'
+    if [ "$TRACKED_COUNT" -gt 5 ]; then
+        echo "   ... and $((TRACKED_COUNT - 5)) more"
+    fi
+    echo ""
+    # Cleanup tracker
+    rm -f "$TRACKER_FILE"
+fi
+
+# --- Result summary ---
+if [ "$ISSUES" -eq 0 ]; then
+    echo "✅ All documentation checks passed!"
+else
+    echo "⚠️  $ISSUES documentation issue(s) detected"
+    echo ""
+    echo "  Suggested commands:"
+    echo "    /update-changelog   # Add CHANGELOG entry"
+    echo "    /update-readme      # Regenerate README"
+    echo "    /validate-docs      # Full documentation check"
+fi
+
+echo ""
 echo "═══════════════════════════════════════"
 echo ""
 
