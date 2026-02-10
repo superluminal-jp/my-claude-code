@@ -1,6 +1,7 @@
 ---
 name: file-editing-strategy
 description: Provides guidance on surgical, targeted edits for large files instead of full rewrites. Use when editing files over 100 lines.
+user-invocable: false
 ---
 
 # File Editing Strategy
@@ -93,4 +94,4 @@ Result: 15-line diff, 500 tokens (97% reduction)
 
 ---
 
-**For complete guidance, see** `.claude/rules/file-editing.md`
+**Applied Rule**: `rules/file-editing.md` (constraints and decision tree)

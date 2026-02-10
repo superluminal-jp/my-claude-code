@@ -1,6 +1,8 @@
 ---
 name: speckit-workflow
 description: Enforces spec-driven development using GitHub spec-kit so specifications exist before implementation. Use when modifying code — adding features, fixing bugs, refactoring, or making architectural changes.
+allowed-tools: Read, Grep, Glob, Bash
+user-invocable: true
 ---
 
 # spec-kit Workflow
@@ -110,4 +112,4 @@ For small changes in existing codebases:
 
 ---
 
-**For complete guidance, see** `.claude/rules/spec-driven-development.md`
+**Applied Rule**: `rules/spec-driven-development.md` (constraints and quality gates)

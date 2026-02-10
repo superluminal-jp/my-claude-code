@@ -1,6 +1,8 @@
 ---
 name: documentation-management
 description: Ensures docs stay synchronized with code (README, CHANGELOG, API docs) following Keep a Changelog and best practices. Use when updating README, CHANGELOG, or API documentation.
+allowed-tools: Read, Write, Grep, Glob
+user-invocable: true
 ---
 
 # Documentation Management
@@ -92,7 +94,7 @@ description: Ensures docs stay synchronized with code (README, CHANGELOG, API do
 
 ---
 
-**For comprehensive guidance, see** `.claude/rules/documentation.md`
+**Applied Rule**: `rules/documentation.md` (constraints and quality checklist)
 
 **Or use**:
 - `/update-readme` command
