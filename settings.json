@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/advanced-pre-tool-use.sh",
+            "command": "bash \"$HOME\"/.claude/hooks/advanced-pre-tool-use.sh",
             "timeout": 5
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/pre-edit-validate.sh",
+            "command": "bash \"$HOME\"/.claude/hooks/pre-edit-validate.sh",
             "timeout": 5
           }
         ]
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/speckit-pre-edit.sh \"$CLAUDE_FILE_PATH\"",
+            "command": "bash \"$HOME\"/.claude/hooks/speckit-pre-edit.sh \"$CLAUDE_FILE_PATH\"",
             "timeout": 5
           }
         ]
@@ -49,7 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/post-edit-format.sh",
+            "command": "bash \"$HOME\"/.claude/hooks/post-edit-format.sh",
             "timeout": 10
           }
         ]
@@ -80,7 +80,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/subagent-stop-guide.sh",
+            "command": "bash \"$HOME\"/.claude/hooks/subagent-stop-guide.sh",
             "timeout": 5
           }
         ]
@@ -91,7 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/stop-final-check.sh",
+            "command": "bash \"$HOME\"/.claude/hooks/stop-final-check.sh",
             "timeout": 5
           }
         ]
