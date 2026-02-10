@@ -2,7 +2,9 @@
 name: rules-organizer
 description: Review content placement across Claude Code memory, repo rules, skills, and agents. Use when adding new standards or reorganizing project configuration. Returns placement recommendations.
 tools: Read, Grep, Glob
+disallowedTools: Edit, Write, Bash
 model: sonnet
+maxTurns: 20
 ---
 
 # Rules Organizer

@@ -2,7 +2,9 @@
 name: file-edit-reviewer
 description: Review file edits for efficiency and strategy compliance. Use after edits to verify targeted vs full rewrite decisions follow file-editing rule. Returns efficiency assessment.
 tools: Read, Grep, Bash
+disallowedTools: Edit, Write
 model: sonnet
+maxTurns: 20
 ---
 
 # File Edit Reviewer

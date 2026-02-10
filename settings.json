@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME\"/.claude/hooks/advanced-pre-tool-use.sh",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/advanced-pre-tool-use.sh",
             "timeout": 5
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME\"/.claude/hooks/pre-edit-validate.sh",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/pre-edit-validate.sh",
             "timeout": 5
           }
         ]
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME\"/.claude/hooks/speckit-pre-edit.sh \"$CLAUDE_FILE_PATH\"",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/speckit-pre-edit.sh \"$CLAUDE_FILE_PATH\"",
             "timeout": 5
           }
         ]
@@ -35,21 +35,11 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME\"/.claude/hooks/post-edit-format.sh",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$HOME\"/.claude/hooks/post-edit-format.sh",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/post-edit-format.sh",
             "timeout": 10
           }
         ]
@@ -60,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME\"/.claude/hooks/subagent-stop-guide.sh",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/subagent-stop-guide.sh",
             "timeout": 5
           }
         ]
@@ -71,11 +61,27 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$HOME\"/.claude/hooks/stop-final-check.sh",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/hooks/stop-final-check.sh",
             "timeout": 5
           }
         ]
       }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch *)",
+      "Bash(npm run test *)",
+      "Bash(npm run lint *)",
+      "Bash(npm run build *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
     ]
   },
   "quality_gates": {
@@ -91,13 +97,6 @@
       "main",
       "master",
       "production"
-    ]
-  },
-  "permissions": {
-    "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./secrets/**)"
     ]
   },
   "enabledPlugins": {

@@ -2,7 +2,9 @@
 name: context-optimizer
 description: Analyze session context usage and recommend optimizations. Use when sessions become slow or context-heavy. Returns optimization recommendations.
 tools: Read, Grep, Glob
-model: haiku
+disallowedTools: Edit, Write, Bash
+model: sonnet
+maxTurns: 20
 ---
 
 # Context Optimizer

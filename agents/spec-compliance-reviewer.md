@@ -2,7 +2,9 @@
 name: spec-compliance-reviewer
 description: Review whether code changes follow spec-driven development workflow. Use after implementation to verify spec→plan→tasks→code traceability. Returns compliance assessment.
 tools: Read, Grep, Glob
+disallowedTools: Edit, Write, Bash
 model: sonnet
+maxTurns: 20
 ---
 
 # Spec Compliance Reviewer

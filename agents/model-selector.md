@@ -2,7 +2,9 @@
 name: model-selector
 description: Analyze a task list and recommend optimal model assignments (Haiku/Sonnet/Opus) for each subtask. Use when planning complex work to optimize cost and quality. Returns model assignment recommendations.
 tools: Read
+disallowedTools: Edit, Write, Bash
 model: sonnet
+maxTurns: 10
 ---
 
 # Model Selector
