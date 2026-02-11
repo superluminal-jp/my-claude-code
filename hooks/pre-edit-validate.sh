@@ -5,6 +5,11 @@
 
 set -e
 
+# Run git in project directory (hook may run from elsewhere)
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+    cd "$CLAUDE_PROJECT_DIR" || true
+fi
+
 # Get current branch
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
 

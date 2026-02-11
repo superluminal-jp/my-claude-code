@@ -99,7 +99,10 @@ fi
 # Check branch for destructive operations
 if [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Delete" ]; then
     CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-    
+    # Run git in project directory (hook may run from elsewhere)
+    if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+        cd "$CLAUDE_PROJECT_DIR" || true
+    fi
     if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
         echo '{
             "block": true,
