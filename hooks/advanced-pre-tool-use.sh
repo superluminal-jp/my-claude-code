@@ -96,16 +96,26 @@ if [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ]; then
     fi
 fi
 
-# Check branch for destructive operations
+# Check branch for destructive operations (only when project dir is known)
+# Skip check if CLAUDE_PROJECT_DIR is unset to avoid using the hook's CWD repo (e.g. .claude) and blocking feature branches by mistake
 if [ "$TOOL_NAME" = "Edit" ] || [ "$TOOL_NAME" = "Write" ] || [ "$TOOL_NAME" = "Delete" ]; then
-    CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-    
-    if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-        echo '{
-            "block": true,
-            "message": "❌ Cannot '"$TOOL_NAME"' on '"$CURRENT_BRANCH"' branch\n\nCreate a feature branch first:\n  git checkout -b feature/your-feature"
-        }' >&2
-        exit 2
+    PROJECT_DIR=""
+    if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+        PROJECT_DIR="$CLAUDE_PROJECT_DIR"
+    fi
+    if [ -n "$PROJECT_DIR" ]; then
+        if ! (cd "$PROJECT_DIR" && git rev-parse --git-dir >/dev/null 2>&1); then
+            : # not a git repo, skip branch check
+        else
+            CURRENT_BRANCH=$(cd "$PROJECT_DIR" && git branch --show-current 2>/dev/null || echo "")
+            if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+                echo '{
+                    "block": true,
+                    "message": "❌ Cannot '"$TOOL_NAME"' on '"$CURRENT_BRANCH"' branch\n\nCreate a feature branch first:\n  git checkout -b feature/your-feature"
+                }' >&2
+                exit 2
+            fi
+        fi
     fi
 fi
 

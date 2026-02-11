@@ -59,6 +59,7 @@ This directory contains modular configuration for Claude Code following best pra
 - Automated quality checks
 - Branch protection
 - Next-step guidance
+- Agent teams: TeammateIdle & TaskCompleted hooks; see CLAUDE.md § Agent Teams
 
 ## Usage
 

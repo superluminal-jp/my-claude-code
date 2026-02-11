@@ -74,8 +74,14 @@ Configured in `settings.json`:
 
 - **PreToolUse** — Branch protection, safety checks, spec-kit nudges
 - **PostToolUse** — Auto-format after Edit/Write
+- **TeammateIdle** — Agent team: allow or block teammate going idle (exit 2 = keep working)
 - **SubagentStop** — Suggest next steps
 - **Stop** — Final validation checklist
+- **TaskCompleted** — Agent team: allow or block task completion (exit 2 = block with feedback)
+
+## Agent Teams
+
+Agent teams are enabled (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`). Use for parallel review, competing-hypothesis debugging, and role-based work. Teammates load CLAUDE.md and project context; give task-specific context in spawn prompts. Size tasks so each teammate owns distinct files to avoid conflicts. Clean up via the lead: ask the lead to shut down teammates, then "Clean up the team." Details: https://code.claude.com/docs/en/agent-teams
 
 ---
 
