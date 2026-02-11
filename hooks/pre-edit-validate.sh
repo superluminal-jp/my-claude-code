@@ -5,21 +5,18 @@
 
 set -e
 
-# Run git in project directory (hook may run from elsewhere)
+# Branch check only when project dir is known (avoid using hook's CWD repo and blocking feature branches)
 if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-    cd "$CLAUDE_PROJECT_DIR" || true
-fi
-
-# Get current branch
-CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-
-# Block edits on main/master branches
-if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-    echo '{
-        "block": true,
-        "message": "❌ Cannot edit on '"$CURRENT_BRANCH"' branch.\n\nCreate a feature branch first:\n  git checkout -b feature/your-feature-name"
-    }' >&2
-    exit 2
+    if (cd "$CLAUDE_PROJECT_DIR" && git rev-parse --git-dir >/dev/null 2>&1); then
+        CURRENT_BRANCH=$(cd "$CLAUDE_PROJECT_DIR" && git branch --show-current 2>/dev/null || echo "")
+        if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+            echo '{
+                "block": true,
+                "message": "❌ Cannot edit on '"$CURRENT_BRANCH"' branch.\n\nCreate a feature branch first:\n  git checkout -b feature/your-feature-name"
+            }' >&2
+            exit 2
+        fi
+    fi
 fi
 
 # Check if file is in critical paths that require extra care
