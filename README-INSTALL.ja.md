@@ -1,6 +1,6 @@
-# 他環境での導入手順
+# 導入手順
 
-このリポジトリの内容を別のマシンや環境の `~/.claude` で使う手順です。
+このリポジトリの設定を `~/.claude` に展開する手順です。
 
 Agent teams（実験機能）は `settings.json`（`env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`）で有効化されています。同期後そのまま利用できます。
 
@@ -64,7 +64,7 @@ rsync -av --exclude='.git' --delete ./ ~/.claude/
 
 ### ユーザースコープ（個人セットアップ推奨）
 
-他環境では `claude mcp add --scope user` コマンドで個別に登録してください。`mcp.json` の内容を参考に、以下のように実行します。
+`claude mcp add --scope user` コマンドで個別に登録してください。`mcp.json` の内容を参考に、以下のように実行します。
 
 ```bash
 # AWS Documentation
@@ -132,7 +132,7 @@ claude mcp add --transport stdio --scope project \
 
 ## 4. プラグイン
 
-このリポジトリには `plugins/` を含めていません。他環境では Claude Code のプラグイン機能から必要なプラグインを再インストールしてください。
+このリポジトリには `plugins/` を含めていません。必要なプラグインは Claude Code のプラグイン機能から再インストールしてください。
 
 ## 5. ローカル設定
 
@@ -140,7 +140,7 @@ claude mcp add --transport stdio --scope project \
 
 ## 6. 運用
 
-設定を更新したらこのリポジトリに push し、他環境では pull のあと再同期します。
+設定を更新したらこのリポジトリに push し、pull のあと再同期します。
 
 ```bash
 cd my-claude-code

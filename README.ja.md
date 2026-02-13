@@ -170,7 +170,7 @@ MCP サーバーの登録には `claude mcp add` コマンドを適切な `--sco
 
 ## インストール
 
-他環境へのセットアップ手順は [README-INSTALL.ja.md](README-INSTALL.ja.md) を参照してください。
+セットアップ手順は [README-INSTALL.ja.md](README-INSTALL.ja.md) を参照してください。
 
 ## カスタマイズ
 
