@@ -55,9 +55,16 @@ rsync -av --exclude='.git' --delete ./ ~/.claude/
 
 ## 3. MCP Servers
 
-The repository includes `mcp.json` as a **reference only**. Claude Code stores MCP configuration in `~/.claude.json` (outside `~/.claude/`), so `~/.claude/mcp.json` is not recognized.
+The repository includes `mcp.json` as a **reference only**. Claude Code stores MCP configuration separately per scope, so `~/.claude/mcp.json` is not recognized.
 
-Register MCP servers with `claude mcp add` on each environment. Use `mcp.json` as a reference:
+| Scope | Config file | Use case |
+|-------|-------------|----------|
+| User (`--scope user`) | `~/.claude.json` | Available in all projects on this machine |
+| Project (`--scope project`) | `<project>/.mcp.json` | Available only in a specific project (committed to repo) |
+
+### User scope (recommended for personal setup)
+
+Register MCP servers with `claude mcp add --scope user` on each environment. Use `mcp.json` as a reference:
 
 ```bash
 # AWS Documentation
@@ -101,7 +108,27 @@ claude mcp add --transport stdio --scope user \
   strands-agents-mcp-server -- uvx strands-agents-mcp-server
 ```
 
-Verify with `claude mcp list` or `/mcp` inside Claude Code.
+### Project scope (per-repository)
+
+To make MCP servers available only within a specific project, use `--scope project` from the project root. This creates or updates `.mcp.json` in the project directory:
+
+```bash
+cd /path/to/your-project
+
+# Example: add AWS Documentation to this project only
+claude mcp add --transport stdio --scope project \
+  --env FASTMCP_LOG_LEVEL=ERROR \
+  --env AWS_DOCUMENTATION_PARTITION=aws \
+  aws-documentation-mcp-server -- uvx awslabs.aws-documentation-mcp-server@latest
+```
+
+- The `.mcp.json` file is created in the project root and can be committed to version control.
+- Team members who clone the repo get the same MCP configuration automatically.
+- Project-scoped servers are only active when Claude Code is run from that project directory.
+
+### Verify
+
+Run `claude mcp list` or `/mcp` inside Claude Code to confirm registered servers.
 
 ## 4. Plugins
 

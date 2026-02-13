@@ -151,9 +151,14 @@
 
 ## MCP サーバー
 
-`mcp.json` は**参考用**として同梱しています。Claude Code は MCP 設定を `~/.claude.json`（`~/.claude/` ディレクトリの外）に保存するため、`~/.claude/mcp.json` は自動的には読み込まれません。
+`mcp.json` は**参考用**として同梱しています。Claude Code は MCP 設定をスコープごとに別ファイルで管理するため、`~/.claude/mcp.json` は自動的には読み込まれません。
 
-MCP サーバーの登録には `claude mcp add` コマンドを使用してください。詳細は [README-INSTALL.ja.md](README-INSTALL.ja.md) を参照してください。
+| スコープ | 設定ファイル | 登録コマンド |
+|---------|-------------|-------------|
+| ユーザー（全プロジェクト共通） | `~/.claude.json` | `claude mcp add --scope user` |
+| プロジェクト（リポジトリ単位） | `<project>/.mcp.json` | `claude mcp add --scope project` |
+
+MCP サーバーの登録には `claude mcp add` コマンドを適切な `--scope` で使用してください。詳細は [README-INSTALL.ja.md](README-INSTALL.ja.md) を参照してください。
 
 同梱 MCP サーバー:
 - **aws-documentation-mcp-server** — AWS ドキュメント検索

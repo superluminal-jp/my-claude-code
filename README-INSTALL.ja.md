@@ -55,9 +55,16 @@ rsync -av --exclude='.git' --delete ./ ~/.claude/
 
 ## 3. MCP サーバー
 
-リポジトリに `mcp.json` を**参考用**として同梱していますが、rsync だけでは MCP サーバーは有効になりません。Claude Code は MCP 設定を `~/.claude.json`（`~/.claude/` ディレクトリの外）に保存するため、`~/.claude/mcp.json` は認識されません。
+リポジトリに `mcp.json` を**参考用**として同梱していますが、rsync だけでは MCP サーバーは有効になりません。Claude Code は MCP 設定をスコープごとに別ファイルで管理するため、`~/.claude/mcp.json` は認識されません。
 
-他環境では `claude mcp add` コマンドで個別に登録してください。`mcp.json` の内容を参考に、以下のように実行します。
+| スコープ | 設定ファイル | 用途 |
+|---------|-------------|------|
+| ユーザー (`--scope user`) | `~/.claude.json` | このマシンの全プロジェクトで利用可能 |
+| プロジェクト (`--scope project`) | `<project>/.mcp.json` | 特定プロジェクトでのみ利用可能（リポジトリにコミット可） |
+
+### ユーザースコープ（個人セットアップ推奨）
+
+他環境では `claude mcp add --scope user` コマンドで個別に登録してください。`mcp.json` の内容を参考に、以下のように実行します。
 
 ```bash
 # AWS Documentation
@@ -100,6 +107,26 @@ claude mcp add --transport stdio --scope user \
   --env FASTMCP_LOG_LEVEL=ERROR \
   strands-agents-mcp-server -- uvx strands-agents-mcp-server
 ```
+
+### プロジェクトスコープ（リポジトリ単位）
+
+特定のプロジェクトでのみ MCP サーバーを有効にするには、プロジェクトルートから `--scope project` を使用します。プロジェクトディレクトリに `.mcp.json` が作成・更新されます。
+
+```bash
+cd /path/to/your-project
+
+# 例: AWS Documentation をこのプロジェクトだけに追加
+claude mcp add --transport stdio --scope project \
+  --env FASTMCP_LOG_LEVEL=ERROR \
+  --env AWS_DOCUMENTATION_PARTITION=aws \
+  aws-documentation-mcp-server -- uvx awslabs.aws-documentation-mcp-server@latest
+```
+
+- `.mcp.json` はプロジェクトルートに作成され、バージョン管理にコミットできます。
+- リポジトリをクローンしたチームメンバーも同じ MCP 設定が自動的に適用されます。
+- プロジェクトスコープのサーバーは、そのプロジェクトディレクトリで Claude Code を実行したときのみ有効です。
+
+### 確認
 
 登録後、`claude mcp list` または Claude Code 内で `/mcp` を実行して確認できます。
 

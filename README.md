@@ -151,9 +151,14 @@ Additional utility hooks: `pre-commit-docs.sh`, `pre-commit-validate.sh`, `quali
 
 ## MCP Servers
 
-The `mcp.json` file is included as a **reference only**. Claude Code stores MCP configuration in `~/.claude.json` (outside `~/.claude/`), so `~/.claude/mcp.json` is not read automatically.
+The `mcp.json` file is included as a **reference only**. Claude Code stores MCP configuration separately per scope, so `~/.claude/mcp.json` is not read automatically.
 
-To register MCP servers, use `claude mcp add`. See [README-INSTALL.md](README-INSTALL.md) for details.
+| Scope | Config file | Registered with |
+|-------|-------------|-----------------|
+| User (all projects) | `~/.claude.json` | `claude mcp add --scope user` |
+| Project (per repo) | `<project>/.mcp.json` | `claude mcp add --scope project` |
+
+To register MCP servers, use `claude mcp add` with the appropriate `--scope`. See [README-INSTALL.md](README-INSTALL.md) for details.
 
 Included MCP servers:
 - **aws-documentation-mcp-server** — AWS documentation search
