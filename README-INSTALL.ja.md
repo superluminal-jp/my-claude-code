@@ -26,7 +26,7 @@ cd my-claude-code
 
 ```bash
 mkdir -p ~/.claude
-rsync -av --exclude='.git' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```
 
 ### マージ（既存の ~/.claude に重ねる）
@@ -34,7 +34,7 @@ rsync -av --exclude='.git' ./ ~/.claude/
 リポジトリに存在するファイルのみ上書きします。`~/.claude` 固有のファイル（独自の rules、skills など）はそのまま残ります。
 
 ```bash
-rsync -av --exclude='.git' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```
 
 - `~/.claude/settings.local.json` などローカル専用の設定はリポジトリに含まれていないため、そのまま残ります。
@@ -45,7 +45,7 @@ rsync -av --exclude='.git' ./ ~/.claude/
 `~/.claude` をリポジトリの内容で完全に置き換えます。リポジトリにないファイルは削除されます。
 
 ```bash
-rsync -av --exclude='.git' --delete ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' --delete ./ ~/.claude/
 ```
 
 - `--delete` により、リポジトリに存在しないファイル・ディレクトリは `~/.claude` から削除されます。
@@ -145,5 +145,5 @@ claude mcp add --transport stdio --scope project \
 ```bash
 cd my-claude-code
 git pull
-rsync -av --exclude='.git' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```

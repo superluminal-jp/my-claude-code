@@ -2,8 +2,9 @@
 settings.local.json
 *.local.json
 *.local.md
+.claude/
 
-# Cache and ephemeral data
+# Claude Code runtime (created when workspace is active)
 cache/
 debug/
 file-history/
@@ -17,5 +18,18 @@ ide/
 plans/
 stats-cache.json
 
-# Plugins (reinstall via Claude Code UI on each environment)
+# Plugins (reinstall via Claude Code UI per environment)
 plugins/
+
+# OS / Editor cruft
+.DS_Store
+Thumbs.db
+Desktop.ini
+._*
+
+# Backup / temp
+*.bak
+*.tmp
+*~
+.*.swp
+.*.swo
