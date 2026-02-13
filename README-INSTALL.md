@@ -1,73 +1,122 @@
-# 他環境での導入手順
+# Installation Guide
 
-このリポジトリの内容を別のマシンや環境の `~/.claude` で使う手順です。
+How to deploy this repository's configuration to `~/.claude` on another machine or environment.
 
-Agent teams（実験機能）は settings.json の env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS で有効化されています。同期後そのまま利用できます。
+Agent teams (experimental) are enabled via `settings.json` (`env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`). They work immediately after sync.
 
-## 前提
+> **Japanese version**: [README-INSTALL.ja.md](README-INSTALL.ja.md)
 
-- Claude Code が利用可能な環境
-- `git` がインストール済み
+## Prerequisites
 
-## 手順
+- Claude Code installed and available
+- `git` installed
 
-### 1. リポジトリをクローン
+## 1. Clone the Repository
 
 ```bash
 git clone git@github.com:superluminal-jp/my-claude-code.git
 cd my-claude-code
 ```
 
-### 2. 既存の `~/.claude` がない場合
+## 2. Sync to ~/.claude
 
-リポジトリの内容をそのまま `~/.claude` にコピーします。
+### New setup (no existing ~/.claude)
+
+Copy the repository contents directly:
 
 ```bash
 mkdir -p ~/.claude
 rsync -av --exclude='.git' ./ ~/.claude/
 ```
 
-または:
+### Merge (overlay on existing ~/.claude)
 
-```bash
-cp -r ./* ~/.claude/
-cp .gitignore ~/.claude/  # 任意: ローカルで .gitignore を維持する場合
-```
-
-### 3. 既存の `~/.claude` がある場合
-
-#### 3a. 同名ファイルだけ上書き（マージ）
-
-既存の `~/.claude` にリポジトリを重ね、**同名のファイルだけ**リポジトリの内容で上書きします。リポジトリにないファイル（独自の rules や skills など）は `~/.claude` に残ります。
+Overwrites only files that exist in the repository. Files unique to your `~/.claude` (custom rules, skills, etc.) are preserved:
 
 ```bash
 rsync -av --exclude='.git' ./ ~/.claude/
 ```
 
-- `~/.claude/settings.local.json` などローカル専用の設定はリポジトリに含まれていないため、そのまま残ります。
-- 同名ファイルはリポジトリ側で上書きされます。必要なら事前にバックアップを取ってください。
+- `~/.claude/settings.local.json` and other local-only files are not in the repository and remain untouched.
+- Files with the same name are overwritten by the repository version. Back up first if needed.
 
-#### 3b. 上書きしてマージ（リポジトリと完全に揃える）
+### Full sync (match repository exactly)
 
-リポジトリの内容で `~/.claude` を**完全に上書き**し、リポジトリにないファイルは `~/.claude` から削除します。実質的に「リポジトリと同じ状態」にしたいときに使います。
+Replaces `~/.claude` entirely. Files not in the repository are deleted:
 
 ```bash
 rsync -av --exclude='.git' --delete ./ ~/.claude/
 ```
 
-- `--delete` により、リポジトリに存在しないファイル・ディレクトリは `~/.claude` から削除されます。
-- **事前にバックアップを取ることを強く推奨**します（例: `cp -a ~/.claude ~/.claude.bak`）。`settings.local.json` などローカル専用の設定も消えるため、必要なものは別途退避してください。
+- `--delete` removes files and directories from `~/.claude` that do not exist in the repository.
+- **Back up first** (e.g., `cp -a ~/.claude ~/.claude.bak`). Local-only files like `settings.local.json` will be removed.
 
-> **重要**: `settings.json` のフックは全て `$HOME/.claude/hooks/` を参照しています。rsync による同期が完了していないと、フックが動作しません。
+> **Important**: All hooks in `settings.json` reference `$HOME/.claude/hooks/`. Hooks will not work until the sync is complete.
 
-### 4. プラグインについて
+## 3. MCP Servers
 
-このリポジトリには `plugins/` を含めていません。他環境では Claude Code のプラグイン機能から必要なプラグインを再インストールしてください。
+The repository includes `mcp.json` as a **reference only**. Claude Code stores MCP configuration in `~/.claude.json` (outside `~/.claude/`), so `~/.claude/mcp.json` is not recognized.
 
-### 5. ローカルだけの設定（任意）
+Register MCP servers with `claude mcp add` on each environment. Use `mcp.json` as a reference:
 
-環境ごとの上書き（許可リストやツール設定など）は `~/.claude/settings.local.json` に記載できます。このファイルはリポジトリに含めていないため、各環境で自由に編集してかまいません。
+```bash
+# AWS Documentation
+claude mcp add --transport stdio --scope user \
+  --env FASTMCP_LOG_LEVEL=ERROR \
+  --env AWS_DOCUMENTATION_PARTITION=aws \
+  aws-documentation-mcp-server -- uvx awslabs.aws-documentation-mcp-server@latest
 
----
+# AWS Knowledge (HTTP)
+claude mcp add --transport http --scope user \
+  aws-knowledge-mcp-server https://knowledge-mcp.global.api.aws
 
-**運用の目安**: 設定を更新したらこのリポジトリに push し、他環境では `git pull` のあと `rsync -av --exclude='.git' ./ ~/.claude/` で再度同期できます。
+# AWS API
+claude mcp add --transport stdio --scope user \
+  --env FASTMCP_LOG_LEVEL=ERROR \
+  --env "AWS_REGION=${AWS_REGION:-ap-northeast-1}" \
+  --env "AWS_API_MCP_WORKING_DIR=${HOME}/.aws/mcp/workdir" \
+  --env AWS_API_MCP_ALLOW_UNRESTRICTED_LOCAL_FILE_ACCESS=workdir \
+  --env "AWS_API_MCP_PROFILE_NAME=${AWS_PROFILE:-default}" \
+  --env READ_OPERATIONS_ONLY=false \
+  --env REQUIRE_MUTATION_CONSENT=true \
+  --env AWS_API_MCP_TELEMETRY=true \
+  --env EXPERIMENTAL_AGENT_SCRIPTS=false \
+  aws-api-mcp-server -- uvx awslabs.aws-api-mcp-server@latest
+
+# AWS IaC
+claude mcp add --transport stdio --scope user \
+  --env FASTMCP_LOG_LEVEL=ERROR \
+  --env "AWS_PROFILE=${AWS_PROFILE:-default}" \
+  --env "AWS_REGION=${AWS_REGION:-ap-northeast-1}" \
+  aws-iac-mcp-server -- uvx awslabs.aws-iac-mcp-server@latest
+
+# Amazon Bedrock AgentCore
+claude mcp add --transport stdio --scope user \
+  --env FASTMCP_LOG_LEVEL=ERROR \
+  amazon-bedrock-agentcore-mcp-server -- uvx awslabs.amazon-bedrock-agentcore-mcp-server@latest
+
+# Strands Agents
+claude mcp add --transport stdio --scope user \
+  --env FASTMCP_LOG_LEVEL=ERROR \
+  strands-agents-mcp-server -- uvx strands-agents-mcp-server
+```
+
+Verify with `claude mcp list` or `/mcp` inside Claude Code.
+
+## 4. Plugins
+
+This repository does not include `plugins/`. Reinstall plugins through Claude Code's plugin feature on each environment as needed.
+
+## 5. Local Settings
+
+Environment-specific overrides (permission lists, tool settings, etc.) go in `~/.claude/settings.local.json`. This file is not included in the repository — create and edit it freely per environment.
+
+## 6. Maintenance
+
+When you update the configuration, push changes to this repository. On other environments, pull and re-sync:
+
+```bash
+cd my-claude-code
+git pull
+rsync -av --exclude='.git' ./ ~/.claude/
+```

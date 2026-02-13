@@ -1,127 +1,185 @@
 # Claude Code Configuration
 
-This directory contains modular configuration for Claude Code following best practices.
+Modular, production-ready configuration for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — Anthropic's official CLI for Claude.
+
+Rules, skills, agents, commands, and hooks that enforce spec-driven development, professional output standards, and automated quality gates.
+
+> **Japanese version**: [README.ja.md](README.ja.md)
 
 ## Structure
 
 ```
 .claude/
-├── CLAUDE.md         # Project constitution (<5KB, core principles)
-├── settings.json     # Hook configuration
-├── rules/            # Standards (always applied)
+├── CLAUDE.md                  # Project constitution (<5KB)
+├── settings.json              # Hooks, permissions, env
+├── mcp.json                   # MCP server reference (see note below)
+│
+├── rules/                     # Always-applied standards (8 files)
+│   ├── spec-driven-development.md
 │   ├── output-standards.md
 │   ├── file-editing.md
 │   ├── model-selection.md
-│   └── documentation.md
-├── skills/           # Auto-invoked capabilities
+│   ├── context-management.md
+│   ├── memory-vs-repo-rules.md
+│   ├── documentation.md
+│   └── git-branch-naming.md
+│
+├── skills/                    # On-demand capabilities (5 skills)
+│   ├── speckit-workflow/
+│   ├── document-assistant/
+│   ├── presentation-assistant/
 │   ├── file-editing-strategy/
 │   └── documentation-management/
-├── agents/           # Specialized subagents
-│   └── doc-updater.md
-└── commands/         # User-initiated shortcuts
-    ├── update-readme.md
-    └── update-changelog.md
+│
+├── agents/                    # Delegated subagents (8 agents)
+│   ├── quality-checker.md
+│   ├── doc-updater.md
+│   ├── architecture-reviewer.md
+│   ├── spec-compliance-reviewer.md
+│   ├── file-edit-reviewer.md
+│   ├── context-optimizer.md
+│   ├── model-selector.md
+│   └── rules-organizer.md
+│
+├── commands/                  # User-invoked slash commands (5 commands)
+│   ├── speckit.md
+│   ├── update-readme.md
+│   ├── update-changelog.md
+│   ├── quality-check.md
+│   └── validate-docs.md
+│
+└── hooks/                     # Lifecycle event scripts (13 hooks)
+    ├── advanced-pre-tool-use.sh
+    ├── pre-edit-validate.sh
+    ├── speckit-pre-edit.sh
+    ├── pre-bash-commit-check.sh
+    ├── post-edit-format.sh
+    ├── post-edit-doc-tracker.sh
+    ├── pre-commit-docs.sh
+    ├── pre-commit-validate.sh
+    ├── quality-gate.sh
+    ├── stop-final-check.sh
+    ├── subagent-stop-guide.sh
+    ├── teammate-idle.sh
+    └── task-completed.sh
 ```
 
 ## How It Works
 
 ### CLAUDE.md (Constitution)
-- Loaded at every session start
-- Keep under 5KB
-- Core principles and pointers
-- Quick reference only
+
+Loaded at every session start. Keeps under 5KB — contains core principles, quick reference, and pointers to rules/skills/agents. Acts as the single entry point for Claude Code's behavior.
 
 ### Rules (Always Applied)
-- Standards enforced on all outputs
-- Professional writing guidelines
-- File editing strategy
-- Model selection guidance
 
-### Skills (Auto-Invoked)
-- Activate based on task context
-- YAML frontmatter for metadata
-- Provide specialized guidance
-- Load automatically when relevant
+Standards enforced in every session. Claude Code reads these via CLAUDE.md references:
 
-### Subagents (Specialized)
-- Isolated context windows
-- Specific tool permissions
-- Delegate heavy/parallel work
-- Return summaries to main agent
+| Rule | Purpose |
+|------|---------|
+| `spec-driven-development` | Specification before implementation |
+| `output-standards` | McKinsey-style professional writing |
+| `file-editing` | Targeted edits over full rewrites |
+| `model-selection` | Opus / Sonnet / Haiku task routing |
+| `context-management` | Token and session optimization |
+| `memory-vs-repo-rules` | Memory vs repo-level config taxonomy |
+| `documentation` | Docs synchronized with code |
+| `git-branch-naming` | Branch naming conventions |
 
-### Commands (User-Initiated)
-- Explicit shortcuts (`/command`)
-- Manual workflow triggers
-- Project-specific automations
+### Skills (On-Demand)
+
+Activate automatically by task context or manually via `/name`:
+
+| Skill | Trigger |
+|-------|---------|
+| `speckit-workflow` | Code modifications, `/speckit` |
+| `document-assistant` | Business document creation |
+| `presentation-assistant` | Slide design |
+| `file-editing-strategy` | Editing large files (>100 lines) |
+| `documentation-management` | README/CHANGELOG updates |
+
+### Agents (Delegated Tasks)
+
+Specialized subagents with isolated context windows:
+
+| Agent | Purpose |
+|-------|---------|
+| `quality-checker` | Three-stage output validation |
+| `doc-updater` | Atomic documentation updates |
+| `architecture-reviewer` | System design review |
+| `spec-compliance-reviewer` | Spec traceability verification |
+| `file-edit-reviewer` | Edit efficiency assessment |
+| `context-optimizer` | Context usage optimization |
+| `model-selector` | Model assignment recommendations |
+| `rules-organizer` | Rules placement guidance |
+
+### Commands (User-Invoked)
+
+Explicit slash commands for common workflows:
+
+| Command | Action |
+|---------|--------|
+| `/speckit` | Run spec-driven development workflow |
+| `/update-readme` | Sync README with current project state |
+| `/update-changelog` | Add CHANGELOG entry |
+| `/quality-check` | Run all quality validations |
+| `/validate-docs` | Check documentation accuracy |
 
 ### Hooks (Lifecycle Events)
-- Pre/Post tool use validation
-- Automated quality checks
-- Branch protection
-- Next-step guidance
-- Agent teams: TeammateIdle & TaskCompleted hooks; see CLAUDE.md § Agent Teams
 
-## Usage
+Configured in `settings.json`. Run automatically at lifecycle events:
 
-### For Developers
+| Event | Hooks | Purpose |
+|-------|-------|---------|
+| **PreToolUse** | `advanced-pre-tool-use.sh`, `pre-edit-validate.sh`, `speckit-pre-edit.sh`, `pre-bash-commit-check.sh` | Branch protection, safety checks, spec-kit nudges |
+| **PostToolUse** | `post-edit-format.sh`, `post-edit-doc-tracker.sh` | Auto-format, track doc changes |
+| **Stop** | `stop-final-check.sh` | Final validation checklist |
+| **SubagentStop** | `subagent-stop-guide.sh` | Suggest next steps |
+| **TeammateIdle** | `teammate-idle.sh` | Agent team idle control |
+| **TaskCompleted** | `task-completed.sh` | Agent team task gate |
+
+Additional utility hooks: `pre-commit-docs.sh`, `pre-commit-validate.sh`, `quality-gate.sh`.
+
+## Quick Reference
 
 ```bash
-# Use commands
-/update-readme
-/update-changelog
-
-# Let skills activate automatically
-# (editing large files → file-editing-strategy activates)
-
-# Delegate to subagents
-# "Update all documentation" → doc-updater subagent runs
+/speckit            # Spec-driven development workflow
+/update-readme      # Sync README
+/update-changelog   # Add CHANGELOG entry
+/quality-check      # Run quality validations
+/validate-docs      # Check documentation accuracy
 ```
 
-### For Claude Code
+## MCP Servers
 
-1. Loads CLAUDE.md at startup
-2. Applies rules to all work
-3. Activates skills when relevant
-4. Delegates to subagents for specialized work
-5. Runs hooks at lifecycle events
+The `mcp.json` file is included as a **reference only**. Claude Code stores MCP configuration in `~/.claude.json` (outside `~/.claude/`), so `~/.claude/mcp.json` is not read automatically.
 
-## Best Practices
+To register MCP servers, use `claude mcp add`. See [README-INSTALL.md](README-INSTALL.md) for details.
 
-**CLAUDE.md**:
-- Keep minimal (<5KB)
-- Link to detailed content
-- Update quarterly
+Included MCP servers:
+- **aws-documentation-mcp-server** — AWS documentation search
+- **aws-knowledge-mcp-server** — AWS knowledge base (HTTP)
+- **aws-api-mcp-server** — AWS API operations
+- **aws-iac-mcp-server** — AWS Infrastructure as Code
+- **amazon-bedrock-agentcore-mcp-server** — Amazon Bedrock AgentCore
+- **strands-agents-mcp-server** — Strands Agents
 
-**Rules**:
-- Always-applicable standards
-- No task-specific content
-- Reference materials
+## Installation
 
-**Skills**:
-- Task-triggered guidance
-- Clear activation criteria
-- Link to rules for details
-
-**Subagents**:
-- Isolated heavy work
-- Specific tool access
-- Clear responsibilities
-
-**Commands**:
-- Repeatable workflows
-- Explicit user control
-- Single-purpose actions
+See [README-INSTALL.md](README-INSTALL.md) for setup instructions on other environments.
 
 ## Customization
 
-Edit files to match your project:
+1. **CLAUDE.md** — Add project-specific principles (keep <5KB)
+2. **Rules** — Adjust standards for your domain
+3. **Skills** — Add project-specific patterns and workflows
+4. **Agents** — Create specialized subagents
+5. **Commands** — Add workflow shortcuts
+6. **Hooks** — Customize lifecycle automation
+7. **settings.json** — Adjust permissions, env vars, hook config
 
-1. **CLAUDE.md** - Add project-specific principles
-2. **Rules** - Adjust standards for your domain
-3. **Skills** - Add project patterns
-4. **Subagents** - Create specialized agents
-5. **Commands** - Add workflow shortcuts
+## Links
 
----
-
-**For comprehensive guidance**, see individual files and https://code.claude.com/docs
+- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
+- [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+- [Agent Teams](https://code.claude.com/docs/en/agent-teams)
+- [GitHub spec-kit](https://github.com/github/spec-kit)
