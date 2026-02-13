@@ -61,6 +61,14 @@
       "disabled": false,
       "autoApprove": []
     },
+    "google-developer-knowledge": {
+      "type": "http",
+      "url": "https://developerknowledge.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-Api-Key": "${GOOGLE_DEV_KNOWLEDGE_API_KEY}"
+      },
+      "disabled": false
+    },
     "github": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
