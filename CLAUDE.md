@@ -8,10 +8,11 @@
 ## Core Principles
 
 1. **Spec first** — Define what to build before deciding how (GitHub spec-kit)
-2. **Code is source of truth** — Documentation reflects implementation, not aspirations
-3. **Quality first** — Professional standards, international best practices
-4. **Efficiency** — Targeted edits for large files, minimal changes, clear diffs
-5. **Maintainability** — Consistent patterns, clear structure, automated quality checks
+2. **TDD always** — For any code change, write/adjust tests first, watch them fail, then implement to pass
+3. **Code is source of truth** — Documentation reflects implementation, not aspirations
+4. **Quality first** — Professional standards, international best practices
+5. **Efficiency** — Targeted edits for large files, minimal changes, clear diffs
+6. **Maintainability** — Consistent patterns, clear structure, automated quality checks
 
 ---
 
@@ -35,7 +36,7 @@ npm run lint       # Check code quality
 
 Located in `rules/` — constraints loaded every session:
 
-- `spec-driven-development.md` — Spec-first workflow
+- `spec-driven-development.md` — Spec-first workflow + mandatory TDD cycle for code changes
 - `output-standards.md` — McKinsey-style writing standards
 - `file-editing.md` — Targeted edits vs full rewrites
 - `model-selection.md` — Opus/Sonnet/Haiku selection

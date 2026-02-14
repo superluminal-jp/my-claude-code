@@ -8,7 +8,7 @@
 
 ## Core Principle
 
-Specification first, implementation second. Eliminates ambiguity, reduces rework, produces traceable changes.
+Specification first, implementation second. For code changes, apply TDD by writing or updating tests first, confirming they fail, then implementing to pass. This eliminates ambiguity, reduces rework, and produces traceable changes.
 
 ## Workflow Phases
 
@@ -16,7 +16,7 @@ Specification first, implementation second. Eliminates ambiguity, reduces rework
 2. **Specify** — What the change accomplishes, acceptance criteria, constraints
 3. **Plan** — Technical approach, dependencies, architecture
 4. **Tasks** — Atomic, testable implementation steps
-5. **Implement** — Build according to tasks, traceability to spec
+5. **Implement (TDD cycle)** — Write/adjust a test → confirm failing state → implement minimal code to pass → refactor while keeping tests green
 
 ## When to Apply
 
@@ -30,7 +30,7 @@ Specification first, implementation second. Eliminates ambiguity, reduces rework
 ## Quality Gates
 
 **Before**: Spec covers acceptance criteria, ambiguities resolved, tasks are atomic and testable.
-**During**: Each change traces to a spec requirement, no unspecified behavior.
+**During**: Each change traces to a spec requirement, no unspecified behavior, and every code change follows red→green→refactor.
 **After**: Tests validate spec criteria, docs reflect implemented spec.
 
 ## Anti-Patterns
