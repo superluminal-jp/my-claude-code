@@ -20,13 +20,15 @@ cd my-claude-code
 
 ## 2. ~/.claude への同期
 
+以下の `rsync` はすべて `--exclude='.claude'` を付けています。クローン内にリポジトリ用の `.claude/`（プロジェクト／エディタ用メタデータなど）がある場合、それが `~/.claude/.claude/` にコピーされるのを防ぎます。Claude Code のユーザー設定は通常 `~/.claude/` 直下を参照します。
+
 ### 新規セットアップ（既存の ~/.claude がない場合）
 
 リポジトリの内容をそのままコピーします。
 
 ```bash
 mkdir -p ~/.claude
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```
 
 ### マージ（既存の ~/.claude に重ねる）
@@ -34,7 +36,7 @@ rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude
 リポジトリに存在するファイルのみ上書きします。`~/.claude` 固有のファイル（独自の rules、skills など）はそのまま残ります。
 
 ```bash
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```
 
 - `~/.claude/settings.local.json` などローカル専用の設定はリポジトリに含まれていないため、そのまま残ります。
@@ -45,7 +47,7 @@ rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude
 `~/.claude` をリポジトリの内容で完全に置き換えます。リポジトリにないファイルは削除されます。
 
 ```bash
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' --delete ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' --delete ./ ~/.claude/
 ```
 
 - `--delete` により、リポジトリに存在しないファイル・ディレクトリは `~/.claude` から削除されます。
@@ -145,5 +147,5 @@ claude mcp add --transport stdio --scope project \
 ```bash
 cd my-claude-code
 git pull
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```

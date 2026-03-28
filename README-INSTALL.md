@@ -20,13 +20,15 @@ cd my-claude-code
 
 ## 2. Sync to ~/.claude
 
+All commands below use `--exclude='.claude'` so a **repository-local** `.claude/` directory inside the clone (project/editor metadata) is not copied to `~/.claude/.claude/`, which is not where Claude Code reads user config.
+
 ### New setup (no existing ~/.claude)
 
 Copy the repository contents directly:
 
 ```bash
 mkdir -p ~/.claude
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```
 
 ### Merge (overlay on existing ~/.claude)
@@ -34,7 +36,7 @@ rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude
 Overwrites only files that exist in the repository. Files unique to your `~/.claude` (custom rules, skills, etc.) are preserved:
 
 ```bash
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```
 
 - `~/.claude/settings.local.json` and other local-only files are not in the repository and remain untouched.
@@ -45,7 +47,7 @@ rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude
 Replaces `~/.claude` entirely. Files not in the repository are deleted:
 
 ```bash
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' --delete ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' --delete ./ ~/.claude/
 ```
 
 - `--delete` removes files and directories from `~/.claude` that do not exist in the repository.
@@ -145,5 +147,5 @@ When you update the configuration, push changes to this repository. On other env
 ```bash
 cd my-claude-code
 git pull
-rsync -av --exclude='.git' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
+rsync -av --exclude='.git' --exclude='.claude' --exclude='.DS_Store' --exclude='Thumbs.db' --exclude='Desktop.ini' --exclude='._*' ./ ~/.claude/
 ```
