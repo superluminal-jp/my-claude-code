@@ -77,7 +77,7 @@ Standards enforced in every session. Claude Code reads these via CLAUDE.md refer
 | Rule | Purpose |
 |------|---------|
 | `spec-driven-development` | Specification before implementation |
-| `output-standards` | McKinsey-style professional writing |
+| `output-standards` | Professional writing and analysis (BLUF, evidence, no framework jargon in output) |
 | `file-editing` | Targeted edits over full rewrites |
 | `model-selection` | Opus / Sonnet / Haiku task routing |
 | `context-management` | Token and session optimization |

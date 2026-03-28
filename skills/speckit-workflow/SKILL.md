@@ -1,6 +1,6 @@
 ---
 name: speckit-workflow
-description: Enforces spec-driven development using GitHub spec-kit so specifications exist before implementation. Use when modifying code — adding features, fixing bugs, refactoring, or making architectural changes.
+description: Spec-first workflow with GitHub spec-kit (constitution, specify, plan, tasks, implement). Use proactively before any non-trivial code change — features, refactors, architecture shifts, or bug fixes that need traceability.
 allowed-tools: Read, Grep, Glob, Bash
 user-invocable: true
 ---

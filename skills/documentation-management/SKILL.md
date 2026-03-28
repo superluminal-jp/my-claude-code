@@ -1,6 +1,6 @@
 ---
 name: documentation-management
-description: Ensures docs stay synchronized with code (README, CHANGELOG, API docs) following Keep a Changelog and best practices. Use when updating README, CHANGELOG, or API documentation.
+description: Keeps README, CHANGELOG, and API docs aligned with code (Keep a Changelog, runnable commands). Use proactively after behavior or setup changes, before release, or when the doc-updater agent is delegated.
 allowed-tools: Read, Write, Grep, Glob
 user-invocable: true
 ---
@@ -8,6 +8,8 @@ user-invocable: true
 # Documentation Management
 
 **Auto-activates for**: README updates, CHANGELOG entries, API doc generation, documentation synchronization.
+
+**Voice**: For prose in README and guides, prefer clear, active, plain language per **`rules/output-standards.md`** when loaded (no framework jargon in user-facing text unless defining a standard).
 
 ---
 

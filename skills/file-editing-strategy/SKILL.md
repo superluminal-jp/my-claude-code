@@ -1,6 +1,7 @@
 ---
 name: file-editing-strategy
-description: Provides guidance on surgical, targeted edits for large files instead of full rewrites. Use when editing files over 100 lines.
+description: Surgical edits vs full rewrites for large files (line-count heuristics, multi-section sequencing, diff hygiene). Use proactively when editing files over ~100 lines or when a rewrite would inflate review risk.
+allowed-tools: Read, Grep, Glob
 user-invocable: false
 ---
 

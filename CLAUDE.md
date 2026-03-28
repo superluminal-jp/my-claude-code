@@ -37,7 +37,7 @@ npm run lint       # Check code quality
 Located in `rules/` — constraints loaded every session:
 
 - `spec-driven-development.md` — Spec-first workflow + mandatory TDD cycle for code changes
-- `output-standards.md` — McKinsey-style writing standards
+- `output-standards.md` — Response quality, analytical reasoning, document standards
 - `file-editing.md` — Targeted edits vs full rewrites
 - `model-selection.md` — Opus/Sonnet/Haiku selection
 - `context-management.md` — Token optimization
@@ -48,15 +48,17 @@ Located in `rules/` — constraints loaded every session:
 
 Located in `skills/` — activate by task match or `/name`:
 
-- **document-assistant** — McKinsey-style business documents
-- **presentation-assistant** — McKinsey-style slide design
+- **document-assistant** — Professional documents and analyses (`skills/document-assistant/`, complements `rules/output-standards.md`)
+- **presentation-assistant** — Slide specs: conclusion-first titles, chart discipline, Tufte-style clarity (`skills/presentation-assistant/`)
 - **speckit-workflow** — Spec-driven development procedure
 - **file-editing-strategy** — Large file editing guidance
 - **documentation-management** — README, CHANGELOG, API docs
+- **decision-support** — Decision frameworks, problem decomposition, risk assessment
+- **thinking-partner** — Sounding board, devil's advocate, learning support
 
 ## Subagents (Delegated Tasks)
 
-Located in `agents/` — each applies its corresponding rule:
+Located in `agents/` — each applies its corresponding rule. For Claude Code’s default project scope, copy or symlink these definitions to `.claude/agents/` (see [docs/agents-best-practices.md](docs/agents-best-practices.md) §5–§13). Custom agents may inject `skills:` from `skills/` per that doc.
 
 | Agent | Rule | Purpose |
 |-------|------|---------|
@@ -100,4 +102,4 @@ When compacting, always preserve: list of modified files, test/lint commands run
 
 ---
 
-**Last Updated**: 2026-02-10
+**Last Updated**: 2026-03-28
