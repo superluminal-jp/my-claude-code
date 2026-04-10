@@ -54,12 +54,12 @@
     },
     "strands-agents-mcp-server": {
       "command": "uvx",
-      "args": ["strands-agents-mcp-server"],
+      "args": ["strands-agents-mcp-server@latest"],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": ["search_docs", "fetch_doc"]
     },
     "google-developer-knowledge": {
       "type": "http",
