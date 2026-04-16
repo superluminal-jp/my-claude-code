@@ -38,14 +38,18 @@ Place `CLAUDE.md` at `~/.claude/CLAUDE.md` to apply across all projects.
 
 Configured in `.mcp.json`, auto-approved via `enableAllProjectMcpServers: true`.
 
-| Server              | Transport | Package / URL                                  | Version |
-|---------------------|-----------|------------------------------------------------|---------|
-| `aws-knowledge`     | HTTP      | `https://knowledge-mcp.global.api.aws`         | —       |
-| `aws-documentation` | stdio     | `awslabs.aws-documentation-mcp-server`         | 1.1.20  |
-| `bedrock-agentcore` | stdio     | `awslabs.amazon-bedrock-agentcore-mcp-server`  | 0.0.16  |
-| `strands-agents`    | stdio     | `strands-agents-mcp-server`                    | 0.2.7   |
+| Server                       | Transport | Package / URL                                        | Version |
+|------------------------------|-----------|------------------------------------------------------|---------|
+| `aws-knowledge`              | HTTP      | `https://knowledge-mcp.global.api.aws`               | —       |
+| `aws-documentation`          | stdio     | `awslabs.aws-documentation-mcp-server`               | 1.1.20  |
+| `bedrock-agentcore`          | stdio     | `awslabs.amazon-bedrock-agentcore-mcp-server`        | 0.0.16  |
+| `strands-agents`             | stdio     | `strands-agents-mcp-server`                          | 0.2.7   |
+| `google-developer-knowledge` | HTTP      | `https://developerknowledge.googleapis.com/mcp`      | —       |
+| `microsoft-learn`            | HTTP      | `https://learn.microsoft.com/api/mcp`                | —       |
 
-**Prerequisite:** `uv` must be installed for the three `uvx`-based servers.
+**Prerequisites:**
+- `uv` must be installed for the four `uvx`-based servers.
+- `GOOGLE_DEV_KNOWLEDGE_API_KEY` env var must be set for `google-developer-knowledge`.
 
 ```sh
 curl -LsSf https://astral.sh/uv/install.sh | sh

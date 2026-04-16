@@ -32,17 +32,20 @@ from https://code.claude.com/docs/.
 
 ## MCP Servers
 
-Four MCP servers are configured in `.mcp.json` and auto-approved via settings.
+Six MCP servers are configured in `.mcp.json` and auto-approved via settings.
 
-| Server              | Key use cases                                                    |
-|---------------------|------------------------------------------------------------------|
-| `aws-knowledge`     | Search authoritative AWS knowledge base (remote HTTP, no install) |
-| `aws-documentation` | Fetch and search AWS official documentation pages                |
-| `bedrock-agentcore` | Search and fetch Amazon Bedrock AgentCore docs                   |
-| `strands-agents`    | Search and fetch Strands Agents framework docs                   |
+| Server                      | Key use cases                                                    |
+|-----------------------------|------------------------------------------------------------------|
+| `aws-knowledge`             | Search authoritative AWS knowledge base (remote HTTP, no install) |
+| `aws-documentation`         | Fetch and search AWS official documentation pages                |
+| `bedrock-agentcore`         | Search and fetch Amazon Bedrock AgentCore docs                   |
+| `strands-agents`            | Search and fetch Strands Agents framework docs                   |
+| `google-developer-knowledge`| Search authoritative Google developer knowledge base (remote HTTP) |
+| `microsoft-learn`           | Search and fetch Microsoft Learn / Azure official documentation  |
 
-- Prefer these tools over general web search when answering AWS or Strands questions
+- Prefer these tools over general web search when answering AWS, GCP, or Azure questions
 - `aws-documentation` supports `AWS_DOCUMENTATION_PARTITION=aws-cn` for China regions
+- `google-developer-knowledge` requires `GOOGLE_DEV_KNOWLEDGE_API_KEY` env var
 - All `uvx`-based servers require `uv` to be installed: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ## Rules
