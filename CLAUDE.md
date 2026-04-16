@@ -1,105 +1,51 @@
-# Project Guidelines
+# Claude Code Best Practices Configuration
 
-**Purpose**: Core principles and references for AI coding assistants.
-**Philosophy**: Keep this file concise (<5KB). Details live in `rules/`, `skills/`, `docs/`.
-
----
+This configuration enforces the official Claude Code specifications and best practices
+from https://code.claude.com/docs/.
 
 ## Core Principles
 
-1. **Spec first** — Define what to build before deciding how (GitHub spec-kit)
-2. **TDD always** — For any code change, write/adjust tests first, watch them fail, then implement to pass
-3. **Code is source of truth** — Documentation reflects implementation, not aspirations
-4. **Quality first** — Professional standards, international best practices
-5. **Efficiency** — Targeted edits for large files, minimal changes, clear diffs
-6. **Maintainability** — Consistent patterns, clear structure, automated quality checks
+- Apply minimal changes: do only what is explicitly requested, nothing more
+- Verify before reporting: test golden paths and edge cases before claiming completion
+- Prefer existing files: edit over create; delete only what is confirmed unused
 
----
+## Code Quality
 
-## Quick Reference
+- Write no speculative abstractions: complexity should match the task, not hypothetical future needs
+- Add no error handling for impossible scenarios: trust framework guarantees; validate only at system boundaries
+- Add no unsolicited improvements: no cleanup, refactoring, or enhancements beyond scope
+- Add no docstrings, comments, or type annotations to untouched code
+- Three similar lines are better than a premature abstraction
 
-```bash
-npm run dev        # Start development server
-npm test           # Run all tests
-npm run lint       # Check code quality
-/speckit           # Spec-driven development workflow
-/update-readme     # Sync README
-/update-changelog  # Add CHANGELOG entry
-/quality-check     # Run quality validations
-```
+## Security
 
-**Structure**: `src/`, `tests/`, `docs/` (architecture, api, guides). Root: README.md, CHANGELOG.md, CLAUDE.md.
+- Never introduce command injection, XSS, SQL injection, or OWASP Top 10 vulnerabilities
+- Validate input at system boundaries (user input, external APIs) only
+- If insecure code is written, fix it immediately before proceeding
 
----
+## Response Style
 
-## Rules (Always Applied)
+- Keep responses short and concise
+- Reference code with `file_path:line_number` pattern for navigation
+- No trailing summaries of what was just done
+- No emojis unless explicitly requested
 
-Located in `rules/` — constraints loaded every session:
+## MCP Servers
 
-- `spec-driven-development.md` — Spec-first workflow + mandatory TDD cycle for code changes
-- `output-standards.md` — Response quality, analytical reasoning, document standards
-- `file-editing.md` — Targeted edits vs full rewrites
-- `model-selection.md` — Opus/Sonnet/Haiku selection
-- `context-management.md` — Token optimization
-- `memory-vs-repo-rules.md` — Memory vs repo rules taxonomy
-- `documentation.md` — Docs synchronized with code
+Four MCP servers are configured in `.mcp.json` and auto-approved via settings.
 
-## Skills (On-Demand)
+| Server              | Key use cases                                                    |
+|---------------------|------------------------------------------------------------------|
+| `aws-knowledge`     | Search authoritative AWS knowledge base (remote HTTP, no install) |
+| `aws-documentation` | Fetch and search AWS official documentation pages                |
+| `bedrock-agentcore` | Search and fetch Amazon Bedrock AgentCore docs                   |
+| `strands-agents`    | Search and fetch Strands Agents framework docs                   |
 
-Located in `skills/` — activate by task match or `/name`:
+- Prefer these tools over general web search when answering AWS or Strands questions
+- `aws-documentation` supports `AWS_DOCUMENTATION_PARTITION=aws-cn` for China regions
+- All `uvx`-based servers require `uv` to be installed: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-- **document-assistant** — Professional documents and analyses (`skills/document-assistant/`, complements `rules/output-standards.md`)
-- **presentation-assistant** — Slide specs: conclusion-first titles, chart discipline, Tufte-style clarity (`skills/presentation-assistant/`)
-- **speckit-workflow** — Spec-driven development procedure
-- **file-editing-strategy** — Large file editing guidance
-- **documentation-management** — README, CHANGELOG, API docs
-- **decision-support** — Decision frameworks, problem decomposition, risk assessment
-- **thinking-partner** — Sounding board, devil's advocate, learning support
+## Rules
 
-## Subagents (Delegated Tasks)
-
-Located in `agents/` — each applies its corresponding rule. For Claude Code’s default project scope, copy or symlink these definitions to `.claude/agents/` (see [docs/agents-best-practices.md](docs/agents-best-practices.md) §5–§13). Custom agents may inject `skills:` from `skills/` per that doc.
-
-| Agent | Rule | Purpose |
-|-------|------|---------|
-| `doc-updater` | `documentation` | Update docs atomically |
-| `quality-checker` | `output-standards` | Validate against standards |
-| `architecture-reviewer` | — | Review system design |
-| `spec-compliance-reviewer` | `spec-driven-development` | Verify spec compliance |
-| `file-edit-reviewer` | `file-editing` | Review edit efficiency |
-| `context-optimizer` | `context-management` | Optimize context usage |
-| `model-selector` | `model-selection` | Recommend model assignments |
-| `rules-organizer` | `memory-vs-repo-rules` | Organize rules placement |
-
-## Hooks (Automated)
-
-Configured in `settings.json`:
-
-- **PreToolUse** — Branch protection, safety checks, spec-kit nudges
-- **PostToolUse** — Auto-format after Edit/Write
-- **TeammateIdle** — Agent team: allow or block teammate going idle (exit 2 = keep working)
-- **SubagentStop** — Suggest next steps
-- **Stop** — Final validation checklist
-- **TaskCompleted** — Agent team: allow or block task completion (exit 2 = block with feedback)
-
-## Agent Teams
-
-Agent teams are enabled (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`). Use for parallel review, competing-hypothesis debugging, and role-based work. Teammates load CLAUDE.md and project context; give task-specific context in spawn prompts. Size tasks so each teammate owns distinct files to avoid conflicts. Clean up via the lead: ask the lead to shut down teammates, then "Clean up the team." Details: https://code.claude.com/docs/en/agent-teams
-
----
-
-## Workflow
-
-Specify → Plan → Tasks → Execute. Update docs atomically. Quality-checker for three-stage review. Pre-commit validates.
-
-## Contributing
-
-Before commit: tests pass, docs updated, CHANGELOG entry, quality checks.
-
-## Context Compaction
-
-When compacting, always preserve: list of modified files, test/lint commands run, key decisions made.
-
----
-
-**Last Updated**: 2026-03-28
+Rules are auto-loaded from `.claude/rules/`. See `permissions.md`, `tools.md`,
+`advisor.md`, and `development.md` in that directory.
