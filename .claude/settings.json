@@ -3,7 +3,7 @@
 
   "defaultMode": "acceptEdits",
   "model": "claude-sonnet-4-6",
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": true,
 
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-bash.sh",
+            "command": "\"$HOME\"/.claude/hooks/pre-bash.sh",
             "timeout": 10
           }
         ]
