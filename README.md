@@ -14,8 +14,13 @@ every project on the machine.
 - **`.claude/settings.json`** — User-level settings with safe defaults,
   permission allowlist/denylist, and hook wiring
 - **`.claude/rules/`** — Focused rule files referenced from `CLAUDE.md`
-- **`.claude/hooks/pre-bash.sh`** — Blocks dangerous Bash commands at runtime
-  (force push, `rm -rf`, `git clean -f`, `curl | bash`)
+- **`.claude/hooks/pre-bash.sh`** — PreToolUse: blocks destructive git/`rm`,
+  `curl | bash`, non-localhost `http://` for `curl`/`wget`, and reading
+  `.ssh`/`.aws` or `*.pem`/`*.p12`/`*.pfx` via common read commands (see
+  [`.claude/rules/permissions.md`](.claude/rules/permissions.md))
+- **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and pinned
+  versions across `.mcp.json`, `install-mcp.sh`, `settings.json`, and
+  [`mcp.md`](.claude/rules/mcp.md) (requires `jq` on `PATH`)
 
 ## Install as user configuration
 
@@ -48,6 +53,8 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
+├── scripts/
+│   └── check-mcp-consistency.sh    # MCP catalog drift check (jq required)
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
 └── .claude/                        # <-- copy this directory's contents to ~/.claude/
     ├── CLAUDE.md                   # Main user memory (imports rules/)
@@ -59,17 +66,29 @@ my-claude-code/
     │   ├── advisor.md              # Advisor role: analysis, decisions, consulting
     │   ├── development.md          # TDD, documentation sync
     │   ├── harness.md              # Patterns from "Harnessing Claude's Intelligence"
+    │   ├── mcp.md                  # MCP server catalog (single source of truth for docs)
     │   └── speckit.md              # Spec-driven development with spec-kit (opt-in)
     ├── hooks/
     │   └── pre-bash.sh             # PreToolUse: block dangerous commands
     └── install-mcp.sh              # Register all MCP servers at user scope
 ```
 
+## Verification
+
+After changing `.mcp.json`, `.claude/install-mcp.sh`, `.claude/settings.json`
+(MCP allowlist), or [`.claude/rules/mcp.md`](.claude/rules/mcp.md):
+
+```sh
+./scripts/check-mcp-consistency.sh
+```
+
 ## MCP Servers
 
-MCP servers are defined in `.mcp.json` for project-scope use. User-scope MCP
-servers are registered via the CLI (they are stored separately and are not
-installed by copying `.claude/`):
+MCP servers are defined in `.mcp.json` for project-scope use. Full catalog
+(transport, package versions, prerequisites): [`.claude/rules/mcp.md`](.claude/rules/mcp.md).
+
+User-scope MCP servers are registered via the CLI (stored separately; not
+installed by copying `.claude/` alone). Equivalent commands:
 
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
@@ -84,22 +103,7 @@ claude mcp add -s user \
 claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
 ```
 
-| Server                       | Transport | Package / URL                                        | Version |
-|------------------------------|-----------|------------------------------------------------------|---------|
-| `aws-knowledge`              | HTTP      | `https://knowledge-mcp.global.api.aws`               | —       |
-| `aws-documentation`          | stdio     | `awslabs.aws-documentation-mcp-server`               | 1.1.20  |
-| `bedrock-agentcore`          | stdio     | `awslabs.amazon-bedrock-agentcore-mcp-server`        | 0.0.16  |
-| `strands-agents`             | stdio     | `strands-agents-mcp-server`                          | 0.2.7   |
-| `google-developer-knowledge` | HTTP      | `https://developerknowledge.googleapis.com/mcp`      | —       |
-| `microsoft-learn`            | HTTP      | `https://learn.microsoft.com/api/mcp`                | —       |
-
-**Prerequisites:**
-- `uv` must be installed for the four `uvx`-based servers.
-- `GOOGLE_DEV_KNOWLEDGE_API_KEY` env var must be set for `google-developer-knowledge`.
-
-```sh
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+Or run `~/.claude/install-mcp.sh` after copying `.claude/` (see [Install](#install-as-user-configuration)).
 
 ## Overriding per project
 

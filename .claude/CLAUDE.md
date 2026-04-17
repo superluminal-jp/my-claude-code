@@ -34,38 +34,14 @@ from https://code.claude.com/docs/.
 
 Six MCP servers are registered at user scope via `~/.claude/install-mcp.sh` and auto-approved via settings.
 
-| Server                      | Key use cases                                                    |
-|-----------------------------|------------------------------------------------------------------|
-| `aws-knowledge`             | Search authoritative AWS knowledge base (remote HTTP, no install) |
-| `aws-documentation`         | Fetch and search AWS official documentation pages                |
-| `bedrock-agentcore`         | Search and fetch Amazon Bedrock AgentCore docs                   |
-| `strands-agents`            | Search and fetch Strands Agents framework docs                   |
-| `google-developer-knowledge`| Search authoritative Google developer knowledge base (remote HTTP) |
-| `microsoft-learn`           | Search and fetch Microsoft Learn / Azure official documentation  |
-
-- Prefer these tools over general web search when answering AWS, GCP, or Azure questions
-- `aws-documentation` supports `AWS_DOCUMENTATION_PARTITION=aws-cn` for China regions
-- `google-developer-knowledge` requires `GOOGLE_DEV_KNOWLEDGE_API_KEY` env var
-- All `uvx`-based servers require `uv` to be installed: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+@.claude/rules/mcp.md
 
 ## Rules
 
 Rules are auto-loaded from `.claude/rules/`. See `permissions.md`, `tools.md`,
-`advisor.md`, `development.md`, and `harness.md` in that directory.
+`advisor.md`, `development.md`, `harness.md`, `hooks.md` (reference only),
+`mcp.md` (MCP catalog), and `speckit.md` (opt-in) in that directory.
 
 ## Harnessing Claude's Intelligence
 
-When building agents, tools, or prompts on top of Claude, follow the three
-patterns from https://claude.com/blog/harnessing-claudes-intelligence:
-
-1. **Use what it already knows** — prefer bash, text editors, and standard
-   CLIs over bespoke tools
-2. **Ask what you can stop doing** — on every model upgrade, prune harness
-   scaffolding (context resets, reminders, retry loops) that existed only to
-   compensate for prior-model limits
-3. **Set boundaries carefully** — promote actions to dedicated tools only for
-   security, observability, or UX boundaries; let Claude filter tool output
-   via code execution instead of routing every result through the context
-   window
-
-Details in `.claude/rules/harness.md`.
+@.claude/rules/harness.md

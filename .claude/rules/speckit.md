@@ -1,73 +1,65 @@
 # Spec-Driven Development (SDD) with spec-kit
 
-Use [github/spec-kit](https://github.com/github/spec-kit) as the standard tooling for SDD.
-Specifications are the single source of truth for behavior.
+Specs are the single source of truth for behavior. Tool: [github/spec-kit](https://github.com/github/spec-kit).
 
 ## Setup
 
 ```bash
-# Install spec-kit CLI (requires uv and Python 3.11+)
+# Install CLI (requires uv, Python 3.11+)
 uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
-
-# Initialize in project root
 specify init <PROJECT_NAME>
 ```
 
-This creates the `.specify/` directory with templates and slash commands wired into `.claude/CLAUDE.md`.
+Creates `.specify/` with templates and slash commands wired into `.claude/CLAUDE.md`.
 
-## Directory Structure
+## Layout
 
 ```
 .specify/
-├── memory/constitution.md          # Project governance principles
-├── templates/                      # Spec-kit templates (do not edit manually)
-└── specs/
-    └── {NUMBER}-{FEATURE-NAME}/    # e.g., 001-user-authentication/
-        ├── spec.md                 # Feature specification (source of truth)
-        ├── plan.md                 # Technical implementation plan
-        ├── tasks.md                # Actionable task checklist
-        └── checklist.md           # Quality gates
+├── memory/constitution.md              # Governance principles
+├── templates/                          # Do not edit manually
+└── specs/{NUMBER}-{FEATURE-NAME}/      # e.g., 001-user-authentication
+    ├── spec.md       # Feature spec (source of truth)
+    ├── plan.md       # Technical plan
+    ├── tasks.md      # Actionable checklist
+    └── checklist.md  # Quality gates
 ```
 
-## Workflow (execute in order)
+## Workflow (in order; validate each phase before the next)
 
-| Step | Command | Output |
-|------|---------|--------|
-| 1. Governance | `/speckit.constitution` | `.specify/memory/constitution.md` |
-| 2. Specify | `/speckit.specify <description>` | `specs/{N}-{name}/spec.md` |
-| 3. Clarify | `/speckit.clarify` | Updated `spec.md` |
-| 4. Plan | `/speckit.plan` | `plan.md` |
-| 5. Tasks | `/speckit.tasks` | `tasks.md` |
-| 6. Implement | `/speckit.implement` | Working code |
-| 7. Analyze | `/speckit.analyze` | Consistency report |
+| # | Command | Output |
+|---|---|---|
+| 1 | `/speckit.constitution` | `.specify/memory/constitution.md` |
+| 2 | `/speckit.specify <desc>` | `specs/{N}-{name}/spec.md` |
+| 3 | `/speckit.clarify` | Updated `spec.md` |
+| 4 | `/speckit.plan` | `plan.md` |
+| 5 | `/speckit.tasks` | `tasks.md` |
+| 6 | `/speckit.implement` | Working code |
+| 7 | `/speckit.analyze` (read-only) | Consistency report |
 
-Validate each phase before proceeding to the next.
+## `spec.md`
 
-## Spec Format (`spec.md`)
+- User scenarios: plain language + Given/When/Then.
+- Functional reqs: `FR-001…` with MUST/SHOULD.
+- Success criteria: `SC-001…` measurable.
+- Edge cases: boundary and exception paths.
+- **What and why** only — no technology/framework decisions.
 
-- **User scenarios**: Plain language + Given/When/Then acceptance criteria
-- **Functional requirements**: `FR-001`, `FR-002`, … with MUST/SHOULD language
-- **Success criteria**: `SC-001`, `SC-002`, … with measurable outcomes
-- **Edge cases**: Boundary conditions and exception paths
-- Focus on **what** and **why** — no technology or framework decisions in the spec
-
-## Task Format (`tasks.md`)
+## `tasks.md`
 
 ```
 - [ ] T001 [P] [US1] Description with exact file path
 ```
 
-- `[P]` marks tasks that can run in parallel (no shared file dependencies)
-- `[US1]` links to a user story
-- Phase order: Setup → Foundational infrastructure → User stories → Polish
-- Rule: models before services, services before endpoints
+- `[P]` = parallel-safe (no shared files). `[US1]` = links to a user story.
+- Phase order: Setup → Foundational → User stories → Polish.
+- Models before services; services before endpoints.
 
 ## Rules
 
-- Never write implementation code without a spec in place
-- Specs describe behavior; implementation satisfies the spec
-- When spec and implementation diverge, fix the implementation — not the spec (unless the spec is wrong)
-- Spec changes require explicit user approval; never silently update a spec to match a broken implementation
-- When a spec is ambiguous, surface the ambiguity via `/speckit.clarify` before coding
-- If implementation reveals a spec gap, document the gap and ask before filling it
-- `/speckit.analyze` is read-only; never auto-apply its remediation suggestions without review
+- No implementation code without a spec in place.
+- Implementation satisfies spec; on divergence fix the implementation (unless spec is wrong).
+- Spec changes need explicit user approval — never silently edit a spec to match broken code.
+- Ambiguous spec → `/speckit.clarify` before coding.
+- Implementation reveals a gap → document it and ask before filling.
+- `/speckit.analyze` suggestions are review-only; never auto-apply.

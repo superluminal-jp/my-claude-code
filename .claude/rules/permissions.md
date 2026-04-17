@@ -1,36 +1,27 @@
----
-name: Permission Rules
-description: Permission and access control best practices for Claude Code
-type: rules
----
-
 # Permission Rules
 
-## Destructive Operations
+Evaluation order: **deny → ask → allow** (first match wins; deny always overrides).
 
-Always confirm before executing:
+## Destructive Operations — confirm before executing
+
 - `rm -rf` or equivalent recursive deletion
 - `git reset --hard` (discards uncommitted work)
-- `git push --force` or `git push -f` (overwrites remote history)
+- `git push --force` / `-f` (rewrites remote history)
 - `git clean -f` (deletes untracked files)
-- Dropping database tables or collections
-- Overwriting files with uncommitted changes
+- Drop database table / collection
+- Overwrite files with uncommitted changes
 
-## Credential Safety
+## Credential Safety — never read, display, log, or commit
 
-Never read, display, log, or commit:
-- `.env` and `.env.*` files
-- Files in `secrets/`, `credentials/`, `.aws/`, `.ssh/` directories
-- Any file whose name contains `secret`, `credential`, `token`, or `key`
-- Private keys (`.pem`, `.p12`, `.pfx`)
+- `.env`, `.env.*`
+- `secrets/`, `credentials/`, `.aws/`, `.ssh/` directories
+- Filenames containing `secret`, `credential`, `token`, `key`
+- Private keys: `.pem`, `.p12`, `.pfx`
 
-## Network Access
+Enforcement: `Read` denies in `.claude/settings.json` + Bash policy in `.claude/hooks/pre-bash.sh` (destructive cmds, `curl | bash`, non-localhost `http://`, credential reads via `cat`/`less`/`more`/`head`/`tail`/`od`/`hexdump`).
 
-Default deny for:
-- `curl | bash` patterns
-- Downloading and executing scripts from external URLs
-- Requests to non-HTTPS endpoints unless localhost
+## Network — default deny
 
-## Permission Evaluation Order
-
-deny → ask → allow (first matching rule wins; deny always takes precedence)
+- `curl | bash` / `wget | sh`
+- Execute scripts downloaded from external URLs
+- Non-HTTPS endpoints (except `localhost` / `127.0.0.1`)

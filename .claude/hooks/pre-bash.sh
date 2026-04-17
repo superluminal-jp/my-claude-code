@@ -41,4 +41,24 @@ if echo "$COMMAND" | grep -qE '(curl|wget).*\|.*(bash|sh|zsh)'; then
   exit 2
 fi
 
+# Block non-HTTPS http:// for curl/wget except localhost / 127.0.0.1 (per URL)
+if echo "$COMMAND" | grep -qE '(curl|wget)'; then
+  while IFS= read -r url; do
+    [ -z "$url" ] && continue
+    if echo "$url" | grep -qE '^http://(localhost|127\.0\.0\.1)(/|:|$)'; then
+      continue
+    fi
+    echo "Non-HTTPS HTTP requests are blocked by policy (except localhost)." >&2
+    exit 2
+  done < <(echo "$COMMAND" | grep -oE 'http://[^[:space:]]+' 2>/dev/null || true)
+fi
+
+# Block reading credential paths or key material via common shell read commands
+if echo "$COMMAND" | grep -qE '(cat|less|more|head|tail|od|hexdump)\s+'; then
+  if echo "$COMMAND" | grep -qE '(/\.ssh/|/\.aws/|~/.ssh|~/.aws|\.pem(\s|$)|\.p12(\s|$)|\.pfx(\s|$))'; then
+    echo "Reading credential paths or key material via shell is blocked by policy." >&2
+    exit 2
+  fi
+fi
+
 exit 0
