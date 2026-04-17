@@ -76,9 +76,11 @@ claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.glob
 claude mcp add -s user aws-documentation -- uvx awslabs.aws-documentation-mcp-server@1.1.20
 claude mcp add -s user bedrock-agentcore -- uvx awslabs.amazon-bedrock-agentcore-mcp-server@0.0.16
 claude mcp add -s user strands-agents -- uvx strands-agents-mcp-server@0.2.7
-claude mcp add -s user google-developer-knowledge --transport http \
-  --header "X-Goog-Api-Key: $GOOGLE_DEV_KNOWLEDGE_API_KEY" \
-  https://developerknowledge.googleapis.com/mcp
+claude mcp add -s user \
+  --transport http \
+  google-developer-knowledge \
+  https://developerknowledge.googleapis.com/mcp \
+  --header "X-Goog-Api-Key: ${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}"
 claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
 ```
 
