@@ -69,6 +69,7 @@ my-claude-code/
     │   ├── tools.md                 # Tool selection, parallel calls
     │   ├── advisor.md               # Advisor role: analysis, decisions, consulting
     │   ├── development.md           # TDD, documentation sync
+    │   ├── harness.md               # Patterns from "Harnessing Claude's Intelligence"
     │   └── speckit.md               # Spec-driven development with spec-kit (opt-in)
     └── hooks/
         └── pre-bash.sh              # PreToolUse: block dangerous commands

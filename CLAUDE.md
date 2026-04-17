@@ -51,4 +51,21 @@ Six MCP servers are configured in `.mcp.json` and auto-approved via settings.
 ## Rules
 
 Rules are auto-loaded from `.claude/rules/`. See `permissions.md`, `tools.md`,
-`advisor.md`, and `development.md` in that directory.
+`advisor.md`, `development.md`, and `harness.md` in that directory.
+
+## Harnessing Claude's Intelligence
+
+When building agents, tools, or prompts on top of Claude, follow the three
+patterns from https://claude.com/blog/harnessing-claudes-intelligence:
+
+1. **Use what it already knows** — prefer bash, text editors, and standard
+   CLIs over bespoke tools
+2. **Ask what you can stop doing** — on every model upgrade, prune harness
+   scaffolding (context resets, reminders, retry loops) that existed only to
+   compensate for prior-model limits
+3. **Set boundaries carefully** — promote actions to dedicated tools only for
+   security, observability, or UX boundaries; let Claude filter tool output
+   via code execution instead of routing every result through the context
+   window
+
+Details in `.claude/rules/harness.md`.
