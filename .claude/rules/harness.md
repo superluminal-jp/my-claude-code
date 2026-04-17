@@ -22,7 +22,7 @@ Old scaffolding becomes dead weight on better models. On every model bump, audit
 Dedicated tools are for **UX, observability, security** — not for micromanaging reasoning.
 
 - Promote to a tool only when it needs: typed args to gate/audit/deny (security), structured logs/metrics/traces (observability), or render/confirm/stream (UX).
-- Do **not** promote to constrain *how* Claude reasons.
+- Do **not** promote to constrain _how_ Claude reasons.
 - Do **not** force every tool result through the context window — give Claude a code execution surface (bash, REPL) to filter/pipe/transform output.
 - Keep tool schemas stable across turns (churn invalidates prompt cache).
 
