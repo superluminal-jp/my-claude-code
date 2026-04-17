@@ -22,10 +22,11 @@ claude mcp add -s user strands-agents \
   -e FASTMCP_LOG_LEVEL=ERROR \
   -- uvx strands-agents-mcp-server@0.2.7
 
-claude mcp add -s user google-developer-knowledge \
+claude mcp add -s user \
   --transport http \
-  --header "X-Goog-Api-Key: ${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}" \
-  https://developerknowledge.googleapis.com/mcp
+  google-developer-knowledge \
+  https://developerknowledge.googleapis.com/mcp \
+  --header "X-Goog-Api-Key: ${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}"
 
 claude mcp add -s user microsoft-learn \
   --transport http \
