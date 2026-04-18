@@ -1,10 +1,30 @@
 #!/usr/bin/env bash
-# Register user-scope MCP servers for Claude Code.
-# Run once after copying .claude/ to ~/.claude/.
-# Requires: claude CLI, uv (for uvx-based servers), and GOOGLE_DEV_KNOWLEDGE_API_KEY.
+# Install this .claude/ tree into the user's ~/.claude/ and register MCP servers.
+# Idempotent: re-running refreshes the copy and re-registers MCP servers.
+# Requires: claude CLI, uv (for uvx-based servers), GOOGLE_DEV_KNOWLEDGE_API_KEY.
+#
+# Usage (from the cloned repo):
+#   bash path/to/my-claude-code/.claude/install.sh
+# Or, after a previous install:
+#   ~/.claude/install.sh
 
 set -euo pipefail
 
+SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TARGET_DIR="$HOME/.claude"
+
+# 1. Copy .claude/ contents to ~/.claude/
+if [ "$SOURCE_DIR" != "$TARGET_DIR" ]; then
+  mkdir -p "$TARGET_DIR"
+  cp -R "$SOURCE_DIR"/. "$TARGET_DIR"/
+  echo "Copied $SOURCE_DIR -> $TARGET_DIR"
+fi
+
+# 2. Ensure hook scripts and this installer are executable
+chmod +x "$TARGET_DIR"/hooks/*.sh
+chmod +x "$TARGET_DIR"/install.sh
+
+# 3. Register user-scope MCP servers
 claude mcp add -s user aws-knowledge \
   --transport http \
   https://knowledge-mcp.global.api.aws

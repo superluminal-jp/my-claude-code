@@ -14,30 +14,30 @@ every project on the machine.
 - **`.claude/settings.json`** — User-level settings with safe defaults,
   permission allowlist/denylist, and hook wiring
 - **`.claude/rules/`** — Focused rule files referenced from `CLAUDE.md`
-- **`.claude/hooks/pre-bash.sh`** — PreToolUse: blocks destructive git/`rm`,
-  `curl | bash`, non-localhost `http://` for `curl`/`wget`, and reading
-  `.ssh`/`.aws` or `*.pem`/`*.p12`/`*.pfx` via common read commands (see
+- **`.claude/hooks/pre-bash.sh`** — PreToolUse/Bash: blocks destructive
+  git/`rm`, `curl | bash`, non-localhost `http://` for `curl`/`wget`, reading
+  and writing `.ssh`/`.aws` or `*.pem`/`*.p12`/`*.pfx` via common shell
+  commands, and routes `sudo` to user confirmation (see
   [`.claude/rules/permissions.md`](.claude/rules/permissions.md))
+- **`.claude/hooks/user-prompt-submit.sh`** — UserPromptSubmit: blocks
+  prompts containing AWS/GitHub/Slack/Google API keys or private key blocks
 - **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and pinned
-  versions across `.mcp.json`, `install-mcp.sh`, `settings.json`, and
+  versions across `.mcp.json`, `install.sh`, `settings.json`, and
   [`mcp.md`](.claude/rules/mcp.md) (requires `jq` on `PATH`)
 
 ## Install as user configuration
 
-Copy the `.claude/` directory into your home directory, then register MCP
-servers at user scope:
+Run the bundled installer from the cloned repo. It copies `.claude/` to
+`~/.claude/`, makes hooks executable, and registers all MCP servers at user
+scope:
 
 ```sh
-cp -r path/to/my-claude-code/.claude/. ~/.claude/
-chmod +x ~/.claude/hooks/*.sh ~/.claude/install-mcp.sh
-~/.claude/install-mcp.sh
+bash path/to/my-claude-code/.claude/install.sh
 ```
 
-The copy installs the user `CLAUDE.md`, `settings.json`, rules, and hooks in
-one go. The `pre-bash.sh` hook path in `settings.json` resolves via
-`$HOME/.claude/hooks/pre-bash.sh`, so it works immediately after the copy.
-`install-mcp.sh` registers all six MCP servers at user scope via the
-`claude mcp add -s user` CLI.
+Re-running is safe: it refreshes the copy and re-registers the MCP servers.
+Hook paths in `settings.json` resolve via `$HOME/.claude/hooks/*.sh`, so they
+fire for every project on the machine after install.
 
 ### Alternative: import via your own `CLAUDE.md`
 
@@ -69,13 +69,14 @@ my-claude-code/
     │   ├── mcp.md                  # MCP server catalog (single source of truth for docs)
     │   └── speckit.md              # Spec-driven development with spec-kit (opt-in)
     ├── hooks/
-    │   └── pre-bash.sh             # PreToolUse: block dangerous commands
-    └── install-mcp.sh              # Register all MCP servers at user scope
+    │   ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
+    │   └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
+    └── install.sh                  # Copy to ~/.claude/ + register MCP servers
 ```
 
 ## Verification
 
-After changing `.mcp.json`, `.claude/install-mcp.sh`, `.claude/settings.json`
+After changing `.mcp.json`, `.claude/install.sh`, `.claude/settings.json`
 (MCP allowlist), or [`.claude/rules/mcp.md`](.claude/rules/mcp.md):
 
 ```sh
@@ -103,7 +104,7 @@ claude mcp add -s user \
 claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
 ```
 
-Or run `~/.claude/install-mcp.sh` after copying `.claude/` (see [Install](#install-as-user-configuration)).
+Or run `~/.claude/install.sh` (see [Install](#install-as-user-configuration)) — the installer performs these registrations.
 
 ## Overriding per project
 
