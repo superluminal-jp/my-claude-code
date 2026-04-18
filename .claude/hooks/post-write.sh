@@ -31,7 +31,7 @@ case "$REL" in
   package.json|*/package.json|pyproject.toml|*/pyproject.toml|requirements*.txt|*/requirements*.txt|Cargo.toml|*/Cargo.toml|go.mod|*/go.mod)
     TRIGGERS+=("dependency manifest changed → update install/prerequisites docs")
     ;;
-  .mcp.json|*/.mcp.json|.claude/install-mcp.sh|*/.claude/install-mcp.sh)
+  .mcp.json|*/.mcp.json|.claude/install.sh|*/.claude/install.sh)
     TRIGGERS+=("MCP server catalog changed → update .claude/rules/mcp.md")
     ;;
   .claude/settings.json|*/.claude/settings.json)

@@ -32,7 +32,7 @@ from https://code.claude.com/docs/.
 
 ## MCP Servers
 
-Six MCP servers are registered at user scope via `~/.claude/install-mcp.sh` and auto-approved via settings.
+Six MCP servers are registered at user scope via `~/.claude/install.sh` and auto-approved via settings.
 
 @.claude/rules/mcp.md
 

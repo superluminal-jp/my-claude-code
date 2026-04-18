@@ -1,6 +1,6 @@
 # MCP servers catalog
 
-Single source of truth for the six MCP servers. Runtime definitions: `.mcp.json`. User-scope registration: `~/.claude/install-mcp.sh`.
+Single source of truth for the six MCP servers. Runtime definitions: `.mcp.json`. User-scope installation (copy + MCP registration): `~/.claude/install.sh`.
 
 ## Catalog
 
