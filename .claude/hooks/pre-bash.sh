@@ -61,4 +61,27 @@ if echo "$COMMAND" | grep -qE '(cat|less|more|head|tail|od|hexdump)\s+'; then
   fi
 fi
 
+# Block writing to credential paths (redirection or tee)
+if echo "$COMMAND" | grep -qE '(>|>>|\|\s*tee(\s|$))'; then
+  if echo "$COMMAND" | grep -qE '(/\.ssh/|/\.aws/|~/\.ssh|~/\.aws|\.env(\s|$|\.)|\.pem(\s|$)|\.p12(\s|$)|\.pfx(\s|$))'; then
+    echo "Writing to credential paths or key material is blocked by policy." >&2
+    exit 2
+  fi
+fi
+
+# Route sudo through user confirmation via JSON permission decision
+if echo "$COMMAND" | grep -qE '(^|[;&|[:space:]])sudo(\s|$)'; then
+  cat <<'JSON'
+{
+  "continue": true,
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "ask",
+    "permissionDecisionReason": "sudo requires explicit user approval"
+  }
+}
+JSON
+  exit 0
+fi
+
 exit 0
