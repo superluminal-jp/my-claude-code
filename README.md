@@ -19,9 +19,6 @@ every project on the machine.
   and writing `.ssh`/`.aws` or `*.pem`/`*.p12`/`*.pfx` via common shell
   commands, and routes `sudo` to user confirmation (see
   [`.claude/rules/permissions.md`](.claude/rules/permissions.md))
-- **`.claude/hooks/post-write.sh`** — PostToolUse/Write|Edit|MultiEdit:
-  non-blocking doc-sync reminders per
-  [`.claude/rules/development.md`](.claude/rules/development.md) triggers
 - **`.claude/hooks/user-prompt-submit.sh`** — UserPromptSubmit: blocks
   prompts containing AWS/GitHub/Slack/Google API keys or private key blocks
 - **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and pinned
@@ -73,7 +70,6 @@ my-claude-code/
     │   └── speckit.md              # Spec-driven development with spec-kit (opt-in)
     ├── hooks/
     │   ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
-    │   ├── post-write.sh           # PostToolUse: doc-sync reminders
     │   └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
     └── install.sh                  # Copy to ~/.claude/ + register MCP servers
 ```
