@@ -39,8 +39,12 @@ Six MCP servers are registered at user scope via `~/.claude/install.sh` and auto
 ## Rules
 
 Rules are auto-loaded from `.claude/rules/`. See `permissions.md`, `tools.md`,
-`advisor.md`, `development.md`, `harness.md`, `hooks.md` (reference only),
+`advisor.md`, `clarify.md`, `development.md`, `harness.md`, `hooks.md` (reference only),
 `mcp.md` (MCP catalog), and `speckit.md` (opt-in) in that directory.
+
+## Clarification
+
+@.claude/rules/clarify.md
 
 ## Harnessing Claude's Intelligence
 
