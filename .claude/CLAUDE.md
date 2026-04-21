@@ -36,11 +36,25 @@ Six MCP servers are registered at user scope via `~/.claude/install.sh` and auto
 
 @.claude/rules/mcp.md
 
-## Rules
+## Rules (always-on)
 
-Rules are auto-loaded from `.claude/rules/`. See `permissions.md`, `tools.md`,
-`advisor.md`, `clarify.md`, `development.md`, `harness.md`, `hooks.md` (reference only),
-`mcp.md` (MCP catalog), and `speckit.md` (opt-in) in that directory.
+Auto-loaded from `.claude/rules/` every session. Each file covers one concern:
+
+- `permissions.md` — destructive-op and credential policy.
+- `tools.md` — dedicated-tool vs. Bash preferences.
+- `advisor.md` — consulting-style response structure.
+- `clarify.md` — when and how to ask before acting.
+- `harness.md` — meta-principles for the agent surface.
+- `mcp.md` — MCP server catalog and usage rule.
+
+## Skills (on-demand)
+
+Loaded only when relevant or user-invoked (see `.claude/skills/`):
+
+- `development` — TDD + SDD methodology + documentation-sync discipline. Auto-activates on code-change tasks.
+- `speckit` — concrete spec-kit CLI workflow. Auto-activates under `.specify/**` and `specs/**`; otherwise invoke with `/speckit`.
+
+Hook configuration: use the bundled `update-config` skill (see `/update-config`) instead of a dedicated rule file.
 
 ## Clarification
 

@@ -59,15 +59,16 @@ my-claude-code/
 └── .claude/                        # <-- copy this directory's contents to ~/.claude/
     ├── CLAUDE.md                   # Main user memory (imports rules/)
     ├── settings.json               # Permissions, hooks, MCP approval, model defaults
-    ├── rules/
+    ├── rules/                      # Always-on: loaded every session
     │   ├── permissions.md          # Credential safety, destructive ops
-    │   ├── hooks.md                # Hook conventions and exit codes (reference only)
     │   ├── tools.md                # Tool selection, parallel calls
     │   ├── advisor.md              # Advisor role: analysis, decisions, consulting
-    │   ├── development.md          # TDD, documentation sync
+    │   ├── clarify.md              # When and how to ask before acting
     │   ├── harness.md              # Patterns from "Harnessing Claude's Intelligence"
-    │   ├── mcp.md                  # MCP server catalog (single source of truth for docs)
-    │   └── speckit.md              # Spec-driven development with spec-kit (opt-in)
+    │   └── mcp.md                  # MCP server catalog + usage rule
+    ├── skills/                     # On-demand: loaded when relevant or /-invoked
+    │   ├── development/SKILL.md    # TDD + SDD + documentation sync (auto-activates on code changes)
+    │   └── speckit/SKILL.md        # Spec-kit CLI workflow (auto-activates under .specify/ and specs/)
     ├── hooks/
     │   ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
     │   └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
@@ -126,8 +127,6 @@ managed > local (`.local.json`) > project (`settings.json`) > user (`~/.claude/s
 
 ### Opt-in to spec-kit
 
-Add to a project's `CLAUDE.md` when that project uses spec-kit:
-
-```markdown
-@~/.claude/rules/speckit.md
-```
+The `speckit` skill auto-activates when Claude is working under `.specify/**` or
+`specs/**`. Invoke manually with `/speckit` or any `/speckit.*` command. No
+project-level import is required.

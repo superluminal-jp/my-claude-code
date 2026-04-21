@@ -1,3 +1,12 @@
+---
+name: speckit
+description: Spec-Driven Development (SDD) workflow using github/spec-kit. Use when the repository has a `.specify/` directory, when editing files under `specs/{N}-{name}/`, or when the user invokes any `/speckit.*` command (constitution, specify, clarify, plan, tasks, implement, analyze).
+when_to_use: Activate for any work touching `.specify/` or `specs/**/*.md`. Do not activate for general coding in repos without spec-kit.
+paths:
+  - ".specify/**"
+  - "specs/**"
+---
+
 # Spec-Driven Development (SDD) with spec-kit
 
 Specs are the single source of truth for behavior. Tool: [github/spec-kit](https://github.com/github/spec-kit).
