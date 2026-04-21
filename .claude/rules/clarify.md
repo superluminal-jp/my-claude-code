@@ -86,5 +86,5 @@ Assumed (proceed unless corrected):
 
 - **`permissions.md`** — destructive actions always require confirmation, independent of clarification state.
 - **`development` skill** — a clarified requirement must be testable (TDD) and match its spec (SDD); if you cannot write a failing test from the request, it is still ambiguous.
-- **`speckit` skill** — if a spec exists, clarify against `spec.md`; run `/speckit.clarify` for spec-level gaps rather than inline Q&A.
+- **spec-kit projects** — if a `spec.md` exists, clarify against it; run `/speckit.clarify` for spec-level gaps rather than inline Q&A.
 - **`advisor.md`** — after clarification, deliver analysis conclusion-first; do not re-ask once the decision is made.

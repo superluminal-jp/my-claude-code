@@ -27,7 +27,7 @@ Specs are the single source of truth for *what* a feature does and *why*. Code s
 
 SDD and TDD compose: the spec names the behavior; the test enforces it; the implementation satisfies both.
 
-For projects using [github/spec-kit](https://github.com/github/spec-kit) (files under `.specify/` or `specs/{N}-{name}/`), the `speckit` skill provides the concrete CLI workflow (`/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement`, `/speckit.analyze`).
+For projects using [github/spec-kit](https://github.com/github/spec-kit) (files under `.specify/` or `specs/{N}-{name}/`), `specify init` installs slash commands that carry their own playbooks: `/speckit.constitution`, `/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement`, `/speckit.analyze`. Invoke them explicitly — do not improvise the workflow.
 
 # Documentation Sync
 

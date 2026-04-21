@@ -52,7 +52,8 @@ Auto-loaded from `.claude/rules/` every session. Each file covers one concern:
 Loaded only when relevant or user-invoked (see `.claude/skills/`):
 
 - `development` — TDD + SDD methodology + documentation-sync discipline. Auto-activates on code-change tasks.
-- `speckit` — concrete spec-kit CLI workflow. Auto-activates under `.specify/**` and `specs/**`; otherwise invoke with `/speckit`.
+
+For spec-kit projects, the `/speckit.*` slash commands (installed by `specify init`) carry their own playbooks — use them directly.
 
 Hook configuration: use the bundled `update-config` skill (see `/update-config`) instead of a dedicated rule file.
 

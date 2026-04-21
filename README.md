@@ -67,8 +67,7 @@ my-claude-code/
     │   ├── harness.md              # Patterns from "Harnessing Claude's Intelligence"
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: loaded when relevant or /-invoked
-    │   ├── development/SKILL.md    # TDD + SDD + documentation sync (auto-activates on code changes)
-    │   └── speckit/SKILL.md        # Spec-kit CLI workflow (auto-activates under .specify/ and specs/)
+    │   └── development/SKILL.md    # TDD + SDD + documentation sync (auto-activates on code changes)
     ├── hooks/
     │   ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
     │   └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
@@ -127,6 +126,7 @@ managed > local (`.local.json`) > project (`settings.json`) > user (`~/.claude/s
 
 ### Opt-in to spec-kit
 
-The `speckit` skill auto-activates when Claude is working under `.specify/**` or
-`specs/**`. Invoke manually with `/speckit` or any `/speckit.*` command. No
-project-level import is required.
+Run `specify init` in the project to install spec-kit. It registers the
+`/speckit.*` slash commands, each of which carries its own playbook. The
+`development` skill's SDD section applies regardless of whether spec-kit is
+installed.
