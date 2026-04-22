@@ -1,0 +1,63 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Credentials & secrets
+.env
+.env.*
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# AWS
+.aws/
+samconfig.toml
+cdk.out/
+cdk.context.json
+.aws-sam/
+
+# spec-kit local artifacts
+.specify/memory/local-*.md
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.python-version
+dist/
+build/
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# TypeScript / Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+*.tsbuildinfo
+.next/
+.nuxt/
+coverage/
+
+# Logs
+*.log

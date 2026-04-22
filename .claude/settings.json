@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "defaultMode": "acceptEdits",
+  "model": "claude-sonnet-4-6",
+  "effortLevel": "medium",
+  "alwaysThinkingEnabled": true,
+  "autoMemoryEnabled": true,
+
+  "enableAllProjectMcpServers": true,
+
+  "permissions": {
+    "allow": [
+      "mcp__aws-knowledge__*",
+      "mcp__aws-documentation__*",
+      "mcp__bedrock-agentcore__*",
+      "mcp__strands-agents__*",
+      "mcp__google-developer-knowledge__*",
+      "mcp__microsoft-learn__*",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(git pull *)",
+      "Bash(git fetch *)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/credentials/**)",
+      "Read(**/.aws/**)",
+      "Read(**/.ssh/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)"
+    ]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/pre-bash.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/user-prompt-submit.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
