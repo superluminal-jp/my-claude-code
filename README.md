@@ -3,6 +3,8 @@
 Reusable Claude Code **user-level** configuration that enforces the latest
 official specifications and best practices from https://code.claude.com/docs/.
 
+日本語版: [README.ja.md](README.ja.md)
+
 The entire `.claude/` directory is designed to be copied wholesale to
 `~/.claude/`, making these settings, rules, hooks, and memory apply across
 every project on the machine.
@@ -41,9 +43,16 @@ scope:
 bash path/to/my-claude-code/.claude/install.sh
 ```
 
-Re-running is safe: it refreshes the copy and re-registers the MCP servers.
-Hook paths in `settings.json` resolve via `$HOME/.claude/hooks/*.sh`, so they
-fire for every project on the machine after install.
+Re-running is safe: it re-syncs managed paths and upserts MCP servers.
+
+**Important (overwrite/replace behavior):**
+
+- Installer-managed paths are synchronized by replacement: `hooks/`, `rules/`,
+  `skills/`, `CLAUDE.md`, `settings.json`, `install.sh`.
+- Files removed from this repository are also removed from `~/.claude` under
+  those managed paths.
+- Keep personal-only files in `~/.claude` outside managed paths, or re-apply
+  them from a separate backup after install.
 
 ### Alternative: import via your own `CLAUDE.md`
 

@@ -14,20 +14,31 @@
 - Reference code with `file_path:line_number` pattern for navigation
 - No trailing summaries of what was just done
 - No emojis unless explicitly requested
+- In internal reasoning, explicitly name the frameworks used (e.g., MECE, SCQA, FURPS+, INVEST) when they are applied.
+- In user-facing responses and deliverables (including code comments/docs), apply frameworks implicitly; do not mention framework names unless the user explicitly asks.
 
 ## Skills (on-demand)
 
-Loaded when relevant (see `.claude/skills/` for full playbooks).
+Load only when the request matches the trigger below (see `.claude/skills/` for full playbooks).
 
-- `development` — TDD + SDD + code quality + security + documentation sync. Auto-activates on code changes.
-- `advisor` — consulting, analysis, decisions, strategy. Use for non-coding or open-ended analysis.
-- `deliverables` — documents, slides, charts, editing, translation.
-- `requirements` — elicitation toolkit (BABOK/ISO) when scope is ambiguous or formalization is needed.
+- `development` — Use when implementing or modifying code (features, fixes, refactors, tests).
+- `deliverables` — Use when the main output is a work product (document, slide, chart, edited text, translation), not source code changes.
+- `advisor` — Use when the user asks for analysis, decision support, strategy, or open-ended framing.
+- `requirements` — Use when requirements are ambiguous, acceptance criteria are missing, or formal elicitation is needed.
 
 For spec-kit projects, the `/speckit.*` slash commands (from `specify init`) carry their own playbooks — use them directly.
 
+## Response Preflight (before first answer)
+
+- Run the clarification gate first via `rules/clarify.md` (intent, scope, constraints, acceptance criteria).
+- If ambiguity remains, ask clarifying questions before implementation.
+- Then choose the minimum relevant skill for the task; avoid loading unrelated skills.
+- Use `rules/advisor.md` as concise baseline answer-quality guidance.
+
+@.claude/rules/skill-routing.md
+
 ## MCP
 
-Six MCP servers are registered at user scope via `~/.claude/install.sh` and auto-approved via settings.
+Project MCP definitions live in `.mcp.json`. `~/.claude/install.sh` can register matching user-scope defaults.
 
 @.claude/rules/mcp.md

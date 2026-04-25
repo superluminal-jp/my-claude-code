@@ -1,7 +1,7 @@
 ---
 name: development
-description: Development methodology — TDD, SDD, documentation sync, code quality, and security for implementation work. Use when writing new code, adding features, fixing bugs, refactoring, changing public interfaces, or touching README / docs/.
-when_to_use: "write a test", "implement X", "fix this bug", "refactor", "add feature", "TDD", "SDD", "spec", "update the docs", any code change that adds or modifies behavior
+description: Implement and modify code safely with TDD/SDD, verification, and documentation sync. Use for features, bug fixes, refactors, tests, and interface changes.
+when_to_use: implement feature, fix bug, refactor code, write tests, update API behavior, update docs with code change, TDD, SDD
 ---
 
 # Test-Driven Development (TDD)

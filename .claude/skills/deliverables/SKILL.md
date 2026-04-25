@@ -1,12 +1,12 @@
 ---
 name: deliverables
-description: Documents, memos, slide decks, charts, research artifacts, proofreading, and translation. Use for produced work products and long-form or visual output.
-when_to_use: write a document, create slides, research report, memo, edit/proofread, translate, chart, deck, proposal, analysis document
+description: Produce polished artifacts such as memos, reports, slides, charts, proofreading edits, and translations.
+when_to_use: write memo, draft report, create slides, build chart, proofread text, translate content, proposal, analysis document
 ---
 
 # Work Products: Documents, Decks, Research, and Language
 
-Use for **produced artifacts** (memos, proposals, analyses, decks) and for **editing, translation, and study designs**. For live conversation and reasoning norms, use the **`advisor`** skill.
+Use for **produced artifacts** (memos, proposals, analyses, decks) and for **editing, translation, and study designs**. For live conversation and reasoning norms, see **`rules/advisor.md`**.
 
 ## Documents
 

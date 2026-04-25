@@ -55,7 +55,7 @@ fi
 
 # Block reading credential paths or key material via common shell read commands
 if echo "$COMMAND" | grep -qE '(cat|less|more|head|tail|od|hexdump)\s+'; then
-  if echo "$COMMAND" | grep -qE '(/\.ssh/|/\.aws/|~/.ssh|~/.aws|\.pem(\s|$)|\.p12(\s|$)|\.pfx(\s|$))'; then
+  if echo "$COMMAND" | grep -qE '(/\.ssh/|/\.aws/|~/.ssh|~/.aws|\.env(\s|$|\.)|secrets/|credentials/|secret|credential|token|key|\.pem(\s|$)|\.p12(\s|$)|\.pfx(\s|$))'; then
     echo "Reading credential paths or key material via shell is blocked by policy." >&2
     exit 2
   fi

@@ -1,6 +1,6 @@
 # MCP servers catalog
 
-Six MCP servers are registered at user scope. Runtime definitions: `.mcp.json`. Installation: `~/.claude/install.sh`.
+Runtime definitions are in `.mcp.json`. Optional user-scope defaults are installed by `~/.claude/install.sh` (Google MCP requires `GOOGLE_DEV_KNOWLEDGE_API_KEY`).
 
 ## Catalog
 
