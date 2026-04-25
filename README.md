@@ -9,11 +9,17 @@ every project on the machine.
 
 ## What this provides
 
-- **`.claude/CLAUDE.md`** — Persistent user memory loaded every session: code
-  quality rules, security constraints, response style, MCP server usage
+- **`.claude/CLAUDE.md`** — Persistent user memory: core principles, response
+  style, skill index, MCP import (thin; most detail lives in `rules/` and
+  on-demand `skills/`)
 - **`.claude/settings.json`** — User-level settings with safe defaults,
   permission allowlist/denylist, and hook wiring
-- **`.claude/rules/`** — Focused rule files referenced from `CLAUDE.md`
+- **`.claude/rules/`** — Always-on universal rules: safety/permissions, tool
+  selection, clarification triggers, MCP catalog
+- **`.claude/skills/`** — On-demand playbooks loaded by relevance: `development`
+  (TDD, SDD, code quality, security, docs), `advisor` (consulting, analysis,
+  strategy), `deliverables` (documents, slides, research, translation),
+  `requirements` (BABOK/ISO elicitation, formalization)
 - **`.claude/hooks/pre-bash.sh`** — PreToolUse/Bash: blocks destructive
   git/`rm`, `curl | bash`, non-localhost `http://` for `curl`/`wget`, reading
   and writing `.ssh`/`.aws` or `*.pem`/`*.p12`/`*.pfx` via common shell
@@ -57,17 +63,18 @@ my-claude-code/
 │   └── check-mcp-consistency.sh    # MCP catalog drift check (jq required)
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
 └── .claude/                        # <-- copy this directory's contents to ~/.claude/
-    ├── CLAUDE.md                   # Main user memory (imports rules/)
+    ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
     ├── settings.json               # Permissions, hooks, MCP approval, model defaults
     ├── rules/                      # Always-on: loaded every session
     │   ├── permissions.md          # Credential safety, destructive ops
     │   ├── tools.md                # Tool selection, parallel calls
-    │   ├── advisor.md              # Advisor role: analysis, decisions, consulting
-    │   ├── clarify.md              # When and how to ask before acting
-    │   ├── harness.md              # Patterns from "Harnessing Claude's Intelligence"
+    │   ├── clarify.md              # When to ask; batch questions + template
     │   └── mcp.md                  # MCP server catalog + usage rule
-    ├── skills/                     # On-demand: loaded when relevant or /-invoked
-    │   └── development/SKILL.md    # TDD + SDD + documentation sync (auto-activates on code changes)
+    ├── skills/                     # On-demand: body loaded when relevant
+    │   ├── development/SKILL.md    # TDD + SDD + code quality + security + docs
+    │   ├── advisor/SKILL.md        # Consulting, analysis, decisions, strategy
+    │   ├── deliverables/SKILL.md   # Documents, slides, research, translation
+    │   └── requirements/SKILL.md   # Elicitation toolkit (BABOK/ISO), formal gaps
     ├── hooks/
     │   ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
     │   └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks

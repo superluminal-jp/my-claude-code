@@ -1,7 +1,7 @@
 ---
 name: development
-description: Development methodology — Test-Driven Development (Red → Green → Refactor), Spec-Driven Development (spec as source of truth), and documentation-sync discipline. Use when writing new code, adding features, fixing bugs, refactoring, changing public interfaces, or touching README / docs/.
-when_to_use: Invoke for any code change that adds or modifies behavior. Trigger phrases — "write a test", "implement X", "fix this bug", "refactor", "add feature", "TDD", "SDD", "spec", "update the docs".
+description: Development methodology — TDD, SDD, documentation sync, code quality, and security for implementation work. Use when writing new code, adding features, fixing bugs, refactoring, changing public interfaces, or touching README / docs/.
+when_to_use: "write a test", "implement X", "fix this bug", "refactor", "add feature", "TDD", "SDD", "spec", "update the docs", any code change that adds or modifies behavior
 ---
 
 # Test-Driven Development (TDD)
@@ -46,3 +46,25 @@ README and `docs/` must reflect current code. Update docs in the **same change**
 | Changed default behavior | README, migration/changelog |
 | New dependency or install step | README prerequisites / setup |
 | Deprecated feature | README + inline deprecation notice |
+
+# Code quality and security
+
+Applies to implementation work in the repo. Composes with TDD/SDD/docs above and with `tools.md` in `rules/`.
+
+## Code quality
+
+- **Adopt** established best practices in everything you **do** change (logging, comments, errors, structure) — match the stack and the repo; no deliberate sloppiness.
+- Write no speculative abstractions: complexity should match the task, not hypothetical future needs.
+- **Logging**: follow the project’s conventions (levels, format, structured vs plain). Log what operators need to debug and audit; **never** log secrets, tokens, or unredacted PII. At I/O and request boundaries, include correlation identifiers when the codebase already does so. Avoid log noise in hot paths unless diagnosing an issue.
+- **Comments and docstrings on edited code**: prefer **why** and non-obvious invariants, not narration of the next line. For **public** or **tricky** surfaces, document contracts where the project expects it (TDD/SDD sections above). Do **not** add docstrings, comments, or type annotations to **untouched** code.
+- **Error handling**: at **system boundaries** (user input, file/network/DB, external APIs, user-visible failures), use clear validation, **typed or narrow** error paths, and user-safe messages; fail fast on programmer mistakes where that’s idiomatic. **Do not** add catch-all handling for “impossible” internal states — trust the framework. Do **not** hide failures without a documented reason. If insecure or misleading error behavior appears, **fix** it before finishing (same as Security).
+- **Suggest to the user** when a best practice would clearly help but is **out of scope** (e.g. missing structured logs for a new integration, missing timeout on a new client): state the gap, why it matters, and a **minimal** follow-up — **do not** implement large or unrelated work without alignment.
+- Add no unsolicited **code** improvements: no drive-by refactors, cleanup, or feature creep beyond the agreed task — telling the user is allowed; changing arbitrary files is not.
+
+## Security
+
+Aim for **secure and safe** outcomes in both **code** and how the **environment** is used. Prefer **established** secure-coding practice and, where it applies, **recognised international and industry baselines** (e.g. OWASP guides and ASVS-style controls, **CWE**-aware handling of common defect classes, and language or platform **security advisories**). Favour current recommendations over deprecated patterns.
+
+- **In code**: never introduce command injection, XSS, SQL injection, or other **OWASP Top 10**–class flaws; apply least privilege for secrets and capabilities; use vetted crypto and dependency hygiene when touching those layers; validate and encode at **system boundaries** (user input, external APIs) and avoid leaking stack traces or internal detail to end users. If insecure or unsafe code is written, **fix it before** claiming done.
+- **In the dev environment** (shell, repo, tool use): follow **`permissions.md` in `rules/`** — no credential exposure, no destructive command surprises, and no unsafe download-and-execute; use official installs and **HTTPS**; keep secrets in designated stores, not the codebase or ad-hoc copy-paste. When suggesting commands or integrations to the user, default to the **safer** option and call out **risky** ones.
+- When standards or the project’s own **security** docs conflict with a shortcut, follow the stricter or project-mandated rule. If a requirement is **unclear** (e.g. data classification, crypto choice), **ask** before implementing.
