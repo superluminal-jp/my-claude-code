@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-bash.sh",
+            "command": "\"$HOME\"/.claude/hooks/pre-bash.sh",
             "timeout": 10
           }
         ]
@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/user-prompt-submit.sh",
+            "command": "\"$HOME\"/.claude/hooks/user-prompt-submit.sh",
             "timeout": 10
           }
         ]
