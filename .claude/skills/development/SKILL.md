@@ -1,7 +1,7 @@
 ---
 name: development
-description: Implement and modify code safely with TDD/SDD, verification, and documentation sync. Use for features, bug fixes, refactors, tests, and interface changes.
-when_to_use: implement feature, fix bug, refactor code, write tests, update API behavior, update docs with code change, TDD, SDD
+description: Implement and modify code safely with strict TDD (red → green → refactor), spec-driven development, README/docs sync, and OWASP-aware secure coding. Use for any change to source code or observable behavior — adding features, fixing bugs, refactoring, writing or updating tests, changing public APIs/CLI flags/config, or updating docs that must move in lockstep with code. Enforces a failing test before implementation, spec as the single source of truth for *what* and *why*, doc updates in the same change as the code, validation at system boundaries, and no drive-by refactors outside the agreed task.
+when_to_use: implement feature, add functionality, fix bug, debug failing behavior, refactor code, restructure module, rename interface, write tests, add unit/integration/e2e tests, update API endpoint or signature, change CLI flag or env var, change default behavior, update README/docs to match code, address code review feedback, TDD, SDD, spec-driven, /speckit workflow
 ---
 
 # Test-Driven Development (TDD)
