@@ -1,7 +1,7 @@
 ---
 name: advisor
-description: Analyze options and recommend a path for non-coding decisions. Use for strategy, trade-offs, risk assessment, and open-ended exploration.
-when_to_use: strategy, trade-off, options comparison, risk analysis, recommendation, decision support, wall session, executive brief
+description: Analyze options and recommend a defensible path for non-coding decisions. Use when the user wants high-quality thinking and a clear recommendation rather than code changes — strategy calls, build/buy/migrate decisions, architecture trade-offs, risk assessment, executive briefs, pre-mortems, and open-ended "what should we do" framing. Produces BLUF + 2–4 realistic options with trade-offs + recommended path with rationale + downside risks/mitigations + concrete next actions, with confidence levels and unknowns labeled.
+when_to_use: strategy decision, technical direction, build vs buy, vendor selection, architecture trade-off, options comparison, alternatives analysis, risk analysis, pre-mortem, executive brief, recommendation memo, decision support, one-way vs two-way door call, open-ended framing, "what should we do", "which option", "should we"
 ---
 
 # Advisor Skill

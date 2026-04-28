@@ -1,7 +1,7 @@
 ---
 name: requirements
-description: Turn ambiguous requests into testable requirements and acceptance criteria. Use when scope, constraints, or success conditions are unclear.
-when_to_use: requirements, acceptance criteria, clarify scope, ambiguous request, user story, spec quality, testable criteria, elicitation
+description: Turn ambiguous requests into testable, bounded, decision-ready requirements with verifiable acceptance criteria. Use when scope, constraints, success conditions, or non-functional requirements are unclear, when user stories need INVEST/Gherkin shape, when scope needs MoSCoW prioritization, or when NFR coverage (FURPS+) is missing — i.e. before estimation, planning, or implementation can safely start. Surfaces blocking gaps in batch with defaults and alternatives, converts the agreed answer into Given/When/Then or measurable SC-### criteria, and labels assumptions with confidence so the team can test, estimate, and commit.
+when_to_use: clarify requirements, define acceptance criteria, ambiguous request, vague request, missing success criteria, scope unclear, draft user story, INVEST check, write Given/When/Then scenarios, prioritize backlog, MoSCoW, define non-functional requirements, FURPS+, elicit constraints, formal requirement quality check, spec quality review, before estimation, before implementation kickoff
 ---
 
 # Requirements Skill

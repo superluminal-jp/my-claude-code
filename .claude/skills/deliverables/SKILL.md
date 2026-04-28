@@ -1,7 +1,7 @@
 ---
 name: deliverables
-description: Produce polished artifacts such as memos, reports, slides, charts, proofreading edits, and translations.
-when_to_use: write memo, draft report, create slides, build chart, proofread text, translate content, proposal, analysis document
+description: Produce polished, ready-to-ship work products — memos, proposals, reports, briefing notes, slide decks, charts/dashboards, proofreading edits, and translations. Use when the main output is a finished artifact rather than source code, and the user expects publishable copy (not just an outline or brainstorm). Applies pyramid/MECE structure, BLUF at the section level, action titles on slides, Cleveland–McGill chart selection, Tufte-style data-ink discipline, and plain professional language; quantifies claims, names sources/units/scope, and ships finished copy with frameworks applied implicitly.
+when_to_use: write memo, draft report, prepare proposal, create slides, build deck, design chart, build dashboard, proofread text, edit document, translate content, executive summary, one-pager, briefing note, analysis document, client-ready writeup, polish wording, rewrite for clarity
 ---
 
 # Work Products: Documents, Decks, Research, and Language
