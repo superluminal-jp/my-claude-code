@@ -13,7 +13,7 @@
 - Keep responses short and concise
 - Reference code with `file_path:line_number` pattern for navigation
 - No trailing summaries of what was just done
-- No emojis unless explicitly requested
+- No emojis, ASCII art, or other visual decorations unless explicitly requested
 - In internal reasoning, explicitly name the frameworks used (e.g., MECE, SCQA, FURPS+, INVEST) when they are applied.
 - In user-facing responses and deliverables (including code comments/docs), apply frameworks implicitly; do not mention framework names unless the user explicitly asks.
 
