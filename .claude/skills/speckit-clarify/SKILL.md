@@ -19,6 +19,10 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+If `$ARGUMENTS` is non-empty, apply these checks before proceeding:
+- **Length heuristic**: strip slash commands (e.g. `/speckit-clarify`) and file/directory paths from `$ARGUMENTS`; if the remaining text is ≤ 32 characters, treat this as a signal that clarification of the user's intent is likely needed.
+- **Grammatical completeness**: if the remaining text lacks a clear subject, object, or verb — making the intent ambiguous — ask the user to clarify what they want to address before running the clarification workflow.
+
 ## Pre-Execution Checks
 
 **Check for extension hooks (before clarification)**:
