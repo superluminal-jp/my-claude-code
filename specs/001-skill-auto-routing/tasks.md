@@ -17,7 +17,7 @@
 
 **Purpose**: テスト環境の初期化
 
-- [ ] T001 Create `tests/skill-routing/` directory structure (`mkdir -p tests/skill-routing`)
+- [x] T001 Create `tests/skill-routing/` directory structure (`mkdir -p tests/skill-routing`)
 
 ---
 
@@ -27,10 +27,10 @@
 
 **⚠️ CRITICAL**: US1〜US3 の実装前にシナリオを作成すること。変更後に全シナリオが Pass することで受け入れ基準を満たす。
 
-- [ ] T002 [P] Create code request test scenario in `tests/skill-routing/001-code-implement.md` (入力: "バグを修正して", 期待: `coder`, category: code)
-- [ ] T003 [P] Create document request test scenario in `tests/skill-routing/002-document-create.md` (入力: "READMEを書いて", 期待: `editor`, category: document)
-- [ ] T004 [P] Create mixed request test scenario in `tests/skill-routing/003-mixed-code-and-doc.md` (入力: "実装してREADMEも更新して", 期待: `coder` → `editor`, category: mixed)
-- [ ] T005 [P] Create ambiguous request test scenario in `tests/skill-routing/004-ambiguous-request.md` (入力: "なんとかして", 期待: `clarifier`, category: ambiguous)
+- [x] T002 [P] Create code request test scenario in `tests/skill-routing/001-code-implement.md` (入力: "バグを修正して", 期待: `coder`, category: code)
+- [x] T003 [P] Create document request test scenario in `tests/skill-routing/002-document-create.md` (入力: "READMEを書いて", 期待: `editor`, category: document)
+- [x] T004 [P] Create mixed request test scenario in `tests/skill-routing/003-mixed-code-and-doc.md` (入力: "実装してREADMEも更新して", 期待: `coder` → `editor`, category: mixed)
+- [x] T005 [P] Create ambiguous request test scenario in `tests/skill-routing/004-ambiguous-request.md` (入力: "なんとかして", 期待: `clarifier`, category: ambiguous)
 
 **Checkpoint**: テストシナリオ 4 件作成完了。US1〜US3 の実装に進む。
 
@@ -48,7 +48,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Edit `.claude/CLAUDE.md` — Skills セクションの見出しを "Skills (on-demand)" から "Skills (mandatory routing)" に変更し、`coder` のトリガー行を「コードの実装・修正・リファクタリング・テスト・デバッグを含むリクエスト → load \`coder\`」1 行に書き換える
+- [x] T007 [US1] Edit `.claude/CLAUDE.md` — Skills セクションの見出しを "Skills (on-demand)" から "Skills (mandatory routing)" に変更し、`coder` のトリガー行を「コードの実装・修正・リファクタリング・テスト・デバッグを含むリクエスト → load \`coder\`」1 行に書き換える
 - [ ] T008 [US1] Verify `tests/skill-routing/001-code-implement.md` passes after T007 (coder が自動ロードされることを目視確認)
 
 **Checkpoint**: コードリクエストで `coder` が自動ロードされることを確認。US1 完了。
@@ -67,7 +67,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Edit `.claude/CLAUDE.md` — `editor` のトリガー行を「ドキュメント・スライド・チャート・翻訳・文章編集を含むリクエスト → load \`editor\`」1 行に書き換える
+- [x] T010 [US2] Edit `.claude/CLAUDE.md` — `editor` のトリガー行を「ドキュメント・スライド・チャート・翻訳・文章編集を含むリクエスト → load \`editor\`」1 行に書き換える
 - [ ] T011 [US2] Verify `tests/skill-routing/002-document-create.md` passes (editor が自動ロードされることを目視確認)
 - [ ] T012 [US2] Verify `tests/skill-routing/003-mixed-code-and-doc.md` passes (coder → editor の順にロードされることを目視確認)
 
@@ -83,10 +83,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T013 [P] [US3] Edit `.claude/CLAUDE.md` — `clarifier` のトリガー行を「任意の曖昧さ（intent/scope/acceptance/constraint gap を含む）→ load \`clarifier\`」1 行に書き換え、"For spec-kit projects..." 注記を削除する
-- [ ] T014 [P] [US3] Edit `.claude/rules/skill-routing.md` — "Mandatory gate" セクションおよび "Scope discipline" セクションを削除し、"Routing" セクションの 3 行のみ残す
+- [x] T013 [P] [US3] Edit `.claude/CLAUDE.md` — `clarifier` のトリガー行を「任意の曖昧さ（intent/scope/acceptance/constraint gap を含む）→ load \`clarifier\`」1 行に書き換え、"For spec-kit projects..." 注記を削除する
+- [x] T014 [P] [US3] Edit `.claude/rules/skill-routing.md` — "Mandatory gate" セクションおよび "Scope discipline" セクションを削除し、"Routing" セクションの 3 行のみ残す
 - [ ] T015 [US3] Verify all 4 scenarios in `tests/skill-routing/` pass after T013 and T014 (全シナリオ目視確認)
-- [ ] T016 [US3] Verify SC-004: `.claude/CLAUDE.md` の各スキル記述が 1 行トリガーのみに収まっていることを確認
+- [x] T016 [US3] Verify SC-004: `.claude/CLAUDE.md` の各スキル記述が 1 行トリガーのみに収まっていることを確認
 
 **Checkpoint**: 全ユーザーストーリー実装完了。全シナリオ Pass を確認。
 
@@ -94,8 +94,8 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T017 [P] Update spec status from "Draft" to "Complete" in `specs/001-skill-auto-routing/spec.md`
-- [ ] T018 [P] Update `specs/001-skill-auto-routing/checklists/requirements.md` — 最終検証結果を記録
+- [x] T017 [P] Update spec status from "Draft" to "Complete" in `specs/001-skill-auto-routing/spec.md`
+- [x] T018 [P] Update `specs/001-skill-auto-routing/checklists/requirements.md` — 最終検証結果を記録
 - [ ] T019 Run `specs/001-skill-auto-routing/quickstart.md` end-to-end validation (全変更の整合性確認)
 
 ---

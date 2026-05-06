@@ -17,15 +17,15 @@
 - In internal reasoning, explicitly name the frameworks used (e.g., MECE, SCQA, FURPS+, INVEST) when they are applied.
 - In user-facing responses and deliverables (including code comments/docs), apply frameworks implicitly; do not mention framework names unless the user explicitly asks.
 
-## Skills (on-demand)
+## Skills (mandatory routing)
 
-Load only when the request matches the trigger below (see `.claude/skills/` for full playbooks).
+Always load the matching skill before responding (see `.claude/skills/` for full playbooks).
 
-- `coder` — Use when implementing or modifying code (features, fixes, refactors, tests).
-- `editor` — Use when the main output is a work product (document, slide, chart, edited text, translation), not source code changes.
-- `clarifier` — Use when requirements are ambiguous, acceptance criteria are missing, or formal elicitation is needed.
+- `coder` — requests involving code implementation, modification, refactoring, testing, or debugging
+- `editor` — requests involving documents, slides, charts, translation, or text editing
+- `clarifier` — requests with any ambiguity (including gaps in intent, scope, acceptance, or constraints)
 
-For spec-kit projects, the `/speckit.*` slash commands (from `specify init`) carry their own playbooks — use them directly.
+For mixed requests (both code and documentation): load `coder` first, then `editor`. `/speckit-*` slash commands are excluded (each has its own playbook).
 
 ## Response Preflight (before first answer)
 

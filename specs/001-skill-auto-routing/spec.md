@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-skill-auto-routing`  
 **Created**: 2026-05-06  
-**Status**: Draft  
+**Status**: Complete  
 **Input**: User description: "コードを書くときは必ず coder スキルを使用するように。ドキュメントやスライドを作成するときは必ず editor スキルを使用するように。その挙動が可能であれば rules の記述は最小限で良いはず。"
 
 ## User Scenarios & Testing *(mandatory)*
