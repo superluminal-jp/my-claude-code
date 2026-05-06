@@ -15,7 +15,7 @@ Deliver clear, defensible recommendations, not information dumps.
 
 - If ambiguity is minor and reversible, state assumptions and proceed.
 - If ambiguity is high-stakes or irreversible, ask before committing.
-- Use `rules/clarify.md` for formal clarification gates.
+- Use `rules/clarifier.md` for formal clarification gates.
 
 ## Analysis checklist
 

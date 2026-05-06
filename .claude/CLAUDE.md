@@ -29,7 +29,7 @@ For mixed requests (both code and documentation): load `coder` first, then `edit
 
 ## Response Preflight (before first answer)
 
-- Run the clarification gate first via `rules/clarify.md` (intent, scope, constraints, acceptance criteria).
+- Run the clarification gate first via `rules/clarifier.md` (intent, scope, constraints, acceptance criteria).
 - If ambiguity remains, ask clarifying questions before implementation.
 - Then choose the minimum relevant skill for the task; avoid loading unrelated skills.
 - Use `rules/advisor.md` as concise baseline answer-quality guidance.
