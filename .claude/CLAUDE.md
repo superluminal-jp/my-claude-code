@@ -22,7 +22,7 @@
 Always load the matching skill before responding (see `.claude/skills/` for full playbooks).
 
 - `coder` — requests involving code implementation, modification, refactoring, testing, or debugging
-- `editor` — requests involving documents, slides, charts, translation, or text editing
+- `editor` — requests involving documents (including `docs/` folder), slides, charts, translation, or text editing
 - `clarifier` — requests with any ambiguity (including gaps in intent, scope, acceptance, or constraints)
 
 For mixed requests (both code and documentation): load `coder` first, then `editor`. `/speckit-*` slash commands are excluded (each has its own playbook).
