@@ -10,10 +10,9 @@ Use rules as always-on guidance and skills as on-demand playbooks.
 
 ## Routing
 
-- Code implementation or behavior changes -> load `development`.
-- Produced artifacts (docs, decks, charts, translation, editing) -> load `deliverables`.
-- Analysis or decision support -> load `advisor`.
-- Ambiguous requirements or missing acceptance criteria -> load `requirements`.
+- Code implementation or behavior changes -> load `coder`.
+- Produced artifacts (docs, decks, charts, translation, editing) -> load `editor`.
+- Ambiguous requirements or missing acceptance criteria -> load `clarifier`.
 
 ## Scope discipline
 

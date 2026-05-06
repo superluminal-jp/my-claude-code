@@ -21,10 +21,9 @@
 
 Load only when the request matches the trigger below (see `.claude/skills/` for full playbooks).
 
-- `development` — Use when implementing or modifying code (features, fixes, refactors, tests).
-- `deliverables` — Use when the main output is a work product (document, slide, chart, edited text, translation), not source code changes.
-- `advisor` — Use when the user asks for analysis, decision support, strategy, or open-ended framing.
-- `requirements` — Use when requirements are ambiguous, acceptance criteria are missing, or formal elicitation is needed.
+- `coder` — Use when implementing or modifying code (features, fixes, refactors, tests).
+- `editor` — Use when the main output is a work product (document, slide, chart, edited text, translation), not source code changes.
+- `clarifier` — Use when requirements are ambiguous, acceptance criteria are missing, or formal elicitation is needed.
 
 For spec-kit projects, the `/speckit.*` slash commands (from `specify init`) carry their own playbooks — use them directly.
 

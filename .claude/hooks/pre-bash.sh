@@ -12,7 +12,7 @@ if [ -z "$COMMAND" ]; then
 fi
 
 # Block force push
-if echo "$COMMAND" | grep -qE 'git push.*(-f|--force)'; then
+if echo "$COMMAND" | grep -qE 'git push.*(\s-f(\s|$)|--force)'; then
   echo "Force push is blocked by policy. Use a normal push or get explicit user approval." >&2
   exit 2
 fi
@@ -32,6 +32,15 @@ fi
 # Block recursive force delete
 if echo "$COMMAND" | grep -qE 'rm\s+-[a-zA-Z]*r[a-zA-Z]*f|rm\s+-[a-zA-Z]*f[a-zA-Z]*r'; then
   echo "rm -rf is blocked by policy. Confirm with user before deleting directories." >&2
+  exit 2
+fi
+
+# Block system-destructive commands (device overwrite, filesystem format, fork bomb)
+if echo "$COMMAND" | grep -qE '>\s*/dev/sd[a-z]' || \
+   echo "$COMMAND" | grep -qE '(^|[;&|[:space:]])mkfs(\s|$)' || \
+   echo "$COMMAND" | grep -qF 'dd if=/dev/zero' || \
+   echo "$COMMAND" | grep -qF ':(){ :|:& };:'; then
+  echo "System-destructive command blocked by policy." >&2
   exit 2
 fi
 

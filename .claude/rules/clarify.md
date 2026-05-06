@@ -62,6 +62,6 @@ Assumed (proceed unless corrected):
 ## Interaction with other rules and skills
 
 - **`permissions.md`** — destructive actions always require confirmation, independent of clarification state.
-- **`development` skill** — a clarified requirement must be testable (TDD) and match its spec (SDD); if you cannot write a failing test from the request, it is still ambiguous.
+- **`coder` skill** — a clarified requirement must be testable (TDD) and match its spec (SDD); if you cannot write a failing test from the request, it is still ambiguous.
 - **spec-kit projects** — if a `spec.md` exists, clarify against it; run `/speckit.clarify` for spec-level gaps rather than inline Q&A.
-- **`requirements` skill** — use for formal elicitation frameworks (ISO/IEEE/BABOK/INVEST/Gherkin/MoSCoW) and detailed requirement quality checks.
+- **`clarifier` skill** — use for formal elicitation frameworks (ISO/IEEE/BABOK/INVEST/Gherkin/MoSCoW) and detailed requirement quality checks.

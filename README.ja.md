@@ -26,7 +26,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 以下を実行してください:
 
 ```sh
-bash path/to/my-claude-code/.claude/install.sh
+bash path/to/my-claude-code/install.sh
 ```
 
 インストーラーは `~/.claude` を同期し、ユーザースコープ MCP を登録/更新します。
@@ -58,6 +58,7 @@ my-claude-code/
 ├── CLAUDE.md
 ├── README.md
 ├── README.ja.md
+├── install.sh
 ├── scripts/
 │   └── check-mcp-consistency.sh
 ├── .mcp.json
@@ -66,13 +67,12 @@ my-claude-code/
     ├── settings.json
     ├── rules/
     ├── skills/
-    ├── hooks/
-    └── install.sh
+    └── hooks/
 ```
 
 ## 検証
 
-`.mcp.json` / `.claude/install.sh` / `.claude/settings.json` / `.claude/rules/mcp.md` を変更したら:
+`.mcp.json` / `install.sh` / `.claude/settings.json` / `.claude/rules/mcp.md` を変更したら:
 
 ```sh
 ./scripts/check-mcp-consistency.sh

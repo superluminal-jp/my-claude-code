@@ -29,6 +29,8 @@ every project on the machine.
   [`.claude/rules/permissions.md`](.claude/rules/permissions.md))
 - **`.claude/hooks/user-prompt-submit.sh`** — UserPromptSubmit: blocks
   prompts containing AWS/GitHub/Slack/Google API keys or private key blocks
+- **`install.sh`** — Copies `.claude/` to `~/.claude/`, makes hooks executable,
+  and registers all MCP servers at user scope
 - **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and pinned
   versions across `.mcp.json`, `install.sh`, `settings.json`, and
   [`mcp.md`](.claude/rules/mcp.md) (requires `jq` on `PATH`)
@@ -40,7 +42,7 @@ Run the bundled installer from the cloned repo. It copies `.claude/` to
 scope:
 
 ```sh
-bash path/to/my-claude-code/.claude/install.sh
+bash path/to/my-claude-code/install.sh
 ```
 
 Re-running is safe: it re-syncs managed paths and upserts MCP servers.
@@ -68,6 +70,7 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
+├── install.sh                      # Copy .claude/ to ~/.claude/ + register MCP servers
 ├── scripts/
 │   └── check-mcp-consistency.sh    # MCP catalog drift check (jq required)
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
@@ -84,15 +87,14 @@ my-claude-code/
     │   ├── advisor/SKILL.md        # Consulting, analysis, decisions, strategy
     │   ├── deliverables/SKILL.md   # Documents, slides, research, translation
     │   └── requirements/SKILL.md   # Elicitation toolkit (BABOK/ISO), formal gaps
-    ├── hooks/
-    │   ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
-    │   └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
-    └── install.sh                  # Copy to ~/.claude/ + register MCP servers
+    └── hooks/
+        ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
+        └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
 ```
 
 ## Verification
 
-After changing `.mcp.json`, `.claude/install.sh`, `.claude/settings.json`
+After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
 (MCP allowlist), or [`.claude/rules/mcp.md`](.claude/rules/mcp.md):
 
 ```sh

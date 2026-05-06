@@ -54,6 +54,28 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|Delete",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/pre-edit.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/post-edit-format.sh",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -63,6 +85,19 @@
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/user-prompt-submit.sh",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptExpansion": [
+      {
+        "matcher": "speckit\\.specify",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/speckit-expand-update.sh",
+            "timeout": 300,
+            "statusMessage": "Updating Spec Kit before /speckit.specify…"
           }
         ]
       }
