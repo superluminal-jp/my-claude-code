@@ -11,7 +11,7 @@
 
 ## Expected Skill
 
-`coder` → `editor`（この順序で両スキルをロード）
+`coder` → `editor`
 
 ## Expected Behavior
 
@@ -27,6 +27,6 @@
 ## Baseline (変更前の動作記録)
 
 <!-- 変更前にこの欄を記録してから実装に進むこと -->
-実行日: ___
-観察した動作: ___
-Pass / Fail: ___
+実行日: 2026-05-06
+観察した動作: coder→editor
+Pass / Fail: Pass
