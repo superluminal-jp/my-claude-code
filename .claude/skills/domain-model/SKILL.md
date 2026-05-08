@@ -2,21 +2,23 @@
 
 Maintain a project's DDD domain model — capture structural patterns from conversation, generate `docs/models/<context-kebab>.md` (Mermaid + 5 tables), and keep `docs/models/index.md` in sync.
 
+**Language**: Respond in the language of the current conversation. All examples in this file are in English; adapt to the conversation language at runtime.
+
 ---
 
 ## Pre-check
 
-At every invocation, first:
+At every invocation:
 
-1. Determine the target Bounded Context from user message or conversation. If not determinable, ask:
+1. Determine the target Bounded Context from the user message or conversation context. If not determinable, ask:
 
-   > 「どのコンテキストのドメインモデルを操作しますか？（例: order / inventory / payment）」
+   > "Which context's domain model would you like to work on? (e.g., order, inventory, payment)"
 
-2. Check whether `docs/models/<context-kebab>.md` exists in the current project root.
+2. Check whether `docs/models/<context-kebab>.md` exists.
    - Absent → **Bootstrap Flow**
    - Present → **Maintenance/Update Flow**
 
-3. If `docs/ubiquitous-language.md` exists: read it and load all entries into the candidate queue as context (UL Integration — see below).
+3. If `docs/ubiquitous-language.md` exists: read it and load all entries into the candidate queue (see UL Integration).
 
 4. Maintain an in-session candidate queue (not persisted to disk):
 
@@ -32,98 +34,92 @@ At every invocation, first:
 
 ## Beginner Assist
 
-DDD の用語に不慣れなユーザーでも正しくモデリングを進められるよう、以下のルールに従う。
+Support users unfamiliar with DDD terminology without disrupting experienced users.
 
-### 用語の平易な言い換え
+### Plain-language glossary
 
-| DDD 用語 | 平易な言い換え |
+| DDD Term | Plain meaning |
 |---|---|
-| 集約 | 「いつも一緒に変わるデータのかたまり」 |
-| 集約ルート | 「そのかたまりの代表。外からはこれ経由でしかアクセスできない」 |
-| エンティティ | 「ID で区別できる、中身が変わっても同じものとわかるもの」 |
-| 値オブジェクト | 「内容が同じなら同じもの。変えるときは丸ごと差し替える（住所・金額など）」 |
-| ドメインイベント | 「業務で実際に起きた出来事の記録。必ず過去形で名前をつける」 |
-| 不変条件 | 「このルールが破れたら、その状態は絶対に作れない、という絶対ルール」 |
-| 境界づけられたコンテキスト | 「この言葉はここでは○○という意味、と決めた範囲」 |
+| Aggregate | A cluster of objects that always change together |
+| Aggregate Root | The single entry point for the cluster; outside code may only access the cluster through this |
+| Entity | Something identified by an ID; it can change over time but remains the same thing |
+| Value Object | Something identified by its value; replace it entirely to "change" it (e.g., money, address) |
+| Domain Event | A record of something that happened in the business; always named in past tense |
+| Invariant | A rule the aggregate must enforce at all times; a state that violates it must never exist |
+| Bounded Context | A named boundary within which a term has a specific, agreed meaning |
 
-### 初心者シグナルの検出
+### Beginner signal detection
 
-ユーザーが次のいずれかを示した場合、次の質問に進む前に平易な説明を一言添える:
-- 「わかりません」「どういう意味ですか？」「難しい」などの困惑表現
-- DDD 用語を誤って使用している（例: 「集約」を「テーブル」と同義で使う）
-- Bootstrap の質問に「全部？」「どれも？」など答えが曖昧
+If the user shows any of the following, provide a brief plain-language explanation before proceeding:
+- Expressions of confusion: "I don't understand," "What does that mean?", "This is hard"
+- Misuse of DDD terms (e.g., treating "aggregate" as synonymous with "table")
+- Vague answers to Bootstrap questions (e.g., "All of them?", "I'm not sure")
 
-説明テンプレート:
-> 「[DDD 用語] とは [平易な言い換え] のことです。たとえば [具体例] を思い浮かべてください。」
+Explanation template:
+> "[DDD term] means [plain meaning]. Think of [concrete example]."
 
-### Bootstrap 質問の平易な補足
+### Augmented Bootstrap questions
 
-Bootstrap Flow の各ステップでは、DDD 用語に必ず括弧付きの平易な補足を添える:
+Append a plain-language supplement to each Bootstrap step prompt:
 
-**Step 1（集約）**:
+**Step 1 — Aggregates**:
+> "What clusters of data always change together in this context? (In DDD, these are called aggregates.)
+> Example: An 'Order' is one cluster — the order itself, its line items, and the shipping address all change as a unit.
+> What clusters exist in your system?"
 
-> 「このシステムで「いつも一緒に変わるデータのかたまり」は何ですか？（DDD では「集約」と呼びます）  
-> 例: 「注文」は、注文自体・明細・配送先がセットで変わるので一つの集約です。  
-> あなたのシステムではどんなかたまりがありますか？」
+**Step 2 — Entity vs. Value Object**:
+> "Within [aggregate], classify each piece:
+> - **Identified by an ID** — Even if details change, it is the same thing (Entity). Example: a specific order line.
+> - **Identified by value** — Two instances with the same value are interchangeable (Value Object). Example: a monetary amount, an address.
+> Which category does each piece in [aggregate] belong to?"
 
-**Step 2（Entity / Value Object）**:
+**Step 3 — Domain Events**:
+> "What business occurrences happen during [aggregate]'s lifecycle? (In DDD, these are Domain Events — always named in past tense.)
+> Examples: OrderConfirmed, PaymentReceived, StockReserved.
+> Tip: think of status changes displayed on screen, or moments when a notification is triggered."
 
-> 「[集約名] の中のものを次の 2 種類に分けてみましょう:  
-> • **ID で区別するもの** — 「注文ID が同じなら同じ注文」のように番号で識別できるもの（エンティティ）  
-> • **内容で区別するもの** — 「金額 1000円 と 金額 1000円 は同じ」のように値そのものが意味を持つもの（値オブジェクト）  
-> [集約名] の中で、どちらに当てはまるものがありますか？」
-
-**Step 3（ドメインイベント）**:
-
-> 「[集約名] のライフサイクルで「〜された」「〜が完了した」という出来事は何ですか？（DDD では「ドメインイベント」と呼び、必ず過去形で名前をつけます）  
-> 例: 「注文確定済」「支払い完了」「在庫引当済」  
-> ヒント: 画面のステータス変化や、メール通知が飛ぶタイミングを思い浮かべると見つけやすいです。」
-
-**Step 4（不変条件）**:
-
-> 「[集約名] で「このルールを破ったら、この状態は絶対に作れない」というルールは何ですか？（DDD では「不変条件」と呼びます）  
-> 例: 「在庫ゼロでは注文できない」「合計金額がマイナスの注文は作れない」  
-> ヒント: 「〜の場合は〜できない」「〜でなければならない」という形で表現できるルールです。」
+**Step 4 — Invariants**:
+> "What rules must [aggregate] always enforce? (In DDD, these are Invariants — a state that violates them must never exist.)
+> Examples: 'An order cannot be placed when stock is zero.' 'A cart total must never be negative.'
+> Tip: look for 'cannot,' 'must always,' or 'is only allowed when' in your business rules."
 
 ---
 
 ## Passive Collection
 
-During any conversation turn, **without interrupting the current response**, monitor user messages for DDD structural patterns:
+During any conversation turn, **without interrupting the response**, monitor user messages for DDD structural patterns:
 
 | Pattern | Example | trigger_type |
 |---|---|---|
-| 「〇〇は〇〇を持つ」「〇〇に属する」「〇〇を集約する」 | 「注文は複数の明細を持つ」 | `aggregate` |
-| 「〇〇ID」「〇〇番号」「〇〇コード」で一意識別 | 「注文IDで一意に識別される」 | `entity` |
-| 「変更されない」「置き換えられる」「同値なら同一」 | 「住所は変更されない」 | `value-object` |
-| 動詞+名詞の過去形/受動形（業務上の出来事） | 「注文が確定された」 | `domain-event` |
-| 「〜の場合は〜できない」「〜でなければならない」「〜は必ず〜」 | 「在庫がゼロの場合は注文できない」 | `invariant` |
+| "X has/contains Y", "Y belongs to X", "X aggregates Y" | "An order has multiple line items" | `aggregate` |
+| "X ID", "X number", "X code" uniquely identifies | "Identified by order ID" | `entity` |
+| "immutable", "replaced entirely", "equal if same value" | "Address is immutable" | `value-object` |
+| Past-tense or passive verb+noun (business occurrence) | "Order was confirmed" | `domain-event` |
+| "cannot when", "must always", "is required to" | "Cannot order when stock is zero" | `invariant` |
 
-**False-positive guard**: only queue a candidate when the preceding text context contains at least one of: a UL-registered term, or another DDD pattern in the same turn.
+**False-positive guard**: queue a candidate only when the surrounding context contains at least one UL-registered term or another DDD pattern in the same turn.
 
-**Queue rule**: add without interrupting the conversation. Do not surface until the presentation condition is met.
-
-**Surface queued candidates as a batch proposal when**:
+**Surface queued candidates as a batch when**:
 - Queue has ≥ 1 entry, AND
-- The preceding conversation turn contained zero new DDD vocabulary candidates
+- The preceding turn contained no new DDD candidates
 
 Batch proposal format:
 
 ```
-## Domain Model — 候補検出
+## Domain Model — Candidates Detected
 
-以下の DDD パターン候補を検出しました。確認をお願いします:
+The following DDD pattern candidates were detected. Please review:
 
-| # | 用語 | 検出元 | 候補タイプ | コンテキスト |
+| # | Term | Source | Type | Context |
 |---|---|---|---|---|
-| 1 | 注文 | 「注文は複数の明細を持つ」 | aggregate | order |
-| 2 | 注文ID | 「注文IDで一意に識別される」 | entity | order |
-| 3 | 在庫がゼロの場合は注文できない | （原文）| invariant | order |
+| 1 | Order | "An order has multiple line items" | aggregate | order |
+| 2 | OrderId | "Identified by order ID" | entity | order |
+| 3 | Cannot order when stock is zero | (verbatim) | invariant | order |
 
-回答例: "全て採用" / "1,3のみ" / "スキップ" / "2は entity ではなく value-object"
+Reply: "Accept all" / "1 and 3 only" / "Skip" / "2 is value-object, not entity"
 ```
 
-Accepted candidates are used as seed input for the next Bootstrap or Update flow invocation.
+Accepted candidates seed the next Bootstrap or Update flow.
 
 ---
 
@@ -133,42 +129,32 @@ Accepted candidates are used as seed input for the next Bootstrap or Update flow
 
 ### Step 1 — Announce and elicit aggregates
 
-> 「このコンテキストのドメインモデルファイルはまだありません。ヒアリングを開始します。」
-
-Ask:
-
-> 「このコンテキストで整合性の単位（まとめて変わるもの）は何ですか？  
-> 例: 注文、請求書、カート」
+Announce that no model file exists and that the bootstrap process is starting. Then use the augmented Step 1 prompt from Beginner Assist.
 
 ### Step 2 — Entity / Value Object classification
 
-For each aggregate identified, ask:
-
-> 「[集約名] の中で、識別子（ID）で区別するものはどれですか？（→ Entity）  
-> 値で区別するもの（住所、金額など変更不可の概念）はどれですか？（→ Value Object）」
+For each aggregate identified, use the augmented Step 2 prompt from Beginner Assist.
 
 ### Step 3 — Domain Event enumeration
 
-> 「[集約名] のライフサイクルで起きる業務上の出来事は何ですか？  
-> （UL に登録済みのイベント名がある場合はそちらを参照します）」
+Ask which business occurrences happen during the aggregate's lifecycle. Use the augmented Step 3 prompt. If UL-registered event names exist, propose them as authoritative and do not rename them.
 
 ### Step 4 — Invariant confirmation
 
-> 「[集約名] が常に守らなければならないビジネスルールは何ですか？  
-> 例: 在庫がゼロの場合は注文できない」
+Use the augmented Step 4 prompt from Beginner Assist.
 
 ### Step 5 — Generate diff and confirm
 
 1. Build the full content of `docs/models/<context-kebab>.md` using `context-template.md` as the base.
-2. Generate the Mermaid classDiagram from the collected tables (see Mermaid Generation Rules below).
-3. Show the complete proposed file contents as a diff to the user.
+2. Generate the Mermaid classDiagram from the collected tables (see Mermaid Generation Rules).
+3. Present the complete proposed file content to the user.
 
-**Do NOT write any file until the user explicitly confirms.**
+**Do not write any file until the user explicitly confirms.**
 
 On confirmation:
 - Create `docs/models/` if absent.
 - Write `docs/models/<context-kebab>.md`.
-- Sync `docs/models/index.md` (see Index Sync section).
+- Sync `docs/models/index.md` (see Index Sync).
 
 ---
 
@@ -178,31 +164,29 @@ On confirmation:
 
 ### Step 1 — Read existing file
 
-Read the full contents of `docs/models/<context-kebab>.md` to establish the current state.
+Read the full contents of `docs/models/<context-kebab>.md`.
 
 ### Step 2 — Determine changes
 
-Based on queued candidates and/or user's explicit instruction, identify what needs to change:
-- New aggregates, entities, VOs, domain events, or invariants to add
-- Existing rows to update
+Based on queued candidates and/or the user's explicit instruction, identify what to add or update: new aggregates, entities, value objects, domain events, or invariants; or modifications to existing rows.
 
 ### Step 3 — Detect Mermaid / table divergence
 
-After computing changes, check whether the Mermaid classDiagram in the file is consistent with the updated tables. If divergence is detected:
+After computing changes, verify that the classDiagram is consistent with the updated tables. If divergence is found:
 
-> 「図がテーブルと一致しません。再生成しますか？」
+> "The diagram is out of sync with the tables. Regenerate it?"
 
-Regenerate diagram if confirmed.
+Regenerate if the user confirms.
 
 ### Step 4 — Show diff and confirm
 
-Show a diff of all proposed changes (tables + diagram if regenerated).
+Present a diff of all proposed changes (tables + diagram if regenerated).
 
-**Do NOT write any file until the user explicitly confirms.**
+**Do not write any file until the user explicitly confirms.**
 
-**No-change rule**: if the proposed content is identical to the current file, do not write and inform the user:
+**No-change rule**: if the proposed content is identical to the current file, do not write:
 
-> 「変更内容がありません。ファイルは更新しませんでした。」
+> "No changes detected. The file was not updated."
 
 On confirmation: write `docs/models/<context-kebab>.md`, then sync `docs/models/index.md`.
 
@@ -210,7 +194,7 @@ On confirmation: write `docs/models/<context-kebab>.md`, then sync `docs/models/
 
 ## Mermaid Generation Rules
 
-When generating or regenerating the `classDiagram` block from the tables:
+When generating or regenerating the `classDiagram` block:
 
 **Stereotypes**:
 - Aggregate Root → `<<Aggregate Root>>`
@@ -250,7 +234,7 @@ classDiagram
   Order --> Money : totalAmount
 ```
 
-List only key fields (identifier + 1-3 significant attributes) and primary operations. Keep the diagram readable; full details live in the tables.
+Include only key fields (identifier + 1–3 significant attributes) and primary operations. Full detail lives in the tables.
 
 ---
 
@@ -258,59 +242,51 @@ List only key fields (identifier + 1-3 significant attributes) and primary opera
 
 **When `docs/ubiquitous-language.md` exists**:
 
-1. Read all UL entries at Pre-check time.
-2. For each entry, determine its DDD pattern from the entry type / definition and add to the candidate queue:
-   - Business event (過去形 verb+noun) → `domain-event`
+1. Read all entries at Pre-check time.
+2. Infer each entry's DDD pattern and add to the candidate queue:
+   - Past-tense verb+noun → `domain-event`
    - Noun with ID reference → `entity`
-   - Noun described as immutable / value-based → `value-object`
-   - Noun described as containing/managing others → `aggregate`
-   - Rule / constraint → `invariant`
-3. When eliciting Domain Events in Bootstrap Step 3 or Maintenance Step 2: propose UL-registered event names as the authoritative naming. Do not rename or override UL event names.
-4. **This skill never writes to `docs/ubiquitous-language.md`** — it is read-only from this skill's perspective.
+   - Noun described as immutable or value-based → `value-object`
+   - Noun described as containing or managing others → `aggregate`
+   - Rule or constraint → `invariant`
+3. When eliciting Domain Events (Bootstrap Step 3 or Maintenance Step 2), propose UL-registered names as authoritative. Do not rename or override them.
+4. **This skill never writes to `docs/ubiquitous-language.md`** — it is read-only.
 
 **When `docs/ubiquitous-language.md` does not exist**:
 
-Operate in independent bootstrap mode — run Bootstrap Flow without UL seed candidates.
+Run Bootstrap Flow without UL seed candidates (independent mode).
 
 ---
 
 ## Index Sync
 
-Whenever `docs/models/<context-kebab>.md` is written (created or updated), also sync `docs/models/index.md`:
+Sync `docs/models/index.md` whenever a context file is written.
 
 ### On context file creation
 
 1. If `docs/models/index.md` does not exist: create it from `index-template.md`.
-2. Add a new row to the Bounded Contexts table:
-   - コンテキスト名: display name
-   - ファイル: `[<name>](./<context-kebab>.md)`
-   - 集約数: count from the Aggregates table
-   - 更新日: today's date (YYYY-MM-DD)
-3. Increment `Total Contexts` in the header.
-4. Update `Last Updated`.
+2. Add a new row to the Bounded Contexts table: display name, file link, aggregate count, today's date.
+3. Increment `Total Contexts`; update `Last Updated`.
 
 ### On context file update
 
-1. Update the matching row in the Bounded Contexts table (集約数, 更新日).
-2. Update `Last Updated`.
+Update the matching row (aggregate count, date) and `Last Updated`.
 
 ### On context file deletion (user-initiated)
 
-1. Remove the matching row from the Bounded Contexts table.
-2. Decrement `Total Contexts`.
-3. Update `Last Updated`.
-4. If the deleted context appeared in the Mermaid graph or relationship table, remove those edges and inform the user.
+1. Remove the matching row; decrement `Total Contexts`; update `Last Updated`.
+2. Remove any edges referencing the deleted context from the Mermaid graph and relationship table; notify the user.
 
 ### Inter-context relationship diagram
 
-The `graph LR` Mermaid block and the relationship table in `index.md` are optional. Populate them when the user describes cross-context relationships. Use DDD integration pattern labels:
+The `graph LR` block and relationship table in `index.md` are optional. Populate them when the user describes cross-context relationships. Use DDD integration pattern labels:
 
 ```
-U (Upstream) / D (Downstream)
-ACL (Anti-Corruption Layer)
-OHS (Open Host Service)
-CF (Conformist)
-P (Partnership)
+U / D  — Upstream / Downstream
+ACL    — Anti-Corruption Layer
+OHS    — Open Host Service
+CF     — Conformist
+P      — Partnership
 ```
 
 Example edge: `OrderContext --"U→D / ACL"--> InventoryContext`
@@ -321,15 +297,15 @@ Example edge: `OrderContext --"U→D / ACL"--> InventoryContext`
 
 When the same concept name appears in two or more context files with differing semantics:
 
-1. Surface the conflict explicitly:
+1. Surface the conflict:
 
-   > 「「[概念名]」が [Context A] と [Context B] の両方に定義されており、内容が異なります。どうしますか？」
+   > "The concept '[name]' is defined in both [Context A] and [Context B] with different meanings. How would you like to resolve this?"
 
 2. Present options:
-   - **分離**: Keep separate entries per context; differentiate by `実装名` (e.g., `OrderItem` vs `InventoryItem`)
-   - **改名**: Rename the concept in one context (user specifies the new name)
+   - **Separate** — Keep distinct entries per context; differentiate via implementation name (e.g., `OrderItem` vs. `InventoryItem`).
+   - **Rename** — Rename the concept in one context; the user specifies the new name.
 
-3. Apply the chosen resolution and update both context files and `index.md` as a single confirmed diff.
+3. Apply the resolution and update both context files and `index.md` as a single confirmed diff.
 
 **Silent merge is prohibited**: never unify concepts across contexts without explicit user confirmation.
 
@@ -337,10 +313,10 @@ When the same concept name appears in two or more context files with differing s
 
 ## Invariants
 
-1. **Diff before write**: Every file write is preceded by showing the user the full proposed content or diff.
+1. **Diff before write**: Every file write is preceded by presenting the proposed content or diff.
 2. **Explicit confirmation**: No file is written without explicit user confirmation.
-3. **No silent cross-context merge**: Concept conflicts always present the split-or-rename choice; never silently merge.
-4. **Single-file per Bounded Context**: One `docs/models/<context-kebab>.md` per BC. Mixed-context content in one file is prohibited.
+3. **No silent cross-context merge**: Concept conflicts always surface the split-or-rename choice.
+4. **Single file per Bounded Context**: One `docs/models/<context-kebab>.md` per BC; mixed-context content is prohibited.
 5. **Index always reflects files**: `docs/models/index.md` is synced on every context file creation, update, or deletion.
-6. **Diagram generated from tables**: The Mermaid classDiagram is always derived from the tables, never edited independently. Table-first; diagram is a projection.
-7. **Japanese output**: All user-facing output (questions, diff presentations, proposals, file content) must be presented in Japanese.
+6. **Diagram derived from tables**: The classDiagram is always generated from the tables, never edited independently.
+7. **Language follows conversation**: Respond in the language the user is using; adapt all prompts and output accordingly.
