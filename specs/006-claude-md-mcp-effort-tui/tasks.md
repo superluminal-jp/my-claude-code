@@ -18,7 +18,7 @@
 
 **Independent Test**: Start a new session; ask "What Lambda runtimes does AWS support?" — confirm an `mcp__aws-*` tool call appears before the answer. Then ask "I'm on AWS but how do I write a Python list comprehension?" — confirm no MCP call is made.
 
-- [ ] T001 [P] [US1] Replace the "Usage rule" section in `.claude/rules/mcp.md` with a MUST rule: invoke the matching MCP server when a question directly concerns AWS/GCP/Azure; warn + fall back to training knowledge when MCP is unreachable; skip MCP for incidental mentions
+- [x] T001 [P] [US1] Replace the "Usage rule" section in `.claude/rules/mcp.md` with a MUST rule: invoke the matching MCP server when a question directly concerns AWS/GCP/Azure; warn + fall back to training knowledge when MCP is unreachable; skip MCP for incidental mentions
 
 **Checkpoint**: MCP rule now says MUST, includes trigger condition, fallback, and incidental-mention exception.
 
@@ -30,7 +30,7 @@
 
 **Independent Test**: Run `grep effortLevel .claude/settings.json` — confirm value is `"high"`. Open a new Claude Code session without flags; confirm effective effort is high.
 
-- [ ] T002 [P] [US2] Change `"effortLevel": "medium"` to `"effortLevel": "high"` in `.claude/settings.json`
+- [x] T002 [P] [US2] Change `"effortLevel": "medium"` to `"effortLevel": "high"` in `.claude/settings.json`
 
 **Checkpoint**: `effortLevel` is `"high"` in `.claude/settings.json`.
 
@@ -42,7 +42,7 @@
 
 **Independent Test**: Run `grep '"tui"' .claude/settings.json` — confirm value is `"fullscreen"`. Launch Claude Code interactively; confirm TUI is fullscreen.
 
-- [ ] T003 [US3] Add `"tui": "fullscreen"` after the `"effortLevel"` line in `.claude/settings.json` (depends on T002 — same file)
+- [x] T003 [US3] Add `"tui": "fullscreen"` after the `"effortLevel"` line in `.claude/settings.json` (depends on T002 — same file)
 
 **Checkpoint**: `"tui": "fullscreen"` is present in `.claude/settings.json`.
 
@@ -52,9 +52,9 @@
 
 **Purpose**: Distribute settings and verify no regressions.
 
-- [ ] T004 Run `~/.claude/install.sh` and confirm `~/.claude/settings.json` contains both `"effortLevel": "high"` and `"tui": "fullscreen"`
-- [ ] T005 Verify regression: ask a generic non-AWS/GCP question and confirm no MCP call is triggered
-- [ ] T006 [P] Verify override: confirm that explicitly passing `--effort medium` at CLI takes precedence over the `high` default
+- [x] T004 Run `~/.claude/install.sh` and confirm `~/.claude/settings.json` contains both `"effortLevel": "high"` and `"tui": "fullscreen"`
+- [x] T005 Verify regression: ask a generic non-AWS/GCP question and confirm no MCP call is triggered
+- [x] T006 [P] Verify override: confirm that explicitly passing `--effort medium` at CLI takes precedence over the `high` default
 
 ---
 
