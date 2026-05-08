@@ -36,7 +36,7 @@ bash path/to/my-claude-code/install.sh
 - 次の管理対象は **置換同期** されます:
   - `hooks/`
   - `rules/`
-  - `skills/`
+  - `skills/`（`speckit-*` を含む全スキル）
   - `CLAUDE.md`
   - `settings.json`
   - `install.sh`
@@ -99,3 +99,18 @@ my-claude-code/
 
 優先順位（高 -> 低）:
 managed > local (`.local.json`) > project (`settings.json`) > user (`~/.claude/settings.json`)
+
+### spec-kit のオプトイン
+
+プロジェクトで `specify init` を実行すると spec-kit がインストールされ、
+`/speckit.*` スラッシュコマンドが登録されます。各コマンドは独自のプレイブックを持ちます。
+
+Git Branching Workflow コマンド（`/speckit-git.*`）を使用するには、
+`specify init` 後に git extension を追加でインストールしてください:
+
+```sh
+specify extension add git
+```
+
+追加されるコマンド: `speckit.git.feature`、`speckit.git.validate`、
+`speckit.git.remote`、`speckit.git.initialize`、`speckit.git.commit`

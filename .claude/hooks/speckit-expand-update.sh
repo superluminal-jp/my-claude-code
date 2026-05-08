@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# UserPromptExpansion: before /speckit.specify expands, upgrade specify-cli and refresh Spec Kit project files.
+# UserPromptExpansion: before /speckit-* expands, upgrade specify-cli and refresh Spec Kit project files.
+# This keeps extensions (including git extension hooks) in sync before each lifecycle command.
 # Requires .specify/ in cwd (spec-kit project). Safe for specs/: those dirs are never touched by specify init.
 # Integration: override with SPECIFY_INTEGRATION (default: claude). See spec-kit integrations list.
 
@@ -10,7 +11,7 @@ CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 COMMAND_NAME=$(echo "$INPUT" | jq -r '.command_name // empty')
 
 case "$COMMAND_NAME" in
-  speckit.specify) ;;
+  speckit.specify|speckit.clarify|speckit.plan|speckit.tasks|speckit.implement|speckit.checklist|speckit.analyze|speckit.taskstoissues|speckit.constitution) ;;
   *)
     exit 0
     ;;
@@ -21,6 +22,9 @@ if [ -z "$CWD" ] || [ ! -d "$CWD" ]; then
 fi
 
 INTEGRATION="${SPECIFY_INTEGRATION:-claude}"
+UPDATE_INTERVAL_SECONDS="${SPECIFY_AUTO_UPDATE_INTERVAL_SECONDS:-86400}"
+FORCE_UPDATE="${SPECIFY_FORCE_AUTO_UPDATE:-0}"
+STATE_FILE="$CWD/.specify/.last-auto-update"
 LOG=$(mktemp)
 trap 'rm -f "$LOG"' EXIT
 
@@ -32,8 +36,9 @@ if [ ! -d "$CWD/.specify" ]; then
 fi
 
 {
-  echo "=== Spec Kit auto-update (before /speckit.specify) ==="
+  echo "=== Spec Kit auto-update (before /$COMMAND_NAME) ==="
   echo "cwd=$CWD integration=$INTEGRATION"
+  echo "update_interval_seconds=$UPDATE_INTERVAL_SECONDS force_update=$FORCE_UPDATE"
   set +e
   if command -v uv >/dev/null 2>&1; then
     echo "--- uv tool install specify-cli ---"
@@ -47,15 +52,42 @@ fi
     echo "SKIP: neither uv nor pipx in PATH; CLI not upgraded."
   fi
 
-  echo "--- specify init --here --force ---"
-  if command -v specify >/dev/null 2>&1; then
-    (cd "$CWD" && specify init --here --force --integration "$INTEGRATION")
-    echo "specify init exit: $?"
-  elif command -v uv >/dev/null 2>&1; then
-    (cd "$CWD" && uvx --from git+https://github.com/github/spec-kit.git specify init --here --force --integration "$INTEGRATION")
-    echo "uvx specify init exit: $?"
+  now_epoch=$(date +%s)
+  last_update=0
+  if [ -f "$STATE_FILE" ]; then
+    last_update=$(cat "$STATE_FILE" 2>/dev/null || echo "0")
+  fi
+
+  should_run_init=1
+  if [ "$FORCE_UPDATE" != "1" ] && [ "$UPDATE_INTERVAL_SECONDS" -gt 0 ] 2>/dev/null; then
+    elapsed=$((now_epoch - last_update))
+    if [ "$elapsed" -lt "$UPDATE_INTERVAL_SECONDS" ]; then
+      should_run_init=0
+      echo "SKIP: specify init throttled (elapsed=${elapsed}s < interval=${UPDATE_INTERVAL_SECONDS}s)"
+    fi
+  fi
+
+  if [ "$should_run_init" -eq 1 ]; then
+    echo "--- specify init --here --force ---"
+    if command -v specify >/dev/null 2>&1; then
+      (cd "$CWD" && specify init --here --force --integration "$INTEGRATION")
+      init_exit=$?
+      echo "specify init exit: $init_exit"
+    elif command -v uv >/dev/null 2>&1; then
+      (cd "$CWD" && uvx --from git+https://github.com/github/spec-kit.git specify init --here --force --integration "$INTEGRATION")
+      init_exit=$?
+      echo "uvx specify init exit: $init_exit"
+    else
+      init_exit=127
+      echo "SKIP: specify not in PATH and uv missing for uvx fallback."
+    fi
+
+    if [ "${init_exit:-1}" -eq 0 ]; then
+      printf '%s\n' "$now_epoch" > "$STATE_FILE"
+      echo "Updated state file: $STATE_FILE"
+    fi
   else
-    echo "SKIP: specify not in PATH and uv missing for uvx fallback."
+    echo "State file unchanged: $STATE_FILE"
   fi
 } >>"$LOG" 2>&1 || true
 
