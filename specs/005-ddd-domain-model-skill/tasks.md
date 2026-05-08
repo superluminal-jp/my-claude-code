@@ -30,7 +30,7 @@
 
 **Purpose**: ディレクトリ作成
 
-- [ ] T001 Create `.claude/skills/domain-model/` directory
+- [x] T001 Create `.claude/skills/domain-model/` directory
 
 ---
 
@@ -40,8 +40,8 @@
 
 **⚠️ CRITICAL**: US1〜US4 の実装は本フェーズ完了後に開始する
 
-- [ ] T002 [P] Write `.claude/skills/domain-model/context-template.md` — `docs/models/<context-kebab>.md` の初期テンプレート。data-model.md §3 の全テーブル（集約・エンティティ・VO・ドメインイベント・不変条件）の見出し行のみを含む空テーブルと、Mermaid classDiagram プレースホルダーを記述する
-- [ ] T003 [P] Write `.claude/skills/domain-model/index-template.md` — `docs/models/index.md` の初期テンプレート。data-model.md §2 のヘッダー・BC 一覧テーブル・空の Mermaid graph LR セクション（research.md Decision 4 の形式）を記述する
+- [x] T002 [P] Write `.claude/skills/domain-model/context-template.md` — `docs/models/<context-kebab>.md` の初期テンプレート。data-model.md §3 の全テーブル（集約・エンティティ・VO・ドメインイベント・不変条件）の見出し行のみを含む空テーブルと、Mermaid classDiagram プレースホルダーを記述する
+- [x] T003 [P] Write `.claude/skills/domain-model/index-template.md` — `docs/models/index.md` の初期テンプレート。data-model.md §2 のヘッダー・BC 一覧テーブル・空の Mermaid graph LR セクション（research.md Decision 4 の形式）を記述する
 
 **Checkpoint**: テンプレート 2 ファイルが作成されており、Bootstrap・Update の両フローで参照できる状態
 
@@ -55,8 +55,8 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Create `.claude/skills/domain-model/SKILL.md` — ファイル冒頭（Pre-check セクション）を書く。フロー選択ロジック（`docs/models/` 内に対象コンテキストファイルが存在しない → Bootstrap flow、存在する → Maintenance/Update flow）と、セッション内候補キューのスキーマ（data-model.md §1 の 5 フィールド）を記述する
-- [ ] T005 [US1] Append Passive Collection section to `.claude/skills/domain-model/SKILL.md` — research.md Decision 2 の 5 パターン（aggregate/entity/value-object/domain-event/invariant）の検出ルールと偽陽性対策、キュー積みルール（会話中断なし）、提示条件（キュー≥1 かつ直前ターンで新規候補なし）を記述する
+- [x] T004 [US1] Create `.claude/skills/domain-model/SKILL.md` — ファイル冒頭（Pre-check セクション）を書く。フロー選択ロジック（`docs/models/` 内に対象コンテキストファイルが存在しない → Bootstrap flow、存在する → Maintenance/Update flow）と、セッション内候補キューのスキーマ（data-model.md §1 の 5 フィールド）を記述する
+- [x] T005 [US1] Append Passive Collection section to `.claude/skills/domain-model/SKILL.md` — research.md Decision 2 の 5 パターン（aggregate/entity/value-object/domain-event/invariant）の検出ルールと偽陽性対策、キュー積みルール（会話中断なし）、提示条件（キュー≥1 かつ直前ターンで新規候補なし）を記述する
 
 **Checkpoint**: SKILL.md の Pre-check + Passive Collection セクションを読むだけで、キュー積みと提示タイミングが完全に理解できる状態
 
@@ -70,9 +70,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T006 [US2] Append Bootstrap Flow section to `.claude/skills/domain-model/SKILL.md` — research.md Decision 3 の 4 ステップ（集約発見→エンティティ/VO 分類→ドメインイベント列挙→不変条件確認）のヒアリングフロー、context-template.md を元にした差分生成、「書き込み前に差分提示・明示確認」ルールを記述する
-- [ ] T007 [US2] Append Maintenance/Update Flow section to `.claude/skills/domain-model/SKILL.md` — 既存ファイルの読み込み、変更内容の差分提示、確認後書き込み、「変更なしの場合は上書きしない」ルール、Mermaid 図とテーブルの乖離検出と再生成提案を記述する
-- [ ] T008 [US2] Append Mermaid classDiagram generation rules to `.claude/skills/domain-model/SKILL.md` — research.md Decision 1 の規約（ステレオタイプ・コンポジション・関連の記法）を記述する。コード例を含める
+- [x] T006 [US2] Append Bootstrap Flow section to `.claude/skills/domain-model/SKILL.md` — research.md Decision 3 の 4 ステップ（集約発見→エンティティ/VO 分類→ドメインイベント列挙→不変条件確認）のヒアリングフロー、context-template.md を元にした差分生成、「書き込み前に差分提示・明示確認」ルールを記述する
+- [x] T007 [US2] Append Maintenance/Update Flow section to `.claude/skills/domain-model/SKILL.md` — 既存ファイルの読み込み、変更内容の差分提示、確認後書き込み、「変更なしの場合は上書きしない」ルール、Mermaid 図とテーブルの乖離検出と再生成提案を記述する
+- [x] T008 [US2] Append Mermaid classDiagram generation rules to `.claude/skills/domain-model/SKILL.md` — research.md Decision 1 の規約（ステレオタイプ・コンポジション・関連の記法）を記述する。コード例を含める
 
 **Checkpoint**: SKILL.md の Bootstrap + Maintenance フローと Mermaid 規約を読むだけで、モデルファイルの生成・更新・図の再生成が一貫して実行できる状態
 
@@ -86,7 +86,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Append UL Integration section to `.claude/skills/domain-model/SKILL.md` — Pre-check 拡張として「`docs/ubiquitous-language.md` 存在確認 → 存在すればエントリを候補キューに追加（trigger_type は元の DDD パターンから判定）」を記述する。ドメインイベントセクションでは「イベント名は UL に登録済みの表記を使用し、このスキルは UL に書き込まない」を明記する。UL 非存在時は独立ブートストラップモードで動作することを記述する
+- [x] T009 [US3] Append UL Integration section to `.claude/skills/domain-model/SKILL.md` — Pre-check 拡張として「`docs/ubiquitous-language.md` 存在確認 → 存在すればエントリを候補キューに追加（trigger_type は元の DDD パターンから判定）」を記述する。ドメインイベントセクションでは「イベント名は UL に登録済みの表記を使用し、このスキルは UL に書き込まない」を明記する。UL 非存在時は独立ブートストラップモードで動作することを記述する
 
 **Checkpoint**: SKILL.md の UL Integration セクションを読むだけで、UL との連携ルールと UL 非存在時の fallback が明確に理解できる状態
 
@@ -100,8 +100,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T010 [US4] Append Index Sync section to `.claude/skills/domain-model/SKILL.md` — コンテキストファイルの作成・更新・削除の各タイミングで `docs/models/index.md` を同期するルール（index-template.md のフォーマットに従う、BC 一覧テーブルの更新、Mermaid コンテキスト間関係図のオプション記述）を記述する
-- [ ] T011 [US4] Append Cross-context Conflict section to `.claude/skills/domain-model/SKILL.md` — コンテキスト間で同一概念が衝突した場合の「分離か改名かをユーザーに提示する」フロー（contracts/skill-interface.md のエラー条件を参照）を記述する。サイレントマージ禁止を不変条件として明記する
+- [x] T010 [US4] Append Index Sync section to `.claude/skills/domain-model/SKILL.md` — コンテキストファイルの作成・更新・削除の各タイミングで `docs/models/index.md` を同期するルール（index-template.md のフォーマットに従う、BC 一覧テーブルの更新、Mermaid コンテキスト間関係図のオプション記述）を記述する
+- [x] T011 [US4] Append Cross-context Conflict section to `.claude/skills/domain-model/SKILL.md` — コンテキスト間で同一概念が衝突した場合の「分離か改名かをユーザーに提示する」フロー（contracts/skill-interface.md のエラー条件を参照）を記述する。サイレントマージ禁止を不変条件として明記する
 
 **Checkpoint**: SKILL.md の Index Sync + Conflict セクションを読むだけで、index.md の同期と概念衝突解決の手順が明確に理解できる状態
 
@@ -111,10 +111,10 @@
 
 **Purpose**: 不変条件の明示、スキル登録、最終検証
 
-- [ ] T012 Append Invariants section to `.claude/skills/domain-model/SKILL.md` — spec.md の 6 不変条件（Diff before write / Explicit confirmation / No silent cross-context merge / Single-file per BC / Index always reflects files / Diagram from tables）を SKILL.md の末尾に記述する
-- [ ] T013 Register domain-model skill in `.claude/CLAUDE.md` — skills セクションの `ubiquitous-language` エントリの直後に research.md Decision 5 のトリガー文言を追記する（1 行追加）
-- [ ] T014 [P] Validate SKILL.md against spec.md invariants — SKILL.md 全体を読み、FR-001〜FR-012 の各要件が少なくとも 1 つのセクションに対応していることを確認し、抜けがあれば補足する
-- [ ] T015 [P] Run quickstart.md validation — quickstart.md の 3 パターン（受動収集 / 明示コマンド / UL 連携）を SKILL.md と照合し、各ステップが SKILL.md の記述で実行可能であることを確認する
+- [x] T012 Append Invariants section to `.claude/skills/domain-model/SKILL.md` — spec.md の 6 不変条件（Diff before write / Explicit confirmation / No silent cross-context merge / Single-file per BC / Index always reflects files / Diagram from tables）を SKILL.md の末尾に記述する
+- [x] T013 Register domain-model skill in `.claude/CLAUDE.md` — skills セクションの `ubiquitous-language` エントリの直後に research.md Decision 5 のトリガー文言を追記する（1 行追加）
+- [x] T014 [P] Validate SKILL.md against spec.md invariants — SKILL.md 全体を読み、FR-001〜FR-012 の各要件が少なくとも 1 つのセクションに対応していることを確認し、抜けがあれば補足する
+- [x] T015 [P] Run quickstart.md validation — quickstart.md の 3 パターン（受動収集 / 明示コマンド / UL 連携）を SKILL.md と照合し、各ステップが SKILL.md の記述で実行可能であることを確認する
 
 ---
 
