@@ -57,7 +57,7 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   mkdir -p "$TARGET_DIR/skills"
   for f in "$SOURCE_DIR/skills"/*; do
     [[ "$(basename "$f")" == speckit-* ]] && continue
-    cp "$f" "$TARGET_DIR/skills/"
+    cp -R "$f" "$TARGET_DIR/skills/"
   done
   sync_path "CLAUDE.md"
   sync_path "settings.json"
