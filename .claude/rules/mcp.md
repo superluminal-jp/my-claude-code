@@ -15,4 +15,12 @@ Runtime definitions are in `.mcp.json`. Optional user-scope defaults are install
 
 ## Usage rule
 
-Prefer these MCP servers over `WebSearch` / `WebFetch` for AWS, GCP, or Azure questions — they return first-party documentation and avoid drift from cached search results.
+When a question directly concerns AWS, GCP, or Azure services, features, or documentation, you MUST invoke the matching MCP server before answering:
+
+- AWS question → `aws-knowledge` or `aws-documentation`
+- GCP question → `google-developer-knowledge`
+- Azure question → `microsoft-learn`
+
+If the MCP server is unreachable, warn the user that live documentation is unavailable, then answer from training knowledge.
+
+Incidental mentions of AWS/GCP/Azure in otherwise generic questions (e.g., "I'm deployed on AWS but my question is about Python loops") do not require an MCP call.

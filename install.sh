@@ -95,4 +95,24 @@ upsert_user_mcp microsoft-learn \
   --transport http \
   https://learn.microsoft.com/api/mcp
 
+# 4. Configure Spec Kit git extension (enable auto-commit if .specify is present)
+SPECKIT_GIT_CONFIG="$SCRIPT_DIR/.specify/extensions/git/git-config.yml"
+if [ -f "$SPECKIT_GIT_CONFIG" ]; then
+  python3 - "$SPECKIT_GIT_CONFIG" <<'PYEOF'
+import sys, re
+
+path = sys.argv[1]
+with open(path) as f:
+    content = f.read()
+
+content = re.sub(r'^( *default: )false', r'\1true', content, flags=re.MULTILINE)
+content = re.sub(r'^( *enabled: )false', r'\1true', content, flags=re.MULTILINE)
+
+with open(path, 'w') as f:
+    f.write(content)
+
+print(f"[install] Spec Kit git auto-commit enabled: {path}")
+PYEOF
+fi
+
 echo "Done. ~/.claude and user-scope MCP are synced to this repository state."

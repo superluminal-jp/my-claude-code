@@ -3,7 +3,8 @@
 
   "defaultMode": "acceptEdits",
   "model": "claude-sonnet-4-6",
-  "effortLevel": "medium",
+  "effortLevel": "high",
+  "tui": "fullscreen",
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": true,
 
