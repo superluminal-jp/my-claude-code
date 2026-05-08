@@ -25,6 +25,7 @@ Always load the matching skill before responding (see `.claude/skills/` for full
 - `editor` — requests involving documents, slides, charts, translation, or text editing
 - `clarifier` — requests with any ambiguity (including gaps in intent, scope, acceptance, or constraints)
 - `ubiquitous-language` — activate when conversation contains business event expressions (past/passive verb+noun: e.g., 「注文が確定された」) or domain vocabulary candidates; passively queues candidates without interrupting; surfaces them at natural pauses (no new candidates in preceding turn)
+- `domain-model` — activate when conversation contains DDD structural patterns (aggregates, entities, value objects, domain events, invariants) or when user asks to create/update a domain model; passively queues candidates; surfaces at natural pauses
 
 For mixed requests (both code and documentation): load `coder` first, then `editor`. `/speckit-*` slash commands are excluded (each has its own playbook).
 
