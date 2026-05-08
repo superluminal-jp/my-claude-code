@@ -19,7 +19,7 @@ hooks:
     description: Create feature branch before specification
     condition: null
   - extension: ubiquitous-language
-    command: ubiquitous-language.collect
+    command: ubiquitous-language
     enabled: true
     optional: true
     prompt: Run ubiquitous language collection/validation before this phase?
@@ -34,7 +34,7 @@ hooks:
     description: Auto-commit before spec clarification
     condition: null
   - extension: ubiquitous-language
-    command: ubiquitous-language.collect
+    command: ubiquitous-language
     enabled: true
     optional: true
     prompt: Run ubiquitous language collection/validation before this phase?
@@ -49,7 +49,7 @@ hooks:
     description: Auto-commit before implementation planning
     condition: null
   - extension: ubiquitous-language
-    command: ubiquitous-language.collect
+    command: ubiquitous-language
     enabled: true
     optional: true
     prompt: Run ubiquitous language collection/validation before this phase?
@@ -64,7 +64,7 @@ hooks:
     description: Auto-commit before task generation
     condition: null
   - extension: ubiquitous-language
-    command: ubiquitous-language.collect
+    command: ubiquitous-language
     enabled: true
     optional: true
     prompt: Run ubiquitous language collection/validation before this phase?
@@ -95,7 +95,7 @@ hooks:
     description: Auto-commit before analysis
     condition: null
   - extension: ubiquitous-language
-    command: ubiquitous-language.collect
+    command: ubiquitous-language
     enabled: true
     optional: true
     prompt: Run ubiquitous language collection/validation before this phase?

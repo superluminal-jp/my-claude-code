@@ -3,17 +3,16 @@
 **Project**: <プロジェクト名>
 **Last Updated**: YYYY-MM-DD
 
-## BC 間語彙関係テーブル
+## Bounded Context 間語彙関係
 
-| 用語 | BC-A | BC-B | 関係種別 | 備考 |
-|------|------|------|---------|------|
-| | | | same-name-different-meaning | |
+| 用語 | Context A | Context B | 関係種別 | 備考 |
+|------|-----------|-----------|---------|------|
 
 ## 関係種別 凡例
 
 | 種別 | 意味 |
 |------|------|
-| `same-name-different-meaning` | 同名・異義（BC ごとに定義が違う） |
+| `same-name-different-meaning` | 同名・異義（コンテキストごとに定義が違う） |
 | `synonym` | 異名・同義（同じ概念を異なる名前で呼ぶ） |
-| `identical` | 完全同一（BC をまたいで同義・同名） |
-| `refines` | BC-B の定義が BC-A の定義を細分化している |
+| `identical` | 完全同一（コンテキストをまたいで同義・同名） |
+| `refines` | 一方の定義が他方を細分化している |

@@ -1,7 +1,7 @@
-# Specification Quality Checklist: Ubiquitous Language Auto-Builder
+# Specification Quality Checklist: Ubiquitous Language Skill Simplification
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-05-08
+**Created**: 2026-05-09
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -32,28 +32,23 @@
 ## Validation Findings
 
 ### Pass — content quality
-- No tech stack named: spec talks about UL artifacts, BCs, lifecycle events without naming a programming language or framework. The few `Order.confirm()` strings are illustrative business naming, not implementation prescription
-- Stakeholder readability: each requirement section is preceded by a Japanese heading anchored in domain vocabulary; non-developers can follow
+- No tech stack named: spec uses path names (`docs/ubiquitous-language.md`) as storage contracts, not implementation details
+- Stakeholder readability: requirements use plain Japanese domain vocabulary; non-developers can follow
 
 ### Pass — completeness
-- Zero `[NEEDS CLARIFICATION]` markers; ambiguities resolved via informed defaults captured in Assumptions
-- 11 success criteria, all measurable (counts, percentages, time budgets, screen budget)
-- 4 prioritized user stories (P1, P2, P2, P3); each independently testable
-- 9 edge cases listed; cover absent domain expert, ambiguous folk-language, BC growth, noisy auto-fire, language mixing, and non-speckit-context conversation
-- Scope explicitly bounded: code/DB/API active scanning is out of scope for v1 (recorded under Assumptions)
+- Zero `[NEEDS CLARIFICATION]` markers; all ambiguities resolved in Assumptions (single-file vs multi-file, storage path, CLAUDE.md scope)
+- 6 success criteria, all measurable (counts, percentages, time budget, qualitative zero-tolerance checks)
+- 3 prioritized user stories (P1, P1, P2); each independently testable
+- 4 edge cases listed; cover missing `docs/` directory, skipped fields, multi-BC collision, mixed languages
+- Scope explicitly bounded: v1 single-file approach; BC file-splitting deferred to future iteration
 
 ### Pass — feature readiness
-- 32 functional requirements grouped A, A2, B–J; each maps to at least one acceptance scenario or success criterion
-- FR-030–FR-032 (section A2) cover conversational-mode passive collection with non-interruption guarantee and no-context guard
-- Lifecycle Trigger entity updated to two-class model (speckit events + general conversational trigger); both share the same queue/proposal mechanism
-- Assumptions updated: dual-mode operation (speckit mode / conversational mode) is now explicit; `.specify/` presence is the detection gate
-- Implementation-name field is preserved (FR-007, FR-016) without dictating language/framework
-- "Context length compression" requirement (FR-022..FR-024) tied to measurable SC-009 with explicit "opportunistic, not blocking" framing in Assumptions
+- 17 functional requirements in 6 sections (A–F); each maps to at least one acceptance scenario or SC
+- FR-016/FR-017 explicitly enforce no-speckit requirement in both SKILL.md and CLAUDE.md
+- Single-command interface (FR-005/FR-006) removes all subcommands; auto-routing by file presence
+- Diff-before-write invariant (FR-004) preserved from original spec
 
 ## Notes
 
-- **2026-05-08 rev**: Scope expanded to include conversational-mode UL collection (FR-030–FR-032, US2, Assumptions, SC-010, Lifecycle Trigger entity, edge case). Trigger is now any conversation with `.specify/` context, not speckit commands only
-- The spec treats dual-mode operation (speckit hooks + conversational monitoring) as coequal; both modes share the UL artifact store
-- The vague-term watchlist is fixed-language (Japanese); localization deferred to a future iteration per Assumptions
-- The mandatory `before_specify` git-feature hook is available via the `git` extension (`speckit.git.feature`) and aligned with `.specify/extensions.yml`; branch creation can be handled by the extension workflow
-- All checklist items pass on the first iteration; no rework required prior to `/speckit-clarify` or `/speckit-plan`
+- **2026-05-09 rev**: Full rewrite from original complex multi-mode implementation. Key changes: storage moved from `.specify/` to `docs/`, subcommands removed, speckit references eliminated, single-file BC model for v1
+- All checklist items pass on first iteration; ready for `/speckit-plan`

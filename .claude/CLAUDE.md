@@ -24,7 +24,7 @@ Always load the matching skill before responding (see `.claude/skills/` for full
 - `coder` — requests involving code implementation, modification, refactoring, testing, or debugging
 - `editor` — requests involving documents, slides, charts, translation, or text editing
 - `clarifier` — requests with any ambiguity (including gaps in intent, scope, acceptance, or constraints)
-- `ubiquitous-language` — active in any project conversation where `.specify/ubiquitous-language/` exists; passively collects domain vocabulary candidates and surfaces them at natural conversation pauses without interrupting ongoing tasks
+- `ubiquitous-language` — activate when conversation contains business event expressions (past/passive verb+noun: e.g., 「注文が確定された」) or domain vocabulary candidates; passively queues candidates without interrupting; surfaces them at natural pauses (no new candidates in preceding turn)
 
 For mixed requests (both code and documentation): load `coder` first, then `editor`. `/speckit-*` slash commands are excluded (each has its own playbook).
 
