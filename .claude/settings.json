@@ -91,13 +91,13 @@
     ],
     "UserPromptExpansion": [
       {
-        "matcher": "speckit\\.specify",
+        "matcher": "speckit\\.(specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution)",
         "hooks": [
           {
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/speckit-expand-update.sh",
             "timeout": 300,
-            "statusMessage": "Updating Spec Kit before /speckit.specify…"
+            "statusMessage": "Updating Spec Kit before /speckit-* command…"
           }
         ]
       }

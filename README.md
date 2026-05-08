@@ -148,3 +148,13 @@ Run `specify init` in the project to install spec-kit. It registers the
 `/speckit.*` slash commands, each of which carries its own playbook. The
 `development` skill's SDD section applies regardless of whether spec-kit is
 installed.
+
+To enable Git Branching Workflow commands (`/speckit-git.*`), install the git
+extension after `specify init`:
+
+```sh
+specify extension add git
+```
+
+This adds 5 commands: `speckit.git.feature`, `speckit.git.validate`,
+`speckit.git.remote`, `speckit.git.initialize`, and `speckit.git.commit`.
