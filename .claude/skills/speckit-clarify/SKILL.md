@@ -19,10 +19,6 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-If `$ARGUMENTS` is non-empty, apply these checks before proceeding:
-- **Length heuristic**: strip slash commands (e.g. `/speckit-clarify`) and file/directory paths from `$ARGUMENTS`; if the remaining text is ≤ 32 characters, treat this as a signal that clarification of the user's intent is likely needed.
-- **Grammatical completeness**: if the remaining text lacks a clear subject, object, or verb — making the intent ambiguous — ask the user to clarify what they want to address before running the clarification workflow.
-
 ## Pre-Execution Checks
 
 **Check for extension hooks (before clarification)**:
@@ -33,7 +29,7 @@ If `$ARGUMENTS` is non-empty, apply these checks before proceeding:
 - For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
   - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
-- When constructing slash commands from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.git.commit` → `/speckit-git-commit`.
+- When constructing slash commands from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.specify` → `/speckit-specify`.
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
     ```
@@ -234,7 +230,7 @@ Check if `.specify/extensions.yml` exists in the project root.
 - For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
   - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
   - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
-- When constructing slash commands from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.git.commit` → `/speckit-git-commit`.
+- When constructing slash commands from hook command names, replace dots (`.`) with hyphens (`-`). For example, `speckit.specify` → `/speckit-specify`.
 - For each executable hook, output the following based on its `optional` flag:
   - **Optional hook** (`optional: true`):
     ```
