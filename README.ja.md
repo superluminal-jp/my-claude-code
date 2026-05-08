@@ -36,7 +36,7 @@ bash path/to/my-claude-code/install.sh
 - 次の管理対象は **置換同期** されます:
   - `hooks/`
   - `rules/`
-  - `skills/`
+  - `skills/`（`speckit-*` を含む全スキル）
   - `CLAUDE.md`
   - `settings.json`
   - `install.sh`

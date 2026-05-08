@@ -52,13 +52,7 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   mkdir -p "$TARGET_DIR"
   sync_path "hooks"
   sync_path "rules"
-  # Sync skills excluding speckit-* (those remain project-scoped only)
-  rm -rf "$TARGET_DIR/skills"
-  mkdir -p "$TARGET_DIR/skills"
-  for f in "$SOURCE_DIR/skills"/*; do
-    [[ "$(basename "$f")" == speckit-* ]] && continue
-    cp -R "$f" "$TARGET_DIR/skills/"
-  done
+  sync_path "skills"
   sync_path "CLAUDE.md"
   sync_path "settings.json"
   cp "$SCRIPT_DIR/install.sh" "$TARGET_DIR/install.sh"

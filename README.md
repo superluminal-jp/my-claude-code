@@ -50,7 +50,8 @@ Re-running is safe: it re-syncs managed paths and upserts MCP servers.
 **Important (overwrite/replace behavior):**
 
 - Installer-managed paths are synchronized by replacement: `hooks/`, `rules/`,
-  `skills/`, `CLAUDE.md`, `settings.json`, `install.sh`.
+  `skills/` (all skills including `speckit-*`), `CLAUDE.md`, `settings.json`,
+  `install.sh`.
 - Files removed from this repository are also removed from `~/.claude` under
   those managed paths.
 - Keep personal-only files in `~/.claude` outside managed paths, or re-apply
