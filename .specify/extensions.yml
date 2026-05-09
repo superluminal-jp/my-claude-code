@@ -155,6 +155,13 @@ hooks:
     description: Auto-commit after task generation
     condition: null
   after_implement:
+  - extension: codex-review
+    command: review
+    enabled: false
+    optional: true
+    prompt: Run Codex review after implementation?
+    description: Review implemented artifacts with OpenAI Codex for quality and security
+    condition: null
   - extension: git
     command: speckit.git.commit
     enabled: true
