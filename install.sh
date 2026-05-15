@@ -124,4 +124,14 @@ print(f"[install] Spec Kit git auto-commit enabled: {path}")
 PYEOF
 fi
 
+# 6. Install codex-plugin-cc (Codex review/rescue from Claude Code)
+if ! claude plugin marketplace list 2>/dev/null | grep -q "openai-codex"; then
+  claude plugin marketplace add openai/codex-plugin-cc
+else
+  claude plugin marketplace update openai-codex >/dev/null 2>&1 || true
+fi
+if ! claude plugin list 2>/dev/null | grep -q "codex@openai-codex"; then
+  claude plugin install codex@openai-codex
+fi
+
 echo "Done. ~/.claude and user-scope MCP are synced to this repository state."
