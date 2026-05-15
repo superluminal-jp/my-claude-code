@@ -68,17 +68,23 @@ If both checks pass, proceed to Artifact Collection.
 
 ## Artifact Collection
 
-Determine the invocation mode from `--artifacts`. Each mode maps to a different `codex` subcommand strategy.
+Determine the invocation mode from `--artifacts` and build a concrete file list. All modes feed the same `codex exec` invocation downstream.
 
 ### Mode: `git-changed` (default)
 
-No file list needed — `codex review --uncommitted` scans staged, unstaged, and untracked changes automatically. Skip to Codex Invocation.
+Collect staged, unstaged, and untracked file paths:
+```bash
+{
+  git diff --name-only HEAD 2>/dev/null
+  git ls-files --others --exclude-standard
+} | sort -u
+```
 
-If the working tree has no changes at all (clean), `codex review --uncommitted` will report nothing. In that case output:
+If the resulting list is empty, output:
 ```
 No reviewable artifacts found for mode git-changed.
 ```
-Then halt.
+Then halt. Otherwise this list is the artifact set.
 
 ### Mode: `user-specified`
 
@@ -105,11 +111,11 @@ Then halt.
 
 ## Codex Invocation
 
-Construct the review prompt based on the selected `--perspectives`, then invoke Codex using the correct subcommand for the artifact mode.
+Construct the review prompt based on the selected `--perspectives` and the artifact set, then invoke Codex via `codex exec`. Do NOT use the `codex review` subcommand — it ignores custom prompts and prevents per-invocation perspective control.
 
 ### Prompt construction
 
-Build the custom instructions text. Include only the perspective sections that are selected.
+Build the custom instructions text. Always include the framing line. Include only the perspective sections that are selected. You may augment the perspective sections with context-specific criteria (e.g., language- or framework-specific concerns inferred from the artifact set) when it improves signal — keep additions concise and grounded in the files at hand.
 
 ```
 Report findings only. Do NOT modify any files. Do NOT apply any edits. Output a structured review report.
@@ -117,7 +123,7 @@ Report findings only. Do NOT modify any files. Do NOT apply any edits. Output a 
 [Include when "quality" perspective selected]
 ## Code Quality
 
-For each changed file, evaluate:
+For each file, evaluate:
 - Correctness: logic errors, off-by-one errors, incorrect assumptions
 - Naming: unclear variable/function/class names
 - Readability: overly complex expressions, poor structure
@@ -128,7 +134,7 @@ For each changed file, evaluate:
 [Include when "security" perspective selected]
 ## Security (OWASP Top 10)
 
-For each changed file, evaluate:
+For each file, evaluate:
 - Injection (SQL, command, LDAP, XPath)
 - Broken authentication / session management
 - Sensitive data exposure (hardcoded secrets, tokens, passwords)
@@ -142,23 +148,16 @@ For each finding: file path, line number if determinable, severity (HIGH/MEDIUM/
 If a file has no findings, note "No issues found."
 ```
 
-### Shell invocation by mode
+### Shell invocation
 
-**`git-changed` mode** — use `codex review` with `--uncommitted` (note: `--uncommitted` does not accept a custom `[PROMPT]`; Codex uses its own review heuristics):
-```bash
-codex review --uncommitted
-```
-
-**`user-specified` or `speckit-docs` mode** — use `codex exec` in read-only sandbox with the custom prompt:
+Use `codex exec` in read-only sandbox mode for all artifact modes. Quote each file path so paths with spaces survive shell splitting:
 ```bash
 codex exec -s read-only --ephemeral "<prompt>
 
-Review the following files: <space-separated file list>"
+Review the following files: <space-separated, shell-quoted file list>"
 ```
 
 Capture stdout from this command as `CODEX_OUTPUT`.
-
-> **Note on `--perspectives` and `git-changed` mode**: Because `codex review --uncommitted` does not accept a custom prompt, the `--perspectives` flag has no effect in `git-changed` mode — Codex applies its own default review criteria. `--perspectives` is only honoured in `user-specified` and `speckit-docs` modes where `codex exec` accepts the constructed prompt.
 
 ## Output & Error Handling
 
