@@ -95,7 +95,16 @@ upsert_user_mcp microsoft-learn \
   --transport http \
   https://learn.microsoft.com/api/mcp
 
-# 4. Configure Spec Kit git extension (enable auto-commit if .specify is present)
+# 4. Sync Spec Kit extensions.yml to user scope so the same hook config applies
+SPECKIT_EXTENSIONS_SRC="$SCRIPT_DIR/.specify/extensions.yml"
+SPECKIT_EXTENSIONS_DST="$TARGET_DIR/.specify/extensions.yml"
+if [ -f "$SPECKIT_EXTENSIONS_SRC" ] && [ "$SPECKIT_EXTENSIONS_SRC" != "$SPECKIT_EXTENSIONS_DST" ]; then
+  mkdir -p "$(dirname "$SPECKIT_EXTENSIONS_DST")"
+  cp "$SPECKIT_EXTENSIONS_SRC" "$SPECKIT_EXTENSIONS_DST"
+  echo "Synced Spec Kit extensions.yml -> $SPECKIT_EXTENSIONS_DST"
+fi
+
+# 5. Configure Spec Kit git extension (enable auto-commit if .specify is present)
 SPECKIT_GIT_CONFIG="$SCRIPT_DIR/.specify/extensions/git/git-config.yml"
 if [ -f "$SPECKIT_GIT_CONFIG" ]; then
   python3 - "$SPECKIT_GIT_CONFIG" <<'PYEOF'
@@ -113,6 +122,16 @@ with open(path, 'w') as f:
 
 print(f"[install] Spec Kit git auto-commit enabled: {path}")
 PYEOF
+fi
+
+# 6. Install codex-plugin-cc (Codex review/rescue from Claude Code)
+if ! claude plugin marketplace list 2>/dev/null | grep -q "openai-codex"; then
+  claude plugin marketplace add openai/codex-plugin-cc
+else
+  claude plugin marketplace update openai-codex >/dev/null 2>&1 || true
+fi
+if ! claude plugin list 2>/dev/null | grep -q "codex@openai-codex"; then
+  claude plugin install codex@openai-codex
 fi
 
 echo "Done. ~/.claude and user-scope MCP are synced to this repository state."
