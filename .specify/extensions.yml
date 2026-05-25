@@ -176,6 +176,13 @@ hooks:
     prompt: Run Codex review after implementation?
     description: Review implemented artifacts with OpenAI Codex for quality and security
     condition: null
+  - extension: live-documentation
+    command: editor
+    enabled: true
+    optional: false
+    prompt: Create or update README and module documentation for the implemented feature
+    description: Create or update README / module documentation after implementation (Live Documentation enforcement)
+    condition: null
   - extension: git
     command: speckit.git.commit
     enabled: true

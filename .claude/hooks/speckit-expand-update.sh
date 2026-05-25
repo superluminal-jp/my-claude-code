@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # UserPromptExpansion: before /speckit-* expands, upgrade specify-cli and refresh Spec Kit project files.
-# This keeps extensions (including git extension hooks) in sync before each lifecycle command.
-# Requires .specify/ in cwd (spec-kit project). Safe for specs/: those dirs are never touched by specify init.
+# speckit-specify always runs specify init (bypasses throttle) and protects modified constitution.md.
+# All other commands throttle specify init to once per UPDATE_INTERVAL_SECONDS.
 # Integration: override with SPECIFY_INTEGRATION (default: claude). See spec-kit integrations list.
 
 set -uo pipefail
@@ -40,14 +40,32 @@ fi
   echo "cwd=$CWD integration=$INTEGRATION"
   echo "update_interval_seconds=$UPDATE_INTERVAL_SECONDS force_update=$FORCE_UPDATE"
   set +e
+
+  # Resolve latest stable release tag from GitHub
+  LATEST_TAG=""
+  if command -v gh >/dev/null 2>&1; then
+    LATEST_TAG=$(gh release list --repo github/spec-kit --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+    echo "Latest stable tag: ${LATEST_TAG:-unknown}"
+  fi
+
   if command -v uv >/dev/null 2>&1; then
-    echo "--- uv tool install specify-cli ---"
-    uv tool install specify-cli --force --from git+https://github.com/github/spec-kit.git
-    echo "uv tool install exit: $?"
+    if [ -n "$LATEST_TAG" ]; then
+      echo "--- uv tool install specify-cli @ $LATEST_TAG ---"
+      uv tool install specify-cli --force --from "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
+    else
+      echo "--- uv tool upgrade specify-cli (gh unavailable, using cached source) ---"
+      uv tool upgrade specify-cli
+    fi
+    echo "uv exit: $?"
   elif command -v pipx >/dev/null 2>&1; then
-    echo "--- pipx install specify-cli ---"
-    pipx install --force git+https://github.com/github/spec-kit.git
-    echo "pipx install exit: $?"
+    if [ -n "$LATEST_TAG" ]; then
+      echo "--- pipx install specify-cli @ $LATEST_TAG ---"
+      pipx install --force "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
+    else
+      echo "--- pipx upgrade specify-cli (gh unavailable) ---"
+      pipx upgrade specify-cli
+    fi
+    echo "pipx exit: $?"
   else
     echo "SKIP: neither uv nor pipx in PATH; CLI not upgraded."
   fi
@@ -58,8 +76,9 @@ fi
     last_update=$(cat "$STATE_FILE" 2>/dev/null || echo "0")
   fi
 
+  # speckit.specify always runs init; all other commands are throttled
   should_run_init=1
-  if [ "$FORCE_UPDATE" != "1" ] && [ "$UPDATE_INTERVAL_SECONDS" -gt 0 ] 2>/dev/null; then
+  if [ "$COMMAND_NAME" != "speckit.specify" ] && [ "$FORCE_UPDATE" != "1" ] && [ "$UPDATE_INTERVAL_SECONDS" -gt 0 ] 2>/dev/null; then
     elapsed=$((now_epoch - last_update))
     if [ "$elapsed" -lt "$UPDATE_INTERVAL_SECONDS" ]; then
       should_run_init=0
@@ -68,6 +87,18 @@ fi
   fi
 
   if [ "$should_run_init" -eq 1 ]; then
+    # Constitution protection: backup if modified from template
+    CONSTITUTION_FILE="$CWD/.specify/memory/constitution.md"
+    CONSTITUTION_TEMPLATE="$CWD/.specify/templates/constitution-template.md"
+    CONSTITUTION_BACKUP=""
+    if [ -f "$CONSTITUTION_FILE" ] && [ -f "$CONSTITUTION_TEMPLATE" ]; then
+      if ! diff -q "$CONSTITUTION_FILE" "$CONSTITUTION_TEMPLATE" >/dev/null 2>&1; then
+        CONSTITUTION_BACKUP=$(mktemp)
+        cp "$CONSTITUTION_FILE" "$CONSTITUTION_BACKUP"
+        echo "constitution.md differs from template; backed up before init."
+      fi
+    fi
+
     echo "--- specify init --here --force ---"
     if command -v specify >/dev/null 2>&1; then
       (cd "$CWD" && specify init --here --force --integration "$INTEGRATION")
@@ -82,6 +113,13 @@ fi
       echo "SKIP: specify not in PATH and uv missing for uvx fallback."
     fi
 
+    # Restore constitution if it was backed up
+    if [ -n "$CONSTITUTION_BACKUP" ] && [ -f "$CONSTITUTION_BACKUP" ]; then
+      cp "$CONSTITUTION_BACKUP" "$CONSTITUTION_FILE"
+      rm -f "$CONSTITUTION_BACKUP"
+      echo "constitution.md restored (protected from template overwrite)."
+    fi
+
     if [ "${init_exit:-1}" -eq 0 ]; then
       printf '%s\n' "$now_epoch" > "$STATE_FILE"
       echo "Updated state file: $STATE_FILE"
@@ -91,7 +129,11 @@ fi
   fi
 } >>"$LOG" 2>&1 || true
 
-NOTE=$'\n\nNote: specify init --here --force may replace the default template for .specify/memory/constitution.md. Restore from git if you customized it (see Spec Kit upgrade guide).'
+if [ "$COMMAND_NAME" = "speckit.specify" ]; then
+  NOTE=$'\n\nNote: speckit-specify always runs specify init --here --force. Modified .specify/memory/constitution.md is protected from overwrite.'
+else
+  NOTE=$'\n\nNote: specify init --here --force may replace the default template for .specify/memory/constitution.md. Restore from git if you customized it (see Spec Kit upgrade guide).'
+fi
 
 BODY=$(jq -n \
   --rawfile log "$LOG" \
