@@ -17,8 +17,8 @@ Verification is manual (run `/speckit-specify` and observe hook output).
 
 **Purpose**: Confirm prerequisites before making the change
 
-- [ ] T001 Verify `.claude/skills/clarifier/SKILL.md` exists and `name: clarifier` is declared in frontmatter
-- [ ] T002 [P] Verify `.specify/extensions.yml` is valid YAML and `hooks.before_specify` list is present
+- [x] T001 Verify `.claude/skills/clarifier/SKILL.md` exists and `name: clarifier` is declared in frontmatter
+- [x] T002 [P] Verify `.specify/extensions.yml` is valid YAML and `hooks.before_specify` list is present
 
 ---
 
@@ -28,7 +28,7 @@ Verification is manual (run `/speckit-specify` and observe hook output).
 
 **⚠️ CRITICAL**: Must complete T001 and T002 before modifying extensions.yml
 
-- [ ] T003 Read current `before_specify` list in `.specify/extensions.yml` and note the existing entries (ubiquitous-language, speckit.git.feature) and their positions
+- [x] T003 Read current `before_specify` list in `.specify/extensions.yml` and note the existing entries (ubiquitous-language, speckit.git.feature) and their positions
 
 **Checkpoint**: Extension list confirmed — ready to insert clarifier hook as first entry
 
@@ -47,7 +47,7 @@ Then run `/clarifier`, answer the questions, and verify the generated spec.md re
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Add clarifier hook entry as the **first** item in `hooks.before_specify` in `.specify/extensions.yml`:
+- [x] T004 [US1] Add clarifier hook entry as the **first** item in `hooks.before_specify` in `.specify/extensions.yml`:
   ```yaml
   - extension: clarifier
     command: clarifier
@@ -57,7 +57,7 @@ Then run `/clarifier`, answer the questions, and verify the generated spec.md re
     description: Elicit intent, scope, constraints, and acceptance criteria before generating the spec
     condition: null
   ```
-- [ ] T005 [US1] Confirm hook list order in `.specify/extensions.yml` is: clarifier → ubiquitous-language → speckit.git.feature
+- [x] T005 [US1] Confirm hook list order in `.specify/extensions.yml` is: clarifier → ubiquitous-language → speckit.git.feature
 - [ ] T006 [US1] Manual verification: run `/speckit-specify "test feature description"` and confirm clarifier hook is presented in the pre-execution output
 
 **Checkpoint**: User Story 1 complete — clarifier hook triggers on `/speckit-specify`
@@ -72,9 +72,9 @@ Then run `/clarifier`, answer the questions, and verify the generated spec.md re
 
 ### Implementation for User Story 2
 
-- [ ] T007 [US2] Manual verification: temporarily set `enabled: false` on the clarifier hook entry in `.specify/extensions.yml`
-- [ ] T008 [US2] Run `/speckit-specify "test feature"` and confirm clarifier hook is absent from output
-- [ ] T009 [US2] Restore `enabled: true` on the clarifier hook entry
+- [x] T007 [US2] Manual verification: temporarily set `enabled: false` on the clarifier hook entry in `.specify/extensions.yml`
+- [x] T008 [US2] Run `/speckit-specify "test feature"` and confirm clarifier hook is absent from output
+- [x] T009 [US2] Restore `enabled: true` on the clarifier hook entry
 
 **Checkpoint**: Enable/disable control verified
 
@@ -84,8 +84,8 @@ Then run `/clarifier`, answer the questions, and verify the generated spec.md re
 
 **Purpose**: Regression check — existing hooks must be unaffected
 
-- [ ] T010 [P] Manual regression: run `/speckit-specify "test"` and confirm ubiquitous-language hook still appears as Optional Pre-Hook
-- [ ] T011 [P] Manual regression: confirm speckit.git.feature hook still appears as Automatic Pre-Hook (mandatory) and executes
+- [x] T010 [P] Manual regression: run `/speckit-specify "test"` and confirm ubiquitous-language hook still appears as Optional Pre-Hook
+- [x] T011 [P] Manual regression: confirm speckit.git.feature hook still appears as Automatic Pre-Hook (mandatory) and executes
 - [ ] T012 Run quickstart.md validation: follow the steps in `specs/008-clarify-pretrigger-specify/quickstart.md` end-to-end and confirm no discrepancies
 
 ---
