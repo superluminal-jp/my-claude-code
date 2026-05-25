@@ -58,7 +58,7 @@ Then run `/clarifier`, answer the questions, and verify the generated spec.md re
     condition: null
   ```
 - [x] T005 [US1] Confirm hook list order in `.specify/extensions.yml` is: clarifier → ubiquitous-language → speckit.git.feature
-- [ ] T006 [US1] Manual verification: run `/speckit-specify "test feature description"` and confirm clarifier hook is presented in the pre-execution output
+- [x] T006 [US1] Manual verification: run `/speckit-specify "test feature description"` and confirm clarifier hook is presented in the pre-execution output
 
 **Checkpoint**: User Story 1 complete — clarifier hook triggers on `/speckit-specify`
 
@@ -86,7 +86,7 @@ Then run `/clarifier`, answer the questions, and verify the generated spec.md re
 
 - [x] T010 [P] Manual regression: run `/speckit-specify "test"` and confirm ubiquitous-language hook still appears as Optional Pre-Hook
 - [x] T011 [P] Manual regression: confirm speckit.git.feature hook still appears as Automatic Pre-Hook (mandatory) and executes
-- [ ] T012 Run quickstart.md validation: follow the steps in `specs/008-clarify-pretrigger-specify/quickstart.md` end-to-end and confirm no discrepancies
+- [x] T012 Run quickstart.md validation: follow the steps in `specs/008-clarify-pretrigger-specify/quickstart.md` end-to-end and confirm no discrepancies
 
 ---
 
