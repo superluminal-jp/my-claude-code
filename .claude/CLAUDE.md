@@ -37,6 +37,7 @@ For mixed requests (both code and documentation): load `coder` first, then `edit
 - Use `rules/advisor.md` as concise baseline answer-quality guidance.
 
 @.claude/rules/skill-routing.md
+@.claude/rules/live-documentation.md
 
 ## MCP
 
