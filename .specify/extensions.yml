@@ -3,6 +3,13 @@ settings:
   auto_execute_hooks: true
 hooks:
   before_specify:
+  - extension: clarifier
+    command: clarifier
+    enabled: true
+    optional: true
+    prompt: Run clarifier before specifying to sharpen requirements?
+    description: Elicit intent, scope, constraints, and acceptance criteria before generating the spec
+    condition: null
   - extension: ubiquitous-language
     command: ubiquitous-language
     enabled: true
