@@ -81,8 +81,19 @@ if echo "$COMMAND" | grep -qE '(curl|wget)'; then
 fi
 
 # Block reading credential paths or key material via common shell read commands
-if echo "$COMMAND" | grep -qE '(cat|less|more|head|tail|od|hexdump)\s+'; then
-  if echo "$COMMAND" | grep -qE '(/\.ssh/|/\.aws/|~/.ssh|~/.aws|\.env(\s|$|\.)|secrets/|credentials/|secret|credential|token|key|\.pem(\s|$)|\.p12(\s|$)|\.pfx(\s|$))'; then
+# Exclude heredoc usage (cat << / cat <<'EOF') which is not a file read
+READ_CMD_RE='(cat|less|more|head|tail|od|hexdump)'
+if echo "$COMMAND" | grep -qE "${READ_CMD_RE}\s+" && \
+   ! echo "$COMMAND" | grep -qE "${READ_CMD_RE}\s*<<"; then
+  # Phase 1: strong structural patterns — unambiguously credential paths anywhere in command
+  if echo "$COMMAND" | grep -qE '(/\.ssh/|/\.aws/|~/\.ssh|~/\.aws|\.env(\s|$|\.)|secrets/|credentials/|\.pem(\s|$)|\.p12(\s|$)|\.pfx(\s|$))'; then
+    echo "Reading credential paths or key material via shell is blocked by policy." >&2
+    exit 2
+  fi
+  # Phase 2: broad keywords — restrict to the file argument following the read command
+  # to avoid false positives from commit messages, PR bodies, or pipe targets
+  FILE_ARG=$(echo "$COMMAND" | grep -oE "${READ_CMD_RE}(\s+-\S+)*\s+\S+" | grep -oE '\s\S+$' | tr -d ' ' | head -1)
+  if [ -n "$FILE_ARG" ] && echo "$FILE_ARG" | grep -qE '(secret|credential|token|key)'; then
     echo "Reading credential paths or key material via shell is blocked by policy." >&2
     exit 2
   fi
