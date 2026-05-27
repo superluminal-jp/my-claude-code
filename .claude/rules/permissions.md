@@ -4,7 +4,7 @@ Evaluation order: **deny → ask → allow** (first match wins; deny always over
 
 ## Destructive Operations — confirm before executing
 
-- `rm -rf` or equivalent recursive deletion
+- `rm -rf` or equivalent recursive deletion (always blocked when targeting `/`, `~`, `.`, or `$HOME`; otherwise routes to user confirmation)
 - `git reset --hard` (discards uncommitted work)
 - `git push --force` / `-f` (rewrites remote history)
 - `git clean -f` (deletes untracked files)

@@ -29,10 +29,26 @@ if echo "$COMMAND" | grep -qE 'git clean.*-[a-zA-Z]*f'; then
   exit 2
 fi
 
-# Block recursive force delete
+# Handle recursive force delete
 if echo "$COMMAND" | grep -qE 'rm\s+-[a-zA-Z]*r[a-zA-Z]*f|rm\s+-[a-zA-Z]*f[a-zA-Z]*r'; then
-  echo "rm -rf is blocked by policy. Confirm with user before deleting directories." >&2
-  exit 2
+  # Always block: filesystem root (/), home (~), current directory (.), or $HOME
+  if echo "$COMMAND" | grep -qE '\s(\/|~\/?|\.\/?|\/\*)(\s|$)' || \
+     echo "$COMMAND" | grep -qF '$HOME'; then
+    echo "rm -rf targeting root, home, or current directory is permanently blocked by policy." >&2
+    exit 2
+  fi
+  # All other rm -rf: route through user confirmation
+  cat <<'JSON'
+{
+  "continue": true,
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "ask",
+    "permissionDecisionReason": "rm -rf requires explicit user approval before deleting directories"
+  }
+}
+JSON
+  exit 0
 fi
 
 # Block system-destructive commands (device overwrite, filesystem format, fork bomb)
