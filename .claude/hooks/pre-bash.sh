@@ -30,10 +30,12 @@ if echo "$COMMAND" | grep -qE 'git clean.*-[a-zA-Z]*f'; then
 fi
 
 # Handle recursive force delete
-if echo "$COMMAND" | grep -qE 'rm\s+-[a-zA-Z]*r[a-zA-Z]*f|rm\s+-[a-zA-Z]*f[a-zA-Z]*r'; then
+# Match rm only when it is a command token (start of string or after ;, &&, ||, |, &, ()
+# This avoids false positives from rm appearing inside quoted arguments (e.g., heredoc PR bodies)
+if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*rm\s+-[a-zA-Z]*r[a-zA-Z]*f|(^|;|&&|\|\||[|(&])\s*rm\s+-[a-zA-Z]*f[a-zA-Z]*r'; then
   # Always block: filesystem root (/), home (~), current directory (.), or $HOME
-  if echo "$COMMAND" | grep -qE '\s(\/|~\/?|\.\/?|\/\*)(\s|$)' || \
-     echo "$COMMAND" | grep -qF '$HOME'; then
+  if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*rm\s+(-[a-zA-Z]+\s+)*(\/|~\/?|\.\/?|\/\*)(\s|$)' || \
+     echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*rm\s+(-[a-zA-Z]+\s+)*\$HOME'; then
     echo "rm -rf targeting root, home, or current directory is permanently blocked by policy." >&2
     exit 2
   fi
