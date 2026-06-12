@@ -45,6 +45,18 @@
   },
 
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME\"/.claude/hooks/session-start.sh",
+            "timeout": 300,
+            "statusMessage": "Preparing lint toolchain for this session…"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",

@@ -29,6 +29,10 @@ every project on the machine.
   [`.claude/rules/permissions.md`](.claude/rules/permissions.md))
 - **`.claude/hooks/user-prompt-submit.sh`** — UserPromptSubmit: blocks
   prompts containing AWS/GitHub/Slack/Google API keys or private key blocks
+- **`.claude/hooks/session-start.sh`** — SessionStart (Claude Code on the web
+  only): installs the lint toolchain (`shellcheck`, `shfmt`, `yamllint`; `jq`
+  if absent) so `post-edit-format.sh` actually runs in fresh remote containers.
+  Idempotent and non-fatal; skips on local machines
 - **`install.sh`** — Copies `.claude/` to `~/.claude/`, makes hooks executable,
   and registers all MCP servers at user scope
 - **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and pinned

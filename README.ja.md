@@ -20,6 +20,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `requirements`: 要件定義・受け入れ条件の明確化
 - **`.claude/hooks/pre-bash.sh`**: 破壊的コマンドや危険な Bash を事前ブロック
 - **`.claude/hooks/user-prompt-submit.sh`**: キー/トークン等の秘密情報を含むプロンプト送信をブロック
+- **`.claude/hooks/session-start.sh`**: SessionStart（Claude Code on the web 限定）。`post-edit-format.sh` が使う lint ツール（`shellcheck`/`shfmt`/`yamllint`、欠落時は `jq`）を新規リモートコンテナへ導入。冪等・非致命的で、ローカルではスキップ
 
 ## ユーザー設定としてインストール
 
