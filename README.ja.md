@@ -12,12 +12,13 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 - **`.claude/CLAUDE.md`**: 常時メモリ（原則、応答スタイル、skill インデックス、MCP 参照）
 - **`.claude/settings.json`**: モデル既定値、権限ルール、hook 設定
-- **`.claude/rules/`**: 常時読み込まれる共通ルール（安全性、ツール選択、確認ルール、MCP カタログ）
+- **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、ツール選択、確認ルール、skill ルーティング、live-documentation、advisor、MCP カタログ）
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
-  - `development`: 実装作業（TDD/SDD、品質、安全、ドキュメント同期）
-  - `advisor`: 分析・意思決定支援
-  - `deliverables`: 文書/資料/翻訳など成果物作成
-  - `requirements`: 要件定義・受け入れ条件の明確化
+  - `coder`: 実装作業（TDD/SDD、品質、安全、ドキュメント同期）
+  - `editor`: 文書/スライド/図表/翻訳など成果物作成
+  - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
+  - `domain-model` / `ubiquitous-language`: DDD ドメインモデル/ユビキタス言語
+  - `speckit-*`: Spec Kit ワークフロー一式（15 スキル）
 - **`.claude/hooks/pre-bash.sh`**: 破壊的コマンドや危険な Bash を事前ブロック
 - **`.claude/hooks/user-prompt-submit.sh`**: キー/トークン等の秘密情報を含むプロンプト送信をブロック
 - **`.claude/hooks/session-start.sh`**: SessionStart（Claude Code on the web 限定）。`post-edit-format.sh` が使う lint ツール（`shellcheck`/`shfmt`/`yamllint`、欠落時は `jq`）を新規リモートコンテナへ導入。冪等・非致命的で、ローカルではスキップ

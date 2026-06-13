@@ -16,12 +16,13 @@ every project on the machine.
   on-demand `skills/`)
 - **`.claude/settings.json`** — User-level settings with safe defaults,
   permission allowlist/denylist, and hook wiring
-- **`.claude/rules/`** — Always-on universal rules: safety/permissions, tool
-  selection, clarification triggers, MCP catalog
-- **`.claude/skills/`** — On-demand playbooks loaded by relevance: `development`
-  (TDD, SDD, code quality, security, docs), `advisor` (consulting, analysis,
-  strategy), `deliverables` (documents, slides, research, translation),
-  `requirements` (BABOK/ISO elicitation, formalization)
+- **`.claude/rules/`** — Always-on universal rules: permissions/safety, tool
+  selection, clarification triggers, skill routing, live-documentation
+  enforcement, advisor baseline, MCP catalog
+- **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
+  (TDD, SDD, code quality, security, docs), `editor` (documents, slides,
+  charts, translation), `clarifier` (requirement elicitation, INVEST/Gherkin),
+  `domain-model` and `ubiquitous-language` (DDD), plus the `speckit-*` suite
 - **`.claude/hooks/pre-bash.sh`** — PreToolUse/Bash: blocks destructive
   git/`rm`, `curl | bash`, non-localhost `http://` for `curl`/`wget`, reading
   and writing `.ssh`/`.aws` or `*.pem`/`*.p12`/`*.pfx` via common shell
@@ -85,16 +86,25 @@ my-claude-code/
     ├── rules/                      # Always-on: loaded every session
     │   ├── permissions.md          # Credential safety, destructive ops
     │   ├── tools.md                # Tool selection, parallel calls
-    │   ├── clarify.md              # When to ask; batch questions + template
+    │   ├── clarifier.md            # When to ask; batch questions + template
+    │   ├── skill-routing.md        # Which skill to load for a request
+    │   ├── live-documentation.md   # Doc drift enforcement (5 principles)
+    │   ├── advisor.md              # Consultant answer-quality baseline
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: body loaded when relevant
-    │   ├── development/SKILL.md    # TDD + SDD + code quality + security + docs
-    │   ├── advisor/SKILL.md        # Consulting, analysis, decisions, strategy
-    │   ├── deliverables/SKILL.md   # Documents, slides, research, translation
-    │   └── requirements/SKILL.md   # Elicitation toolkit (BABOK/ISO), formal gaps
+    │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + docs
+    │   ├── editor/SKILL.md         # Documents, slides, charts, translation
+    │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
+    │   ├── domain-model/SKILL.md   # DDD domain model
+    │   ├── ubiquitous-language/SKILL.md  # DDD ubiquitous language
+    │   └── speckit-*/SKILL.md      # Spec Kit workflow suite (15 skills)
     └── hooks/
+        ├── session-start.sh        # SessionStart: install lint toolchain (web)
         ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
-        └── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
+        ├── pre-edit.sh             # PreToolUse/Edit|Write|Delete: guardrails
+        ├── post-edit-format.sh     # PostToolUse/Edit|Write: format + lint
+        ├── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
+        └── speckit-expand-update.sh # UserPromptExpansion: refresh Spec Kit
 ```
 
 ## Verification

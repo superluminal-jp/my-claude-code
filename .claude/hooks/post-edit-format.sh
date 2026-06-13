@@ -26,7 +26,9 @@ case "$FILE_PATH" in
         ;;
     *.sh)
         if command -v shfmt >/dev/null 2>&1; then
-            shfmt -w "$FILE_PATH" 2>/dev/null || true
+            # Pin 2-space indent to match repo scripts; shfmt defaults to tabs,
+            # which would reformat every space-indented script on next edit.
+            shfmt -w -i 2 "$FILE_PATH" 2>/dev/null || true
         fi
         if command -v shellcheck >/dev/null 2>&1; then
             shellcheck "$FILE_PATH" || true
