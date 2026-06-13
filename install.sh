@@ -53,6 +53,7 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   sync_path "hooks"
   sync_path "rules"
   sync_path "skills"
+  sync_path "commands"
   sync_path "CLAUDE.md"
   sync_path "settings.json"
   cp "$SCRIPT_DIR/install.sh" "$TARGET_DIR/install.sh"

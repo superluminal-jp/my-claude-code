@@ -39,6 +39,17 @@ case "$FILE_PATH" in
             yamllint "$FILE_PATH" 2>/dev/null || true
         fi
         ;;
+    */CLAUDE.md)
+        # Fast, offline guard against broken standing context: every @-import
+        # must resolve. Paths are written relative to the repo root.
+        ROOT="${CLAUDE_PROJECT_DIR:-$(git -C "$(dirname "$FILE_PATH")" rev-parse --show-toplevel 2>/dev/null || true)}"
+        if [ -n "$ROOT" ]; then
+            while IFS= read -r imp; do
+                [ -z "$imp" ] && continue
+                [ -f "$ROOT/$imp" ] || echo "Warning: broken @-import in $FILE_PATH: $imp" >&2
+            done < <(grep -oE '^@[^[:space:]]+' "$FILE_PATH" 2>/dev/null | sed 's/^@//')
+        fi
+        ;;
 esac
 
 exit 0
