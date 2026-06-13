@@ -2,19 +2,22 @@
 
 Run these checks after `/speckit-implement` to confirm the spec's success criteria. No app to launch — validation is static analysis of the config plus spot-checking hook guards.
 
-## 1. Standing-context reduction (SC-002, SC-008)
+## 1. Standing-context efficiency (SC-002, SC-008)
 
 ```sh
-# Baseline (spec time) = 146 lines. Target ≤ 116 (−20%).
+# Baseline (spec time) = 146 lines. No hard line target — gate is
+# "zero duplication + no verbosity bloat", comprehension outranks compression.
 wc -l CLAUDE.md .claude/CLAUDE.md \
       .claude/rules/skill-routing.md \
       .claude/rules/live-documentation.md \
       .claude/rules/mcp.md | tail -1
 # Every CLAUDE.md import ≤ 200 lines:
 wc -l .claude/rules/*.md
+# Clarification guidance stated once (single canonical source):
+grep -rliE 'clarif' .claude/CLAUDE.md .claude/rules/ .claude/skills/clarifier/SKILL.md
 ```
 
-Pass: total standing lines ≤116 **and** no enforced behavior removed (section 4).
+Pass: duplicated guidance eliminated (clarification lives in `rules/clarifier.md`, others cross-reference it); no enforced behavior removed (section 4); any net line increase over baseline is traceable to a recorded comprehension supplement or anchor, not verbosity.
 
 ## 2. Intent-line coverage (SC-001)
 
@@ -81,6 +84,20 @@ Manual: issue a non-trivial request without a slash command (e.g. "add input val
 
 Manual: review the refreshed `.claude/CLAUDE.md`, `rules/*`, and owner skills against `.claude/rules/live-documentation.md` — proximity, no redundancy, explicit intent, auto-gen preference. Pass: zero unresolved violations (clarification guidance exists in one canonical place; Memory/Subagent guidance co-located in `tools.md`).
 
+## 8. Actionability of every directive (SC-009)
+
+Manual: read each refreshed rule/skill directive and ask "what observable behavior does this produce?". Pass: every directive has an answer; zero vacuous or un-executable directives remain. Any directive that was ambiguous now carries a clarifying supplement (example/boundary/precise verb).
+
+## 9. Authoritative grounding accuracy (SC-010)
+
+```sh
+# Surface the named authorities for a correctness/attribution check:
+grep -rniE 'OWASP|ASVS|CWE|29148|INVEST|MoSCoW|FURPS|SMART|Gherkin|MECE|SCQA|BLUF|Pyramid|Minto|Tufte|Cleveland|Strunk|pre-mortem|Fermi' \
+  .claude/CLAUDE.md .claude/rules/ .claude/skills/{coder,editor,clarifier,advisor,domain-model,ubiquitous-language}/SKILL.md 2>/dev/null
+```
+
+Manual check on the output: each anchor is (a) real and correctly named, (b) current, (c) functional — it narrows interpretation rather than decorating. Pass: zero fabricated, misattributed, or decorative-only anchors.
+
 ## Done criteria
 
-All seven sections pass and `git diff` shows only intended config edits. Then commit and push to `claude/speckit-claude-code-settings-lrldfc`.
+All nine sections pass and `git diff` shows only intended config edits. Then commit and push to `claude/speckit-claude-code-settings-lrldfc`.

@@ -6,7 +6,7 @@
 
 ## Summary
 
-Refresh the personal Claude Code configuration under `.claude/` so it (1) gives deliberate, testable guidance for Memory and Subagent usage, (2) trims standing context to the minimum a current Claude model needs while preserving every enforced behavior, (3) states the intent of each rule and skill, (4) keeps hooks lean and purposeful without weakening safety guards, (5) conforms to the repo's own Live Documentation principles, and (6) adds a lightweight internal design→plan→task discipline for non-Spec-Kit tasks. The approach is edit-in-place of Markdown/JSON/shell config, gated by a **behavior inventory** that enumerates every currently enforced behavior so trimming can be proven loss-free.
+Refresh the personal Claude Code configuration under `.claude/` so it (1) gives deliberate, testable guidance for Memory and Subagent usage, (2) is comprehensible and executable — every directive maps to an observable behavior, with redundancy/verbosity removed but ambiguous directives *supplemented* rather than merely shortened, (3) states the intent of each rule and skill, (4) keeps hooks lean and purposeful without weakening safety guards, (5) conforms to the repo's own Live Documentation principles, (6) adds a lightweight internal design→plan→task discipline for non-Spec-Kit tasks, and (7) grounds normative directives in correctly-attributed authority (best practices, international/industry standards, academic principles) so the model interprets them precisely. **Comprehension outranks compression**: length is reduced only by cutting duplication and noise, and may grow where a supplement or authoritative anchor buys correct execution. The approach is edit-in-place of Markdown/JSON/shell config, gated by a **behavior inventory** that enumerates every currently enforced behavior so changes can be proven loss-free.
 
 ## Technical Context
 
@@ -22,9 +22,9 @@ Refresh the personal Claude Code configuration under `.claude/` so it (1) gives 
 
 **Project Type**: Configuration / documentation set (not a code library or service).
 
-**Performance Goals**: Reduce standing (always-loaded) context by ≥20% (SC-002) with zero behavior loss; keep each `CLAUDE.md`-imported file ≤200 lines (SC-008).
+**Performance Goals**: Eliminate duplicated guidance in the standing context with zero behavior loss (SC-002); 100% of directives actionable (SC-009); every normative directive correctly grounded or self-evidently operational (SC-010); keep each `CLAUDE.md`-imported file ≤200 lines (SC-008). Verbosity-driven length strictly down; net length may rise only for recorded comprehension supplements or authoritative anchors.
 
-**Constraints**: Behavior preservation outranks length reduction; safety hooks (credential/destructive/secret-scan) must remain functionally identical; English-documentation convention retained; edits stay within project-scope `.claude/` (user-scope only via `install.sh` sync path).
+**Constraints**: Comprehension and correct execution outrank length reduction; safety hooks (credential/destructive/secret-scan) must remain functionally identical; authoritative anchors must be real, correctly attributed, current, and functional (never fabricated or decorative); English-documentation convention retained; edits stay within project-scope `.claude/` (user-scope only via `install.sh` sync path).
 
 **Scale/Scope**: 1 root `CLAUDE.md`, 1 `.claude/CLAUDE.md`, 7 rule files, 5 owner skills (coder, editor, clarifier, domain-model, ubiquitous-language), 6 hook scripts, 1 `settings.json`. Spec Kit skills (`speckit-*`) are vendored and out of scope.
 

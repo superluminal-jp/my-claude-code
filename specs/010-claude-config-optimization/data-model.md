@@ -2,6 +2,8 @@
 
 The "entities" are configuration artifacts. Each row records its concern, whether it loads into **standing context** (every session) or **on demand**, current size, and the planned change. Sizes are baseline `wc -l` at spec time.
 
+**Applies to every row below**: beyond the listed change, each edited file also gets the R9 two-pass — (A) make every directive actionable, supplementing ambiguous ones (FR-014); (B) verify existing authority anchors and add correctly-attributed ones where they sharpen a normative directive (FR-015). Net length may rise where this buys fidelity; verbosity is still removed.
+
 ## Standing context (loaded every session — primary reduction target)
 
 | Artifact | Concern | Lines | Planned change |
@@ -54,6 +56,8 @@ The "entities" are configuration artifacts. Each row records its concern, whethe
 
 ## Derived metrics
 
-- **Standing-context baseline** = lines(root CLAUDE.md + .claude/CLAUDE.md + skill-routing.md + live-documentation.md + mcp.md) = 8 + 46 + 7 + 59 + 26 = **146 lines**. Target after: **≤116 lines** (−20%, SC-002) with zero behavior loss.
+- **Standing-context baseline** = lines(root CLAUDE.md + .claude/CLAUDE.md + skill-routing.md + live-documentation.md + mcp.md) = 8 + 46 + 7 + 59 + 26 = **146 lines**. Target (SC-002): **zero duplicated guidance** (clarification stated once) and **no verbosity bloat**. Net line count is not a hard gate — it may rise where a recorded comprehension supplement (FR-014) or authoritative anchor (FR-015) is needed; it must not rise from verbosity. Track each net addition with a one-line reason.
+- **Actionability** (SC-009): 100% of directives map to a nameable observable behavior.
+- **Grounding** (SC-010): every normative directive correctly anchored or self-evidently operational; zero fabricated/decorative anchors.
 - **Intent-line coverage** target = 7/7 rules + 5/5 owner skills = **100%** (SC-001).
-- **Imports ≤200 lines** each (SC-008): only `domain-model` (322) exceeds; it is a skill, not a CLAUDE.md import, so SC-008 is already met for imports — but it is still trimmed under FR-003/best-practice where loss-free.
+- **Imports ≤200 lines** each (SC-008): only `domain-model` (322) exceeds; it is a skill, not a CLAUDE.md import, so SC-008 is already met for imports — but it is still reviewed under FR-003/FR-014 where loss-free.
