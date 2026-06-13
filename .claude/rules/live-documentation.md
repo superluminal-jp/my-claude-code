@@ -1,6 +1,6 @@
 # Live Documentation Rules
 
-Documentation must never lie. These rules enforce the five Live Documentation principles in every session.
+Purpose: keep documentation truthful and co-located with the code it describes. Applies when reviewing diffs/commits/PRs or creating any Documentation Artifact. Documentation must never lie; these rules enforce the five Live Documentation principles (drift, separate-doc-PR, auto-generation, proximity, no-redundancy) in every session.
 
 ## 1. Drift Detection
 

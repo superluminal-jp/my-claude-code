@@ -4,6 +4,8 @@ description: Implement and modify code safely with strict TDD (red → green →
 when_to_use: implement feature, add functionality, fix bug, debug failing behavior, refactor code, restructure module, rename interface, write tests, add unit/integration/e2e tests, update API endpoint or signature, change CLI flag or env var, change default behavior, update README/docs to match code, address code review feedback, TDD, SDD, spec-driven, /speckit workflow
 ---
 
+Purpose: change code safely — a failing test first, the spec as the single source of truth, docs updated in the same change, and secure-by-default boundaries. Applies to any change to source code or observable behavior. Security is grounded in OWASP Top 10 / OWASP ASVS and CWE-aware defect handling.
+
 # Test-Driven Development (TDD)
 
 Red → Green → Refactor, strict. No implementation code without a failing test first.

@@ -6,7 +6,7 @@ when_to_use: clarify requirements, define acceptance criteria, ambiguous request
 
 # Requirements Skill
 
-Use this skill when clarification needs formal structure.
+Purpose: the formal-elicitation extension of the clarification gate. `rules/clarifier.md` is the canonical source for *when* to ask vs proceed; this skill supplies the *how* — structured toolboxes for turning ambiguity into testable, bounded requirements. Applies when clarification needs formal structure (user stories, acceptance criteria, NFR coverage). Grounded in ISO/IEC/IEEE 29148, INVEST, Gherkin, MoSCoW, and FURPS+.
 
 ## Primary objective
 

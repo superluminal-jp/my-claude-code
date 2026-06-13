@@ -27,8 +27,8 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 **Purpose**: Record the before-state so "no loss + no verbosity bloat" is provable afterward.
 
-- [ ] T001 [P] Record baseline metrics in a scratch note (commit message or `quickstart.md` run): `wc -l` of the standing-context import set (`CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/skill-routing.md`, `.claude/rules/live-documentation.md`, `.claude/rules/mcp.md` = 146 lines), current intent-line coverage, and the list of authority anchors already named across `.claude/`.
-- [ ] T002 [P] Establish the green baseline: run the `quickstart.md` §4 spot-checks against the **unmodified** config (`echo '{"tool_input":{"command":"git push -f"}}' | .claude/hooks/pre-bash.sh` → exit 2; `echo '{"prompt":"AKIAIOSFODNN7EXAMPLE"}' | .claude/hooks/user-prompt-submit.sh` → exit 2; `jq empty .claude/settings.json`) and confirm all pass before any edit.
+- [x] T001 [P] Record baseline metrics in a scratch note (commit message or `quickstart.md` run): `wc -l` of the standing-context import set (`CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/skill-routing.md`, `.claude/rules/live-documentation.md`, `.claude/rules/mcp.md` = 146 lines), current intent-line coverage, and the list of authority anchors already named across `.claude/`.
+- [x] T002 [P] Establish the green baseline: run the `quickstart.md` §4 spot-checks against the **unmodified** config (`echo '{"tool_input":{"command":"git push -f"}}' | .claude/hooks/pre-bash.sh` → exit 2; `echo '{"prompt":"AKIAIOSFODNN7EXAMPLE"}' | .claude/hooks/user-prompt-submit.sh` → exit 2; `jq empty .claude/settings.json`) and confirm all pass before any edit.
 
 ---
 
@@ -38,8 +38,8 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 **⚠️ CRITICAL**: No user-story edits begin until T003–T004 are complete.
 
-- [ ] T003 Designate `.claude/rules/clarifier.md` as the single canonical clarification source; enumerate every location that currently restates it (`.claude/CLAUDE.md` "Response Preflight", `.claude/skills/clarifier/SKILL.md`) to be converted to cross-references. Records the dedup plan that US2 tasks consume.
-- [ ] T004 Verify `specs/010-claude-config-optimization/contracts/behavior-inventory.md` is complete against the current `.claude/settings.json` + 6 hook scripts + routing triggers + skill obligations; add any missing enforced item. This frozen list is the post-edit gate.
+- [x] T003 Designate `.claude/rules/clarifier.md` as the single canonical clarification source; enumerate every location that currently restates it (`.claude/CLAUDE.md` "Response Preflight", `.claude/skills/clarifier/SKILL.md`) to be converted to cross-references. Records the dedup plan that US2 tasks consume.
+- [x] T004 Verify `specs/010-claude-config-optimization/contracts/behavior-inventory.md` is complete against the current `.claude/settings.json` + 6 hook scripts + routing triggers + skill obligations; add any missing enforced item. This frozen list is the post-edit gate.
 
 **Checkpoint**: Gate defined, dedup target chosen — edits may begin.
 
@@ -51,9 +51,9 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 **Independent Test**: `quickstart.md` §3 — `tools.md` has a Memory trigger + anti-pattern and a Subagent trigger + anti-pattern.
 
-- [ ] T005 [US1] Add an intent line ("Purpose / Applies when") to the top of `.claude/rules/tools.md`.
-- [ ] T006 [US1] Add a Memory policy to `.claude/rules/tools.md`: write/read only durable cross-session facts (conventions, decisions, key file locations, user preferences); explicit anti-pattern (no transient state, secrets, or trivially re-derivable facts); grounded in the harness's Memory guidance, paired with the existing `autoMemoryEnabled: true` setting (FR-001, SC-003).
-- [ ] T007 [US1] Sharpen the Subagents section in `.claude/rules/tools.md`: delegation triggers (broad fan-out search, main-context protection, explicit user request) + explicit anti-pattern (never delegate single-file or known-scope work) (FR-002, SC-003).
+- [x] T005 [US1] Add an intent line ("Purpose / Applies when") to the top of `.claude/rules/tools.md`.
+- [x] T006 [US1] Add a Memory policy to `.claude/rules/tools.md`: write/read only durable cross-session facts (conventions, decisions, key file locations, user preferences); explicit anti-pattern (no transient state, secrets, or trivially re-derivable facts); grounded in the harness's Memory guidance, paired with the existing `autoMemoryEnabled: true` setting (FR-001, SC-003).
+- [x] T007 [US1] Sharpen the Subagents section in `.claude/rules/tools.md`: delegation triggers (broad fan-out search, main-context protection, explicit user request) + explicit anti-pattern (never delegate single-file or known-scope work) (FR-002, SC-003).
 
 **Checkpoint**: MVP — Memory/Subagent guidance complete and independently verifiable.
 
@@ -69,24 +69,24 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 ### Standing context
 
-- [ ] T008 [P] [US2][US6] Refresh `.claude/CLAUDE.md`: per-section intent; actionable directives; remove verbosity; convert the "Response Preflight" clarification detail to a cross-reference to `.claude/rules/clarifier.md` (per T003); verify MECE/SCQA/FURPS+/INVEST references are correct and functional. (Note: T020 also edits this file — must run before T020.)
-- [ ] T009 [P] [US2][US6] Refresh `.claude/rules/skill-routing.md`: add intent line; keep routing triggers verbatim (enforced); confirm each trigger is actionable.
-- [ ] T010 [P] [US2][US6] Refresh `.claude/rules/live-documentation.md`: add intent line; tighten prose; preserve all five principles + override handling verbatim in effect.
-- [ ] T011 [P] [US2][US6] Refresh `.claude/rules/mcp.md`: add intent line; keep catalog table + usage rule; ensure the AWS/GCP/Azure routing directive is actionable.
+- [x] T008 [P] [US2][US6] Refresh `.claude/CLAUDE.md`: per-section intent; actionable directives; remove verbosity; convert the "Response Preflight" clarification detail to a cross-reference to `.claude/rules/clarifier.md` (per T003); verify MECE/SCQA/FURPS+/INVEST references are correct and functional. (Note: T020 also edits this file — must run before T020.)
+- [x] T009 [P] [US2][US6] Refresh `.claude/rules/skill-routing.md`: add intent line; keep routing triggers verbatim (enforced); confirm each trigger is actionable.
+- [x] T010 [P] [US2][US6] Refresh `.claude/rules/live-documentation.md`: add intent line; tighten prose; preserve all five principles + override handling verbatim in effect.
+- [x] T011 [P] [US2][US6] Refresh `.claude/rules/mcp.md`: add intent line; keep catalog table + usage rule; ensure the AWS/GCP/Azure routing directive is actionable.
 
 ### On-demand rules
 
-- [ ] T012 [P] [US2][US6] Refresh `.claude/rules/permissions.md`: add intent line; keep every deny/ask/allow rule; ground the evaluation order in least-privilege (deny → ask → allow).
-- [ ] T013 [US2][US6] Make `.claude/rules/clarifier.md` the canonical clarification source: add intent line; ensure directives actionable; ground in ISO/IEC/IEEE 29148 (requirement quality), INVEST, Gherkin, MoSCoW, FURPS+, SMART with correct attribution; absorb any unique content from `.claude/CLAUDE.md` preflight (depends on T003, T008).
-- [ ] T014 [P] [US2][US6] Refresh `.claude/rules/advisor.md`: add intent line; trim; verify anchors (one-way/two-way door, pre-mortem, Fermi, MECE, SCQA) are real and functional.
+- [x] T012 [P] [US2][US6] Refresh `.claude/rules/permissions.md`: add intent line; keep every deny/ask/allow rule; ground the evaluation order in least-privilege (deny → ask → allow).
+- [x] T013 [US2][US6] Make `.claude/rules/clarifier.md` the canonical clarification source: add intent line; ensure directives actionable; ground in ISO/IEC/IEEE 29148 (requirement quality), INVEST, Gherkin, MoSCoW, FURPS+, SMART with correct attribution; absorb any unique content from `.claude/CLAUDE.md` preflight (depends on T003, T008).
+- [x] T014 [P] [US2][US6] Refresh `.claude/rules/advisor.md`: add intent line; trim; verify anchors (one-way/two-way door, pre-mortem, Fermi, MECE, SCQA) are real and functional.
 
 ### Owner skills
 
-- [ ] T015 [P] [US2][US6] Refresh `.claude/skills/coder/SKILL.md`: body intent line; actionable directives; verify OWASP Top 10 / OWASP ASVS / CWE anchors; preserve TDD/SDD/docs-sync/no-drive-by obligations.
-- [ ] T016 [P] [US2][US6] Refresh `.claude/skills/editor/SKILL.md`: body intent line; verify Pyramid (Minto)/MECE/SCQA/BLUF/Tufte/Cleveland–McGill/Strunk & White anchors; trim.
-- [ ] T017 [US2][US6] Refresh `.claude/skills/clarifier/SKILL.md`: body intent line; cross-reference `.claude/rules/clarifier.md` and remove duplicated trigger prose (per T003); keep the formal elicitation toolbox; verify anchors (depends on T013).
-- [ ] T018 [P] [US2][US6] Refresh `.claude/skills/domain-model/SKILL.md`: body intent line; make directives actionable; trim toward ≤200 lines where loss-free; verify DDD anchors (Evans/Fowler patterns) are correctly attributed.
-- [ ] T019 [P] [US2][US6] Refresh `.claude/skills/ubiquitous-language/SKILL.md`: body intent line; actionability; trim; verify the DDD ubiquitous-language anchor.
+- [x] T015 [P] [US2][US6] Refresh `.claude/skills/coder/SKILL.md`: body intent line; actionable directives; verify OWASP Top 10 / OWASP ASVS / CWE anchors; preserve TDD/SDD/docs-sync/no-drive-by obligations.
+- [x] T016 [P] [US2][US6] Refresh `.claude/skills/editor/SKILL.md`: body intent line; verify Pyramid (Minto)/MECE/SCQA/BLUF/Tufte/Cleveland–McGill/Strunk & White anchors; trim.
+- [x] T017 [US2][US6] Refresh `.claude/skills/clarifier/SKILL.md`: body intent line; cross-reference `.claude/rules/clarifier.md` and remove duplicated trigger prose (per T003); keep the formal elicitation toolbox; verify anchors (depends on T013).
+- [x] T018 [P] [US2][US6] Refresh `.claude/skills/domain-model/SKILL.md`: body intent line; make directives actionable; trim toward ≤200 lines where loss-free; verify DDD anchors (Evans/Fowler patterns) are correctly attributed.
+- [x] T019 [P] [US2][US6] Refresh `.claude/skills/ubiquitous-language/SKILL.md`: body intent line; actionability; trim; verify the DDD ubiquitous-language anchor.
 
 **Checkpoint**: All rules/skills are intent-explicit, actionable, de-duplicated, and grounded.
 
@@ -98,7 +98,7 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 **Independent Test**: `quickstart.md` §6 — non-trivial request gets the phase; trivial request does not.
 
-- [ ] T020 [US3] Add a "Pre-execution discipline" subsection to `.claude/CLAUDE.md` Response Preflight: for non-trivial tasks (multi-file, new/changed behavior, or irreversible) internally state approach → short plan → task breakdown before editing, reusing the clarifier (scope) and advisor (options/recommendation) scaffolding; trivial tasks (single-file, reversible, ≤1 logical step) skip the ceremony; state the threshold in testable terms (FR-006, FR-007, SC-006). Depends on T008 (same file).
+- [x] T020 [US3] Add a "Pre-execution discipline" subsection to `.claude/CLAUDE.md` Response Preflight: for non-trivial tasks (multi-file, new/changed behavior, or irreversible) internally state approach → short plan → task breakdown before editing, reusing the clarifier (scope) and advisor (options/recommendation) scaffolding; trivial tasks (single-file, reversible, ≤1 logical step) skip the ceremony; state the threshold in testable terms (FR-006, FR-007, SC-006). Depends on T008 (same file).
 
 **Checkpoint**: Internal planning discipline encoded without adding a new import or framework.
 
@@ -110,10 +110,10 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 **Independent Test**: `quickstart.md` §4 — all hooks executable & lint-clean, `settings.json` valid, guard spot-checks still exit 2.
 
-- [ ] T021 [P] [US4] Set executable bit `0755` on `.claude/hooks/pre-edit.sh` and `.claude/hooks/post-edit-format.sh` (currently `0644`).
-- [ ] T022 [P] [US4] Verify/append a one-line purpose header comment on each of the six hook scripts in `.claude/hooks/`; do not alter any guard logic.
-- [ ] T023 [US4] Review `.claude/settings.json` hook wiring (matchers, timeouts) and permission lists for correctness; make no semantic change; validate with `jq empty .claude/settings.json`.
-- [ ] T024 [US4] Run `shfmt -i 2 -w` and `shellcheck` on all `.claude/hooks/*.sh`; confirm clean; confirm `pre-bash.sh` and `user-prompt-submit.sh` guard behavior is unchanged vs the T002 baseline (SC-004).
+- [x] T021 [P] [US4] Set executable bit `0755` on `.claude/hooks/pre-edit.sh` and `.claude/hooks/post-edit-format.sh` (currently `0644`).
+- [x] T022 [P] [US4] Verify/append a one-line purpose header comment on each of the six hook scripts in `.claude/hooks/`; do not alter any guard logic.
+- [x] T023 [US4] Review `.claude/settings.json` hook wiring (matchers, timeouts) and permission lists for correctness; make no semantic change; validate with `jq empty .claude/settings.json`.
+- [x] T024 [US4] Run `shfmt -i 2 -w` and `shellcheck` on all `.claude/hooks/*.sh`; confirm clean; confirm `pre-bash.sh` and `user-prompt-submit.sh` guard behavior is unchanged vs the T002 baseline (SC-004).
 
 **Checkpoint**: Hooks lean, documented, executable, and safety guards provably intact.
 
@@ -125,8 +125,8 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 **Independent Test**: `quickstart.md` §7 — audit finds zero unresolved violations.
 
-- [ ] T025 [US5] Audit refreshed `.claude/CLAUDE.md`, `.claude/rules/*`, and owner skills against `.claude/rules/live-documentation.md` (proximity, no redundancy, explicit intent, auto-generation preference); fix any violation found.
-- [ ] T026 [US5] Verify the `CLAUDE.md` import chain: each imported file is focused and ≤200 lines (SC-008); confirm every cross-reference added in Phase 4 resolves to an existing heading/path.
+- [x] T025 [US5] Audit refreshed `.claude/CLAUDE.md`, `.claude/rules/*`, and owner skills against `.claude/rules/live-documentation.md` (proximity, no redundancy, explicit intent, auto-generation preference); fix any violation found.
+- [x] T026 [US5] Verify the `CLAUDE.md` import chain: each imported file is focused and ≤200 lines (SC-008); confirm every cross-reference added in Phase 4 resolves to an existing heading/path.
 
 **Checkpoint**: Documentation consistent and principle-compliant.
 
@@ -136,11 +136,11 @@ All edits are config files under `.claude/` at repo root. No `src/`. The "behavi
 
 **Purpose**: Prove the success criteria end-to-end and ship.
 
-- [ ] T027 Re-run the full behavior inventory (`quickstart.md` §4 and §5) against the edited config; confirm zero enforced-behavior loss across permissions, hook guards, and routing triggers (SC-002, SC-004).
-- [ ] T028 [P] Run the actionability review (`quickstart.md` §8, SC-009) and grounding-accuracy audit (`quickstart.md` §9, SC-010); remove or fix any vacuous directive, fabricated, misattributed, or decorative-only anchor.
-- [ ] T029 [P] Compute the net standing-context delta vs the T001 baseline; record a one-line reason for each net addition; confirm verbosity-driven length fell and no duplication remains (SC-002).
-- [ ] T030 Update `specs/010-claude-config-optimization/checklists/requirements.md` status and run `quickstart.md` §1–§9 end-to-end as the final acceptance pass.
-- [ ] T031 Commit and push all `.claude/` config changes to `claude/speckit-claude-code-settings-lrldfc`.
+- [x] T027 Re-run the full behavior inventory (`quickstart.md` §4 and §5) against the edited config; confirm zero enforced-behavior loss across permissions, hook guards, and routing triggers (SC-002, SC-004).
+- [x] T028 [P] Run the actionability review (`quickstart.md` §8, SC-009) and grounding-accuracy audit (`quickstart.md` §9, SC-010); remove or fix any vacuous directive, fabricated, misattributed, or decorative-only anchor.
+- [x] T029 [P] Compute the net standing-context delta vs the T001 baseline; record a one-line reason for each net addition; confirm verbosity-driven length fell and no duplication remains (SC-002).
+- [x] T030 Update `specs/010-claude-config-optimization/checklists/requirements.md` status and run `quickstart.md` §1–§9 end-to-end as the final acceptance pass.
+- [x] T031 Commit and push all `.claude/` config changes to `claude/speckit-claude-code-settings-lrldfc`.
 
 ---
 

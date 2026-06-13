@@ -1,6 +1,6 @@
 # Skill: domain-model
 
-Maintain a project's DDD domain model — capture structural patterns from conversation, generate `docs/models/<context-kebab>.md` (Mermaid + 5 tables), and keep `docs/models/index.md` in sync.
+Purpose: maintain a project's DDD domain model — capture structural patterns from conversation, generate `docs/models/<context-kebab>.md` (Mermaid + 5 tables), and keep `docs/models/index.md` in sync. Applies when the conversation surfaces aggregates, entities, value objects, domain events, or invariants, or when asked to create/update a model. Grounded in Evans' Domain-Driven Design tactical patterns.
 
 **Language**: Respond in the language of the current conversation. All examples in this file are in English; adapt to the conversation language at runtime.
 

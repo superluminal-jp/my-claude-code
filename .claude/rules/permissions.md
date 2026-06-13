@@ -1,5 +1,7 @@
 # Permission Rules
 
+Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in least-privilege (default-deny for destructive and network actions).
+
 Evaluation order: **deny → ask → allow** (first match wins; deny always overrides).
 
 ## Destructive Operations — confirm before executing

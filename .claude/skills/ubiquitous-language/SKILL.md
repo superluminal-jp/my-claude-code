@@ -1,6 +1,6 @@
 # Skill: ubiquitous-language
 
-Maintain a project's Ubiquitous Language — capture domain vocabulary from conversation, organize it in `docs/ubiquitous-language.md`, and surface cross-context conflicts in `docs/context-map.md`.
+Purpose: maintain a project's Ubiquitous Language — capture domain vocabulary from conversation, organize it in `docs/ubiquitous-language.md`, and surface cross-context conflicts in `docs/context-map.md`. Applies when the conversation introduces domain terms or business-event expressions, or when asked to build/update the glossary. Grounded in Evans' Domain-Driven Design ubiquitous-language and bounded-context concepts.
 
 **Language**: Respond in the language of the current conversation. All examples in this file are in English; adapt to the conversation language at runtime.
 

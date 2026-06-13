@@ -1,5 +1,7 @@
 # Clarification Rules
 
+Purpose: this is the single canonical clarification gate — decide whether to ask or proceed, and how to ask well. Applies before acting on any request; other files (`.claude/CLAUDE.md` preflight, the `clarifier` skill) point here rather than restating it. Grounded in requirements-quality standards: ISO/IEC/IEEE 29148 (requirements MUST be unambiguous, verifiable, feasible), with INVEST (story quality), Gherkin Given/When/Then (testable scenarios), and SMART (measurable goals).
+
 When a request is ambiguous, incomplete, or cannot be completed by reasonable inference, **stop and ask** — do not fabricate intent.
 
 ## When to clarify (triggers)

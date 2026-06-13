@@ -6,6 +6,8 @@ when_to_use: write memo, draft report, prepare proposal, create slides, build de
 
 # Work Products: Documents, Decks, Research, and Language
 
+Purpose: ship a finished, publishable artifact (not an outline). Applies when the deliverable is a document, deck, chart, proofread, or translation. Grounded in the Pyramid Principle (Minto), Tufte's data-ink discipline, and the Cleveland–McGill graphical-perception ranking.
+
 Use for **produced artifacts** (memos, proposals, analyses, decks) and for **editing, translation, and study designs**. For live conversation and reasoning norms, see **`rules/advisor.md`**.
 
 ## Documents
