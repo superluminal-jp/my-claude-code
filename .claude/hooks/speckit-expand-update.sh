@@ -2,6 +2,9 @@
 # UserPromptExpansion: before /speckit-* expands, upgrade specify-cli and refresh Spec Kit project files.
 # speckit-specify always runs specify init (bypasses throttle) and protects modified constitution.md.
 # All other commands throttle specify init to once per UPDATE_INTERVAL_SECONDS.
+# After a successful init, freshly regenerated speckit-* skills are synced to the
+# user-scope install (~/.claude/skills) so imported skills stay current; opt out
+# with SPECIFY_SYNC_USER_SKILLS=0.
 # Integration: override with SPECIFY_INTEGRATION (default: claude). See spec-kit integrations list.
 
 set -uo pipefail
@@ -123,6 +126,26 @@ fi
     if [ "${init_exit:-1}" -eq 0 ]; then
       printf '%s\n' "$now_epoch" > "$STATE_FILE"
       echo "Updated state file: $STATE_FILE"
+
+      # Propagate the freshly regenerated speckit skills to the user-scope
+      # install so skills imported into ~/.claude (via install.sh) stay in
+      # lockstep with the project update. Opt out with SPECIFY_SYNC_USER_SKILLS=0.
+      SYNC_USER_SKILLS="${SPECIFY_SYNC_USER_SKILLS:-1}"
+      USER_CLAUDE="$HOME/.claude"
+      if [ "$SYNC_USER_SKILLS" = "1" ] && [ -d "$USER_CLAUDE/skills" ] && [ "$USER_CLAUDE" != "$CWD/.claude" ]; then
+        synced=0
+        for src in "$CWD"/.claude/skills/speckit-*/; do
+          [ -d "$src" ] || continue
+          name=$(basename "$src")
+          dst="$USER_CLAUDE/skills/$name"
+          rm -rf "$dst"
+          cp -R "$src" "$dst"
+          synced=$((synced + 1))
+        done
+        echo "Synced $synced speckit skill(s) to user scope: $USER_CLAUDE/skills"
+      else
+        echo "User-scope skill sync skipped (disabled, no ~/.claude/skills, or cwd is the user install)."
+      fi
     fi
   else
     echo "State file unchanged: $STATE_FILE"
