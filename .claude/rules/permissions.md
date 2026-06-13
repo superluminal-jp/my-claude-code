@@ -27,6 +27,7 @@ Enforcement:
 - `.claude/hooks/user-prompt-submit.sh` (UserPromptSubmit) blocks prompts containing AWS access keys (`AKIA…`/`ASIA…`), GitHub tokens (`ghp_…`, `github_pat_…`), Slack tokens (`xox[abpors]-…`), Google API keys (`AIza…`), and `-----BEGIN … PRIVATE KEY-----` blocks.
 - `.claude/hooks/speckit-expand-update.sh` (UserPromptExpansion, matcher `speckit.(specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution)`) runs before `/speckit-*` expands: upgrades `specify-cli` via `uv` or `pipx`, then `specify init --here --force` when `.specify/` exists (network access; may refresh slash commands and overwrite Spec Kit template files—see Spec Kit upgrade guide).
 - Git permissions in `.claude/settings.json` default to read-style allow (`status`, `diff`, `log`, `fetch`) and ask for write-style operations (`add`, `commit`, `checkout`, `branch`, `stash`, `pull`).
+- The repo's own non-destructive verification commands are allow-listed in `.claude/settings.json` to avoid prompt friction: the behavior suites (`tests/run-*.sh`), `scripts/check-mcp-consistency.sh`, and the lint/format tools (`shellcheck`, `shfmt`, `jq`, `yamllint`). These read or reformat repo files only; git write operations stay on `ask`.
 
 ## Network — default deny
 

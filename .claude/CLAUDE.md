@@ -45,6 +45,8 @@ For non-trivial work that does not use a `/speckit-*` command, run a lightweight
 When in doubt, prefer the lighter path; do not let planning add friction to small reversible changes.
 
 @.claude/rules/skill-routing.md
+@.claude/rules/clarifier.md
+@.claude/rules/tools.md
 @.claude/rules/live-documentation.md
 
 ## MCP

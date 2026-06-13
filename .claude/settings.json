@@ -9,6 +9,11 @@
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": true,
 
+  "statusLine": {
+    "type": "command",
+    "command": "\"$HOME\"/.claude/hooks/statusline.sh"
+  },
+
   "enableAllProjectMcpServers": true,
 
   "permissions": {
@@ -22,7 +27,15 @@
       "Bash(git status)",
       "Bash(git diff *)",
       "Bash(git log *)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "Bash(tests/run-*.sh)",
+      "Bash(bash tests/run-*.sh)",
+      "Bash(scripts/check-mcp-consistency.sh)",
+      "Bash(bash scripts/check-mcp-consistency.sh)",
+      "Bash(shellcheck *)",
+      "Bash(shfmt *)",
+      "Bash(jq *)",
+      "Bash(yamllint *)"
     ],
     "ask": [
       "Bash(git add *)",
