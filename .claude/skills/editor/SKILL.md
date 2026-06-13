@@ -66,3 +66,7 @@ When asked to teach: **Feynman** style — simple words, **examples**, **analogi
 - Use **headings**, **lists**, and **tables** to scan.  
 - In **shipped** artifacts, no **framework labels**; natural wording only.  
 - Match **output format** to the ask (e.g. memo, email, one-pager, report sections).
+
+## Related rules
+
+- **Choosing response vs persisted-artifact language** (which language to write in) → `rules/localization.md`.
