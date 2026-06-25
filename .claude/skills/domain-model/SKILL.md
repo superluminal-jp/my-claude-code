@@ -1,8 +1,29 @@
 # Skill: domain-model
 
-Purpose: maintain a project's DDD domain model — capture structural patterns from conversation, generate `docs/models/<context-kebab>.md` (Mermaid + 5 tables), and keep `docs/models/index.md` in sync. Applies when the conversation surfaces aggregates, entities, value objects, domain events, or invariants, or when asked to create/update a model. Grounded in Evans' Domain-Driven Design tactical patterns.
+Purpose: maintain a project's **structural memory** of how business concepts relate — capture patterns from everyday work (plain language and code), generate `docs/models/<context-kebab>.md` (Mermaid + 5 tables), and keep `docs/models/index.md` in sync. Runs **always-on** alongside other skills (like agent Memory), not only when the user mentions DDD. Grounded in Evans' tactical patterns, but surfaced as "構造の記録" unless the user uses DDD terms.
 
 **Language**: Respond in the language of the current conversation. All examples in this file are in English; adapt to the conversation language at runtime.
+
+## Always-on Memory Layer
+
+This skill loads on **every turn** with the primary skill. It builds on `ubiquitous-language` when present but operates independently when not.
+
+| What gets recorded | Plain-language label | DDD label (use only if user does) |
+|---|---|---|
+| Things that change together | cluster / まとまり | Aggregate |
+| Things with an ID | identifiable thing | Entity |
+| Things defined by value | value-like piece | Value Object |
+| Things that happened | business occurrence | Domain Event |
+| Rules that must hold | business rule | Invariant |
+
+**Operating mode during active work**:
+
+1. Run Passive Collection silently on conversation **and** code touched this session.
+2. Accept plain-language signals — do not require the user to say "aggregate" or "entity".
+3. Surface batch proposals at natural pauses (same rules as ubiquitous-language).
+4. Prefer **incremental** updates (one cluster, one rule, one event) over full bootstrap unless the user asks.
+
+**Goal**: A DDD beginner who only agrees to occasional "記録しますか？" prompts should still end up with a usable `docs/models/` tree over time.
 
 ---
 
@@ -87,45 +108,69 @@ Append a plain-language supplement to each Bootstrap step prompt:
 
 ## Passive Collection
 
-During any conversation turn, **without interrupting the response**, monitor user messages for DDD structural patterns:
+During **every** conversation turn, **without interrupting the response**, monitor for structural patterns in conversation and code:
 
-| Pattern | Example | trigger_type |
+### Conversation patterns
+
+| Plain signal | DDD mapping | trigger_type |
 |---|---|---|
-| "X has/contains Y", "Y belongs to X", "X aggregates Y" | "An order has multiple line items" | `aggregate` |
-| "X ID", "X number", "X code" uniquely identifies | "Identified by order ID" | `entity` |
-| "immutable", "replaced entirely", "equal if same value" | "Address is immutable" | `value-object` |
-| Past-tense or passive verb+noun (business occurrence) | "Order was confirmed" | `domain-event` |
-| "cannot when", "must always", "is required to" | "Cannot order when stock is zero" | `invariant` |
+| "X has/contains Y", "Y belongs to X", "part of X" | cluster | `aggregate` |
+| "X ID", "X number", "X code" uniquely identifies | identifiable thing | `entity` |
+| "immutable", "replaced entirely", "same value means same" | value-like piece | `value-object` |
+| Past-tense or passive verb+noun (something happened) | business occurrence | `domain-event` |
+| "cannot when", "must always", "only if", "required to" | business rule | `invariant` |
+| "when X then Y", lifecycle / status flow | events + rules | `domain-event` / `invariant` |
 
-**False-positive guard**: queue a candidate only when the surrounding context contains at least one UL-registered term or another DDD pattern in the same turn.
+### Code patterns (files read or edited this session)
+
+| Code signal | Inferred pattern |
+|---|---|
+| Parent/child tables or nested types | `aggregate` + `entity` |
+| FK to own table vs other aggregate | composition vs association |
+| `enum` / status constants | states → candidate events between values |
+| Validation guards, `raise`/`throw` on rule break | `invariant` |
+| Immutable record / value type | `value-object` |
+| Domain event class, message payload, outbox row | `domain-event` |
+| Module/package boundary | Bounded Context hint for `context` field |
+
+**False-positive guard** (relaxed for always-on mode): queue a candidate when **any** of:
+
+- The term appears in the ubiquitous-language queue or `docs/ubiquitous-language.md`
+- The term appears in code or docs touched this session
+- The same concept is referenced ≥2 times in the session
+- The user explicitly names the concept
+
+Do **not** require DDD vocabulary or prior UL registration.
 
 **Surface queued candidates as a batch when**:
-- Queue has ≥ 1 entry, AND
-- The preceding turn contained no new DDD candidates
 
-Batch proposal format:
+- Queue has ≥ 1 entry, AND
+- The preceding turn contained no new structural candidates, AND
+- The primary task is not mid-blocking clarification
+
+Batch proposal format — use plain labels in the Type column unless the user prefers DDD terms:
 
 ```
-## Domain Model — Candidates Detected
+## 構造の記録 — 候補を検出しました
 
-The following DDD pattern candidates were detected. Please review:
-
-| # | Term | Source | Type | Context |
+| # | 概念 | 根拠 | 種類 | 文脈 |
 |---|---|---|---|---|
-| 1 | Order | "An order has multiple line items" | aggregate | order |
-| 2 | OrderId | "Identified by order ID" | entity | order |
-| 3 | Cannot order when stock is zero | (verbatim) | invariant | order |
+| 1 | Order | "An order has multiple line items" | まとまり (aggregate) | order |
+| 2 | OrderId | "Identified by order ID" | IDで識別 (entity) | order |
+| 3 | Cannot order when stock is zero | (verbatim) | ルール (invariant) | order |
 
 Reply: "Accept all" / "1 and 3 only" / "Skip" / "2 is value-object, not entity"
 ```
 
-Accepted candidates seed the next Bootstrap or Update flow.
+Accepted candidates seed the next Bootstrap or Update flow. **Incremental path**: a single accepted row may be written without completing all bootstrap steps; mark missing sections `[NEEDS DOMAIN INPUT]` and fill later.
 
 ---
 
 ## Bootstrap Flow
 
 **Trigger**: `docs/models/<context-kebab>.md` does not exist.
+
+**Incremental default**: If Passive Collection already has candidates for this context, propose writing those rows first (partial file with `[NEEDS DOMAIN INPUT]` placeholders). Run full aggregate→event→invariant elicitation only when the user asks for a complete model.
 
 ### Step 1 — Announce and elicit aggregates
 
@@ -243,7 +288,7 @@ Include only key fields (identifier + 1–3 significant attributes) and primary 
 **When `docs/ubiquitous-language.md` exists**:
 
 1. Read all entries at Pre-check time.
-2. Infer each entry's DDD pattern and add to the candidate queue:
+2. Infer each entry's structural pattern and add to the candidate queue:
    - Past-tense verb+noun → `domain-event`
    - Noun with ID reference → `entity`
    - Noun described as immutable or value-based → `value-object`
@@ -252,9 +297,14 @@ Include only key fields (identifier + 1–3 significant attributes) and primary 
 3. When eliciting Domain Events (Bootstrap Step 3 or Maintenance Step 2), propose UL-registered names as authoritative. Do not rename or override them.
 4. **This skill never writes to `docs/ubiquitous-language.md`** — it is read-only.
 
+**When ubiquitous-language accepts new terms in the same session** (always-on chain):
+
+- Immediately infer structure for each accepted term and add to this skill's queue.
+- Surface structural candidates in the next natural pause, framed as "構造の記録" — do not wait for the user to mention DDD.
+
 **When `docs/ubiquitous-language.md` does not exist**:
 
-Run Bootstrap Flow without UL seed candidates (independent mode).
+Run Passive Collection from conversation and code only; incremental bootstrap when candidates exist.
 
 ---
 

@@ -8,7 +8,7 @@ when_to_use: write memo, draft report, prepare proposal, create slides, build de
 
 Purpose: ship a finished, publishable artifact (not an outline). Applies when the deliverable is a document, deck, chart, proofread, or translation. Grounded in the Pyramid Principle (Minto), Tufte's data-ink discipline, and the Cleveland–McGill graphical-perception ranking.
 
-Use for **produced artifacts** (memos, proposals, analyses, decks) and for **editing, translation, and study designs**. For live conversation and reasoning norms, see **`rules/advisor.md`**.
+Use for **produced artifacts** (memos, proposals, analyses, decks) and for **editing, translation, and study designs**. For live conversation and decision support, load **`advisor`** skill (or see `rules/advisor.md`). When the deliverable is a polished writeup of a recommendation, shape with `advisor` first, then finish with `editor`.
 
 ## Documents
 

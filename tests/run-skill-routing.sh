@@ -65,12 +65,13 @@ run_test() {
 Rules:
 - coder: code implementation, modification, refactoring, tests, debugging
 - editor: documents, slides, charts, translation, text editing
-- clarifier: any ambiguity in intent, scope, acceptance criteria, or constraints
+- clarifier: ambiguity in intent, scope, acceptance criteria, or constraints (what to build is unclear)
+- advisor: decision, trade-off, recommendation, compare options (goal clear enough to choose a path)
 - coder→editor: request requires both code changes AND document updates
 
 User request: ${prompt}
 
-Output exactly one of: coder | editor | clarifier | coder→editor
+Output exactly one of: coder | editor | clarifier | advisor | coder→editor
 No explanation. No other text."
 
   result=$(printf '%s' "$query" | claude -p 2>/dev/null \

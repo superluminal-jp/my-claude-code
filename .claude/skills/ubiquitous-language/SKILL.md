@@ -1,8 +1,27 @@
 # Skill: ubiquitous-language
 
-Purpose: maintain a project's Ubiquitous Language — capture domain vocabulary from conversation, organize it in `docs/ubiquitous-language.md`, and surface cross-context conflicts in `docs/context-map.md`. Applies when the conversation introduces domain terms or business-event expressions, or when asked to build/update the glossary. Grounded in Evans' Domain-Driven Design ubiquitous-language and bounded-context concepts.
+Purpose: maintain a project's shared business vocabulary as durable, version-controlled memory — capture terms, events, roles, states, and rules from everyday work (conversation and code), organize them in `docs/ubiquitous-language.md`, and surface cross-context conflicts in `docs/context-map.md`. Runs **always-on** alongside other skills (like agent Memory), not only during explicit DDD work. Grounded in Evans' Ubiquitous Language and Bounded Context concepts, but surfaced to users as "用語・ルールの記録" unless they use DDD vocabulary themselves.
 
 **Language**: Respond in the language of the current conversation. All examples in this file are in English; adapt to the conversation language at runtime.
+
+## Always-on Memory Layer
+
+This skill loads on **every turn** with the primary skill. It does not replace Claude Memory (`autoMemoryEnabled`); it persists **project domain meaning** in repo docs.
+
+| Layer | Persists | Audience |
+|---|---|---|
+| Claude Memory | harness preferences, conventions, locations | agent across sessions |
+| `docs/ubiquitous-language.md` | business terms, rules, events | team + agent |
+| `docs/models/` | structure (via `domain-model`) | team + agent |
+
+**Operating mode during active work**:
+
+1. Run Passive Collection silently — never delay or block the primary answer.
+2. Queue candidates in-session; dedupe by canonical term.
+3. Surface a batch proposal only at a **natural pause** (see Passive Collection).
+4. Prefer **incremental** updates (1–3 terms) over a full bootstrap session unless the user asks for a full glossary.
+
+**Beginner UX**: Do not lead with "DDD" or "Ubiquitous Language". Say e.g. 「作業中に出てきた用語を記録しておきませんか？」 and show a short table. Full 7-field rows can be filled over multiple sessions; mark unknown fields `[NEEDS DOMAIN INPUT]`.
 
 ## Pre-check
 
@@ -26,6 +45,8 @@ At every invocation:
 ## Bootstrap Flow
 
 **Trigger**: `docs/ubiquitous-language.md` does not exist.
+
+**Incremental default**: If Passive Collection already has candidates, skip the long elicitation and propose writing those 1–3 terms first. Offer full business-event elicitation only when the user wants a comprehensive glossary.
 
 ### Step 1 — Announce absence
 
@@ -134,21 +155,36 @@ Present a diff of all proposed changes to `docs/ubiquitous-language.md` and `doc
 
 ## Passive Collection
 
-During any conversation turn, **without interrupting the response**, monitor user messages for:
+During **every** conversation turn, **without interrupting the response**, monitor all inputs for domain signals:
+
+### Conversation signals
 
 - Business event expressions (past-tense or passive verb+noun: e.g., "order confirmed", "stock reserved")
 - Domain role names (noun + role suffix: e.g., "billing manager", "fulfillment team")
 - State names (adjective + noun indicating a stage: e.g., "pending approval", "in transit")
+- Requirements language ("must", "cannot", "only when", "after X", user-story verbs)
+- Repeated nouns used as product concepts (same term ≥2 times in session)
 
-Add each detection to the in-session queue with `source_text` and `trigger_type = new-concept`.
+### Code signals (files read or edited this session)
+
+- Type/class/enum/interface names and docstrings
+- API routes, event names, queue/topic names, DB table/column names
+- Validation messages and business-rule comments
+- Status literals and state-machine transitions
+
+Add each detection to the in-session queue with `source_text` and `trigger_type` (`new-concept` or `vague-term`).
 
 **Surface queued candidates as a batch when**:
+
 - Queue has ≥ 1 entry, AND
-- The preceding turn contained no new business-vocabulary candidates
+- The preceding turn contained no new business-vocabulary candidates, AND
+- The primary task is not mid-blocking clarification
 
-**If `docs/ubiquitous-language.md` is absent** and vocabulary is detected: propose the Bootstrap Flow instead of silently queuing.
+**If `docs/ubiquitous-language.md` is absent** and vocabulary is detected: propose an **incremental** start (add detected terms now; offer full bootstrap later) instead of silently queuing or forcing a long elicitation session.
 
-If no domain vocabulary is detectable in the conversation, do not activate.
+**On user acceptance**: notify `domain-model` by enqueueing structural inference for each new term (same session; no extra user prompt).
+
+If no domain vocabulary is detectable in the turn, still run Pre-check but do not surface an empty proposal.
 
 ---
 

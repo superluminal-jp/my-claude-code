@@ -89,12 +89,17 @@ my-claude-code/
     │   ├── clarifier.md            # When to ask; batch questions + template
     │   ├── skill-routing.md        # Which skill to load for a request
     │   ├── live-documentation.md   # Doc drift enforcement (5 principles)
-    │   ├── advisor.md              # Consultant answer-quality baseline
+    │   ├── advisor.md              # Decision/trade-off gate; Lite/Full output modes
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: body loaded when relevant
     │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + docs
+    │   ├── python-coder/SKILL.md   # Python conventions (PEP 8, typing, pytest)
+    │   ├── typescript-coder/SKILL.md # TS/JS conventions (strict types, React/Node)
+    │   ├── aws-cdk-coder/SKILL.md  # AWS CDK IaC (constructs, least-privilege, deploy)
+    │   ├── aws-cli-coder/SKILL.md  # AWS CLI v2 ops (profiles, JMESPath, safety)
     │   ├── editor/SKILL.md         # Documents, slides, charts, translation
     │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
+    │   ├── advisor/SKILL.md        # Decisions, trade-offs, recommendations
     │   ├── domain-model/SKILL.md   # DDD domain model
     │   ├── ubiquitous-language/SKILL.md  # DDD ubiquitous language
     │   └── speckit-*/SKILL.md      # Spec Kit workflow suite (15 skills)

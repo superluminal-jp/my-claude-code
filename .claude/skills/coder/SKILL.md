@@ -71,6 +71,15 @@ Aim for **secure and safe** outcomes in both **code** and how the **environment*
 - **In the dev environment** (shell, repo, tool use): follow **`permissions.md` in `rules/`** — no credential exposure, no destructive command surprises, and no unsafe download-and-execute; use official installs and **HTTPS**; keep secrets in designated stores, not the codebase or ad-hoc copy-paste. When suggesting commands or integrations to the user, default to the **safer** option and call out **risky** ones.
 - When standards or the project’s own **security** docs conflict with a shortcut, follow the stricter or project-mandated rule. If a requirement is **unclear** (e.g. data classification, crypto choice), **ask** before implementing.
 
+# Stack-specific skills
+
+Load **in addition to** this skill when the stack applies (they add conventions; this skill retains TDD/SDD/docs/security):
+
+- **Python** → `python-coder`
+- **TypeScript / JavaScript** → `typescript-coder`
+- **AWS CDK** → `aws-cdk-coder` (+ language skill for the CDK app)
+- **AWS CLI** (live ops / shell scripts) → `aws-cli-coder`
+
 # Related rules
 
 Load when the task reaches these stages:

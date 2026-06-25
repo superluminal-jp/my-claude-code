@@ -45,19 +45,28 @@ This is the **gate** for the optimization. Every behavior listed MUST still be p
 ## C. Skill-routing triggers (`.claude/CLAUDE.md` + `skill-routing.md`)
 
 - `coder` — code implementation/modification/refactor/test/debug
+- `python-coder` — with `coder` when primary language is Python (.py, pytest, pyproject)
+- `typescript-coder` — with `coder` when primary language is TS/JS (.ts/.tsx/.js, tsconfig)
+- `aws-cdk-coder` — with `coder` when defining/changing AWS CDK IaC (+ language coder)
+- `aws-cli-coder` — with `coder` when running/scripting AWS CLI operations
 - `editor` — documents/slides/charts/translation/editing
 - `clarifier` — any ambiguity (intent/scope/acceptance/constraint gaps; ≤32 chars residual; missing subject/object/verb)
+- `advisor` — decision/trade-off/recommendation/compare options (path unclear; not requirement elicitation)
 - `ubiquitous-language` — business-event expressions / domain vocab candidates (passive queue)
 - `domain-model` — DDD structural patterns / model create-update (passive queue)
 - mixed code+doc → `coder` then `editor`; `/speckit-*` excluded
-- preflight: clarification gate → minimum relevant skill → advisor baseline
+- preflight: clarification gate → minimum relevant skill → advisor (Lite default) when routed
 
 ## D. Skill obligations (must survive trimming)
 
 - **coder**: TDD red→green→refactor (no impl without failing test); SDD spec = source of truth; docs-sync in same change; OWASP/boundary validation; no drive-by refactors
+- **python-coder** (with coder): PEP 8/Black; type hints; pytest + boundary mocks; structured logging; no eval/exec/pickle on untrusted; parameterized SQL; secrets from env
+- **typescript-coder** (with coder): tsconfig strict (no stray `any`); ESLint/Prettier; ES modules + async/await; typed props/hooks (no class components); boundary validation; timeouts
+- **aws-cdk-coder** (with coder + language coder): L2-first; one-concern stacks; least-privilege IAM; encryption/RemovalPolicy defaults; `synth`/`diff` before deploy; confirm prod deploys
+- **aws-cli-coder** (with coder): CLI v2 explicit `--profile`/`--region`; JMESPath `--query`; pagination; `--dry-run`/confirm destructive ops; no secrets on command line; `set -euo pipefail`
 - **editor**: pyramid/MECE/SCQA/BLUF; action titles; Cleveland–McGill chart choice; Tufte data-ink; frameworks implicit in shipped copy
 - **clarifier**: batch blocking gaps; defaults+alternatives; convert to Given/When/Then or SC-###; confidence-tag assumptions
-- **advisor**: BLUF; facts vs inference; 2–4 options; one recommendation; risks+mitigations; next steps
+- **advisor**: BLUF; facts vs inference; 2–4 options; one recommendation; risks+mitigations; next steps; Lite default / Full on explicit or high-stakes
 - **live-documentation**: drift detection, separate-doc-PR detection, auto-gen recommendation, proximity, no-redundancy, override handling (reason required)
 - **MCP usage rule**: AWS→aws-knowledge/aws-documentation, GCP→google-developer-knowledge, Azure→microsoft-learn before answering cloud questions
 
