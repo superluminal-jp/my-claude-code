@@ -49,7 +49,7 @@ Always load the matching skill before responding (see `.claude/skills/` for full
 - `typescript-coder` — with `coder`, when the primary language is TypeScript or JavaScript
 - `aws-cdk-coder` — with `coder`, when defining or changing AWS CDK infrastructure
 - `aws-cli-coder` — with `coder`, when running or scripting AWS CLI operations
-- `editor` — requests involving documents, slides, charts, translation, or text editing
+- `editor` — requests involving documents, translation, or text editing
 - `advisor` — decisions, trade-offs, recommendations, or "what should I do" when options are visible but the best path is unclear (not requirement elicitation — use `clarifier` for that)
 - `clarifier` — requests with any ambiguity (including gaps in intent, scope, acceptance, or constraints)
 - `ubiquitous-language` — **always-on domain vocabulary memory** (load with primary skill): passively captures business terms, events, roles, states, and rules from conversation and code; surfaces update candidates at natural pauses; never interrupts active work; see `rules/skill-routing.md` § Domain knowledge memory

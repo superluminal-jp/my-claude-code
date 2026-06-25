@@ -13,7 +13,7 @@ Purpose: map each request to the one skill that should load before responding. A
 - TypeScript/JavaScript source, tests, or frontend/Node tooling -> also load `typescript-coder`.
 - AWS CDK stacks, constructs, or `cdk.json` -> also load `aws-cdk-coder` (and `typescript-coder` or `python-coder` for the app language).
 - AWS CLI commands or shell scripts against live AWS APIs -> also load `aws-cli-coder`.
-- Produced artifacts (docs, decks, charts, translation, editing) -> load `editor`.
+- Produced artifacts (docs, translation, editing) -> load `editor`.
 - Any ambiguity in requirements -> load `clarifier`. Triggers include:
   - Remaining text (after stripping slash commands and paths) is ≤ 32 characters.
   - Subject, object, or verb is absent or unclear, making intent ambiguous.

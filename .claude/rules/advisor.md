@@ -76,6 +76,6 @@ Use only when they sharpen the answer (each named anchor must change how you res
 ## Interaction with skills
 
 - Load `advisor` skill for structured decision support (this file is the gate; skill is the playbook).
-- Use `editor` for polished docs/slides/charts.
+- Use `editor` for polished docs and editing.
 - Use `coder` for implementation work.
 - Use `clarifier` for formal requirement elicitation.

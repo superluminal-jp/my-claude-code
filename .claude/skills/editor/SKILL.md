@@ -1,14 +1,14 @@
 ---
 name: editor
-description: Produce polished, ready-to-ship work products — memos, proposals, reports, briefing notes, slide decks, charts/dashboards, proofreading edits, and translations. Use when the main output is a finished artifact rather than source code, and the user expects publishable copy (not just an outline or brainstorm). Applies pyramid/MECE structure, BLUF at the section level, action titles on slides, Cleveland–McGill chart selection, Tufte-style data-ink discipline, and plain professional language; quantifies claims, names sources/units/scope, and ships finished copy with frameworks applied implicitly.
-when_to_use: write memo, draft report, prepare proposal, create slides, build deck, design chart, build dashboard, proofread text, edit document, translate content, executive summary, one-pager, briefing note, analysis document, client-ready writeup, polish wording, rewrite for clarity
+description: Produce polished, ready-to-ship work products — memos, proposals, reports, briefing notes, proofreading edits, and translations. Use when the main output is a finished artifact rather than source code, and the user expects publishable copy (not just an outline or brainstorm). Applies pyramid/MECE structure, BLUF at the section level, and plain professional language; quantifies claims, names sources/units/scope, and ships finished copy with frameworks applied implicitly.
+when_to_use: write memo, draft report, prepare proposal, proofread text, edit document, translate content, executive summary, one-pager, briefing note, analysis document, client-ready writeup, polish wording, rewrite for clarity
 ---
 
-# Work Products: Documents, Decks, Research, and Language
+# Work Products: Documents, Research, and Language
 
-Purpose: ship a finished, publishable artifact (not an outline). Applies when the deliverable is a document, deck, chart, proofread, or translation. Grounded in the Pyramid Principle (Minto), Tufte's data-ink discipline, and the Cleveland–McGill graphical-perception ranking.
+Purpose: ship a finished, publishable artifact (not an outline). Applies when the deliverable is a document, proofread, or translation. Grounded in the Pyramid Principle (Minto).
 
-Use for **produced artifacts** (memos, proposals, analyses, decks) and for **editing, translation, and study designs**. For live conversation and decision support, load **`advisor`** skill (or see `rules/advisor.md`). When the deliverable is a polished writeup of a recommendation, shape with `advisor` first, then finish with `editor`.
+Use for **produced artifacts** (memos, proposals, analyses) and for **editing, translation, and study designs**. For live conversation and decision support, load **`advisor`** skill (or see `rules/advisor.md`). When the deliverable is a polished writeup of a recommendation, shape with `advisor` first, then finish with `editor`.
 
 ## Documents
 
@@ -18,16 +18,6 @@ Use for **produced artifacts** (memos, proposals, analyses, decks) and for **edi
 - **Quantify** where possible. Avoid vague intensifiers without numbers.  
 - In **external-facing** or client-ready text: do **not** name frameworks or methodology brands; use plain professional language.  
 - Deliver **finished** copy when the user asked for a document (ready to use or light polish), unless they asked for outline only.
-
-## Slides and charts
-
-- **Action titles** (McKinsey style): every slide’s title is a full **conclusion in ~15 words**; reading titles alone should tell the story.  
-- **One message per slide**; about **one minute** of spoken content per slide as a guide.  
-- **Chart type** (Zelazny / standard practice): parts → pie or stacked bar; **comparison** → bar (often horizontal); **trend** → line or column; **relationship** → scatter.  
-- **Semantic color** sparingly: e.g. positive / negative / neutral; cap palette at **3–5** colors for the deck.  
-- **Tufte-style**: high **data-ink** ratio; drop chartjunk. Always include **units**, **axis labels**, **source**, and **legend** when needed.  
-- **Cleveland & McGill**: prefer position and length over angle, area, or color alone. Keep **lie factor** near 1.  
-- **Typography**: at most **two** font families; body **≥ 18pt**, title **~32pt**; consistent **margins** (e.g. 1" feel).
 
 ## Quality pipeline (order matters)
 
