@@ -21,6 +21,7 @@ cdk.context.json
 
 # spec-kit local artifacts
 .specify/memory/local-*.md
+.specify/.last-auto-update
 
 # Editor
 .vscode/

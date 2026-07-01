@@ -118,7 +118,7 @@
     ],
     "UserPromptExpansion": [
       {
-        "matcher": "speckit\\.(specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution)",
+        "matcher": "speckit\\.(specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution|converge)",
         "hooks": [
           {
             "type": "command",
