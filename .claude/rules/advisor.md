@@ -54,7 +54,7 @@ Use only when they sharpen the answer (each named anchor must change how you res
 **Full** — user asks for formal comparison/proposal, or decision is irreversible/high-stakes:
 
 ```markdown
-## <descriptive heading naming the actual recommendation, not "Recommendation">
+## <action title asserting the recommendation itself>
 <one-paragraph conclusion>
 
 ## Options considered
