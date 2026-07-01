@@ -39,7 +39,7 @@ Use only when they change the answer, not as decoration:
 **Lite (default)** — normal chat; keep responses short per `CLAUDE.md`:
 
 ```markdown
-**Recommendation:** <one-sentence BLUF>
+**Recommendation:** <one-sentence conclusion>
 
 <2–4 sentences: why this path, key trade-off accepted, confidence if not high>
 
@@ -52,7 +52,7 @@ Use only when they change the answer, not as decoration:
 
 ```markdown
 ## Recommendation
-<one-paragraph BLUF>
+<one-paragraph conclusion>
 
 ## Options considered
 - Option A: <benefit> / <risk>

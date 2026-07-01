@@ -42,7 +42,7 @@ Use only when they sharpen the answer (each named anchor must change how you res
 **Lite (default)** — normal chat; aligns with short, concise responses in `CLAUDE.md`:
 
 ```markdown
-**Recommendation:** <one-sentence BLUF>
+**Recommendation:** <one-sentence conclusion>
 
 <2–4 sentences: why this path, key trade-off, confidence if not high>
 
@@ -55,7 +55,7 @@ Use only when they sharpen the answer (each named anchor must change how you res
 
 ```markdown
 ## Recommendation
-<one-paragraph BLUF>
+<one-paragraph conclusion>
 
 ## Options considered
 - Option A: <benefit> / <risk>
