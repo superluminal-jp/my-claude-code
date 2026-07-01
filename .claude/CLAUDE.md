@@ -39,6 +39,7 @@ Do not duplicate across layers. Team-visible product meaning → repo docs; agen
 - Reference code with `file_path:line_number` for navigation.
 - No trailing summaries, emojis, ASCII art, or other decorations unless explicitly requested.
 - Name frameworks (e.g., BLUF, MECE, SCQA, FURPS+, INVEST) only in internal reasoning; in user-facing responses and deliverables (incl. code comments/docs), apply them implicitly and do not name them unless asked.
+- Follow Pyramid Principle heading practice: a heading is an action title — a complete assertion of that section's point (the actual decision or finding) — not a topic label or structural placeholder. State the point directly in the opening line rather than announcing its structural role.
 
 ## Skills (mandatory routing)
 
