@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # UserPromptExpansion: before /speckit-* expands, upgrade specify-cli and refresh Spec Kit project files.
+# Upgrade uses `specify self upgrade` (resolves latest stable via GitHub Releases,
+# reinstalls in place) when specify-cli is already on PATH; otherwise bootstraps
+# an initial install from an HTTPS release tarball.
 # speckit-specify always runs specify init (bypasses throttle) and protects modified constitution.md.
 # All other commands throttle specify init to once per UPDATE_INTERVAL_SECONDS.
 # After a successful init, freshly regenerated speckit-* skills are synced to the
@@ -44,65 +47,83 @@ fi
   echo "update_interval_seconds=$UPDATE_INTERVAL_SECONDS force_update=$FORCE_UPDATE"
   set +e
 
-  # Resolve latest stable release tag from GitHub. releases/latest excludes drafts
-  # and prereleases by definition, so prefer it (curl-only, no gh dependency);
-  # fall back to gh with the same exclusions if curl/jq are unavailable.
-  LATEST_TAG=""
-  if command -v curl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
-    LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/github/spec-kit/releases/latest" 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null || true)
-  fi
-  if [ -z "$LATEST_TAG" ] && command -v gh >/dev/null 2>&1; then
-    LATEST_TAG=$(gh release list --repo github/spec-kit --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
-  fi
-  echo "Latest stable tag: ${LATEST_TAG:-unknown}"
-
-  # Fetch the tagged source as an HTTPS tarball rather than `git+https://...`:
-  # some network policies allow plain HTTPS downloads but reject the git
-  # smart-HTTP protocol, so this path is more portable for `uv`/`pipx --from`.
+  # Steady state: specify-cli >=0.10 ships its own updater (`specify self
+  # upgrade`), which resolves the latest stable release via GitHub Releases
+  # and reinstalls in place for uv-tool/pipx installs. Prefer it over
+  # hand-rolled tag resolution so we don't duplicate spec-kit's own logic.
   SRC_DIR=""
-  if [ -n "$LATEST_TAG" ] && command -v curl >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
-    TARBALL=$(mktemp)
-    if curl -fsSL -o "$TARBALL" "https://codeload.github.com/github/spec-kit/tar.gz/refs/tags/${LATEST_TAG}"; then
-      SRC_DIR=$(mktemp -d)
-      if tar xzf "$TARBALL" -C "$SRC_DIR" --strip-components=1; then
-        echo "Downloaded spec-kit@${LATEST_TAG} tarball to $SRC_DIR"
-      else
-        rm -rf "$SRC_DIR"
-        SRC_DIR=""
-        echo "WARN: failed to extract spec-kit@${LATEST_TAG} tarball"
-      fi
-    else
-      echo "WARN: failed to download spec-kit@${LATEST_TAG} tarball"
+  if command -v specify >/dev/null 2>&1; then
+    echo "--- specify self upgrade ---"
+    specify self upgrade
+    upgrade_exit=$?
+    echo "specify self upgrade exit: $upgrade_exit"
+    if [ "$upgrade_exit" -ne 0 ]; then
+      echo "WARN: specify self upgrade failed (exit $upgrade_exit); continuing with the currently installed specify-cli."
     fi
-    rm -f "$TARBALL"
-  fi
-
-  if command -v uv >/dev/null 2>&1; then
-    if [ -n "$SRC_DIR" ]; then
-      echo "--- uv tool install specify-cli from tarball ($LATEST_TAG) ---"
-      uv tool install specify-cli --force --from "$SRC_DIR"
-    elif [ -n "$LATEST_TAG" ]; then
-      echo "--- uv tool install specify-cli @ $LATEST_TAG (git) ---"
-      uv tool install specify-cli --force --from "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
-    else
-      echo "--- uv tool upgrade specify-cli (latest tag unresolved, using cached source) ---"
-      uv tool upgrade specify-cli
-    fi
-    echo "uv exit: $?"
-  elif command -v pipx >/dev/null 2>&1; then
-    if [ -n "$SRC_DIR" ]; then
-      echo "--- pipx install specify-cli from tarball ($LATEST_TAG) ---"
-      pipx install --force "$SRC_DIR"
-    elif [ -n "$LATEST_TAG" ]; then
-      echo "--- pipx install specify-cli @ $LATEST_TAG (git) ---"
-      pipx install --force "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
-    else
-      echo "--- pipx upgrade specify-cli (latest tag unresolved) ---"
-      pipx upgrade specify-cli
-    fi
-    echo "pipx exit: $?"
   else
-    echo "SKIP: neither uv nor pipx in PATH; CLI not upgraded."
+    echo "specify-cli not on PATH; bootstrapping initial install from the latest stable release."
+
+    # Resolve latest stable release tag from GitHub. releases/latest excludes
+    # drafts and prereleases by definition, so prefer it (curl-only, no gh
+    # dependency); fall back to gh with the same exclusions if curl/jq are
+    # unavailable. Only needed for this one-time bootstrap — once installed,
+    # `specify self upgrade` resolves it internally on every later run.
+    LATEST_TAG=""
+    if command -v curl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+      LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/github/spec-kit/releases/latest" 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null || true)
+    fi
+    if [ -z "$LATEST_TAG" ] && command -v gh >/dev/null 2>&1; then
+      LATEST_TAG=$(gh release list --repo github/spec-kit --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+    fi
+    echo "Latest stable tag: ${LATEST_TAG:-unknown}"
+
+    # Fetch the tagged source as an HTTPS tarball rather than `git+https://...`:
+    # some network policies allow plain HTTPS downloads but reject the git
+    # smart-HTTP protocol, so this path is more portable for `uv`/`pipx --from`.
+    if [ -n "$LATEST_TAG" ] && command -v curl >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+      TARBALL=$(mktemp)
+      if curl -fsSL -o "$TARBALL" "https://codeload.github.com/github/spec-kit/tar.gz/refs/tags/${LATEST_TAG}"; then
+        SRC_DIR=$(mktemp -d)
+        if tar xzf "$TARBALL" -C "$SRC_DIR" --strip-components=1; then
+          echo "Downloaded spec-kit@${LATEST_TAG} tarball to $SRC_DIR"
+        else
+          rm -rf "$SRC_DIR"
+          SRC_DIR=""
+          echo "WARN: failed to extract spec-kit@${LATEST_TAG} tarball"
+        fi
+      else
+        echo "WARN: failed to download spec-kit@${LATEST_TAG} tarball"
+      fi
+      rm -f "$TARBALL"
+    fi
+
+    if command -v uv >/dev/null 2>&1; then
+      if [ -n "$SRC_DIR" ]; then
+        echo "--- uv tool install specify-cli from tarball ($LATEST_TAG) ---"
+        uv tool install specify-cli --force --from "$SRC_DIR"
+      elif [ -n "$LATEST_TAG" ]; then
+        echo "--- uv tool install specify-cli @ $LATEST_TAG (git) ---"
+        uv tool install specify-cli --force --from "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
+      else
+        echo "--- uv tool install specify-cli (tag unresolved, using default branch) ---"
+        uv tool install specify-cli --force --from "git+https://github.com/github/spec-kit.git"
+      fi
+      echo "uv exit: $?"
+    elif command -v pipx >/dev/null 2>&1; then
+      if [ -n "$SRC_DIR" ]; then
+        echo "--- pipx install specify-cli from tarball ($LATEST_TAG) ---"
+        pipx install --force "$SRC_DIR"
+      elif [ -n "$LATEST_TAG" ]; then
+        echo "--- pipx install specify-cli @ $LATEST_TAG (git) ---"
+        pipx install --force "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
+      else
+        echo "--- pipx install specify-cli (tag unresolved, using default branch) ---"
+        pipx install --force "git+https://github.com/github/spec-kit.git"
+      fi
+      echo "pipx exit: $?"
+    else
+      echo "SKIP: neither uv nor pipx in PATH; specify-cli not installed."
+    fi
   fi
 
   now_epoch=$(date +%s)
