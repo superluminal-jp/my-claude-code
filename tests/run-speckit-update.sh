@@ -4,7 +4,7 @@
 # speckit-* skills are propagated to the user-scope install (~/.claude/skills),
 # so skills imported into user settings stay in lockstep with the update.
 #
-# Deterministic: specify/uv/gh are stubbed on PATH; no network is used.
+# Deterministic: specify/uv/gh/curl are stubbed on PATH; no network is used.
 # Usage: bash tests/run-speckit-update.sh
 
 set -uo pipefail
@@ -19,6 +19,19 @@ NC='\033[0m'
 PASS=0
 FAIL=0
 FAIL_NAMES=""
+
+# Stub `curl`: answers the releases/latest lookup with a fixed tag and fails
+# any download (`-o`), so the tarball path is never taken and no real network
+# request occurs. The hook falls back to its git+https branch, which the `uv`
+# stub below ignores.
+CURL_STUB='#!/usr/bin/env bash
+for a in "$@"; do
+  [ "$a" = "-o" ] && exit 1
+done
+case "$*" in
+  *releases/latest*) echo "{\"tag_name\":\"v0.0.0-stub\"}" ;;
+  *) exit 1 ;;
+esac'
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "Error: 'jq' is required for this test." >&2
@@ -50,12 +63,13 @@ run_hook() {
   printf 'FRESH-foo\n' >"$proj/.claude/skills/speckit-foo/SKILL.md"
   printf 'FRESH-bar\n' >"$proj/.claude/skills/speckit-bar/SKILL.md"
 
-  # Stub specify/uv/gh so init "succeeds" with no network.
+  # Stub specify/uv/gh/curl so init "succeeds" with no network.
   mkdir -p "$bin"
   printf '#!/usr/bin/env bash\nexit 0\n' >"$bin/specify"
   printf '#!/usr/bin/env bash\nexit 0\n' >"$bin/uv"
   printf '#!/usr/bin/env bash\nexit 1\n' >"$bin/gh"
-  chmod +x "$bin/specify" "$bin/uv" "$bin/gh"
+  printf '%s\n' "$CURL_STUB" >"$bin/curl"
+  chmod +x "$bin/specify" "$bin/uv" "$bin/gh" "$bin/curl"
 
   local input
   input=$(jq -n --arg cwd "$proj" '{cwd:$cwd, command_name:"speckit.plan"}')
@@ -90,7 +104,8 @@ printf 'FRESH\n' >"$WORK3/proj/.claude/skills/speckit-foo/SKILL.md"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK3/bin/specify"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK3/bin/uv"
 printf '#!/usr/bin/env bash\nexit 1\n' >"$WORK3/bin/gh"
-chmod +x "$WORK3/bin/specify" "$WORK3/bin/uv" "$WORK3/bin/gh"
+printf '%s\n' "$CURL_STUB" >"$WORK3/bin/curl"
+chmod +x "$WORK3/bin/specify" "$WORK3/bin/uv" "$WORK3/bin/gh" "$WORK3/bin/curl"
 input3=$(jq -n --arg cwd "$WORK3/proj" '{cwd:$cwd, command_name:"speckit.plan"}')
 HOME="$WORK3/home" PATH="$WORK3/bin:$PATH" SPECIFY_FORCE_AUTO_UPDATE=1 \
   bash "$HOOK" <<<"$input3" >/dev/null 2>&1

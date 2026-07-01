@@ -14,7 +14,7 @@ CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 COMMAND_NAME=$(echo "$INPUT" | jq -r '.command_name // empty')
 
 case "$COMMAND_NAME" in
-  speckit.specify|speckit.clarify|speckit.plan|speckit.tasks|speckit.implement|speckit.checklist|speckit.analyze|speckit.taskstoissues|speckit.constitution) ;;
+  speckit.specify|speckit.clarify|speckit.plan|speckit.tasks|speckit.implement|speckit.checklist|speckit.analyze|speckit.taskstoissues|speckit.constitution|speckit.converge) ;;
   *)
     exit 0
     ;;
@@ -44,28 +44,60 @@ fi
   echo "update_interval_seconds=$UPDATE_INTERVAL_SECONDS force_update=$FORCE_UPDATE"
   set +e
 
-  # Resolve latest stable release tag from GitHub
+  # Resolve latest stable release tag from GitHub. releases/latest excludes drafts
+  # and prereleases by definition, so prefer it (curl-only, no gh dependency);
+  # fall back to gh with the same exclusions if curl/jq are unavailable.
   LATEST_TAG=""
-  if command -v gh >/dev/null 2>&1; then
-    LATEST_TAG=$(gh release list --repo github/spec-kit --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
-    echo "Latest stable tag: ${LATEST_TAG:-unknown}"
+  if command -v curl >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+    LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/github/spec-kit/releases/latest" 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null || true)
+  fi
+  if [ -z "$LATEST_TAG" ] && command -v gh >/dev/null 2>&1; then
+    LATEST_TAG=$(gh release list --repo github/spec-kit --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+  fi
+  echo "Latest stable tag: ${LATEST_TAG:-unknown}"
+
+  # Fetch the tagged source as an HTTPS tarball rather than `git+https://...`:
+  # some network policies allow plain HTTPS downloads but reject the git
+  # smart-HTTP protocol, so this path is more portable for `uv`/`pipx --from`.
+  SRC_DIR=""
+  if [ -n "$LATEST_TAG" ] && command -v curl >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
+    TARBALL=$(mktemp)
+    if curl -fsSL -o "$TARBALL" "https://codeload.github.com/github/spec-kit/tar.gz/refs/tags/${LATEST_TAG}"; then
+      SRC_DIR=$(mktemp -d)
+      if tar xzf "$TARBALL" -C "$SRC_DIR" --strip-components=1; then
+        echo "Downloaded spec-kit@${LATEST_TAG} tarball to $SRC_DIR"
+      else
+        rm -rf "$SRC_DIR"
+        SRC_DIR=""
+        echo "WARN: failed to extract spec-kit@${LATEST_TAG} tarball"
+      fi
+    else
+      echo "WARN: failed to download spec-kit@${LATEST_TAG} tarball"
+    fi
+    rm -f "$TARBALL"
   fi
 
   if command -v uv >/dev/null 2>&1; then
-    if [ -n "$LATEST_TAG" ]; then
-      echo "--- uv tool install specify-cli @ $LATEST_TAG ---"
+    if [ -n "$SRC_DIR" ]; then
+      echo "--- uv tool install specify-cli from tarball ($LATEST_TAG) ---"
+      uv tool install specify-cli --force --from "$SRC_DIR"
+    elif [ -n "$LATEST_TAG" ]; then
+      echo "--- uv tool install specify-cli @ $LATEST_TAG (git) ---"
       uv tool install specify-cli --force --from "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
     else
-      echo "--- uv tool upgrade specify-cli (gh unavailable, using cached source) ---"
+      echo "--- uv tool upgrade specify-cli (latest tag unresolved, using cached source) ---"
       uv tool upgrade specify-cli
     fi
     echo "uv exit: $?"
   elif command -v pipx >/dev/null 2>&1; then
-    if [ -n "$LATEST_TAG" ]; then
-      echo "--- pipx install specify-cli @ $LATEST_TAG ---"
+    if [ -n "$SRC_DIR" ]; then
+      echo "--- pipx install specify-cli from tarball ($LATEST_TAG) ---"
+      pipx install --force "$SRC_DIR"
+    elif [ -n "$LATEST_TAG" ]; then
+      echo "--- pipx install specify-cli @ $LATEST_TAG (git) ---"
       pipx install --force "git+https://github.com/github/spec-kit.git@${LATEST_TAG}"
     else
-      echo "--- pipx upgrade specify-cli (gh unavailable) ---"
+      echo "--- pipx upgrade specify-cli (latest tag unresolved) ---"
       pipx upgrade specify-cli
     fi
     echo "pipx exit: $?"
@@ -108,7 +140,11 @@ fi
       init_exit=$?
       echo "specify init exit: $init_exit"
     elif command -v uv >/dev/null 2>&1; then
-      (cd "$CWD" && uvx --from git+https://github.com/github/spec-kit.git specify init --here --force --integration "$INTEGRATION")
+      if [ -n "$SRC_DIR" ]; then
+        (cd "$CWD" && uvx --from "$SRC_DIR" specify init --here --force --integration "$INTEGRATION")
+      else
+        (cd "$CWD" && uvx --from git+https://github.com/github/spec-kit.git specify init --here --force --integration "$INTEGRATION")
+      fi
       init_exit=$?
       echo "uvx specify init exit: $init_exit"
     else
@@ -150,6 +186,8 @@ fi
   else
     echo "State file unchanged: $STATE_FILE"
   fi
+
+  [ -n "$SRC_DIR" ] && rm -rf "$SRC_DIR"
 } >>"$LOG" 2>&1 || true
 
 if [ "$COMMAND_NAME" = "speckit.specify" ]; then
