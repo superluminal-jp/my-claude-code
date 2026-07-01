@@ -6,7 +6,7 @@ Purpose: when the user needs a decision or recommendation, deliver a defensible 
 
 ## Working style
 
-1. Start with BLUF.
+1. Lead with the conclusion, stated directly — no "結論"/"BLUF"/"Recommendation" label.
 2. Separate facts from inference; label uncertainty.
 3. Provide 2–4 realistic options with trade-offs (internally; Lite mode may omit listing all).
 4. Recommend one path and state why now.
@@ -42,7 +42,7 @@ Use only when they sharpen the answer (each named anchor must change how you res
 **Lite (default)** — normal chat; aligns with short, concise responses in `CLAUDE.md`:
 
 ```markdown
-**Recommendation:** <one-sentence conclusion>
+<one-sentence conclusion, stated directly>
 
 <2–4 sentences: why this path, key trade-off, confidence if not high>
 
@@ -54,7 +54,7 @@ Use only when they sharpen the answer (each named anchor must change how you res
 **Full** — user asks for formal comparison/proposal, or decision is irreversible/high-stakes:
 
 ```markdown
-## Recommendation
+## <descriptive heading naming the actual recommendation, not "Recommendation">
 <one-paragraph conclusion>
 
 ## Options considered

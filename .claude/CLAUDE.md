@@ -39,6 +39,7 @@ Do not duplicate across layers. Team-visible product meaning → repo docs; agen
 - Reference code with `file_path:line_number` for navigation.
 - No trailing summaries, emojis, ASCII art, or other decorations unless explicitly requested.
 - Name frameworks (e.g., BLUF, MECE, SCQA, FURPS+, INVEST) only in internal reasoning; in user-facing responses and deliverables (incl. code comments/docs), apply them implicitly and do not name them unless asked.
+- Do not open a response or section with a generic structural label ("結論", "Conclusion", "BLUF", "Summary") — state the substantive point directly. If a heading is used, make it specific to the content (e.g., name the actual decision or finding), not a generic template word.
 
 ## Skills (mandatory routing)
 
