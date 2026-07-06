@@ -61,5 +61,4 @@ Purpose: TypeScript/JavaScript-specific implementation discipline. Applies when 
 # Related skills
 
 - **Always** → `coder` (TDD, SDD, docs sync, security baseline)
-- **Unknown root cause** → `debugger`
 - **AWS CDK in TypeScript** → `aws-cdk-coder` when infrastructure code is in scope

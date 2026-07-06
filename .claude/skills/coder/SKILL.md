@@ -85,6 +85,4 @@ Load **in addition to** this skill when the stack applies (they add conventions;
 Load when the task reaches these stages:
 
 - **Committing / branching / opening a PR** → `rules/git-workflow.md` (Conventional Commits, branch naming, PR body).
-- **Reviewing a diff/commit/PR** → `rules/review.md` (review order, severity tags, Live-Doc drift).
 - **A significant, hard-to-reverse decision is settled** → load the `adr` skill (`rules/adr.md`) to record it.
-- **A defect with unknown root cause** → load the `debugger` skill for the reproduce→isolate→fix→regression-test method.

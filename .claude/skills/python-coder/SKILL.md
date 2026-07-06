@@ -57,5 +57,4 @@ Purpose: Python-specific implementation discipline. Applies when the primary lan
 # Related skills
 
 - **Always** → `coder` (TDD, SDD, docs sync, security baseline)
-- **Unknown root cause** → `debugger`
 - **AWS infrastructure as code** → `aws-cdk-coder` or `aws-cli-coder` when those layers are in scope

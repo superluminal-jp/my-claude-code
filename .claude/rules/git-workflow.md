@@ -20,7 +20,6 @@ Format: `<type>(<scope>)?: <subject>` — imperative mood, ≤72-char subject, n
 - **Title**: same Conventional Commits grammar as a commit subject.
 - **Body**: *What / Why / How verified* — link the spec or issue; state how the change was tested. Keep it scannable (BLUF, lists).
 - Do **not** open a PR unless the user explicitly asks (see harness rules).
-- Once subscribed to a PR's activity (or asked to babysit one), follow `rules/pr-activity.md`.
 
 ## Safety and mechanics
 
