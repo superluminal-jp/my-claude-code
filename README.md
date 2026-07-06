@@ -5,6 +5,11 @@ official specifications and best practices from https://code.claude.com/docs/.
 
 日本語版: [README.ja.md](README.ja.md)
 
+Building your own config? See
+[`docs/claude-code-config-tips.md`](docs/claude-code-config-tips.md) (Japanese)
+for structural and instruction-writing lessons distilled from this repo's
+improvement history.
+
 The entire `.claude/` directory is designed to be copied wholesale to
 `~/.claude/`, making these settings, rules, hooks, and memory apply across
 every project on the machine.
