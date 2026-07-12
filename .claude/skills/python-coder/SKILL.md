@@ -18,7 +18,7 @@ Purpose: Python-specific implementation discipline. Applies when the primary lan
 # Project layout and dependencies
 
 - Prefer **`pyproject.toml`** as the single source for build, deps, and tool config. Pin versions in lock files when the project uses them.
-- Use a **virtual environment** (`venv`, `poetry`, `uv`) — never install packages globally for project work.
+- Use a **virtual environment** (`venv`, `poetry`, `uv`) — never install packages globally for project work. (Enforced for Claude's own commands by `.claude/hooks/pre-bash.sh`.)
 - Entry points and scripts belong in documented locations (`src/` layout or repo convention); avoid ad-hoc `sys.path` hacks.
 
 # Testing

@@ -13,6 +13,13 @@ Evaluation order: **deny → ask → allow** (first match wins; deny always over
 - Drop database table / collection
 - Overwrite files with uncommitted changes
 
+## Package Installs — Claude installs project-scoped only
+
+Claude may install dependencies only within the scope of the current project (virtual env, `package.json` local deps, etc.), never globally. This governs Claude's own Bash calls; the user remains free to install tools globally themselves.
+
+- Blocked for Claude: `pip`/`pip3 install --user` or under `sudo`, `uv pip install --system`, `npm`/`pnpm install|add -g`/`--global`, `yarn global add`, `gem install` without `--user-install`, `cargo install` without `--path`.
+- Enforced by `.claude/hooks/pre-bash.sh` (hard block, `exit 2` — no confirmation path, unlike `sudo` below).
+
 ## Credential Safety — never read, display, log, or commit
 
 - `.env`, `.env.*`
@@ -23,7 +30,7 @@ Evaluation order: **deny → ask → allow** (first match wins; deny always over
 Enforcement:
 
 - `Read` denies in `.claude/settings.json` cover the credential paths above.
-- `.claude/hooks/pre-bash.sh` (PreToolUse/Bash) blocks destructive commands, `curl | bash`, non-localhost `http://`, credential reads (`cat`/`less`/`more`/`head`/`tail`/`od`/`hexdump`, including `.env`, `secrets/`, and `credentials/`), and credential-path writes (redirection or `tee`). `sudo` is routed to user confirmation via `permissionDecision: "ask"`.
+- `.claude/hooks/pre-bash.sh` (PreToolUse/Bash) blocks destructive commands, `curl | bash`, non-localhost `http://`, credential reads (`cat`/`less`/`more`/`head`/`tail`/`od`/`hexdump`, including `.env`, `secrets/`, and `credentials/`), credential-path writes (redirection or `tee`), and global package installs (see "Package Installs" above). `sudo` is routed to user confirmation via `permissionDecision: "ask"`, except `sudo pip`/`pip3 install`, which is hard-blocked as a global install.
 - `.claude/hooks/user-prompt-submit.sh` (UserPromptSubmit) blocks prompts containing AWS access keys (`AKIA…`/`ASIA…`), GitHub tokens (`ghp_…`, `github_pat_…`), Slack tokens (`xox[abpors]-…`), Google API keys (`AIza…`), and `-----BEGIN … PRIVATE KEY-----` blocks.
 - `.claude/hooks/speckit-expand-update.sh` (UserPromptExpansion, matcher `speckit.(specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution|converge)`) runs before `/speckit-*` expands: if `specify-cli` is already on PATH, runs `specify self upgrade` (its built-in updater — resolves the latest stable release via GitHub Releases and reinstalls in place for uv-tool/pipx installs); otherwise bootstraps an initial install by resolving the latest stable tag from GitHub's `releases/latest` API (excludes drafts/prereleases; falls back to `gh release list --exclude-drafts --exclude-pre-releases`) and installing via `uv` or `pipx` from an HTTPS release tarball (falls back to `git+https://...` if the tarball download fails). Either way, then runs `specify init --here --force` when `.specify/` exists (network access; may refresh slash commands and overwrite Spec Kit template files—see Spec Kit upgrade guide). After a successful init it syncs the regenerated `speckit-*` skills into the user-scope install (`~/.claude/skills`); opt out with `SPECIFY_SYNC_USER_SKILLS=0`.
 - Git permissions in `.claude/settings.json` default to read-style allow (`status`, `diff`, `log`, `fetch`), plus `commit` (auto-allowed — `git-workflow.md`'s "commit only when asked" still governs *whether* Claude commits, this only removes the per-call prompt), and ask for other write-style operations (`add`, `checkout`, `branch`, `stash`, `pull`).
