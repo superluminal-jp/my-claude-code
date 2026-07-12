@@ -22,7 +22,7 @@ Exit-code convention for `PreToolUse` / `UserPromptSubmit`: `exit 2` blocks the 
 
 Reads `.tool_input.command` from stdin and blocks or gates it before execution:
 
-- **Always blocked** (`exit 2`): `git push --force`/`-f`, `git reset --hard`, `git clean -f`, `rm -rf` targeting `/`, `~`, `.`, or `$HOME`, device-overwrite/`mkfs`/fork-bomb patterns, `curl|wget \| bash/sh/zsh`, non-HTTPS `http://` (except `localhost`/`127.0.0.1`), reads of credential paths (`.ssh/`, `.aws/`, `.env*`, `secrets/`, `credentials/`, `*.pem/.p12/.pfx`) via `cat`/`less`/`more`/`head`/`tail`/`od`/`hexdump`, and writes to those same credential paths via redirection or `tee`.
+- **Always blocked** (`exit 2`): `git push --force`/`-f`, `git reset --hard`, `git clean -f`, `rm -rf` targeting `/`, `~`, `.`, or `$HOME`, device-overwrite/`mkfs`/fork-bomb patterns, `curl|wget \| bash/sh/zsh`, non-HTTPS `http://` (except `localhost`/`127.0.0.1`), reads of credential paths (`.ssh/`, `.aws/`, `.env*`, `secrets/`, `credentials/`, `*.pem/.p12/.pfx`) via `cat`/`less`/`more`/`head`/`tail`/`od`/`hexdump`, writes to those same credential paths via redirection or `tee`, and global package installs (`pip`/`pip3 install --user` or under `sudo`, `uv pip install --system`, `npm`/`pnpm install|add -g|--global`, `yarn global add`, `gem install` without `--user-install`, `cargo install` without `--path`) — this only restricts Claude's own Bash calls, not what the user runs interactively.
 - **Routed to user confirmation** (`permissionDecision: "ask"`): `rm -rf` on any other target, and `sudo`.
 - Everything else falls through to `exit 0` (allowed).
 

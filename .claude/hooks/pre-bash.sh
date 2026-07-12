@@ -107,6 +107,47 @@ if echo "$COMMAND" | grep -qE '(>|>>|\|\s*tee(\s|$))'; then
   fi
 fi
 
+# Block global package installs (project-scoped installs only).
+# This restricts Claude's own Bash calls; it has no bearing on what the user runs interactively.
+GLOBAL_INSTALL_MSG="Global package installs are blocked by policy for Claude. Install within the project (venv, local package.json deps, etc.) instead. If a global install is genuinely needed, ask the user to run it themselves."
+
+# pip/pip3: sudo pip install, or --user
+if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*sudo(\s+-\S+)*\s+pip3?\s+install\b' || \
+   { echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*pip3?\s+install\b' && echo "$COMMAND" | grep -qE '(^|\s)--user(\s|$)'; }; then
+  echo "$GLOBAL_INSTALL_MSG (pip: use a virtual environment instead of --user/sudo)" >&2
+  exit 2
+fi
+
+# uv pip install --system
+if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*uv\s+pip\s+install\b' && echo "$COMMAND" | grep -qE '(^|\s)--system(\s|$)'; then
+  echo "$GLOBAL_INSTALL_MSG (uv: omit --system, install into the project venv)" >&2
+  exit 2
+fi
+
+# npm/pnpm: -g / --global
+if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*(npm|pnpm)\s+(install|i|add)\b' && echo "$COMMAND" | grep -qE '\s(-g|--global)(\s|$)'; then
+  echo "$GLOBAL_INSTALL_MSG (npm/pnpm: drop -g/--global, add as a project dependency)" >&2
+  exit 2
+fi
+
+# yarn global add
+if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*yarn\s+global\s+add\b'; then
+  echo "$GLOBAL_INSTALL_MSG (yarn: use 'yarn add' inside the project instead of 'yarn global add')" >&2
+  exit 2
+fi
+
+# gem install (installs outside the project unless --user-install)
+if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*gem\s+install\b' && ! echo "$COMMAND" | grep -qE '(^|\s)--user-install(\s|$)'; then
+  echo "$GLOBAL_INSTALL_MSG (gem: add --user-install, or add the gem to the project's Gemfile via bundler)" >&2
+  exit 2
+fi
+
+# cargo install without --path (installs a global binary to ~/.cargo/bin)
+if echo "$COMMAND" | grep -qE '(^|;|&&|\|\||[|(&])\s*cargo\s+install\b' && ! echo "$COMMAND" | grep -qE '(^|\s)--path(\s|$)'; then
+  echo "$GLOBAL_INSTALL_MSG (cargo: use --path . for project-local builds, or add the crate to Cargo.toml as a dependency)" >&2
+  exit 2
+fi
+
 # Route sudo through user confirmation via JSON permission decision
 if echo "$COMMAND" | grep -qE '(^|[;&|[:space:]])sudo(\s|$)'; then
   cat <<'JSON'

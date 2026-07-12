@@ -33,6 +33,7 @@ Purpose: TypeScript/JavaScript-specific implementation discipline. Applies when 
 
 # Node and I/O
 
+- **Project-scoped dependencies**: add packages to `package.json` (`dependencies`/`devDependencies`); never `npm install -g` / `pnpm add -g` / `yarn global add` for project work. One-off CLI tools run via `npx`/`pnpm dlx` instead of a global install. (Enforced for Claude's own commands by `.claude/hooks/pre-bash.sh`.)
 - Validate **env vars and request payloads** at boundaries (Zod, Valibot, or project schema library).
 - **Never** concatenate user input into shell commands or raw SQL. Use parameterized queries and safe APIs.
 - Set **timeouts** on `fetch` and HTTP clients. Prefer the project's HTTP client over ad-hoc `fetch` wrappers.
