@@ -72,6 +72,6 @@ Use only when they change the answer, not as decoration:
 
 ## Handoff to other skills
 
-- Polished memo or client-ready writeup → `editor` (after advisor shapes the substance).
+- Polished memo or client-ready writeup → `executive-structure-rewriter` (after advisor shapes the substance).
 - Implementation → `coder` (after the recommendation is agreed).
 - Missing requirements → `clarifier` (before comparing options).

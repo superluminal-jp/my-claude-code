@@ -64,14 +64,16 @@ run_test() {
 
 Rules:
 - coder: code implementation, modification, refactoring, tests, debugging
-- editor: documents, translation, text editing
+- minto-pyramid-document-reviewer: diagnose or critique the structure of an existing document, outline, or slide storyline
+- executive-structure-rewriter: rewrite, restructure, polish, or finalize an existing draft or document
+- interactive-document-builder: build a document through dialogue from a topic, notes, or incomplete material
 - clarifier: ambiguity in intent, scope, acceptance criteria, or constraints (what to build is unclear)
 - advisor: decision, trade-off, recommendation, compare options (goal clear enough to choose a path)
-- coder→editor: request requires both code changes AND document updates
+- coder→executive-structure-rewriter: request requires both code changes AND updating an existing document
 
 User request: ${prompt}
 
-Output exactly one of: coder | editor | clarifier | advisor | coder→editor
+Output exactly one of: coder | minto-pyramid-document-reviewer | executive-structure-rewriter | interactive-document-builder | clarifier | advisor | coder→executive-structure-rewriter
 No explanation. No other text."
 
   result=$(printf '%s' "$query" | claude -p 2>/dev/null \
