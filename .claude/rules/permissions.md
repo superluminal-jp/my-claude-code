@@ -1,6 +1,6 @@
 # Permission Rules
 
-Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in least-privilege (default-deny for destructive and network actions).
+Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in the security design principles of **least privilege** and **fail-safe defaults** (default-deny for destructive and network actions) — Saltzer & Schroeder, 1975 (see [References](#references)).
 
 Evaluation order: **deny → ask → allow** (first match wins; deny always overrides).
 
@@ -34,3 +34,7 @@ Enforcement:
 - `curl | bash` / `wget | sh`
 - Execute scripts downloaded from external URLs
 - Non-HTTPS endpoints (except `localhost` / `127.0.0.1`)
+
+## References
+
+- Jerome H. Saltzer & Michael D. Schroeder, "The Protection of Information in Computer Systems," *Proceedings of the IEEE* 63(9): 1278–1308, 1975 (least privilege, fail-safe defaults) — <https://www.cs.virginia.edu/~evans/cs551/saltzer/>
