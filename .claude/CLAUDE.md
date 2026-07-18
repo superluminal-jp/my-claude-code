@@ -46,10 +46,6 @@ Do not duplicate across layers. Team-visible product meaning → repo docs; agen
 Always load the matching skill before responding (see `.claude/skills/` for full playbooks).
 
 - `coder` — requests involving code implementation, modification, refactoring, testing, or debugging
-- `python-coder` — with `coder`, when the primary language is Python
-- `typescript-coder` — with `coder`, when the primary language is TypeScript or JavaScript
-- `aws-cdk-coder` — with `coder`, when defining or changing AWS CDK infrastructure
-- `aws-cli-coder` — with `coder`, when running or scripting AWS CLI operations
 - `minto-pyramid-document-reviewer` — diagnose the structure of an existing document, outline, or slide storyline (analysis and target requirements, not a silent rewrite)
 - `executive-structure-rewriter` — rewrite an existing draft or document into a finished, audience-ready version
 - `interactive-document-builder` — build a document through dialogue when the material, argument, or main point is still incomplete

@@ -9,10 +9,6 @@ Purpose: map each request to the one skill that should load before responding. A
 3. **Delegate** — use subagents for broad exploration or context-heavy research; launch parallel subagents when tracks are independent (`tools.md` § Subagents).
 
 - Code implementation or behavior changes -> load `coder`.
-- Python source, tests, or packaging -> also load `python-coder`.
-- TypeScript/JavaScript source, tests, or frontend/Node tooling -> also load `typescript-coder`.
-- AWS CDK stacks, constructs, or `cdk.json` -> also load `aws-cdk-coder` (and `typescript-coder` or `python-coder` for the app language).
-- AWS CLI commands or shell scripts against live AWS APIs -> also load `aws-cli-coder`.
 - Document work (produce, rewrite, or diagnose a written artifact) -> load the matching document skill:
   - Diagnose or critique the structure of an existing document, outline, or slide storyline -> `minto-pyramid-document-reviewer` (returns analysis and target requirements, not a silent rewrite).
   - Rewrite, restructure, polish, or finalize an existing draft or document -> `executive-structure-rewriter` (returns the finished document).

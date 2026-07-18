@@ -101,10 +101,6 @@ my-claude-code/
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: body loaded when relevant
     │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + docs
-    │   ├── python-coder/SKILL.md   # Python conventions (PEP 8, typing, pytest)
-    │   ├── typescript-coder/SKILL.md # TS/JS conventions (strict types, React/Node)
-    │   ├── aws-cdk-coder/SKILL.md  # AWS CDK IaC (constructs, least-privilege, deploy)
-    │   ├── aws-cli-coder/SKILL.md  # AWS CLI v2 ops (profiles, JMESPath, safety)
     │   ├── minto-pyramid-document-reviewer/SKILL.md    # Diagnose document structure
     │   ├── executive-structure-rewriter/SKILL.md       # Rewrite a draft into a final document
     │   ├── interactive-document-builder/SKILL.md        # Build a document through dialogue
