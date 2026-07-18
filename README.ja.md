@@ -120,3 +120,10 @@ specify extension add git
 
 追加されるコマンド: `speckit.git.feature`、`speckit.git.validate`、
 `speckit.git.remote`、`speckit.git.initialize`、`speckit.git.commit`
+
+このプロジェクト単位のワークフローを支える2つのhookがあります(詳細は
+[`.claude/hooks/README.md`](.claude/hooks/README.md)):
+`recommend-speckit.sh` は、`.specify/` が未導入のプロジェクトで非自明な実装依頼らしき
+プロンプトを検知すると `specify init` の導入を提案し、`speckit-expand-update.sh` は
+すでに導入済みのプロジェクトの Spec Kit を最新に保ちます — いずれも `/speckit-*`
+コマンド実行前だけでなく、セッション開始時にも動作します。
