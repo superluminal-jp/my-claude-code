@@ -18,7 +18,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `editor`: 文書/スライド/図表/翻訳など成果物作成
   - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
   - `domain-model` / `ubiquitous-language`: DDD ドメインモデル/ユビキタス言語
-  - `speckit-*`: Spec Kit ワークフロー一式（15 スキル）
+  - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
+    `specify init` を実行した際に、そのプロジェクト自身の `.claude/skills/` 配下に
+    生成されるプロジェクトローカルな成果物（後述「spec-kit のオプトイン」参照）
 - **`.claude/hooks/pre-bash.sh`**: 破壊的コマンドや危険な Bash を事前ブロック
 - **`.claude/hooks/user-prompt-submit.sh`**: キー/トークン等の秘密情報を含むプロンプト送信をブロック
 - **`.claude/hooks/session-start.sh`**: SessionStart（Claude Code on the web 限定）。`post-edit-format.sh` が使う lint ツール（`shellcheck`/`shfmt`/`yamllint`、欠落時は `jq`）を新規リモートコンテナへ導入。冪等・非致命的で、ローカルではスキップ
@@ -38,7 +40,7 @@ bash path/to/my-claude-code/install.sh
 - 次の管理対象は **置換同期** されます:
   - `hooks/`
   - `rules/`
-  - `skills/`（`speckit-*` を含む全スキル）
+  - `skills/`
   - `CLAUDE.md`
   - `settings.json`
   - `install.sh`
@@ -105,7 +107,9 @@ managed > local (`.local.json`) > project (`settings.json`) > user (`~/.claude/s
 ### spec-kit のオプトイン
 
 プロジェクトで `specify init` を実行すると spec-kit がインストールされ、
-`/speckit.*` スラッシュコマンドが登録されます。各コマンドは独自のプレイブックを持ちます。
+`/speckit.*` スラッシュコマンドがそのプロジェクト自身の `.claude/skills/` 配下に
+`speckit-*` スキルとして生成されます。これはプロジェクトローカルな成果物であり、
+このリポジトリが vendoring・配布するものではありません。各コマンドは独自のプレイブックを持ちます。
 
 Git Branching Workflow コマンド（`/speckit-git.*`）を使用するには、
 `specify init` 後に git extension を追加でインストールしてください:

@@ -58,7 +58,8 @@ Runs before any `/speckit-specify|clarify|plan|tasks|implement|checklist|analyze
 1. **Upgrade specify-cli**: if `specify` is on `PATH`, runs `specify self upgrade` (its own updater, resolves latest stable via GitHub Releases). Otherwise bootstraps a first install by resolving the latest non-prerelease tag (GitHub `releases/latest` API, falling back to `gh release list`) and installing from an HTTPS tarball via `uv tool install` or `pipx`, falling back to `git+https://...` if the tarball fetch fails.
 2. **Refresh project files**: runs `specify init --here --force --integration "$INTEGRATION"` (`INTEGRATION` defaults to `claude`, override via `SPECIFY_INTEGRATION`). `speckit.specify` always runs this step; every other command throttles it to once per `SPECIFY_AUTO_UPDATE_INTERVAL_SECONDS` (default 86400s), tracked in `.specify/.last-auto-update`. Set `SPECIFY_FORCE_AUTO_UPDATE=1` to bypass the throttle.
 3. **Protect the constitution**: if `.specify/memory/constitution.md` differs from its template, it's backed up before `specify init` and restored immediately after, so customizations survive the refresh.
-4. **Sync skills to user scope**: after a successful init, copies the regenerated `.claude/skills/speckit-*` directories into `~/.claude/skills` (so skills imported via `~/.claude/install.sh` stay current). Opt out with `SPECIFY_SYNC_USER_SKILLS=0`; skipped automatically when the project *is* the user-scope install.
+
+Spec Kit is opt-in per project: the regenerated `.claude/skills/speckit-*` skills stay local to the workspace that ran `specify init` — this hook never copies them to `~/.claude` or any other project (see `docs/adr/0001-remove-vendored-speckit-skills.md`).
 
 Output is captured to a temp log and returned as `additionalContext` so Claude sees what happened; the hook itself never fails the turn (`|| true` around the body).
 
