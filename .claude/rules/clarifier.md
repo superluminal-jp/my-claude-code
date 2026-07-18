@@ -1,6 +1,6 @@
 # Clarification Rules
 
-Purpose: this is the single canonical clarification gate — decide whether to ask or proceed, and how to ask well. Applies before acting on any request; other files (`.claude/CLAUDE.md` preflight, the `clarifier` skill) point here rather than restating it. Grounded in requirements-quality standards: ISO/IEC/IEEE 29148 (requirements MUST be unambiguous, verifiable, feasible), with INVEST (story quality), Gherkin Given/When/Then (testable scenarios), and SMART (measurable goals).
+Purpose: this is the single canonical clarification gate — decide whether to ask or proceed, and how to ask well. Applies before acting on any request; other files (`.claude/CLAUDE.md` preflight, the `clarifier` skill) point here rather than restating it. Grounded in requirements-quality standards: ISO/IEC/IEEE 29148:2018 (requirements MUST be unambiguous, verifiable, feasible), with INVEST (story quality), Gherkin Given/When/Then (testable scenarios), and SMART (measurable goals). See [References](#references).
 
 When a request is ambiguous, incomplete, or cannot be completed by reasonable inference, **stop and ask** — do not fabricate intent.
 
@@ -67,3 +67,12 @@ Assumed (proceed unless corrected):
 - **`coder` skill** — a clarified requirement must be testable (TDD) and match its spec (SDD); if you cannot write a failing test from the request, it is still ambiguous.
 - **spec-kit projects** — if a `spec.md` exists, clarify against it; run `/speckit.clarify` for spec-level gaps rather than inline Q&A.
 - **`clarifier` skill** — use for formal elicitation frameworks (ISO/IEEE/BABOK/INVEST/Gherkin/MoSCoW) and detailed requirement quality checks.
+
+## References
+
+- ISO/IEC/IEEE 29148:2018, *Systems and software engineering — Life cycle processes — Requirements engineering* (2nd ed.) — <https://www.iso.org/standard/72089.html>
+- Bill Wake, "INVEST in Good Stories, and SMART Tasks," 2003 (origin of INVEST) — <https://xp123.com/invest-in-good-stories-and-smart-tasks/>
+- George T. Doran, "There's a S.M.A.R.T. Way to Write Management's Goals and Objectives," *Management Review* 70(11): 35–36, 1981 (origin of SMART).
+- Cucumber, Gherkin reference (Given/When/Then) — <https://cucumber.io/docs/gherkin/>
+- Dai Clegg & Richard Barker, *Case Method Fast-Track: A RAD Approach*, Addison-Wesley, 1994 (origin of MoSCoW); stewarded by the DSDM / Agile Business Consortium.
+- IIBA, *A Guide to the Business Analysis Body of Knowledge (BABOK Guide)*, v3, 2015 — <https://www.iiba.org/>

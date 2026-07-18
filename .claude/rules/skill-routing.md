@@ -9,11 +9,11 @@ Purpose: map each request to the one skill that should load before responding. A
 3. **Delegate** — use subagents for broad exploration or context-heavy research; launch parallel subagents when tracks are independent (`tools.md` § Subagents).
 
 - Code implementation or behavior changes -> load `coder`.
-- Python source, tests, or packaging -> also load `python-coder`.
-- TypeScript/JavaScript source, tests, or frontend/Node tooling -> also load `typescript-coder`.
-- AWS CDK stacks, constructs, or `cdk.json` -> also load `aws-cdk-coder` (and `typescript-coder` or `python-coder` for the app language).
-- AWS CLI commands or shell scripts against live AWS APIs -> also load `aws-cli-coder`.
-- Produced artifacts (docs, translation, editing) -> load `editor`.
+- Document work (produce, rewrite, or diagnose a written artifact) -> load the matching document skill:
+  - Diagnose or critique the structure of an existing document, outline, or slide storyline -> `minto-reviewer` (returns analysis and target requirements, not a silent rewrite).
+  - Rewrite, restructure, polish, or finalize an existing draft or document -> `minto-rewriter` (returns the finished document).
+  - Build a document through dialogue from a topic, notes, or incomplete material -> `minto-builder`.
+  - Mixed: diagnosis then rewrite -> reviewer first, rewriter second. Early draft with no settled conclusion -> builder, not the direct rewriter.
 - Any ambiguity in requirements -> load `clarifier`. Triggers include:
   - Remaining text (after stripping slash commands and paths) is ≤ 32 characters.
   - Subject, object, or verb is absent or unclear, making intent ambiguous.
@@ -25,7 +25,7 @@ Purpose: map each request to the one skill that should load before responding. A
 
 ## Domain knowledge memory (always-on)
 
-`ubiquitous-language` and `domain-model` are **background memory layers**, not DDD-only tools. Load both on every turn **alongside** the primary skill (coder, editor, clarifier, advisor, etc.).
+`ubiquitous-language` and `domain-model` are **background memory layers**, not DDD-only tools. Load both on every turn **alongside** the primary skill (coder, minto-rewriter, clarifier, advisor, etc.).
 
 **Load when**: any task that may reveal what the system *means* — feature work, debugging, code changes, specs, architecture questions, onboarding. **Skip only** for pure meta/config edits with zero business vocabulary (formatting, hook wiring, linter config).
 

@@ -64,14 +64,16 @@ run_test() {
 
 Rules:
 - coder: code implementation, modification, refactoring, tests, debugging
-- editor: documents, translation, text editing
+- minto-reviewer: diagnose or critique the structure of an existing document, outline, or slide storyline
+- minto-rewriter: rewrite, restructure, polish, or finalize an existing draft or document
+- minto-builder: build a document through dialogue from a topic, notes, or incomplete material
 - clarifier: ambiguity in intent, scope, acceptance criteria, or constraints (what to build is unclear)
 - advisor: decision, trade-off, recommendation, compare options (goal clear enough to choose a path)
-- coder→editor: request requires both code changes AND document updates
+- coder→minto-rewriter: request requires both code changes AND updating an existing document
 
 User request: ${prompt}
 
-Output exactly one of: coder | editor | clarifier | advisor | coder→editor
+Output exactly one of: coder | minto-reviewer | minto-rewriter | minto-builder | clarifier | advisor | coder→minto-rewriter
 No explanation. No other text."
 
   result=$(printf '%s' "$query" | claude -p 2>/dev/null \

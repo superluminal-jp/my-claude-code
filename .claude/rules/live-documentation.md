@@ -1,6 +1,6 @@
 # Live Documentation Rules
 
-Purpose: keep documentation truthful and co-located with the code it describes. Applies when reviewing diffs/commits/PRs or creating any Documentation Artifact. Documentation must never lie; these rules enforce the five Live Documentation principles (drift, separate-doc-PR, auto-generation, proximity, no-redundancy) in every session.
+Purpose: keep documentation truthful and co-located with the code it describes. Applies when reviewing diffs/commits/PRs or creating any Documentation Artifact. Documentation must never lie; these rules operationalize the Living Documentation approach (Martraire, 2019 — see [References](#references)) as five enforcement checks applied in every session: drift, separate-doc-PR, auto-generation, proximity, and no-redundancy. The five checks are this repo's own operationalization, not a canonical list from the source.
 
 ## 1. Drift Detection
 
@@ -57,3 +57,7 @@ A developer may explicitly accept a Live Documentation violation by stating a re
 - Generated files: migration files, build artifacts, lock files, compiled outputs.
 - New standalone ADRs, onboarding docs, or design documents not derived from existing code.
 - Test files that describe expected behavior — these are Executable Specifications; drift check applies only when the tested interface changes.
+
+## References
+
+- Cyrille Martraire, *Living Documentation: Continuous Knowledge Sharing by Design*, Addison-Wesley, 2019 — <https://www.oreilly.com/library/view/living-documentation-continuous/9780134689418/>

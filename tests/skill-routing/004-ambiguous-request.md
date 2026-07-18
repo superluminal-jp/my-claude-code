@@ -22,7 +22,7 @@
 - `clarifier` スキルが自動的にロードされる
 - 何をすべきか不明確な状態で作業が開始されない
 - 明確化のための質問がユーザーに提示される
-- `coder` や `editor` への誤ルーティングが発生しない
+- `coder` や文書スキル（`minto-rewriter` など）への誤ルーティングが発生しない
 
 ## Additional Test Prompts
 

@@ -71,14 +71,9 @@ Aim for **secure and safe** outcomes in both **code** and how the **environment*
 - **In the dev environment** (shell, repo, tool use): follow **`permissions.md` in `rules/`** — no credential exposure, no destructive command surprises, and no unsafe download-and-execute; use official installs and **HTTPS**; keep secrets in designated stores, not the codebase or ad-hoc copy-paste. When suggesting commands or integrations to the user, default to the **safer** option and call out **risky** ones.
 - When standards or the project’s own **security** docs conflict with a shortcut, follow the stricter or project-mandated rule. If a requirement is **unclear** (e.g. data classification, crypto choice), **ask** before implementing.
 
-# Stack-specific skills
+# Language and stack conventions
 
-Load **in addition to** this skill when the stack applies (they add conventions; this skill retains TDD/SDD/docs/security):
-
-- **Python** → `python-coder`
-- **TypeScript / JavaScript** → `typescript-coder`
-- **AWS CDK** → `aws-cdk-coder` (+ language skill for the CDK app)
-- **AWS CLI** (live ops / shell scripts) → `aws-cli-coder`
+This is the single coding skill; it is language-agnostic. For the active language and stack, follow the repository's configured linter, formatter, type-checker, and test runner, and run them before reporting done. Match existing repo conventions rather than importing external defaults.
 
 # Related rules
 
@@ -86,3 +81,11 @@ Load when the task reaches these stages:
 
 - **Committing / branching / opening a PR** → `rules/git-workflow.md` (Conventional Commits, branch naming, PR body).
 - **A significant, hard-to-reverse decision is settled** → load the `adr` skill (`rules/adr.md`) to record it.
+
+# References
+
+- Kent Beck, *Test-Driven Development: By Example*, Addison-Wesley, 2002 (TDD).
+- OWASP Top 10 (2025) — <https://owasp.org/www-project-top-ten/>
+- OWASP Application Security Verification Standard (ASVS), v5.0 (2025) — <https://owasp.org/www-project-application-security-verification-standard/>
+- CWE — Common Weakness Enumeration (MITRE) — <https://cwe.mitre.org/>
+- Spec-driven development via GitHub Spec Kit — <https://github.com/github/spec-kit>

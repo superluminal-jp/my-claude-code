@@ -29,7 +29,7 @@ Purpose: when the user needs a decision or recommendation, deliver a defensible 
 
 ## Optional deep frameworks
 
-Use only when they sharpen the answer (each named anchor must change how you respond, not decorate it):
+Use only when they sharpen the answer (each named anchor must change how you respond, not decorate it — see [References](#references)):
 
 - MECE grouping (mutually exclusive, collectively exhaustive) for problem decomposition.
 - SCQA (Situation-Complication-Question-Answer, Minto) for narrative structure.
@@ -76,6 +76,13 @@ Use only when they sharpen the answer (each named anchor must change how you res
 ## Interaction with skills
 
 - Load `advisor` skill for structured decision support (this file is the gate; skill is the playbook).
-- Use `editor` for polished docs and editing.
+- Use `minto-rewriter` to turn an agreed recommendation into a polished, finished document.
 - Use `coder` for implementation work.
 - Use `clarifier` for formal requirement elicitation.
+
+## References
+
+- Barbara Minto, *The Minto Pyramid Principle*, 1987 (MECE grouping, SCQA).
+- Gary Klein, "Performing a Project Premortem," *Harvard Business Review* 85(9): 18–19, 2007 — <https://hbr.org/2007/09/performing-a-project-premortem>
+- Jeff Bezos, "2015 Letter to Shareholders," Amazon (2016) — one-way vs two-way door (Type 1 / Type 2 decisions) — <https://s2.q4cdn.com/299287126/files/doc_financials/annual/2015-Letter-to-Shareholders.PDF>
+- Fermi estimation — order-of-magnitude reasoning attributed to Enrico Fermi.

@@ -25,8 +25,10 @@ every project on the machine.
   selection, clarification triggers, skill routing, live-documentation
   enforcement, advisor baseline, MCP catalog
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
-  (TDD, SDD, code quality, security, docs), `editor` (documents, slides,
-  charts, translation), `clarifier` (requirement elicitation, INVEST/Gherkin),
+  (TDD, SDD, code quality, security, docs), the Minto document suite —
+  `minto-reviewer` (structure diagnosis), `minto-rewriter` (rewrite to
+  final), `minto-builder` (build via dialogue) — `clarifier` (requirement
+  elicitation, INVEST/Gherkin),
   `domain-model` and `ubiquitous-language` (DDD), plus the `speckit-*` suite
 - **`.claude/hooks/pre-bash.sh`** — PreToolUse/Bash: blocks destructive
   git/`rm`, `curl | bash`, non-localhost `http://` for `curl`/`wget`, reading
@@ -98,11 +100,9 @@ my-claude-code/
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: body loaded when relevant
     │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + docs
-    │   ├── python-coder/SKILL.md   # Python conventions (PEP 8, typing, pytest)
-    │   ├── typescript-coder/SKILL.md # TS/JS conventions (strict types, React/Node)
-    │   ├── aws-cdk-coder/SKILL.md  # AWS CDK IaC (constructs, least-privilege, deploy)
-    │   ├── aws-cli-coder/SKILL.md  # AWS CLI v2 ops (profiles, JMESPath, safety)
-    │   ├── editor/SKILL.md         # Documents, slides, charts, translation
+    │   ├── minto-reviewer/SKILL.md # Diagnose document structure
+    │   ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
+    │   ├── minto-builder/SKILL.md  # Build a document through dialogue
     │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
     │   ├── advisor/SKILL.md        # Decisions, trade-offs, recommendations
     │   ├── domain-model/SKILL.md   # DDD domain model
