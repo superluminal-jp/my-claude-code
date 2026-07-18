@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# UserPromptExpansion: before /speckit-* expands, upgrade specify-cli and refresh Spec Kit project files.
-# Upgrade uses `specify self upgrade` (resolves latest stable via GitHub Releases,
-# reinstalls in place) when specify-cli is already on PATH; otherwise bootstraps
-# an initial install from an HTTPS release tarball.
+# UserPromptExpansion + SessionStart: keep this workspace's Spec Kit current.
+# Fires (a) before any /speckit-* command expands, and (b) at every session
+# start for a workspace that already has `.specify/` — so a project that
+# adopted Spec Kit stays current even in sessions where no /speckit-* command
+# is invoked. Upgrades specify-cli via `specify self upgrade` (resolves latest
+# stable via GitHub Releases, reinstalls in place) when specify-cli is already
+# on PATH; otherwise bootstraps an initial install from an HTTPS release tarball.
 # speckit-specify always runs specify init (bypasses throttle) and protects modified constitution.md.
-# All other commands throttle specify init to once per UPDATE_INTERVAL_SECONDS.
+# All other triggers (including SessionStart) throttle specify init to once per UPDATE_INTERVAL_SECONDS.
 # Spec Kit is opt-in per project (`specify init`); this hook only refreshes the
 # current workspace's own .specify/ and .claude/skills/speckit-* — it never
 # touches any other project or the user-scope ~/.claude install.
@@ -15,13 +18,19 @@ set -uo pipefail
 INPUT=$(cat)
 CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 COMMAND_NAME=$(echo "$INPUT" | jq -r '.command_name // empty')
+HOOK_EVENT_NAME=$(echo "$INPUT" | jq -r '.hook_event_name // empty')
 
-case "$COMMAND_NAME" in
-  speckit.specify|speckit.clarify|speckit.plan|speckit.tasks|speckit.implement|speckit.checklist|speckit.analyze|speckit.taskstoissues|speckit.constitution|speckit.converge) ;;
-  *)
-    exit 0
-    ;;
-esac
+# On SessionStart there is no command_name to gate on — proceed straight to
+# the .specify/ presence check below. On every other trigger (UserPromptExpansion),
+# only the specific speckit.* commands wired in settings.json's matcher apply.
+if [ "$HOOK_EVENT_NAME" != "SessionStart" ]; then
+  case "$COMMAND_NAME" in
+    speckit.specify|speckit.clarify|speckit.plan|speckit.tasks|speckit.implement|speckit.checklist|speckit.analyze|speckit.taskstoissues|speckit.constitution|speckit.converge) ;;
+    *)
+      exit 0
+      ;;
+  esac
+fi
 
 if [ -z "$CWD" ] || [ ! -d "$CWD" ]; then
   exit 0
@@ -34,15 +43,27 @@ STATE_FILE="$CWD/.specify/.last-auto-update"
 LOG=$(mktemp)
 trap 'rm -f "$LOG"' EXIT
 
+EFFECTIVE_HOOK_EVENT_NAME="${HOOK_EVENT_NAME:-UserPromptExpansion}"
+
 if [ ! -d "$CWD/.specify" ]; then
+  # On SessionStart this is the common case (most projects haven't opted into
+  # Spec Kit) — stay silent rather than reporting a "skip" every session.
+  if [ "$HOOK_EVENT_NAME" = "SessionStart" ]; then
+    exit 0
+  fi
   jq -n \
     --arg msg "Spec Kit auto-update skipped: no .specify directory under this workspace. Not a spec-kit project or init not run here." \
-    '{hookSpecificOutput: {hookEventName: "UserPromptExpansion", additionalContext: $msg}}'
+    --arg hook "$EFFECTIVE_HOOK_EVENT_NAME" \
+    '{hookSpecificOutput: {hookEventName: $hook, additionalContext: $msg}}'
   exit 0
 fi
 
 {
-  echo "=== Spec Kit auto-update (before /$COMMAND_NAME) ==="
+  if [ -n "$COMMAND_NAME" ]; then
+    echo "=== Spec Kit auto-update (before /$COMMAND_NAME) ==="
+  else
+    echo "=== Spec Kit auto-update ($HOOK_EVENT_NAME refresh) ==="
+  fi
   echo "cwd=$CWD integration=$INTEGRATION"
   echo "update_interval_seconds=$UPDATE_INTERVAL_SECONDS force_update=$FORCE_UPDATE"
   set +e
@@ -191,6 +212,12 @@ fi
   [ -n "$SRC_DIR" ] && rm -rf "$SRC_DIR"
 } >>"$LOG" 2>&1 || true
 
+# On SessionStart, a throttled no-op run (the common case once a project has
+# adopted Spec Kit) has nothing worth surfacing every session — stay silent.
+if [ "$HOOK_EVENT_NAME" = "SessionStart" ] && [ "${should_run_init:-0}" -ne 1 ]; then
+  exit 0
+fi
+
 if [ "$COMMAND_NAME" = "speckit.specify" ]; then
   NOTE=$'\n\nNote: speckit-specify always runs specify init --here --force. Modified .specify/memory/constitution.md is protected from overwrite.'
 else
@@ -200,7 +227,7 @@ fi
 BODY=$(jq -n \
   --rawfile log "$LOG" \
   --arg note "$NOTE" \
-  --arg hook "UserPromptExpansion" \
+  --arg hook "$EFFECTIVE_HOOK_EVENT_NAME" \
   '($log | if length > 8800 then .[0:8800] + "\n...(truncated)\n" else . end) as $text |
   {
     hookSpecificOutput: {

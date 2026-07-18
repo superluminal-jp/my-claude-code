@@ -185,3 +185,10 @@ specify extension add git
 
 This adds 5 commands: `speckit.git.feature`, `speckit.git.validate`,
 `speckit.git.remote`, `speckit.git.initialize`, and `speckit.git.commit`.
+
+Two hooks support this per-project workflow (see
+[`.claude/hooks/README.md`](.claude/hooks/README.md) for details):
+`recommend-speckit.sh` nudges toward `specify init` when a prompt looks like
+non-trivial feature work in a project that hasn't adopted it yet, and
+`speckit-expand-update.sh` keeps an already-adopted project's Spec Kit
+current — both before any `/speckit-*` command and at every session start.
