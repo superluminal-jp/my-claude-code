@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Behavior test for .claude/hooks/speckit-expand-update.sh user-scope sync.
-# Verifies that after a successful project `specify init`, freshly regenerated
-# speckit-* skills are propagated to the user-scope install (~/.claude/skills),
-# so skills imported into user settings stay in lockstep with the update.
+# Behavior test for .claude/hooks/speckit-expand-update.sh.
+# Verifies the hook's per-project refresh behavior (init runs, throttling,
+# constitution protection) and — the invariant this repo now enforces after
+# removing vendored speckit-* skills (docs/adr/0001) — that the hook never
+# touches any path outside the invoking project's own workspace, in
+# particular $HOME/.claude/skills.
 #
 # Deterministic: specify/uv/gh/curl are stubbed on PATH; no network is used.
 # Usage: bash tests/run-speckit-update.sh
@@ -20,10 +22,6 @@ PASS=0
 FAIL=0
 FAIL_NAMES=""
 
-# Stub `curl`: answers the releases/latest lookup with a fixed tag and fails
-# any download (`-o`), so the tarball path is never taken and no real network
-# request occurs. The hook falls back to its git+https branch, which the `uv`
-# stub below ignores.
 CURL_STUB='#!/usr/bin/env bash
 for a in "$@"; do
   [ "$a" = "-o" ] && exit 1
@@ -50,69 +48,102 @@ check() {
   fi
 }
 
-# Build an isolated HOME + project + stubbed toolchain, then run the hook.
-# Echoes nothing; sets up state under $1 (work dir). Returns via globals.
-run_hook() {
-  local work="$1" sync_flag="$2"
+# Sets up an isolated $HOME + project + stubbed toolchain under "$1".
+# "$2" controls whether ~/.claude/skills pre-exists, so we can assert the
+# hook never writes into it.
+setup_workspace() {
+  local work="$1" seed_user_skills="$2"
   local home="$work/home" proj="$work/proj" bin="$work/bin"
 
-  mkdir -p "$home/.claude/skills/speckit-foo"
-  printf 'STALE\n' >"$home/.claude/skills/speckit-foo/SKILL.md"
+  if [ "$seed_user_skills" = "1" ]; then
+    mkdir -p "$home/.claude/skills/speckit-foo"
+    printf 'UNTOUCHED\n' >"$home/.claude/skills/speckit-foo/SKILL.md"
+  fi
 
-  mkdir -p "$proj/.specify" "$proj/.claude/skills/speckit-foo" "$proj/.claude/skills/speckit-bar"
+  mkdir -p "$proj/.specify" "$proj/.claude/skills/speckit-foo"
   printf 'FRESH-foo\n' >"$proj/.claude/skills/speckit-foo/SKILL.md"
-  printf 'FRESH-bar\n' >"$proj/.claude/skills/speckit-bar/SKILL.md"
 
-  # Stub specify/uv/gh/curl so init "succeeds" with no network.
   mkdir -p "$bin"
-  printf '#!/usr/bin/env bash\nexit 0\n' >"$bin/specify"
+  local init_count_file="$work/init_count"
+  printf '0\n' >"$init_count_file"
+  cat >"$bin/specify" <<EOF
+#!/usr/bin/env bash
+if [ "\$1" = "init" ]; then
+  c=\$(cat "$init_count_file")
+  echo \$((c + 1)) >"$init_count_file"
+fi
+exit 0
+EOF
   printf '#!/usr/bin/env bash\nexit 0\n' >"$bin/uv"
   printf '#!/usr/bin/env bash\nexit 1\n' >"$bin/gh"
   printf '%s\n' "$CURL_STUB" >"$bin/curl"
   chmod +x "$bin/specify" "$bin/uv" "$bin/gh" "$bin/curl"
-
-  local input
-  input=$(jq -n --arg cwd "$proj" '{cwd:$cwd, command_name:"speckit.plan"}')
-
-  HOME="$home" PATH="$bin:$PATH" SPECIFY_FORCE_AUTO_UPDATE=1 \
-    SPECIFY_SYNC_USER_SKILLS="$sync_flag" \
-    bash "$HOOK" <<<"$input" >/dev/null 2>&1
 }
 
-# --- Test 1: user-scope skills are refreshed from the project after update ---
+run_hook() {
+  local proj="$1" home="$2" bin="$3"
+  shift 3
+  local input
+  input=$(jq -n --arg cwd "$proj" '{cwd:$cwd, command_name:"speckit.plan"}')
+  HOME="$home" PATH="$bin:$PATH" "$@" bash "$HOOK" <<<"$input" >/dev/null 2>&1
+}
+
+# --- Test 1: init runs and the throttle state file is updated ---
 WORK1=$(mktemp -d)
-run_hook "$WORK1" "1"
-got1=$(cat "$WORK1/home/.claude/skills/speckit-foo/SKILL.md" 2>/dev/null || echo MISSING)
-[ "$got1" = "FRESH-foo" ] && c=1 || c=0
-check "stale user-scope skill updated to fresh project version" "$c"
-[ -f "$WORK1/home/.claude/skills/speckit-bar/SKILL.md" ] && c=1 || c=0
-check "newly added speckit skill propagated to user scope" "$c"
+setup_workspace "$WORK1" "0"
+run_hook "$WORK1/proj" "$WORK1/home" "$WORK1/bin" env SPECIFY_FORCE_AUTO_UPDATE=1
+[ -f "$WORK1/proj/.specify/.last-auto-update" ] && c=1 || c=0
+check "specify init runs and records the throttle state file" "$c"
 rm -rf "$WORK1"
 
-# --- Test 2: opt-out via SPECIFY_SYNC_USER_SKILLS=0 leaves user scope alone ---
+# --- Test 2: a second call within the throttle window skips init ---
 WORK2=$(mktemp -d)
-run_hook "$WORK2" "0"
-got2=$(cat "$WORK2/home/.claude/skills/speckit-foo/SKILL.md" 2>/dev/null || echo MISSING)
-[ "$got2" = "STALE" ] && c=1 || c=0
-check "opt-out flag leaves user-scope skills untouched" "$c"
+setup_workspace "$WORK2" "0"
+run_hook "$WORK2/proj" "$WORK2/home" "$WORK2/bin" env SPECIFY_FORCE_AUTO_UPDATE=1
+run_hook "$WORK2/proj" "$WORK2/home" "$WORK2/bin" env SPECIFY_AUTO_UPDATE_INTERVAL_SECONDS=86400
+got=$(cat "$WORK2/init_count" 2>/dev/null || echo 0)
+[ "$got" = "1" ] && c=1 || c=0
+check "second call within the throttle window does not re-run init" "$c"
 rm -rf "$WORK2"
 
-# --- Test 3: no ~/.claude/skills present -> no crash, nothing created ---
+# --- Test 3: a customized constitution.md survives the refresh ---
 WORK3=$(mktemp -d)
-mkdir -p "$WORK3/home" "$WORK3/proj/.specify" "$WORK3/proj/.claude/skills/speckit-foo" "$WORK3/bin"
-printf 'FRESH\n' >"$WORK3/proj/.claude/skills/speckit-foo/SKILL.md"
-printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK3/bin/specify"
-printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK3/bin/uv"
-printf '#!/usr/bin/env bash\nexit 1\n' >"$WORK3/bin/gh"
-printf '%s\n' "$CURL_STUB" >"$WORK3/bin/curl"
-chmod +x "$WORK3/bin/specify" "$WORK3/bin/uv" "$WORK3/bin/gh" "$WORK3/bin/curl"
-input3=$(jq -n --arg cwd "$WORK3/proj" '{cwd:$cwd, command_name:"speckit.plan"}')
-HOME="$WORK3/home" PATH="$WORK3/bin:$PATH" SPECIFY_FORCE_AUTO_UPDATE=1 \
-  bash "$HOOK" <<<"$input3" >/dev/null 2>&1
-rc=$?
-[ "$rc" -eq 0 ] && [ ! -d "$WORK3/home/.claude/skills" ] && c=1 || c=0
-check "absent user-scope install: hook exits cleanly, creates nothing" "$c"
+setup_workspace "$WORK3" "0"
+mkdir -p "$WORK3/proj/.specify/memory" "$WORK3/proj/.specify/templates"
+printf 'TEMPLATE\n' >"$WORK3/proj/.specify/templates/constitution-template.md"
+printf 'CUSTOMIZED\n' >"$WORK3/proj/.specify/memory/constitution.md"
+run_hook "$WORK3/proj" "$WORK3/home" "$WORK3/bin" env SPECIFY_FORCE_AUTO_UPDATE=1
+got=$(cat "$WORK3/proj/.specify/memory/constitution.md" 2>/dev/null || echo MISSING)
+[ "$got" = "CUSTOMIZED" ] && c=1 || c=0
+check "customized constitution.md is preserved across the refresh" "$c"
 rm -rf "$WORK3"
+
+# --- Test 4: hook never writes to $HOME/.claude/skills (no global propagation) ---
+WORK4=$(mktemp -d)
+setup_workspace "$WORK4" "1"
+run_hook "$WORK4/proj" "$WORK4/home" "$WORK4/bin" env SPECIFY_FORCE_AUTO_UPDATE=1
+got=$(cat "$WORK4/home/.claude/skills/speckit-foo/SKILL.md" 2>/dev/null || echo MISSING)
+[ "$got" = "UNTOUCHED" ] && c=1 || c=0
+check "pre-existing user-scope speckit skill is left untouched" "$c"
+[ ! -d "$WORK4/home/.claude/skills/speckit-bar" ] && c=1 || c=0
+check "no new skill is created under the user-scope install" "$c"
+rm -rf "$WORK4"
+
+# --- Test 5: no .specify directory -> no-op, no crash ---
+WORK5=$(mktemp -d)
+mkdir -p "$WORK5/home" "$WORK5/proj" "$WORK5/bin"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK5/bin/specify"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK5/bin/uv"
+printf '#!/usr/bin/env bash\nexit 1\n' >"$WORK5/bin/gh"
+printf '%s\n' "$CURL_STUB" >"$WORK5/bin/curl"
+chmod +x "$WORK5/bin/specify" "$WORK5/bin/uv" "$WORK5/bin/gh" "$WORK5/bin/curl"
+input5=$(jq -n --arg cwd "$WORK5/proj" '{cwd:$cwd, command_name:"speckit.plan"}')
+HOME="$WORK5/home" PATH="$WORK5/bin:$PATH" SPECIFY_FORCE_AUTO_UPDATE=1 \
+  bash "$HOOK" <<<"$input5" >/dev/null 2>&1
+rc=$?
+[ "$rc" -eq 0 ] && [ ! -d "$WORK5/home/.claude" ] && c=1 || c=0
+check "no .specify directory: hook exits cleanly, touches nothing under HOME" "$c"
+rm -rf "$WORK5"
 
 echo
 if [ "$FAIL" -eq 0 ]; then
