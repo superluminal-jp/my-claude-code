@@ -11,15 +11,15 @@ docs/configuration.md の内容を更新して
 
 ## Expected Skill
 
-`executive-structure-rewriter`
+`minto-rewriter`
 
 ## Expected Behavior
 
-`executive-structure-rewriter` スキルが自動的にロードされ、既存の `docs/` フォルダ内文書が完成版へ書き換えられる。`coder` スキルへの誤ルーティングが発生しない。
+`minto-rewriter` スキルが自動的にロードされ、既存の `docs/` フォルダ内文書が完成版へ書き換えられる。`coder` スキルへの誤ルーティングが発生しない。
 
 ## Pass Criteria
 
-- `executive-structure-rewriter` スキルが自動的にロードされる
+- `minto-rewriter` スキルが自動的にロードされる
 - `docs/` フォルダへの参照が含まれるリクエストで `coder` が起動しない
 - ユーザーの明示的な指定なしに文書編集が実行される
 

@@ -26,10 +26,9 @@ every project on the machine.
   enforcement, advisor baseline, MCP catalog
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
   (TDD, SDD, code quality, security, docs), the Minto document suite —
-  `minto-pyramid-document-reviewer` (structure diagnosis),
-  `executive-structure-rewriter` (rewrite to final),
-  `interactive-document-builder` (build via dialogue) —,
-  `clarifier` (requirement elicitation, INVEST/Gherkin),
+  `minto-reviewer` (structure diagnosis), `minto-rewriter` (rewrite to
+  final), `minto-builder` (build via dialogue) — `clarifier` (requirement
+  elicitation, INVEST/Gherkin),
   `domain-model` and `ubiquitous-language` (DDD), plus the `speckit-*` suite
 - **`.claude/hooks/pre-bash.sh`** — PreToolUse/Bash: blocks destructive
   git/`rm`, `curl | bash`, non-localhost `http://` for `curl`/`wget`, reading
@@ -101,9 +100,9 @@ my-claude-code/
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: body loaded when relevant
     │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + docs
-    │   ├── minto-pyramid-document-reviewer/SKILL.md    # Diagnose document structure
-    │   ├── executive-structure-rewriter/SKILL.md       # Rewrite a draft into a final document
-    │   ├── interactive-document-builder/SKILL.md        # Build a document through dialogue
+    │   ├── minto-reviewer/SKILL.md # Diagnose document structure
+    │   ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
+    │   ├── minto-builder/SKILL.md  # Build a document through dialogue
     │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
     │   ├── advisor/SKILL.md        # Decisions, trade-offs, recommendations
     │   ├── domain-model/SKILL.md   # DDD domain model

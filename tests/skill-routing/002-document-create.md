@@ -11,15 +11,15 @@ READMEを書いて
 
 ## Expected Skill
 
-`interactive-document-builder`
+`minto-builder`
 
 ## Expected Behavior
 
-`interactive-document-builder` スキルが自動的にロードされる。既存のドラフトがない状態で文書作成を求められたため、対話で読者・目的・中心的な主張を整理しながら文書を構築する。ユーザーが明示的にスキルを指定する必要がない。
+`minto-builder` スキルが自動的にロードされる。既存のドラフトがない状態で文書作成を求められたため、対話で読者・目的・中心的な主張を整理しながら文書を構築する。ユーザーが明示的にスキルを指定する必要がない。
 
 ## Pass Criteria
 
-- `interactive-document-builder` スキルが自動的にロードされる
+- `minto-builder` スキルが自動的にロードされる
 - ユーザーの明示的な指定なしに文書構築が開始される
 - `coder` スキルへの誤ルーティングが発生しない
 

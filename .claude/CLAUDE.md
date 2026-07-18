@@ -46,15 +46,15 @@ Do not duplicate across layers. Team-visible product meaning → repo docs; agen
 Always load the matching skill before responding (see `.claude/skills/` for full playbooks).
 
 - `coder` — requests involving code implementation, modification, refactoring, testing, or debugging
-- `minto-pyramid-document-reviewer` — diagnose the structure of an existing document, outline, or slide storyline (analysis and target requirements, not a silent rewrite)
-- `executive-structure-rewriter` — rewrite an existing draft or document into a finished, audience-ready version
-- `interactive-document-builder` — build a document through dialogue when the material, argument, or main point is still incomplete
+- `minto-reviewer` — diagnose the structure of an existing document, outline, or slide storyline (analysis and target requirements, not a silent rewrite)
+- `minto-rewriter` — rewrite an existing draft or document into a finished, audience-ready version
+- `minto-builder` — build a document through dialogue when the material, argument, or main point is still incomplete
 - `advisor` — decisions, trade-offs, recommendations, or "what should I do" when options are visible but the best path is unclear (not requirement elicitation — use `clarifier` for that)
 - `clarifier` — requests with any ambiguity (including gaps in intent, scope, acceptance, or constraints)
 - `ubiquitous-language` — **always-on domain vocabulary memory** (load with primary skill): passively captures business terms, events, roles, states, and rules from conversation and code; surfaces update candidates at natural pauses; never interrupts active work; see `rules/skill-routing.md` § Domain knowledge memory
 - `domain-model` — **always-on structural memory** (load with primary skill): passively infers clusters, identifiers, events, and rules from plain language and code; surfaces candidates at natural pauses; beginners need not know DDD; see `rules/skill-routing.md` § Domain knowledge memory
 
-For mixed requests (both code and documentation): load `coder` first, then the matching document skill (usually `executive-structure-rewriter` for updating existing docs). `/speckit-*` slash commands are excluded (each has its own playbook).
+For mixed requests (both code and documentation): load `coder` first, then the matching document skill (usually `minto-rewriter` for updating existing docs). `/speckit-*` slash commands are excluded (each has its own playbook).
 
 ## Response Preflight (before first answer)
 

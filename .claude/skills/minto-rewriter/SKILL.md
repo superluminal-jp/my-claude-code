@@ -1,5 +1,5 @@
 ---
-name: executive-structure-rewriter
+name: minto-rewriter
 description: Transform an existing document or substantial draft into a complete audience-ready document by silently applying rigorous opening, hierarchy, grouping, ordering, and completeness principles. Use when the user asks to rewrite, restructure, improve, polish, or produce a final version. Return the finished document without framework terminology, diagnostic analysis, node IDs, or review tables unless explicitly requested.
 metadata:
   short-description: Rewrite an existing draft into a complete final document
@@ -48,9 +48,9 @@ Do not use this skill when the user primarily asks to:
 - collaboratively discover the argument through dialogue
 - create a document from only a topic and no substantive material
 
-Route structural diagnosis to `minto-pyramid-document-reviewer`.
+Route structural diagnosis to `minto-reviewer`.
 
-Route collaborative development to `interactive-document-builder`.
+Route collaborative development to `minto-builder`.
 
 ## Output contract
 

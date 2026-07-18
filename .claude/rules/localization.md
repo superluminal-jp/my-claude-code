@@ -1,6 +1,6 @@
 # Localization & Language Rules
 
-Purpose: keep human-facing language and persisted-artifact language predictable, so conversations feel native while the repository stays consistent for any reader. Applies to every response and every written artifact. Composes with the `domain-model` and `ubiquitous-language` skills (which already follow conversation language) and the document skills (`executive-structure-rewriter`, `interactive-document-builder`, `minto-pyramid-document-reviewer`).
+Purpose: keep human-facing language and persisted-artifact language predictable, so conversations feel native while the repository stays consistent for any reader. Applies to every response and every written artifact. Composes with the `domain-model` and `ubiquitous-language` skills (which already follow conversation language) and the document skills (`minto-rewriter`, `minto-builder`, `minto-reviewer`).
 
 ## Conversation language
 

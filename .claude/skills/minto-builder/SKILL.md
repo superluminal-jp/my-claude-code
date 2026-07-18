@@ -1,5 +1,5 @@
 ---
-name: interactive-document-builder
+name: minto-builder
 description: Build a document collaboratively through dialogue when the user's thinking, argument, or source material is incomplete. Use plain-language questions to clarify the audience, purpose, central point, supporting logic, evidence, risks, and actions; maintain a concise evolving synthesis; then produce the finished document without exposing framework terminology unless explicitly requested.
 metadata:
   short-description: Develop thinking and write the document through dialogue
@@ -45,9 +45,9 @@ Do not use this skill when the user already has a substantive document and prima
 - proofreading
 - factual research without document construction
 
-Route diagnosis to `minto-pyramid-document-reviewer`.
+Route diagnosis to `minto-reviewer`.
 
-Route direct rewriting to `executive-structure-rewriter`.
+Route direct rewriting to `minto-rewriter`.
 
 ## Interaction contract
 

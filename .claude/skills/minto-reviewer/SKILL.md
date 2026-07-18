@@ -1,5 +1,5 @@
 ---
-name: minto-pyramid-document-reviewer
+name: minto-reviewer
 description: Analyze an existing document, outline, slide storyline, or argument structure for coherence, hierarchy, grouping, ordering, and completeness using Barbara Minto's Pyramid Principle. Use when the user asks for structural diagnosis, critique, evaluation, or an explanation of what is wrong. Return analysis and recommendations, not a silently rewritten final document.
 metadata:
   short-description: Diagnose the structure of an existing document
@@ -44,9 +44,9 @@ Do not use this skill when the user primarily asks to:
 - brainstorm a topic without an existing artifact
 - fact-check claims without reviewing structure
 
-Route finished-document rewriting to `executive-structure-rewriter`.
+Route finished-document rewriting to `minto-rewriter`.
 
-Route collaborative document development to `interactive-document-builder`.
+Route collaborative document development to `minto-builder`.
 
 ## Input assumptions
 
