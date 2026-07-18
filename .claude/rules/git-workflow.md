@@ -4,18 +4,18 @@ Purpose: make every commit, branch, and PR follow one observable, reviewable sta
 
 ## Commit messages — Conventional Commits
 
-Format: `<type>(<scope>)?: <subject>` (Conventional Commits 1.0.0).
+Format: `<type>(<scope>)?: <subject>` (Conventional Commits 1.0.0). Git and GitHub do not prescribe a commit-message format; the rules below are conventions adopted on top of format-agnostic tooling.
 
 - **Types**: only `feat` and `fix` are mandated by the spec; `docs`, `refactor`, `test`, `chore`, `perf`, `build`, `ci`, `style`, `revert` follow the Angular / `@commitlint/config-conventional` set.
 - **Subject**: imperative mood ("add", not "added"/"adds"); aim for ≤50 characters (hard cap 72); no trailing period. The length and mood come from Tim Pope / Pro Git — the Conventional Commits spec itself sets no length limit.
 - **Body** (optional): separate from the subject with one blank line; wrap at 72 columns; explain *why*, not *what* (the diff shows what).
-- **Footers**: follow the git trailer convention — `Token: value` (e.g. `Co-Authored-By: …`, `Refs: #123`).
+- **Footers / trailers**: place at the **end** of the message after a blank line, one per line (git trailer convention — `Token: value`). GitHub documents `Co-authored-by: Name <email>` for multi-author attribution; git trailer tokens are case-insensitive, so the `Co-Authored-By:` the harness emits is equally valid. GitHub attributes a co-author only when the email matches a GitHub account (a bot `noreply@` address intentionally does not).
 - **Breaking change**: indicate with `!` before the colon (`feat!:`) **or** a `BREAKING CHANGE:` footer — either alone satisfies the spec; add the footer when the migration impact needs describing (`BREAKING-CHANGE:` is a synonymous token).
 - **One logical change per commit** — do not bundle unrelated edits. If a change spans code + its doc/test, that is one logical change and belongs in one commit (Live Documentation).
 
 ## Branch naming
 
-`<type>/<short-kebab-summary>` (e.g. `feat/order-confirmation`, `fix/null-cart`). Spec Kit features follow the `/speckit-git-feature` numbering; do not hand-name those.
+`<type>/<short-kebab-summary>` (e.g. `feat/order-confirmation`, `fix/null-cart`). Spec Kit features follow the `/speckit-git-feature` numbering; do not hand-name those. The name must be valid per `git check-ref-format` (official git): no spaces or `~ ^ : ? * [ \`, no `..`, no leading/trailing `/`, no `.lock` suffix — kebab-case with a single `/` separator satisfies this.
 
 Keep branches **short-lived** (trunk-based development): branch off the trunk (default branch), integrate back frequently — within roughly a day — and delete the branch after merge; avoid long-lived divergent branches.
 
@@ -38,3 +38,5 @@ Keep branches **short-lived** (trunk-based development): branch off the trunk (d
 - Tim Pope, "A Note About Git Commit Messages," 2008 (origin of the 50/72 rule and imperative mood) — <https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>
 - Pro Git (Chacon & Straub), 2nd ed., "Distributed Git — Commit Guidelines" — <https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project>
 - Trunk-Based Development — <https://trunkbaseddevelopment.com/>
+- Git official docs, `git check-ref-format` (valid ref/branch names) — <https://git-scm.com/docs/git-check-ref-format>
+- GitHub Docs, "Creating a commit with multiple authors" (`Co-authored-by` trailer) — <https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors>
