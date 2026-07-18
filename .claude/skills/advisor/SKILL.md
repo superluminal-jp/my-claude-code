@@ -75,3 +75,10 @@ Use only when they change the answer, not as decoration:
 - Polished memo or client-ready writeup → `minto-rewriter` (after advisor shapes the substance).
 - Implementation → `coder` (after the recommendation is agreed).
 - Missing requirements → `clarifier` (before comparing options).
+
+## References
+
+- Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987 (MECE grouping, SCQA).
+- Gary Klein, "Performing a Project Premortem," *Harvard Business Review* 85(9): 18–19, 2007 — <https://hbr.org/2007/09/performing-a-project-premortem>
+- Jeff Bezos, "2015 Letter to Shareholders," Amazon (2016) — one-way vs two-way door (Type 1 / Type 2 decisions) — <https://s2.q4cdn.com/299287126/files/doc_financials/annual/2015-Letter-to-Shareholders.PDF>
+- Fermi estimation — order-of-magnitude reasoning attributed to Enrico Fermi.

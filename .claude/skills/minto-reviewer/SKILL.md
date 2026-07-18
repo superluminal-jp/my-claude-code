@@ -279,3 +279,7 @@ Do not turn the report into a tutorial unless requested.
 - Use standard Markdown headings, nested lists, and tables.
 - Keep source wording and proposed wording distinguishable.
 - Report uncertainty explicitly.
+
+## References
+
+- Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987.

@@ -370,3 +370,7 @@ When the same concept name appears in two or more context files with differing s
 5. **Index always reflects files**: `docs/models/index.md` is synced on every context file creation, update, or deletion.
 6. **Diagram derived from tables**: The classDiagram is always generated from the tables, never edited independently.
 7. **Language follows conversation**: Respond in the language the user is using; adapt all prompts and output accordingly.
+
+## References
+
+- Eric Evans, *Domain-Driven Design: Tackling Complexity in the Heart of Software*, Addison-Wesley, 2003 (tactical patterns: Aggregate, Entity, Value Object, Domain Event; Bounded Context).

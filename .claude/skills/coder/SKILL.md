@@ -81,3 +81,11 @@ Load when the task reaches these stages:
 
 - **Committing / branching / opening a PR** → `rules/git-workflow.md` (Conventional Commits, branch naming, PR body).
 - **A significant, hard-to-reverse decision is settled** → load the `adr` skill (`rules/adr.md`) to record it.
+
+# References
+
+- Kent Beck, *Test-Driven Development: By Example*, Addison-Wesley, 2002 (TDD).
+- OWASP Top 10 (2025) — <https://owasp.org/www-project-top-ten/>
+- OWASP Application Security Verification Standard (ASVS), v5.0 (2025) — <https://owasp.org/www-project-application-security-verification-standard/>
+- CWE — Common Weakness Enumeration (MITRE) — <https://cwe.mitre.org/>
+- Spec-driven development via GitHub Spec Kit — <https://github.com/github/spec-kit>

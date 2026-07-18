@@ -312,3 +312,7 @@ When the document is ready:
 - do not use ASCII art, box-drawing characters, text diagrams, or character-based tree connectors
 
 The final artifact should be usable without further structural editing.
+
+## References
+
+- Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987.

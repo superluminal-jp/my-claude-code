@@ -194,3 +194,7 @@ If no domain vocabulary is detectable in the turn, still run Pre-check but do no
 2. **Explicit confirmation**: No file is written without explicit user confirmation.
 3. **No silent Bounded Context unification**: Conflicts always present the split-or-rename choice; never silently merge definitions across contexts.
 4. **Single-row entries**: UL table rows must fit a single row; prompt the user to restructure multi-paragraph definitions into the 7-field form.
+
+## References
+
+- Eric Evans, *Domain-Driven Design: Tackling Complexity in the Heart of Software*, Addison-Wesley, 2003 (Ubiquitous Language, Bounded Context).

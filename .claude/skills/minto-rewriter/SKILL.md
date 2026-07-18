@@ -272,3 +272,7 @@ Use ordinary domain-appropriate language.
 - Do not include analysis before the finished document.
 - Do not use ASCII art, box-drawing characters, text diagrams, or character-based tree connectors.
 - Use normal headings, paragraphs, lists, and tables only when appropriate to the document.
+
+## References
+
+- Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987.
