@@ -18,6 +18,7 @@
 - Q: `mcp.md` — MCPサーバ使い分け表・使用ルールを共通化するか？ → A: 共通化する（AGENTS.mdへほぼそのまま転記）
 - Q: `user-prompt-submit.sh` — プロンプト内秘密情報検知をCodex/Cursorへどう展開するか？ → A: 弱い形で共通化する（フック実装はせず、AGENTS.mdに「秘密情報を貼らない」という注意書きのみ両ツールに追加。推奨案（CursorはbeforeSubmitPromptへロジック移植、Codexは代替なし明記）は不採用。Claude Code側のuser-prompt-submit.shによるハードブロックは実効性が異なるため引き続き必須のまま残す）
 - Q: `pre-bash.sh` — 破壊的コマンド遮断を共通化するか？ → A: 共通化する（判定ロジックを共通スクリプトに抽出し、Claude Code hook・Codex `PreToolUse`(Bash)・Cursor `beforeShellExecution`(`failClosed:true`)それぞれの薄いアダプタから呼ぶ）
+- Q: `post-edit-format.sh` — 編集後の自動整形をCodex/Cursorへどう展開するか？ → A: 弱い形で共通化する（Cursorの`afterFileEdit`実装は見送り、両ツールともAGENTS.mdへ「.sh編集後はshfmt/shellcheckを実行」という指示のみ追加。保証なしの自発実行に委ねる）
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -50,7 +51,7 @@ As the maintainer, I want to walk through the items where Cursor has a matching 
 
 1. **Given** `user-prompt-submit.sh` secret detection, **When** the maintainer is presented with Cursor's `beforeSubmitPrompt` match and Codex's unconfirmed equivalent, **Then** the maintainer records a verdict per tool. **Recorded verdict**: 弱い共通化（both tools） — prose-only "don't paste secrets" note in `AGENTS.md`, no hook implementation for either tool. Note: materially weaker than the Claude Code hard block; the Claude Code hook stays in place regardless.
 2. **Given** `pre-bash.sh` destructive-command blocking, **When** the maintainer is presented with the shared-script-with-adapters option (Claude Code hook, Codex `PreToolUse`, Cursor `beforeShellExecution`), **Then** the maintainer records a verdict and, if unifying, confirms the shared-logic approach. **Recorded verdict**: 共通化 — extract the command-matching logic into one shared script; Claude Code hook, Codex `PreToolUse` (Bash), and Cursor `beforeShellExecution` (`failClosed: true`) each get a thin adapter calling it. Highest-priority implementation item (only item reproducing real enforcement across all three tools).
-3. **Given** `post-edit-format.sh` auto-formatting, **When** the maintainer is presented with Cursor's `afterFileEdit` match and Codex's unconfirmed edit-time hook coverage, **Then** the maintainer records a verdict per tool.
+3. **Given** `post-edit-format.sh` auto-formatting, **When** the maintainer is presented with Cursor's `afterFileEdit` match and Codex's unconfirmed edit-time hook coverage, **Then** the maintainer records a verdict per tool. **Recorded verdict**: 弱い共通化（both tools） — no `afterFileEdit` hook implementation for Cursor despite being viable; both tools get a prose-only "run shfmt/shellcheck after editing .sh files" instruction in `AGENTS.md` instead, with no execution guarantee.
 4. **Given** `recommend-speckit.sh`'s Spec Kit adoption nudge, **When** the maintainer is presented with the repetition/de-duplication tradeoff of losing the throttle cache, **Then** the maintainer records a verdict on whether to accept the degraded (un-throttled) behavior in `AGENTS.md`.
 
 ---
