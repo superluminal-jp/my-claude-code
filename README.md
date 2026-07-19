@@ -56,8 +56,10 @@ enforcement (see [Codex CLI support](#codex-cli-support)).
 - **`AGENTS.md`** — Codex CLI's equivalent of the always-on prose in
   `.claude/rules/`: baseline guidance plus explicit notes on which items
   Codex CLI enforces via hook (destructive commands, `.git/`-edit and
-  main/master-edit blocks, post-edit formatting). Installed to
-  `~/.codex/AGENTS.md`
+  main/master-edit blocks, post-edit formatting). Lives at the repo root
+  (where Codex CLI actually reads project-scope `AGENTS.md` from), with a
+  `.codex/AGENTS.md` symlink alongside `.codex/hooks/` for discoverability.
+  Installed to `~/.codex/AGENTS.md`
 - **`scripts/guardrails/`** — Shared, tool-agnostic guardrail scripts
   (destructive-command blocking, pre-edit blocking, post-edit formatting).
   `.claude/hooks/pre-bash.sh`, `pre-edit.sh`, and `post-edit-format.sh` are
@@ -76,7 +78,7 @@ mirroring the same "author here, apply everywhere" model:
 
 | Repo source | Installed to | Purpose |
 |---|---|---|
-| `AGENTS.md` | `~/.codex/AGENTS.md` | Baseline guidance (Codex CLI's equivalent of `.claude/rules/`) |
+| `AGENTS.md` (root; `.codex/AGENTS.md` symlink) | `~/.codex/AGENTS.md` | Baseline guidance (Codex CLI's equivalent of `.claude/rules/`) |
 | `.claude/skills/{adr,advisor,clarifier,coder,domain-model,minto-builder,minto-reviewer,minto-rewriter,ubiquitous-language}` | `~/.agents/skills/<name>` (symlink) | Native skill discovery — the same `SKILL.md`, not a copy |
 | `scripts/guardrails/*.sh` | `~/.claude/scripts/guardrails/*.sh` | Shared guardrail logic, consumed by both tools' hooks |
 | `.codex/hooks/*.sh` | `~/.codex/hooks/*.sh`, registered in `~/.codex/config.toml` `[hooks]` | Codex CLI enforcement: destructive-command blocking, `.git/`/main-branch edit blocking, post-edit formatting |
@@ -139,6 +141,7 @@ my-claude-code/
 │       ├── pre-edit-block.sh
 │       └── post-edit-format.sh
 ├── .codex/
+│   ├── AGENTS.md                   # Symlink -> ../AGENTS.md, for discoverability alongside hooks/
 │   └── hooks/                      # Codex CLI PreToolUse/PostToolUse adapters; installed to ~/.codex/hooks/
 │       ├── destructive-command-adapter.sh
 │       ├── pre-edit-adapter.sh

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Shared guidance for Codex CLI, deployed globally to `~/.codex/AGENTS.md` by `install.sh` (mirroring `.claude/` → `~/.claude/`). This file carries the items from this repository's cross-agent guardrail decision record (`specs/012-cross-agent-guardrail-migration/decision-record.md`) that are prose-appropriate for Codex CLI. Real enforcement (destructive-command blocking, pre-edit blocking, post-edit formatting) is implemented as actual Codex CLI hooks, not prose — see the "Enforced via hook" section below for what that covers.
+Shared guidance for Codex CLI, deployed globally to `~/.codex/AGENTS.md` by `install.sh` (mirroring `.claude/` → `~/.claude/`). This file lives at the repo root — where Codex CLI actually reads a project-scope `AGENTS.md` from — with a `.codex/AGENTS.md` symlink back to this file for anyone browsing `.codex/` alongside `.codex/hooks/`. This file carries the items from this repository's cross-agent guardrail decision record (`specs/012-cross-agent-guardrail-migration/decision-record.md`) that are prose-appropriate for Codex CLI. Real enforcement (destructive-command blocking, pre-edit blocking, post-edit formatting) is implemented as actual Codex CLI hooks, not prose — see the "Enforced via hook" section below for what that covers.
 
 ## Tool use
 
