@@ -31,7 +31,7 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Confirm the exact insertion point in the existing skill file before editing it
 
-- [ ] T001 Read `/Users/taikiogihara/.claude/skills/coder/SKILL.md` in full and confirm the insertion point for a new "Type Safety" section (after "Documentation Sync", before "Code quality and security", per plan.md's Summary) does not collide with existing headings
+- [X] T001 Read `/Users/taikiogihara/.claude/skills/coder/SKILL.md` in full and confirm the insertion point for a new "Type Safety" section (after "Documentation Sync", before "Code quality and security", per plan.md's Summary) does not collide with existing headings
 
 ---
 
@@ -41,7 +41,7 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user-story instruction bullets are added until this phase is complete — all stories edit the same section of the same file
 
-- [ ] T002 Add the "Type Safety" section heading, one-sentence framing (ties to the existing "run the repository's configured linter, formatter, type-checker, and test runner" line already in "Language and stack conventions"), and the FR-007 guardrail ("follow the existing repo convention; do not introduce a new typing system, annotate untouched code, or perform unrelated typing refactors beyond the agreed task") to `/Users/taikiogihara/.claude/skills/coder/SKILL.md`
+- [X] T002 Add the "Type Safety" section heading, one-sentence framing (ties to the existing "run the repository's configured linter, formatter, type-checker, and test runner" line already in "Language and stack conventions"), and the FR-007 guardrail ("follow the existing repo convention; do not introduce a new typing system, annotate untouched code, or perform unrelated typing refactors beyond the agreed task") to `/Users/taikiogihara/.claude/skills/coder/SKILL.md`
 
 **Checkpoint**: Section scaffold exists — user story instruction bullets can now be added in priority order
 
@@ -55,8 +55,8 @@ description: "Task list template for feature implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T003 [US1] Add FR-001/FR-002 instruction bullets (annotate new/changed public interfaces; update annotations when inputs/outputs change) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md`
-- [ ] T004 [P] [US1] Create behavioral test scenario `tests/type-safety-coder/001-typed-public-interface.md` per Contract 1 in `contracts/type-safety-behavior.md`, following the `tests/live-documentation/001-drift-detection.md` format (`# Test:`, `## Input Prompt`, `## Expected Behavior`, `## Pass Criteria`, `## Baseline`)
+- [X] T003 [US1] Add FR-001/FR-002 instruction bullets (annotate new/changed public interfaces; update annotations when inputs/outputs change) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md`
+- [X] T004 [P] [US1] Create behavioral test scenario `tests/type-safety-coder/001-typed-public-interface.md` per Contract 1 in `contracts/type-safety-behavior.md`, following the `tests/live-documentation/001-drift-detection.md` format (`# Test:`, `## Input Prompt`, `## Expected Behavior`, `## Pass Criteria`, `## Baseline`)
 
 **Checkpoint**: User Story 1 behavior is instructed and independently testable
 
@@ -70,8 +70,8 @@ description: "Task list template for feature implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T005 [US2] Add FR-003/FR-004 instruction bullets (prefer correcting the type mismatch over suppression; justify and surface any unavoidable escape with a comment) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md` (after T002)
-- [ ] T006 [P] [US2] Create behavioral test scenario `tests/type-safety-coder/002-no-unsafe-escape.md` per Contract 2 in `contracts/type-safety-behavior.md`, same format as T004
+- [X] T005 [US2] Add FR-003/FR-004 instruction bullets (prefer correcting the type mismatch over suppression; justify and surface any unavoidable escape with a comment) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md` (after T002)
+- [X] T006 [P] [US2] Create behavioral test scenario `tests/type-safety-coder/002-no-unsafe-escape.md` per Contract 2 in `contracts/type-safety-behavior.md`, same format as T004
 
 **Checkpoint**: User Stories 1 and 2 both instructed and independently testable
 
@@ -85,8 +85,8 @@ description: "Task list template for feature implementation"
 
 ### Implementation for User Story 3
 
-- [ ] T007 [US3] Add FR-005 instruction bullet (run the configured type checker alongside test/lint/format before reporting done; resolve or surface introduced errors) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md` (after T002)
-- [ ] T008 [P] [US3] Create behavioral test scenario `tests/type-safety-coder/003-type-checker-verification.md` per Contract 3 in `contracts/type-safety-behavior.md`, same format as T004
+- [X] T007 [US3] Add FR-005 instruction bullet (run the configured type checker alongside test/lint/format before reporting done; resolve or surface introduced errors) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md` (after T002)
+- [X] T008 [P] [US3] Create behavioral test scenario `tests/type-safety-coder/003-type-checker-verification.md` per Contract 3 in `contracts/type-safety-behavior.md`, same format as T004
 
 **Checkpoint**: User Stories 1–3 instructed and independently testable
 
@@ -100,8 +100,8 @@ description: "Task list template for feature implementation"
 
 ### Implementation for User Story 4
 
-- [ ] T009 [US4] Add FR-006 instruction bullet (validate/narrow boundary-crossing data before treating it as a typed internal value) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md` (after T002)
-- [ ] T010 [P] [US4] Create behavioral test scenario `tests/type-safety-coder/004-boundary-validation.md` per Contract 4 in `contracts/type-safety-behavior.md`, same format as T004
+- [X] T009 [US4] Add FR-006 instruction bullet (validate/narrow boundary-crossing data before treating it as a typed internal value) to the "Type Safety" section in `/Users/taikiogihara/.claude/skills/coder/SKILL.md` (after T002)
+- [X] T010 [P] [US4] Create behavioral test scenario `tests/type-safety-coder/004-boundary-validation.md` per Contract 4 in `contracts/type-safety-behavior.md`, same format as T004
 
 **Checkpoint**: All four user stories instructed and independently testable
 
@@ -111,10 +111,10 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Wire up the test runner, keep repo-level references current, and validate end-to-end
 
-- [ ] T011 [P] Create `tests/run-type-safety-coder.sh`, a bash runner modeled on `tests/run-live-documentation.sh` that iterates `tests/type-safety-coder/*.md`, evaluates each via `claude -p`, and reports PASS/FAIL with a non-zero exit on failure; `chmod +x` it
-- [ ] T012 Update the `<!-- SPECKIT START --> … <!-- SPECKIT END -->` block in root `CLAUDE.md` to reference `specs/011-type-safety-coder/plan.md`, following the pattern in `specs/009-live-doc-enforcement/plan.md` (T009)
-- [ ] T013 Re-read the full `/Users/taikiogihara/.claude/skills/coder/SKILL.md` after T002–T010 and confirm existing sections (TDD, SDD, Documentation Sync, Code quality and security, Language and stack conventions) are unchanged in substance and ordering
-- [ ] T014 Run `bash tests/run-type-safety-coder.sh` per `quickstart.md` and confirm all four scenarios PASS
+- [X] T011 [P] Create `tests/run-type-safety-coder.sh`, a bash runner modeled on `tests/run-live-documentation.sh` that iterates `tests/type-safety-coder/*.md`, evaluates each via `claude -p`, and reports PASS/FAIL with a non-zero exit on failure; `chmod +x` it
+- [X] T012 Update the `<!-- SPECKIT START --> … <!-- SPECKIT END -->` block in root `CLAUDE.md` to reference `specs/011-type-safety-coder/plan.md`, following the pattern in `specs/009-live-doc-enforcement/plan.md` (T009)
+- [X] T013 Re-read the full `/Users/taikiogihara/.claude/skills/coder/SKILL.md` after T002–T010 and confirm existing sections (TDD, SDD, Documentation Sync, Code quality and security, Language and stack conventions) are unchanged in substance and ordering
+- [X] T014 Run `bash tests/run-type-safety-coder.sh` per `quickstart.md` and confirm all four scenarios PASS
 
 ---
 
