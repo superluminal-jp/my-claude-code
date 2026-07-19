@@ -66,6 +66,124 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   echo "Synced managed paths from $SOURCE_DIR -> $TARGET_DIR"
 fi
 
+# 1a. Sync the shared guardrail scripts (repo-root scripts/guardrails/, not
+# under .claude/ — they're consumed by both Claude Code's hooks and Codex
+# CLI's adapters, so they're deployed here as a sibling of hooks/rules/skills
+# rather than nested under either tool's own directory). Both
+# .claude/hooks/*.sh and .codex/hooks/*.sh resolve this same installed copy
+# once deployed, so guardrail behavior stays correct regardless of which
+# project you're currently working in.
+GUARDRAILS_SRC="$SCRIPT_DIR/scripts/guardrails"
+GUARDRAILS_DST="$TARGET_DIR/scripts/guardrails"
+if [ -d "$GUARDRAILS_SRC" ]; then
+  rm -rf "$GUARDRAILS_DST"
+  mkdir -p "$GUARDRAILS_DST"
+  cp -R "$GUARDRAILS_SRC"/. "$GUARDRAILS_DST/"
+  chmod +x "$GUARDRAILS_DST"/*.sh
+  echo "Synced shared guardrail scripts -> $GUARDRAILS_DST"
+fi
+
+# 1b. Deploy AGENTS.md to Codex CLI's global config (mirrors the .claude/ sync above)
+CODEX_TARGET_DIR="$HOME/.codex"
+AGENTS_MD_SRC="$SCRIPT_DIR/AGENTS.md"
+AGENTS_MD_DST="$CODEX_TARGET_DIR/AGENTS.md"
+if [ -f "$AGENTS_MD_SRC" ]; then
+  mkdir -p "$CODEX_TARGET_DIR"
+  if [ -s "$AGENTS_MD_DST" ] && ! cmp -s "$AGENTS_MD_SRC" "$AGENTS_MD_DST"; then
+    cp "$AGENTS_MD_DST" "$AGENTS_MD_DST.bak"
+    echo "Note: $AGENTS_MD_DST had different content; previous version saved to $AGENTS_MD_DST.bak" >&2
+  fi
+  cp "$AGENTS_MD_SRC" "$AGENTS_MD_DST"
+  echo "Synced AGENTS.md -> $AGENTS_MD_DST"
+fi
+
+# 1c. Symlink this repo's custom skills into Codex CLI's global skill discovery
+# path ($HOME/.agents/skills), pointing at the copy sync_path("skills") just
+# placed under ~/.claude/skills — not back at this repository's working tree,
+# so the link survives even if this clone is later moved or deleted.
+# speckit-* skills are excluded: they're per-project generated artifacts (see
+# the speckit-* stripping above), not part of this repo's global skill set.
+CODEX_SKILLS_DIR="$HOME/.agents/skills"
+CUSTOM_SKILLS="adr advisor clarifier coder domain-model minto-builder minto-reviewer minto-rewriter ubiquitous-language"
+if [ -d "$TARGET_DIR/skills" ]; then
+  mkdir -p "$CODEX_SKILLS_DIR"
+  for skill in $CUSTOM_SKILLS; do
+    ln -sfn "$TARGET_DIR/skills/$skill" "$CODEX_SKILLS_DIR/$skill"
+  done
+  echo "Symlinked custom skills -> $CODEX_SKILLS_DIR"
+fi
+
+# 1d. Deploy and register this repo's Codex CLI hook adapters in
+# ~/.codex/config.toml. Uses a marker-delimited managed block so re-running
+# this installer replaces the block instead of duplicating entries
+# (idempotent) and never touches the rest of the user's config.toml. Each
+# adapter is registered only if its script exists under .codex/hooks/, so
+# this loop needs no changes as more adapters are added.
+CODEX_CONFIG="$HOME/.codex/config.toml"
+CODEX_HOOKS_SRC_DIR="$SCRIPT_DIR/.codex/hooks"
+CODEX_HOOKS_DST_DIR="$HOME/.codex/hooks"
+CODEX_HOOKS_BEGIN="# >>> my-claude-code managed hooks (do not edit by hand; see install.sh) >>>"
+CODEX_HOOKS_END="# <<< my-claude-code managed hooks <<<"
+
+if [ -d "$CODEX_HOOKS_SRC_DIR" ] && [ -n "$(ls -A "$CODEX_HOOKS_SRC_DIR"/*.sh 2>/dev/null)" ]; then
+  mkdir -p "$CODEX_HOOKS_DST_DIR"
+  cp "$CODEX_HOOKS_SRC_DIR"/*.sh "$CODEX_HOOKS_DST_DIR/"
+  chmod +x "$CODEX_HOOKS_DST_DIR"/*.sh
+
+  mkdir -p "$(dirname "$CODEX_CONFIG")"
+  touch "$CODEX_CONFIG"
+
+  # Strip any previous managed block before regenerating it.
+  python3 - "$CODEX_CONFIG" "$CODEX_HOOKS_BEGIN" "$CODEX_HOOKS_END" <<'PYEOF'
+import sys
+path, begin, end = sys.argv[1:4]
+with open(path) as f:
+    lines = f.readlines()
+out, skipping = [], False
+for line in lines:
+    if line.strip() == begin:
+        skipping = True
+        continue
+    if line.strip() == end:
+        skipping = False
+        continue
+    if not skipping:
+        out.append(line)
+with open(path, "w") as f:
+    f.writelines(out)
+PYEOF
+
+  python3 - "$CODEX_CONFIG" "$CODEX_HOOKS_DST_DIR" "$CODEX_HOOKS_BEGIN" "$CODEX_HOOKS_END" <<'PYEOF'
+import sys
+config_path, hooks_dir, begin, end = sys.argv[1:5]
+
+# (adapter script filename, hook event, matcher)
+ADAPTERS = [
+    ("destructive-command-adapter.sh", "PreToolUse", "Bash"),
+    ("pre-edit-adapter.sh", "PreToolUse", "apply_patch|Edit|Write"),
+    ("post-edit-adapter.sh", "PostToolUse", "apply_patch|Edit|Write"),
+]
+
+import os
+lines = [begin]
+for filename, event, matcher in ADAPTERS:
+    script_path = os.path.join(hooks_dir, filename)
+    if not os.path.isfile(script_path):
+        continue
+    lines.append(f"[[hooks.{event}]]")
+    lines.append(f'matcher = "{matcher}"')
+    lines.append(f"[[hooks.{event}.hooks]]")
+    lines.append('type = "command"')
+    lines.append(f'command = "{script_path}"')
+lines.append(end)
+
+with open(config_path, "a") as f:
+    f.write("\n" + "\n".join(lines) + "\n")
+PYEOF
+
+  echo "Registered Codex CLI hook adapters -> $CODEX_CONFIG"
+fi
+
 # 2. Ensure hook scripts and this installer are executable
 chmod +x "$TARGET_DIR"/hooks/*.sh
 chmod +x "$TARGET_DIR"/install.sh

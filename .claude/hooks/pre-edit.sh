@@ -1,8 +1,27 @@
 #!/usr/bin/env bash
 # PreToolUse hook: validate Edit/Write/Delete operations
 # Exit 2 = block (stderr shown to Claude); exit 0 = allow
+#
+# Thin wrapper: the .git/ and main/master-branch block logic lives in
+# scripts/guardrails/pre-edit-block.sh, shared with the Codex CLI adapter at
+# .codex/hooks/pre-edit-adapter.sh. See
+# specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md.
+# The CI/settings/production-path warnings below are Claude Code-specific
+# prose reminders (Q1 — AGENTS.md carries the Codex CLI equivalent) and stay
+# here unchanged, since they were never part of the shared script's contract.
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# See pre-bash.sh for why this isn't resolved via CLAUDE_PROJECT_DIR alone.
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -x "$CLAUDE_PROJECT_DIR/scripts/guardrails/pre-edit-block.sh" ]; then
+  SHARED="$CLAUDE_PROJECT_DIR/scripts/guardrails/pre-edit-block.sh"
+elif [ -x "$HOME/.claude/scripts/guardrails/pre-edit-block.sh" ]; then
+  SHARED="$HOME/.claude/scripts/guardrails/pre-edit-block.sh"
+else
+  SHARED="$SCRIPT_DIR/../../scripts/guardrails/pre-edit-block.sh"
+fi
 
 FILE_PATH=""
 TOOL_NAME=""
@@ -16,20 +35,17 @@ fi
 [ -z "$TOOL_NAME" ] && TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
 [ -z "$FILE_PATH" ] && FILE_PATH="${CLAUDE_TOOL_INPUT_PATH:-}"
 
-# Block direct edits to .git internals
-if [ -n "$FILE_PATH" ] && echo "$FILE_PATH" | grep -qE '(^|/)\.git/'; then
-    echo "Direct modification of .git/ is not allowed." >&2
-    exit 2
-fi
-
-# Block edits on main/master (only when project dir is known to avoid false positives)
-if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
-    if (cd "$CLAUDE_PROJECT_DIR" && git rev-parse --git-dir >/dev/null 2>&1); then
-        CURRENT_BRANCH=$(cd "$CLAUDE_PROJECT_DIR" && git branch --show-current 2>/dev/null || echo "")
-        if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-            echo "Cannot $TOOL_NAME on $CURRENT_BRANCH branch. Create a feature branch first: git checkout -b feature/your-feature" >&2
-            exit 2
-        fi
+if [ -x "$SHARED" ]; then
+    RESULT=$(jq -n --arg tool_name "$TOOL_NAME" --arg path "$FILE_PATH" --arg project_dir "${CLAUDE_PROJECT_DIR:-}" \
+        '{tool_name:$tool_name, path:$path, project_dir:$project_dir}' | bash "$SHARED" 2>/dev/null) || {
+        echo "Pre-edit guardrail script failed; blocking as a precaution." >&2
+        exit 2
+    }
+    DECISION=$(echo "$RESULT" | jq -r '.decision // empty')
+    REASON=$(echo "$RESULT" | jq -r '.reason // empty')
+    if [ "$DECISION" = "deny" ]; then
+        echo "$REASON" >&2
+        exit 2
     fi
 fi
 
