@@ -25,6 +25,7 @@
 - Q: `session-start.sh` — lintツールチェーン自動導入をどう扱うか？ → A: 弱い形で共通化する（推奨案「Claude専用維持」は不採用。AGENTS.mdに「shfmt/shellcheck/yamllint/jqが必要」という前提を明記する注意書きを追加。ただし実行トリガーは無く、自動インストールは再現しない）
 - Q: `speckit-expand-update.sh` — Spec Kit CLI自動更新をどう扱うか？ → A: 弱い形で共通化する（推奨案「Claude専用維持」は不採用。AGENTS.mdに「Spec Kitは`specify init`で最新化する」という注意書きを追加。自動更新の手続き自体は再現しない）
 - Q: `tools.md` Memoryセクションをどう扱うか？ → A: 弱い形で共通化する（推奨案「Claude専用維持」は不採用。Claude Memory機構そのものへの言及は避け、「決定事項・規約は永続化して再利用する」という機構非依存の一般的な注意書きをAGENTS.mdに追加）
+- Q: `tools.md` Subagentsセクションをどう扱うか？ → A: 共通化する（`Agent`ツール等の機構名を除いた「広範な探索は委譲してコンテキストを守る」という原則のみAGENTS.mdに追加）
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -76,7 +77,7 @@ As the maintainer, I want to walk through the items that cannot be reproduced as
 2. **Given** `pre-edit.sh`'s `.git/`-direct-edit block, **When** the maintainer is presented with its low-frequency/low-impact profile, **Then** the maintainer records a verdict. **Recorded verdict**: 弱い共通化 — a prose-only "don't edit .git/ directly" note in `AGENTS.md` for both tools, no enforcement guarantee.
 3. **Given** `session-start.sh`'s lint-toolchain bootstrap, **When** the maintainer is presented with its Claude-Code-on-the-web-specific scope, **Then** the maintainer records a verdict. **Recorded verdict**: 弱い共通化 — a prose note in `AGENTS.md` documenting that shfmt/shellcheck/yamllint/jq are expected to be present, for both tools. No execution trigger exists to reproduce the automatic install; this is documentation of an assumption, not an actionable instruction.
 4. **Given** `speckit-expand-update.sh`'s Spec Kit CLI auto-update, **When** the maintainer is presented with its procedural (non-instructable) nature, **Then** the maintainer records a verdict. **Recorded verdict**: 弱い共通化 — a prose note in `AGENTS.md` for both tools pointing to `specify init` as the way to keep Spec Kit current. The automatic-update procedure itself (version check, CLI reinstall, constitution.md protection) is not reproduced.
-5. **Given** `tools.md`'s Memory and Subagents sections, **When** the maintainer is presented with their dependency on Claude-Code-specific mechanisms, **Then** the maintainer records a verdict. **Recorded verdict (Memory)**: 弱い共通化 — mechanism-agnostic note in `AGENTS.md` ("persist decisions/conventions for reuse") with no reference to the Claude Memory tool itself.
+5. **Given** `tools.md`'s Memory and Subagents sections, **When** the maintainer is presented with their dependency on Claude-Code-specific mechanisms, **Then** the maintainer records a verdict. **Recorded verdict (Memory)**: 弱い共通化 — mechanism-agnostic note in `AGENTS.md` ("persist decisions/conventions for reuse") with no reference to the Claude Memory tool itself. **Recorded verdict (Subagents)**: 共通化 — mechanism-agnostic principle ("delegate broad exploration to protect context") in `AGENTS.md`, stripped of Claude Code-specific mechanism names (`Agent` tool, `subagent_type`).
 
 ### Edge Cases
 
