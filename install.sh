@@ -53,6 +53,12 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   sync_path "hooks"
   sync_path "rules"
   sync_path "skills"
+  # speckit-* skills are generated locally per-project by `specify init`
+  # (gitignored, never committed — see docs/adr/0001-remove-vendored-speckit-skills.md).
+  # If a local `specify init` has populated $SOURCE_DIR/skills/speckit-*, the
+  # blanket skills sync above would otherwise re-vendor them into the shared
+  # user-scope install; strip them so ~/.claude/skills never carries Spec Kit.
+  rm -rf "$TARGET_DIR"/skills/speckit-*
   sync_path "commands"
   sync_path "CLAUDE.md"
   sync_path "settings.json"
