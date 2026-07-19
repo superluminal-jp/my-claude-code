@@ -49,6 +49,15 @@ README and `docs/` must reflect current code. Update docs in the **same change**
 | New dependency or install step | README prerequisites / setup |
 | Deprecated feature | README + inline deprecation notice |
 
+# Type Safety
+
+Applies whenever the active language supports static or gradual typing (e.g., TypeScript, Python with type hints, Go, Rust, Swift, Kotlin, Java, C#). Composes with "Language and stack conventions" below — match the repo's existing typing convention; do not introduce a new typing system, annotate untouched code, or perform unrelated typing refactors beyond the agreed task.
+
+- **Annotate public interfaces**: new or changed public functions, exported values, and class members carry explicit type annotations consistent with the project's existing convention. When a change alters a typed interface's inputs or outputs, update its annotations in the same change — not just the implementation.
+- **No unsafe escapes by default**: when a type-checking error occurs, fix the underlying type mismatch (narrowing, correct typing, or a small refactor) rather than reaching for `any`, a blanket cast, a suppression comment (`# type: ignore`, `@ts-ignore`), or a non-null assertion. If an escape is genuinely unavoidable (e.g., an untyped third-party library), add a one-line comment stating why and surface the trade-off to the user.
+- **Verify, don't just annotate**: when the project has a configured type checker (`tsc`, `mypy`, `pyright`, etc.), run it as part of pre-completion verification alongside the test/lint/format checks in "Language and stack conventions," and resolve any type error the change introduced before reporting done. Projects with no type checker configured are unaffected — do not fabricate this step.
+- **Validate at boundaries**: data crossing into typed code from outside the type system's guarantee (user input, external API responses, deserialized payloads, environment/config values) is validated or narrowed into the expected type at the boundary, not trusted or cast without verification. Do not add redundant validation for already-typed internal data with no boundary crossing.
+
 # Code quality and security
 
 Applies to implementation work in the repo. Composes with TDD/SDD/docs above and with `tools.md` in `rules/`.
