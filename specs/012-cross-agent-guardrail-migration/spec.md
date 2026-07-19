@@ -13,6 +13,7 @@
 ### Session 2026-07-19
 
 - Q: `pre-edit.sh` — CI/settings/production編集時の警告を共通化するか？ → A: 共通化する（AGENTS.mdに転記。ブロックでなく警告のため実効性の劣化なし）
+- Q: `tools.md` — 「構造化ツール優先」「独立作業は並列化」の原則を共通化するか？ → A: 共通化する（ツール名を各ツールの語彙に一般化した文言でAGENTS.mdに転記）
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -28,7 +29,7 @@ As the maintainer of this `.claude/` configuration, I want to walk through the i
 
 1. **Given** the `mcp.md` catalog-and-usage-rule item, **When** the maintainer is presented with its current behavior and options, **Then** the maintainer records a verdict (unify into `AGENTS.md` / keep Claude-only) with rationale.
 2. **Given** the `skill-routing.md` routing-table item, **When** the maintainer is presented with its current behavior, options, and the precondition that skill files must be discoverable by each tool, **Then** the maintainer records a verdict with rationale.
-3. **Given** the `tools.md` "prefer dedicated tools / parallelize independent calls" principles, **When** the maintainer is presented with the tool-name-genericization tradeoff, **Then** the maintainer records a verdict with rationale.
+3. **Given** the `tools.md` "prefer dedicated tools / parallelize independent calls" principles, **When** the maintainer is presented with the tool-name-genericization tradeoff, **Then** the maintainer records a verdict with rationale. **Recorded verdict**: 共通化 — genericize tool names (Read/Edit/Grep → each tool's own vocabulary) and transcribe into `AGENTS.md`.
 4. **Given** the `pre-edit.sh` warning-only checks (CI config, `.claude/settings.json`, production config), **When** the maintainer is presented with the warning-vs-block distinction, **Then** the maintainer records a verdict with rationale. **Recorded verdict**: 共通化 — transcribe verbatim into `AGENTS.md`.
 
 ---
