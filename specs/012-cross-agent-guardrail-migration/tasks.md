@@ -29,7 +29,7 @@ Single documentation artifact: `specs/012-cross-agent-guardrail-migration/decisi
 
 **Purpose**: Create the output file and its top-level structure.
 
-- [ ] T001 Create `specs/012-cross-agent-guardrail-migration/decision-record.md` with a title, a one-paragraph intro linking back to `spec.md`, and three empty section headers ("P1 — Low-Cost Unification", "P2 — Per-Tool Tradeoff", "P3 — No Cross-Agent Hook Equivalent"), per `data-model.md`'s Decision Record entity.
+- [X] T001 Create `specs/012-cross-agent-guardrail-migration/decision-record.md` with a title, a one-paragraph intro linking back to `spec.md`, and three empty section headers ("P1 — Low-Cost Unification", "P2 — Per-Tool Tradeoff", "P3 — No Cross-Agent Hook Equivalent"), per `data-model.md`'s Decision Record entity.
 
 ---
 
@@ -39,7 +39,7 @@ Single documentation artifact: `specs/012-cross-agent-guardrail-migration/decisi
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 In `specs/012-cross-agent-guardrail-migration/decision-record.md`, write the shared per-item entry template as a short explanatory note (fields: current Claude Code behavior, options considered, recorded verdict — labeled per-tool when it differs, rationale, unconfirmed-dependency flag), derived from `data-model.md`'s Decision Verdict entity and `research.md`'s R1–R5.
+- [X] T002 In `specs/012-cross-agent-guardrail-migration/decision-record.md`, write the shared per-item entry template as a short explanatory note (fields: current Claude Code behavior, options considered, recorded verdict — labeled per-tool when it differs, rationale, unconfirmed-dependency flag), derived from `data-model.md`'s Decision Verdict entity and `research.md`'s R1–R5.
 
 **Checkpoint**: Foundation ready — item write-ups can now begin.
 
@@ -53,10 +53,10 @@ Single documentation artifact: `specs/012-cross-agent-guardrail-migration/decisi
 
 ### Implementation for User Story 1
 
-- [ ] T003 [US1] Write the Q1 entry (`pre-edit.sh` CI/settings/production warnings) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q1 and User Story 1 Acceptance Scenario 4.
-- [ ] T004 [US1] Write the Q2 entry (`tools.md` dedicated-tools/parallel-calls principles) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q2 and Acceptance Scenario 3; note the tool-name genericization.
-- [ ] T005 [US1] Write the Q3 entry (`skill-routing.md` routing table) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q3 and Acceptance Scenario 2; include the SKILL.md-discoverability precondition and flag it against `research.md` R5 (unify_full but the routing table's *usefulness* depends on R2/R1-level, Medium-confidence skill-loading claims).
-- [ ] T006 [US1] Write the Q4 entry (`mcp.md` catalog + usage rule) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q4 and Acceptance Scenario 1.
+- [X] T003 [US1] Write the Q1 entry (`pre-edit.sh` CI/settings/production warnings) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q1 and User Story 1 Acceptance Scenario 4.
+- [X] T004 [US1] Write the Q2 entry (`tools.md` dedicated-tools/parallel-calls principles) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q2 and Acceptance Scenario 3; note the tool-name genericization.
+- [X] T005 [US1] Write the Q3 entry (`skill-routing.md` routing table) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q3 and Acceptance Scenario 2; include the SKILL.md-discoverability precondition and flag it against `research.md` R5 (unify_full but the routing table's *usefulness* depends on R2/R1-level, Medium-confidence skill-loading claims).
+- [X] T006 [US1] Write the Q4 entry (`mcp.md` catalog + usage rule) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q4 and Acceptance Scenario 1.
 
 **Checkpoint**: P1 section of `decision-record.md` complete and independently readable.
 
@@ -70,10 +70,10 @@ Single documentation artifact: `specs/012-cross-agent-guardrail-migration/decisi
 
 ### Implementation for User Story 2
 
-- [ ] T007 [US2] Write the Q5 entry (`user-prompt-submit.sh` secret detection) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q5 and Acceptance Scenario 1 (US2); explicitly state that Cursor's `beforeSubmitPrompt` was a viable option that was declined, per FR-007/SC-003, and flag `research.md` R2 as the unconfirmed dependency.
-- [ ] T008 [US2] Write the Q6 entry (`pre-bash.sh` destructive-command blocking) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q6 and Acceptance Scenario 2 (US2); mark this as the highest-priority follow-up implementation item (real enforcement across all three tools) and flag `research.md` R1–R3 as unconfirmed dependencies.
-- [ ] T009 [US2] Write the Q7 entry (`post-edit-format.sh` auto-formatting) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q7 and Acceptance Scenario 3 (US2); explicitly state that Cursor's `afterFileEdit` was viable but declined, per FR-007/SC-003.
-- [ ] T010 [US2] Write the Q8 entry (`recommend-speckit.sh` nudge) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q8 and Acceptance Scenario 4 (US2); note the accepted throttle-cache degradation.
+- [X] T007 [US2] Write the Q5 entry (`user-prompt-submit.sh` secret detection) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q5 and Acceptance Scenario 1 (US2); explicitly state that Cursor's `beforeSubmitPrompt` was a viable option that was declined, per FR-007/SC-003, and flag `research.md` R2 as the unconfirmed dependency.
+- [X] T008 [US2] Write the Q6 entry (`pre-bash.sh` destructive-command blocking) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q6 and Acceptance Scenario 2 (US2); mark this as the highest-priority follow-up implementation item (real enforcement across all three tools) and flag `research.md` R1–R3 as unconfirmed dependencies.
+- [X] T009 [US2] Write the Q7 entry (`post-edit-format.sh` auto-formatting) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q7 and Acceptance Scenario 3 (US2); explicitly state that Cursor's `afterFileEdit` was viable but declined, per FR-007/SC-003.
+- [X] T010 [US2] Write the Q8 entry (`recommend-speckit.sh` nudge) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q8 and Acceptance Scenario 4 (US2); note the accepted throttle-cache degradation.
 
 **Checkpoint**: P1 and P2 sections both complete and independently readable.
 
@@ -87,12 +87,12 @@ Single documentation artifact: `specs/012-cross-agent-guardrail-migration/decisi
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] Write the Q9 entry (`pre-edit.sh` main/master-branch block) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q9; explicitly name GitHub Branch Protection as the recommended-but-declined alternative, per Acceptance Scenario 1 (US3)'s requirement to name the chosen control.
-- [ ] T012 [US3] Write the Q10 entry (`pre-edit.sh` `.git/`-direct-edit block) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q10 and Acceptance Scenario 2 (US3).
-- [ ] T013 [US3] Write the Q11 entry (`session-start.sh` lint-toolchain bootstrap) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q11 and Acceptance Scenario 3 (US3); note that the resulting `AGENTS.md` text is documentation of an assumption, not an actionable instruction (no execution trigger exists).
-- [ ] T014 [US3] Write the Q12 entry (`speckit-expand-update.sh` Spec Kit CLI auto-update) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q12 and Acceptance Scenario 4 (US3).
-- [ ] T015 [US3] Write the Q13 entry (`tools.md` Memory section) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q13 and the Memory half of Acceptance Scenario 5 (US3); confirm no reference to the Claude Memory tool leaks into the mechanism-agnostic phrasing.
-- [ ] T016 [US3] Write the Q14 entry (`tools.md` Subagents section) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q14 and the Subagents half of Acceptance Scenario 5 (US3); confirm no reference to Claude Code-specific mechanism names (`Agent` tool, `subagent_type`) leaks into the phrasing.
+- [X] T011 [US3] Write the Q9 entry (`pre-edit.sh` main/master-branch block) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q9; explicitly name GitHub Branch Protection as the recommended-but-declined alternative, per Acceptance Scenario 1 (US3)'s requirement to name the chosen control.
+- [X] T012 [US3] Write the Q10 entry (`pre-edit.sh` `.git/`-direct-edit block) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q10 and Acceptance Scenario 2 (US3).
+- [X] T013 [US3] Write the Q11 entry (`session-start.sh` lint-toolchain bootstrap) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q11 and Acceptance Scenario 3 (US3); note that the resulting `AGENTS.md` text is documentation of an assumption, not an actionable instruction (no execution trigger exists).
+- [X] T014 [US3] Write the Q12 entry (`speckit-expand-update.sh` Spec Kit CLI auto-update) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q12 and Acceptance Scenario 4 (US3).
+- [X] T015 [US3] Write the Q13 entry (`tools.md` Memory section) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q13 and the Memory half of Acceptance Scenario 5 (US3); confirm no reference to the Claude Memory tool leaks into the mechanism-agnostic phrasing.
+- [X] T016 [US3] Write the Q14 entry (`tools.md` Subagents section) in `specs/012-cross-agent-guardrail-migration/decision-record.md`, sourced from `spec.md`'s Clarifications Q14 and the Subagents half of Acceptance Scenario 5 (US3); confirm no reference to Claude Code-specific mechanism names (`Agent` tool, `subagent_type`) leaks into the phrasing.
 
 **Checkpoint**: All 14 items now recorded; `decision-record.md` is content-complete.
 
@@ -102,9 +102,9 @@ Single documentation artifact: `specs/012-cross-agent-guardrail-migration/decisi
 
 **Purpose**: Validate the finished record against `spec.md`'s Success Criteria and commit it.
 
-- [ ] T017 Run the `specs/012-cross-agent-guardrail-migration/quickstart.md` validation checklist (SC-001–SC-004, FR-009) against `specs/012-cross-agent-guardrail-migration/decision-record.md`.
-- [ ] T018 Cross-check the verdict-class distribution in `specs/012-cross-agent-guardrail-migration/decision-record.md` against the table in `specs/012-cross-agent-guardrail-migration/data-model.md` (expect 6 `unify_full`, 8 `unify_weak`, 0 dropped).
-- [ ] T019 Commit `specs/012-cross-agent-guardrail-migration/decision-record.md` and push to the current branch.
+- [X] T017 Run the `specs/012-cross-agent-guardrail-migration/quickstart.md` validation checklist (SC-001–SC-004, FR-009) against `specs/012-cross-agent-guardrail-migration/decision-record.md`.
+- [X] T018 Cross-check the verdict-class distribution in `specs/012-cross-agent-guardrail-migration/decision-record.md` against the table in `specs/012-cross-agent-guardrail-migration/data-model.md` (expect 6 `unify_full`, 8 `unify_weak`, 0 dropped).
+- [X] T019 Commit `specs/012-cross-agent-guardrail-migration/decision-record.md` and push to the current branch.
 
 ---
 
