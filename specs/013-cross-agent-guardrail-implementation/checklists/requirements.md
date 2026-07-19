@@ -31,5 +31,5 @@
 
 ## Notes
 
-- This feature's subject matter is cross-agent hook integration itself (Codex CLI `PreToolUse`, Cursor `beforeShellExecution`), so those tool/hook names appear as domain entities, not as an implementation choice made by this spec — consistent with the same pattern already validated in `specs/012-cross-agent-guardrail-migration/spec.md`, the decision record this feature implements.
-- All items pass on first validation pass; no spec revisions were needed.
+- This feature's subject matter is cross-agent hook and skill integration itself (Codex CLI `PreToolUse`, `.agents/skills`; Cursor `beforeShellExecution`), so those tool/mechanism names appear as domain entities, not as an implementation choice made by this spec — consistent with the same pattern already validated in `specs/012-cross-agent-guardrail-migration/spec.md`, the decision record this feature implements.
+- Revised after initial validation: the maintainer identified, via a primary source ([learn.chatgpt.com/docs/build-skills](https://learn.chatgpt.com/docs/build-skills)), that Codex CLI natively discovers skills via `.agents/skills/`. FR-004 was revised and FR-014–FR-016, User Story 4, and SC-006 were added to supersede the original Q3 prose-transcription approach with native sync, for Codex CLI. All checklist items were re-checked against the revised spec and still pass.
