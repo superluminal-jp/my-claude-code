@@ -4,6 +4,8 @@ Purpose: document what each hook script actually does and when it fires, so this
 
 Wiring is declared in `../settings.json` under `hooks` (and `statusLine` for the status line). All scripts are read-only with respect to their trigger unless noted, fail open on missing dependencies (`jq`, `shellcheck`, etc.), and never abort the session on their own errors except where a hook explicitly blocks (`exit 2`).
 
+**`pre-bash.sh`, `pre-edit.sh`, and `post-edit-format.sh` are thin wrappers** around shared scripts in `../../scripts/guardrails/`, so Codex CLI's adapters under `../../.codex/hooks/` can produce identical decisions from the same logic. See `../../specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md` for the shared stdin/stdout contract. Each wrapper resolves its shared script from (in order): the current project's own `scripts/guardrails/` (useful when working in this repo directly), then the globally-installed `~/.claude/scripts/guardrails/` (deployed by `install.sh` — **not** resolved via `CLAUDE_PROJECT_DIR`, since once installed these hooks run for every project on the machine, most of which aren't this repository), then a repo-relative fallback. Behavior test suites for all three live under `../../tests/run-destructive-command-guard.sh`, `run-pre-edit-guard.sh`, and `run-post-edit-format-guard.sh`.
+
 ## Hook index
 
 | Script | Event | Matcher | Effect |

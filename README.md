@@ -12,7 +12,10 @@ improvement history.
 
 The entire `.claude/` directory is designed to be copied wholesale to
 `~/.claude/`, making these settings, rules, hooks, and memory apply across
-every project on the machine.
+every project on the machine. `install.sh` also deploys a Codex CLI
+counterpart — `AGENTS.md`, this repo's custom skills, and shared guardrail
+scripts — so Codex CLI sessions get the same baseline guidance and
+enforcement (see [Codex CLI support](#codex-cli-support)).
 
 ## What this provides
 
@@ -50,6 +53,40 @@ every project on the machine.
 - **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and pinned
   versions across `.mcp.json`, `install.sh`, `settings.json`, and
   [`mcp.md`](.claude/rules/mcp.md) (requires `jq` on `PATH`)
+- **`AGENTS.md`** — Codex CLI's equivalent of the always-on prose in
+  `.claude/rules/`: baseline guidance plus explicit notes on which items
+  Codex CLI enforces via hook (destructive commands, `.git/`-edit and
+  main/master-edit blocks, post-edit formatting). Installed to
+  `~/.codex/AGENTS.md`
+- **`scripts/guardrails/`** — Shared, tool-agnostic guardrail scripts
+  (destructive-command blocking, pre-edit blocking, post-edit formatting).
+  `.claude/hooks/pre-bash.sh`, `pre-edit.sh`, and `post-edit-format.sh` are
+  thin wrappers around these; `.codex/hooks/` adapts the same scripts for
+  Codex CLI. See
+  [`specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md`](specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md)
+  for the shared stdin/stdout contract
+- **`.codex/hooks/`** — Codex CLI `PreToolUse`/`PostToolUse` adapters wrapping
+  `scripts/guardrails/`, installed to `~/.codex/hooks/` and registered in
+  `~/.codex/config.toml`
+
+## Codex CLI support
+
+`install.sh` deploys a Codex CLI counterpart alongside the `.claude/` sync,
+mirroring the same "author here, apply everywhere" model:
+
+| Repo source | Installed to | Purpose |
+|---|---|---|
+| `AGENTS.md` | `~/.codex/AGENTS.md` | Baseline guidance (Codex CLI's equivalent of `.claude/rules/`) |
+| `.claude/skills/{adr,advisor,clarifier,coder,domain-model,minto-builder,minto-reviewer,minto-rewriter,ubiquitous-language}` | `~/.agents/skills/<name>` (symlink) | Native skill discovery — the same `SKILL.md`, not a copy |
+| `scripts/guardrails/*.sh` | `~/.claude/scripts/guardrails/*.sh` | Shared guardrail logic, consumed by both tools' hooks |
+| `.codex/hooks/*.sh` | `~/.codex/hooks/*.sh`, registered in `~/.codex/config.toml` `[hooks]` | Codex CLI enforcement: destructive-command blocking, `.git/`/main-branch edit blocking, post-edit formatting |
+
+Cursor is explicitly out of scope — see
+[`specs/013-cross-agent-guardrail-implementation/spec.md`](specs/013-cross-agent-guardrail-implementation/spec.md).
+Codex CLI's exact hook registration format (`~/.codex/config.toml`'s
+`[hooks]` schema) was confirmed via documentation, not a live Codex CLI
+session, in the implementing session — re-verify against a real Codex CLI
+session before relying on it in a new environment.
 
 ## Install as user configuration
 
@@ -71,6 +108,13 @@ Re-running is safe: it re-syncs managed paths and upserts MCP servers.
   those managed paths.
 - Keep personal-only files in `~/.claude` outside managed paths, or re-apply
   them from a separate backup after install.
+- `~/.codex/AGENTS.md` is also synchronized by replacement, with one
+  exception: if it already has different content, the previous version is
+  saved to `~/.codex/AGENTS.md.bak` first rather than silently discarded.
+- `~/.codex/config.toml`'s `[hooks]` registration lives inside a
+  marker-delimited block (`# >>> my-claude-code managed hooks ... <<<`) that
+  the installer replaces wholesale on each run — the rest of `config.toml` is
+  never touched.
 
 ### Alternative: import via your own `CLAUDE.md`
 
@@ -86,9 +130,21 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
-├── install.sh                      # Copy .claude/ to ~/.claude/ + register MCP servers
+├── AGENTS.md                       # Codex CLI baseline guidance; installed to ~/.codex/AGENTS.md
+├── install.sh                      # Copy .claude/ to ~/.claude/ + Codex CLI artifacts + register MCP servers
 ├── scripts/
-│   └── check-mcp-consistency.sh    # MCP catalog drift check (jq required)
+│   ├── check-mcp-consistency.sh    # MCP catalog drift check (jq required)
+│   └── guardrails/                 # Shared guardrail scripts (Claude Code + Codex CLI both call these)
+│       ├── destructive-command.sh
+│       ├── pre-edit-block.sh
+│       └── post-edit-format.sh
+├── .codex/
+│   └── hooks/                      # Codex CLI PreToolUse/PostToolUse adapters; installed to ~/.codex/hooks/
+│       ├── destructive-command-adapter.sh
+│       ├── pre-edit-adapter.sh
+│       └── post-edit-adapter.sh
+├── .agents/
+│   └── skills/                     # Symlinks to .claude/skills/<name>, for Codex CLI's native discovery
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
 └── .claude/                        # <-- copy this directory's contents to ~/.claude/
     ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)

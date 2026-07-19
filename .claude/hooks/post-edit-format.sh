@@ -1,8 +1,26 @@
 #!/usr/bin/env bash
 # PostToolUse hook: format and lint edited files
 # Silently formats; writes warnings to stderr on errors
+#
+# Thin wrapper: the .sh/.yaml/.yml/.json formatting logic lives in
+# scripts/guardrails/post-edit-format.sh, shared with the Codex CLI adapter
+# at .codex/hooks/post-edit-adapter.sh. See
+# specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md.
+# The */CLAUDE.md @import check below is Claude Code-specific and stays
+# here unchanged, since Codex CLI has no CLAUDE.md.
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# See pre-bash.sh for why this isn't resolved via CLAUDE_PROJECT_DIR alone.
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -x "$CLAUDE_PROJECT_DIR/scripts/guardrails/post-edit-format.sh" ]; then
+    SHARED="$CLAUDE_PROJECT_DIR/scripts/guardrails/post-edit-format.sh"
+elif [ -x "$HOME/.claude/scripts/guardrails/post-edit-format.sh" ]; then
+    SHARED="$HOME/.claude/scripts/guardrails/post-edit-format.sh"
+else
+    SHARED="$SCRIPT_DIR/../../scripts/guardrails/post-edit-format.sh"
+fi
 
 FILE_PATH=""
 if [ ! -t 0 ]; then
@@ -16,29 +34,16 @@ fi
 [ -z "$FILE_PATH" ] && exit 0
 [ -f "$FILE_PATH" ] || exit 0
 
+if [ -x "$SHARED" ]; then
+    RESULT=$(jq -n --arg path "$FILE_PATH" '{path:$path}' | bash "$SHARED" 2>/dev/null) || RESULT=""
+    if [ -n "$RESULT" ]; then
+        echo "$RESULT" | jq -r '.warnings[]? // empty' | while IFS= read -r w; do
+            [ -n "$w" ] && echo "Warning: $w" >&2
+        done
+    fi
+fi
+
 case "$FILE_PATH" in
-    *.json)
-        if command -v jq >/dev/null 2>&1; then
-            if ! jq empty "$FILE_PATH" 2>/dev/null; then
-                echo "Warning: JSON syntax error in $FILE_PATH" >&2
-            fi
-        fi
-        ;;
-    *.sh)
-        if command -v shfmt >/dev/null 2>&1; then
-            # Pin 2-space indent to match repo scripts; shfmt defaults to tabs,
-            # which would reformat every space-indented script on next edit.
-            shfmt -w -i 2 "$FILE_PATH" 2>/dev/null || true
-        fi
-        if command -v shellcheck >/dev/null 2>&1; then
-            shellcheck "$FILE_PATH" || true
-        fi
-        ;;
-    *.yaml|*.yml)
-        if command -v yamllint >/dev/null 2>&1; then
-            yamllint "$FILE_PATH" 2>/dev/null || true
-        fi
-        ;;
     */CLAUDE.md)
         # Fast, offline guard against broken standing context: every @-import
         # must resolve. Paths are written relative to the repo root.

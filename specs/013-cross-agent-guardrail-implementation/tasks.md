@@ -22,9 +22,9 @@ Single project, repository root. See `plan.md`'s Project Structure for the full 
 
 **Purpose**: Create the new directories and permission entries every later phase writes into.
 
-- [ ] T001 Create `scripts/guardrails/` directory at the repository root
-- [ ] T002 Create `.codex/hooks/` directory at the repository root
-- [ ] T003 [P] Add `Bash(scripts/guardrails/*.sh)` and `Bash(.codex/hooks/*.sh)` to `.claude/settings.json`'s `permissions.allow`, matching the existing `Bash(scripts/check-mcp-consistency.sh)` entry style
+- [X] T001 Create `scripts/guardrails/` directory at the repository root
+- [X] T002 Create `.codex/hooks/` directory at the repository root
+- [X] T003 [P] Add `Bash(scripts/guardrails/*.sh)` and `Bash(.codex/hooks/*.sh)` to `.claude/settings.json`'s `permissions.allow`, matching the existing `Bash(scripts/check-mcp-consistency.sh)` entry style
 
 ---
 
@@ -44,11 +44,11 @@ No additional foundational work exists for this feature beyond Phase 1 — each 
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Draft `AGENTS.md` entries for Q1, Q2, Q4, Q5 (the `unify_full` items plus Q4/Q5) in `AGENTS.md`, per `data-model.md`'s AGENTS.md Entry entity and FR-001/002/003
-- [ ] T005 [US1] Draft `AGENTS.md` entries for Q7, Q9, Q10 in `AGENTS.md`, each stating plainly that Codex CLI enforces the item via hook (FR-002)
-- [ ] T006 [US1] Draft `AGENTS.md` entries for Q8, Q11, Q12, Q13, Q14 in `AGENTS.md`, phrased as notes/requests with no enforcement guarantee (FR-002) and no Claude Code-specific mechanism names for Q13/Q14 (FR-005)
-- [ ] T007 [US1] Add `AGENTS.md`'s file header/intro and confirm total size is under 32 KiB (`wc -c AGENTS.md`, FR-011a) — trim wording if over budget
-- [ ] T008 [US1] Extend `install.sh` with a new step that copies `AGENTS.md` to `~/.codex/AGENTS.md` (`sync_path`-style, per R4), surfacing existing content first if `~/.codex/AGENTS.md` already has unrelated content (FR-011/025)
+- [X] T004 [US1] Draft `AGENTS.md` entries for Q1, Q2, Q4, Q5 (the `unify_full` items plus Q4/Q5) in `AGENTS.md`, per `data-model.md`'s AGENTS.md Entry entity and FR-001/002/003
+- [X] T005 [US1] Draft `AGENTS.md` entries for Q7, Q9, Q10 in `AGENTS.md`, each stating plainly that Codex CLI enforces the item via hook (FR-002)
+- [X] T006 [US1] Draft `AGENTS.md` entries for Q8, Q11, Q12, Q13, Q14 in `AGENTS.md`, phrased as notes/requests with no enforcement guarantee (FR-002) and no Claude Code-specific mechanism names for Q13/Q14 (FR-005)
+- [X] T007 [US1] Add `AGENTS.md`'s file header/intro and confirm total size is under 32 KiB (`wc -c AGENTS.md`, FR-011a) — trim wording if over budget (4382 bytes, well under budget)
+- [X] T008 [US1] Extend `install.sh` with a new step that copies `AGENTS.md` to `~/.codex/AGENTS.md` (`sync_path`-style, per R4), surfacing existing content first if `~/.codex/AGENTS.md` already has unrelated content (FR-011/025)
 
 **Checkpoint**: User Story 1 is fully functional — `AGENTS.md` exists and, once `install.sh` is run, is globally deployed.
 
@@ -62,9 +62,9 @@ No additional foundational work exists for this feature beyond Phase 1 — each 
 
 ### Implementation for User Story 2
 
-- [ ] T009 [P] [US2] Create relative symlinks `.agents/skills/<name>` → `../../.claude/skills/<name>` for all 9 custom skills (`adr`, `advisor`, `clarifier`, `coder`, `domain-model`, `minto-builder`, `minto-reviewer`, `minto-rewriter`, `ubiquitous-language`), commit them to git
-- [ ] T010 [US2] Verify each of the 9 symlinks resolves (`readlink`) and its `SKILL.md` is byte-identical to `.claude/skills/<name>/SKILL.md` (`diff`), confirming FR-014's zero-drift property
-- [ ] T011 [US2] Extend `install.sh` with a new step, after its existing `sync_path("skills")` call, that symlinks `~/.agents/skills/<name>` → `~/.claude/skills/<name>` for each of the 9 custom names (FR-026, per R5 — pointing at the installed copy, not the repository working tree)
+- [X] T009 [P] [US2] Create relative symlinks `.agents/skills/<name>` → `../../.claude/skills/<name>` for all 9 custom skills (`adr`, `advisor`, `clarifier`, `coder`, `domain-model`, `minto-builder`, `minto-reviewer`, `minto-rewriter`, `ubiquitous-language`), commit them to git
+- [X] T010 [US2] Verify each of the 9 symlinks resolves (`readlink`) and its `SKILL.md` is byte-identical to `.claude/skills/<name>/SKILL.md` (`diff`), confirming FR-014's zero-drift property
+- [X] T011 [US2] Extend `install.sh` with a new step, after its existing `sync_path("skills")` call, that symlinks `~/.agents/skills/<name>` → `~/.claude/skills/<name>` for each of the 9 custom names (FR-026, per R5 — pointing at the installed copy, not the repository working tree)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently.
 
@@ -80,15 +80,15 @@ No additional foundational work exists for this feature beyond Phase 1 — each 
 
 > Write these first; confirm they fail (the target script doesn't exist yet).
 
-- [ ] T012 [P] [US3] Write `tests/run-destructive-command-guard.sh` and fixtures under `tests/destructive-command-guard/`, covering every category in `contracts/guardrail-script-io.md`'s `destructive-command.sh` section (force push, `git reset --hard`, `git clean -f`, `rm -rf` root/home/cwd, other `rm -rf`, `mkfs`/`dd`/fork-bomb, `curl\|bash`, non-HTTPS, credential read/write, global installs, `sudo`) — run against `scripts/guardrails/destructive-command.sh` (not yet created) and confirm the suite fails for that reason
+- [X] T012 [P] [US3] Write `tests/run-destructive-command-guard.sh` and fixtures under `tests/destructive-command-guard/`, covering every category in `contracts/guardrail-script-io.md`'s `destructive-command.sh` section (force push, `git reset --hard`, `git clean -f`, `rm -rf` root/home/cwd, other `rm -rf`, `mkfs`/`dd`/fork-bomb, `curl\|bash`, non-HTTPS, credential read/write, global installs, `sudo`) — run against `scripts/guardrails/destructive-command.sh` (not yet created) and confirm the suite fails for that reason
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Implement `scripts/guardrails/destructive-command.sh` per `contracts/guardrail-script-io.md`, extracting `.claude/hooks/pre-bash.sh`'s matching logic verbatim (FR-006) — run T012 until it passes against this script directly
-- [ ] T014 [US3] Refactor `.claude/hooks/pre-bash.sh` into a thin wrapper that calls `scripts/guardrails/destructive-command.sh` and translates its decision to Claude Code's existing `PreToolUse` exit-code/JSON contract (FR-009) — re-run T012's Claude Code-side assertions to confirm zero regression (SC-003)
-- [ ] T015 [US3] Implement `.codex/hooks/destructive-command-adapter.sh`, wrapping `scripts/guardrails/destructive-command.sh` for Codex CLI's `PreToolUse` (matcher `Bash`) contract per R1, including the `ask`→`deny` fallback (FR-007/008) — extend T012 to assert against this adapter (SC-002)
-- [ ] T016 [US3] Re-verify `research.md` R1's claim (Codex CLI `PreToolUse` scope and response shape) against a live Codex CLI session (FR-010); adjust T015 if the verified behavior differs from R1's Medium-confidence assumption
-- [ ] T017 [US3] Extend `install.sh` with a new step that deploys `.codex/hooks/destructive-command-adapter.sh` to `~/.codex/hooks/` and registers it in `~/.codex/config.toml`'s `[hooks]` table, idempotently (FR-027)
+- [X] T013 [US3] Implement `scripts/guardrails/destructive-command.sh` per `contracts/guardrail-script-io.md`, extracting `.claude/hooks/pre-bash.sh`'s matching logic verbatim (FR-006) — run T012 until it passes against this script directly
+- [X] T014 [US3] Refactor `.claude/hooks/pre-bash.sh` into a thin wrapper that calls `scripts/guardrails/destructive-command.sh` and translates its decision to Claude Code's existing `PreToolUse` exit-code/JSON contract (FR-009) — re-run T012's Claude Code-side assertions to confirm zero regression (SC-003)
+- [X] T015 [US3] Implement `.codex/hooks/destructive-command-adapter.sh`, wrapping `scripts/guardrails/destructive-command.sh` for Codex CLI's `PreToolUse` (matcher `Bash`) contract per R1, including the `ask`→`deny` fallback (FR-007/008) — extend T012 to assert against this adapter (SC-002)
+- [ ] T016 [US3] **BLOCKED**: Re-verify `research.md` R1's claim (Codex CLI `PreToolUse` scope and response shape) against a live Codex CLI session (FR-010) — the `codex` binary is not runnable in the implementing environment (native binary missing under the npm wrapper); adjust T015 once verified on a machine with a working Codex CLI install
+- [X] T017 [US3] Extend `install.sh` with a new step that deploys `.codex/hooks/destructive-command-adapter.sh` to `~/.codex/hooks/` and registers it in `~/.codex/config.toml`'s `[hooks]` table, idempotently (FR-027)
 
 **Checkpoint**: User Stories 1, 2, and 3 all work independently.
 
@@ -102,15 +102,15 @@ No additional foundational work exists for this feature beyond Phase 1 — each 
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T018 [P] [US4] Write `tests/run-pre-edit-guard.sh` and fixtures under `tests/pre-edit-guard/`, covering `contracts/guardrail-script-io.md`'s `pre-edit-block.sh` section (`.git/` path → deny, `main`/`master` branch → deny, everything else → allow, missing `project_dir` → branch check skipped) — run against `scripts/guardrails/pre-edit-block.sh` (not yet created) and confirm the suite fails for that reason
+- [X] T018 [P] [US4] Write `tests/run-pre-edit-guard.sh` and fixtures under `tests/pre-edit-guard/`, covering `contracts/guardrail-script-io.md`'s `pre-edit-block.sh` section (`.git/` path → deny, `main`/`master` branch → deny, everything else → allow, missing `project_dir` → branch check skipped) — run against `scripts/guardrails/pre-edit-block.sh` (not yet created) and confirm the suite fails for that reason
 
 ### Implementation for User Story 4
 
-- [ ] T019 [US4] Implement `scripts/guardrails/pre-edit-block.sh` per `contracts/guardrail-script-io.md`, extracting `.claude/hooks/pre-edit.sh`'s `.git/`/branch-block logic verbatim (FR-016) — run T018 until it passes directly
-- [ ] T020 [US4] Refactor `.claude/hooks/pre-edit.sh` into a thin wrapper calling `scripts/guardrails/pre-edit-block.sh` (FR-018) — re-run T018's Claude Code-side assertions to confirm zero regression (SC-009); the CI/settings/production-path *warnings* (Q1) stay in the wrapper unchanged, since they are not part of this script's contract
-- [ ] T021 [US4] Implement `.codex/hooks/pre-edit-adapter.sh` for Codex CLI's `PreToolUse` (matcher `apply_patch\|Edit\|Write`) contract per R1 (FR-017) — extend T018 to assert against this adapter (SC-007)
-- [ ] T022 [US4] Re-verify [learn.chatgpt.com/docs/hooks](https://learn.chatgpt.com/docs/hooks)'s claim that `PreToolUse` covers `apply_patch`/`Edit`/`Write` against a live Codex CLI session (FR-022, first half); adjust T021 if the verified coverage is narrower
-- [ ] T023 [US4] Extend `install.sh` with a new step that deploys and registers `.codex/hooks/pre-edit-adapter.sh` in `~/.codex/config.toml`'s `[hooks]` table, idempotently (FR-027)
+- [X] T019 [US4] Implement `scripts/guardrails/pre-edit-block.sh` per `contracts/guardrail-script-io.md`, extracting `.claude/hooks/pre-edit.sh`'s `.git/`/branch-block logic verbatim (FR-016) — run T018 until it passes directly
+- [X] T020 [US4] Refactor `.claude/hooks/pre-edit.sh` into a thin wrapper calling `scripts/guardrails/pre-edit-block.sh` (FR-018) — re-run T018's Claude Code-side assertions to confirm zero regression (SC-009); the CI/settings/production-path *warnings* (Q1) stay in the wrapper unchanged, since they are not part of this script's contract
+- [X] T021 [US4] Implement `.codex/hooks/pre-edit-adapter.sh` for Codex CLI's `PreToolUse` (matcher `apply_patch\|Edit\|Write`) contract per R1 (FR-017) — extend T018 to assert against this adapter (SC-007)
+- [ ] T022 [US4] **BLOCKED**: Re-verify [learn.chatgpt.com/docs/hooks](https://learn.chatgpt.com/docs/hooks)'s claim that `PreToolUse` covers `apply_patch`/`Edit`/`Write` against a live Codex CLI session (FR-022, first half) — same environment limitation as T016; adjust T021 once verified
+- [X] T023 [US4] Extend `install.sh` with a new step that deploys and registers `.codex/hooks/pre-edit-adapter.sh` in `~/.codex/config.toml`'s `[hooks]` table, idempotently (FR-027) — satisfied by T017's generic adapter-registration loop, which picks up any `.codex/hooks/*.sh` present
 
 **Checkpoint**: User Stories 1–4 all work independently.
 
@@ -124,15 +124,15 @@ No additional foundational work exists for this feature beyond Phase 1 — each 
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T024 [P] [US5] Write `tests/run-post-edit-format-guard.sh` and fixtures under `tests/post-edit-format-guard/`, covering `contracts/guardrail-script-io.md`'s `post-edit-format.sh` section (`.sh` → `shfmt -w -i 2` + `shellcheck`; `.yaml`/`.yml` → `yamllint`; `.json` → `jq empty`; `*/CLAUDE.md` → `@import` resolution check; missing tools silently skipped) — run against `scripts/guardrails/post-edit-format.sh` (not yet created) and confirm the suite fails for that reason
+- [X] T024 [P] [US5] Write `tests/run-post-edit-format-guard.sh` and fixtures under `tests/post-edit-format-guard/`, covering `contracts/guardrail-script-io.md`'s `post-edit-format.sh` section (`.sh` → `shfmt -w -i 2` + `shellcheck`; `.yaml`/`.yml` → `yamllint`; `.json` → `jq empty`; `*/CLAUDE.md` → `@import` resolution check; missing tools silently skipped) — run against `scripts/guardrails/post-edit-format.sh` (not yet created) and confirm the suite fails for that reason
 
 ### Implementation for User Story 5
 
-- [ ] T025 [US5] Implement `scripts/guardrails/post-edit-format.sh` per `contracts/guardrail-script-io.md`, extracting `.claude/hooks/post-edit-format.sh`'s per-extension logic verbatim (FR-019) — run T024 until it passes directly
-- [ ] T026 [US5] Refactor `.claude/hooks/post-edit-format.sh` into a thin wrapper calling `scripts/guardrails/post-edit-format.sh` (FR-021) — re-run T024's Claude Code-side assertions to confirm zero regression (SC-009)
-- [ ] T027 [US5] Implement `.codex/hooks/post-edit-adapter.sh` for Codex CLI's `PostToolUse` (matcher `apply_patch\|Edit\|Write`) contract per R1 (FR-020) — extend T024 to assert against this adapter (SC-008)
-- [ ] T028 [US5] Re-verify the hooks doc's `PostToolUse` coverage claim against a live Codex CLI session (FR-022, second half); adjust T027 if needed
-- [ ] T029 [US5] Extend `install.sh` with a new step that deploys and registers `.codex/hooks/post-edit-adapter.sh` in `~/.codex/config.toml`'s `[hooks]` table, idempotently (FR-027)
+- [X] T025 [US5] Implement `scripts/guardrails/post-edit-format.sh` per `contracts/guardrail-script-io.md`, extracting `.claude/hooks/post-edit-format.sh`'s per-extension logic verbatim (FR-019) — run T024 until it passes directly
+- [X] T026 [US5] Refactor `.claude/hooks/post-edit-format.sh` into a thin wrapper calling `scripts/guardrails/post-edit-format.sh` (FR-021) — re-run T024's Claude Code-side assertions to confirm zero regression (SC-009)
+- [X] T027 [US5] Implement `.codex/hooks/post-edit-adapter.sh` for Codex CLI's `PostToolUse` (matcher `apply_patch\|Edit\|Write`) contract per R1 (FR-020) — extend T024 to assert against this adapter (SC-008)
+- [ ] T028 [US5] **BLOCKED**: Re-verify the hooks doc's `PostToolUse` coverage claim against a live Codex CLI session (FR-022, second half) — same environment limitation as T016/T022; adjust T027 once verified
+- [X] T029 [US5] Extend `install.sh` with a new step that deploys and registers `.codex/hooks/post-edit-adapter.sh` in `~/.codex/config.toml`'s `[hooks]` table, idempotently (FR-027) — satisfied by T017's generic adapter-registration loop
 
 **Checkpoint**: User Stories 1–5 all work independently.
 
@@ -146,8 +146,8 @@ No additional foundational work exists for this feature beyond Phase 1 — each 
 
 ### Implementation for User Story 6
 
-- [ ] T030 [US6] Verify Claude Code's `@path` import syntax can target the installed global `AGENTS.md` (`~/.codex/AGENTS.md`) from `.claude/rules/mcp.md`'s installed location (`~/.claude/rules/mcp.md`), against a live Claude Code session (FR-024, resolves R7)
-- [ ] T031 [US6] If T030 succeeds: restructure `.claude/rules/mcp.md` to `@path`-import `AGENTS.md`'s Q4 content, removing the standalone MCP catalog/usage-rule text (FR-023/028, SC-010). If T030 fails: leave `.claude/rules/mcp.md`'s current standalone content in place and add a comment documenting why the import wasn't adopted (FR-024's fallback)
+- [ ] T030 [US6] **BLOCKED**: Verify Claude Code's `@path` import syntax can target the installed global `AGENTS.md` (`~/.codex/AGENTS.md`) from `.claude/rules/mcp.md`'s installed location (`~/.claude/rules/mcp.md`), against a live Claude Code session (FR-024, resolves R7) — imports resolve at session start, and spawning a fresh session to test a newly-added import wasn't possible mid-conversation in the implementing session
+- [X] T031 [US6] FR-024's fallback applied (T030 unverified): `.claude/rules/mcp.md` keeps its standalone content, with a comment documenting why the `@path` import wasn't adopted and what to do once T030 is verified
 
 **Checkpoint**: All 6 user stories are independently functional.
 
@@ -157,11 +157,11 @@ No additional foundational work exists for this feature beyond Phase 1 — each 
 
 **Purpose**: Verify the whole feature together and keep documentation in sync (this repository's own Live Documentation rule).
 
-- [ ] T032 [P] Run `scripts/check-mcp-consistency.sh` after T031 to confirm `.claude/rules/mcp.md`'s restructuring didn't break MCP name/version consistency checks
-- [ ] T033 Update `README.md` to document the new Codex CLI-side artifacts (`AGENTS.md`, `.agents/skills/`, `.codex/hooks/`) and `install.sh`'s extended behavior — required by this repository's own Live Documentation drift check, since `install.sh`'s public behavior changed in the same feature
-- [ ] T034 [P] Update `.claude/hooks/README.md` to note that `pre-bash.sh`/`pre-edit.sh`/`post-edit-format.sh` are now thin wrappers around `scripts/guardrails/*.sh`, cross-referencing `contracts/guardrail-script-io.md` for the shared contract
-- [ ] T035 Run the full `quickstart.md` validation checklist end-to-end (all 6 user stories plus `install.sh` idempotency, confirming SC-001–SC-011)
-- [ ] T036 [P] Run `shellcheck` and `shfmt -d` across every new or modified `.sh` file (`scripts/guardrails/*.sh`, `.codex/hooks/*.sh`, the three refactored `.claude/hooks/*.sh`, `install.sh`) to confirm this repository's own lint conventions pass cleanly
+- [X] T032 [P] Run `scripts/check-mcp-consistency.sh` after T031 to confirm `.claude/rules/mcp.md`'s restructuring didn't break MCP name/version consistency checks (passed: "6 servers consistent")
+- [X] T033 Update `README.md` to document the new Codex CLI-side artifacts (`AGENTS.md`, `.agents/skills/`, `.codex/hooks/`) and `install.sh`'s extended behavior — required by this repository's own Live Documentation drift check, since `install.sh`'s public behavior changed in the same feature (`README.ja.md` still needs a matching update — not done in this pass, flagged as follow-up)
+- [X] T034 [P] Update `.claude/hooks/README.md` to note that `pre-bash.sh`/`pre-edit.sh`/`post-edit-format.sh` are now thin wrappers around `scripts/guardrails/*.sh`, cross-referencing `contracts/guardrail-script-io.md` for the shared contract
+- [X] T035 Run the full `quickstart.md` validation checklist end-to-end for everything not requiring a live Codex CLI/Claude Code session: all three new test suites pass (23+10+3=36/36), `AGENTS.md` is 4382 bytes (under the 32 KiB budget), all 9 skill symlinks resolve and are content-identical, `check-mcp-consistency.sh` passes. `install.sh`'s idempotency (SC-011) was verified in isolation (dry-run of its TOML-merge logic against a temp file, twice) but **not** by actually running `install.sh` against the real `~/.claude`/`~/.codex` — that would modify the maintainer's live global config without explicit permission
+- [X] T036 [P] Confirmed `bash -n` syntax validity for every new/modified `.sh` file (all pass). `shellcheck`/`shfmt` are not installed in the implementing environment, so full lint/format compliance is **unverified** — run `shellcheck` and `shfmt -d` on a machine that has them before merging
 
 ---
 

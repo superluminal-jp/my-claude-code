@@ -85,7 +85,9 @@ Category coverage (must match `.claude/hooks/pre-edit.sh` exactly, per FR-018): 
 |---|---|---|
 | `warnings` | array of string | Empty array when nothing to report. Never a `decision` field — this script never blocks (matches `.claude/hooks/post-edit-format.sh`'s current `exit 0` always behavior, per FR-021) |
 
-Category coverage (must match `.claude/hooks/post-edit-format.sh` exactly, per FR-021): `*.sh` → `shfmt -w -i 2` then `shellcheck` (warnings surfaced, file reformatted in place); `*.yaml`/`*.yml` → `yamllint` (warnings only); `*.json` → `jq empty` syntax check (warning only); `*/CLAUDE.md` → verify every `@import` line resolves (warning only). Missing tools are silently skipped, matching current behavior.
+Category coverage the shared script handles (per FR-021): `*.sh` → `shfmt -w -i 2` then `shellcheck` (warnings surfaced, file reformatted in place); `*.yaml`/`*.yml` → `yamllint` (warnings only); `*.json` → `jq empty` syntax check (warning only). Missing tools are silently skipped, matching current behavior.
+
+**Deviation from the original design (recorded during implementation)**: `*/CLAUDE.md` → verify every `@import` line resolves stays in the Claude Code wrapper only, not in this shared script — it is inherently about Claude Code's own `CLAUDE.md` file, which Codex CLI has no equivalent of, matching the same treatment `pre-edit-block.sh` already gives Q1's CI/settings/production-path warnings (Claude Code-specific, not part of that shared script either).
 
 ## Caller responsibilities (not part of this contract, listed for cross-reference)
 
