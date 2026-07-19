@@ -9,8 +9,9 @@
 # speckit-specify always runs specify init (bypasses throttle) and protects modified constitution.md.
 # All other triggers (including SessionStart) throttle specify init to once per UPDATE_INTERVAL_SECONDS.
 # Spec Kit is opt-in per project (`specify init`); this hook only refreshes the
-# current workspace's own .specify/ and .claude/skills/speckit-* — it never
-# touches any other project or the user-scope ~/.claude install.
+# current workspace's own .specify/ and its speckit-* skill dirs (.claude/skills/,
+# .agents/skills/, .cursor/skills/, per whichever --integration targets are
+# installed) — it never touches any other project or the user-scope ~/.claude install.
 # Integration: override with SPECIFY_INTEGRATION (default: claude). See spec-kit integrations list.
 
 set -uo pipefail
