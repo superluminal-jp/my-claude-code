@@ -22,6 +22,7 @@
 - Q: `recommend-speckit.sh` — Spec Kit導入提案のナッジを共通化するか？ → A: 共通化する（推奨案「Claude専用維持」は不採用。連投リスクを許容した上で、AGENTS.mdに「一度だけ提案する」旨を明記して両ツールに追加。スロットル用キャッシュファイルは再現せず、保証なしの運用として受け入れる）
 - Q: `pre-edit.sh` — main/masterブランチでの編集禁止をどう扱うか？ → A: 弱い形で共通化する（推奨案「GitHub Branch Protectionへ移管」は不採用。AGENTS.mdに「mainで直接編集しない」という保証のない注意書きのみ追加。インフラ層への移管は行わない）
 - Q: `pre-edit.sh` — `.git/`直接編集禁止をどう扱うか？ → A: 弱い形で共通化する（推奨案「Claude専用維持」は不採用。AGENTS.mdに「.git/を直接編集しない」という保証のない注意書きのみ追加）
+- Q: `session-start.sh` — lintツールチェーン自動導入をどう扱うか？ → A: 弱い形で共通化する（推奨案「Claude専用維持」は不採用。AGENTS.mdに「shfmt/shellcheck/yamllint/jqが必要」という前提を明記する注意書きを追加。ただし実行トリガーは無く、自動インストールは再現しない）
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -71,7 +72,7 @@ As the maintainer, I want to walk through the items that cannot be reproduced as
 
 1. **Given** `pre-edit.sh`'s main/master-branch edit block, **When** the maintainer is presented with the finding that no tool has a pre-edit block hook and that GitHub Branch Protection is a non-agent-level alternative, **Then** the maintainer records a verdict naming the chosen control. **Recorded verdict**: 弱い共通化 — a prose-only "don't edit main directly" note in `AGENTS.md` for both tools, no enforcement guarantee. GitHub Branch Protection migration was considered and declined for this feature.
 2. **Given** `pre-edit.sh`'s `.git/`-direct-edit block, **When** the maintainer is presented with its low-frequency/low-impact profile, **Then** the maintainer records a verdict. **Recorded verdict**: 弱い共通化 — a prose-only "don't edit .git/ directly" note in `AGENTS.md` for both tools, no enforcement guarantee.
-3. **Given** `session-start.sh`'s lint-toolchain bootstrap, **When** the maintainer is presented with its Claude-Code-on-the-web-specific scope, **Then** the maintainer records a verdict.
+3. **Given** `session-start.sh`'s lint-toolchain bootstrap, **When** the maintainer is presented with its Claude-Code-on-the-web-specific scope, **Then** the maintainer records a verdict. **Recorded verdict**: 弱い共通化 — a prose note in `AGENTS.md` documenting that shfmt/shellcheck/yamllint/jq are expected to be present, for both tools. No execution trigger exists to reproduce the automatic install; this is documentation of an assumption, not an actionable instruction.
 4. **Given** `speckit-expand-update.sh`'s Spec Kit CLI auto-update, **When** the maintainer is presented with its procedural (non-instructable) nature, **Then** the maintainer records a verdict.
 5. **Given** `tools.md`'s Memory and Subagents sections, **When** the maintainer is presented with their dependency on Claude-Code-specific mechanisms, **Then** the maintainer records a verdict.
 
