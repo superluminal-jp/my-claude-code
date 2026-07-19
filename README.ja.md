@@ -19,8 +19,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
   - `domain-model` / `ubiquitous-language`: DDD ドメインモデル/ユビキタス言語
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
-    `specify init` を実行した際に、そのプロジェクト自身の `.claude/skills/` 配下に
-    生成されるプロジェクトローカルな成果物（後述「spec-kit のオプトイン」参照）
+    `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
+    （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
+    プロジェクトローカルな成果物で、すべて gitignore 対象（後述「spec-kit のオプトイン」参照）
 - **`.claude/hooks/pre-bash.sh`**: 破壊的コマンドや危険な Bash を事前ブロック
 - **`.claude/hooks/user-prompt-submit.sh`**: キー/トークン等の秘密情報を含むプロンプト送信をブロック
 - **`.claude/hooks/session-start.sh`**: SessionStart（Claude Code on the web 限定）。`post-edit-format.sh` が使う lint ツール（`shellcheck`/`shfmt`/`yamllint`、欠落時は `jq`）を新規リモートコンテナへ導入。冪等・非致命的で、ローカルではスキップ
@@ -125,11 +126,14 @@ specify extension add git
   最新リリースに更新します。
 - `specify init --here --force --integration <agent>` — `/speckit.*`
   スラッシュコマンドを、そのプロジェクト自身の `.claude/skills/`（または
-  指定した `--integration` に対応するパス）配下に `speckit-*` スキルとして
-  生成します — プロジェクトローカルな成果物です。同一プロジェクト内で別の
-  エージェントにも導入する場合は、`--integration` の値を変えて再実行して
-  ください。各コマンドは独自のプレイブックを持ちます。`coder` スキルの SDD
-  セクションは spec-kit の導入有無にかかわらず適用されます。
+  指定した `--integration` に対応するパス。例: `codex` なら
+  `.agents/skills/`、`cursor-agent` なら `.cursor/skills/`）配下に
+  `speckit-*` スキルとして生成します — プロジェクトローカルな成果物であり、
+  生成先のエージェントディレクトリによらずすべて gitignore 対象です
+  （`.gitignore` 参照）。同一プロジェクト内で別のエージェントにも導入する
+  場合は、`--integration` の値を変えて再実行してください。各コマンドは
+  独自のプレイブックを持ちます。`coder` スキルの SDD セクションは
+  spec-kit の導入有無にかかわらず適用されます。
 - `specify extension add git` — Git Branching Workflow 拡張
   （`/speckit-git.*`）をインストールします。
 
