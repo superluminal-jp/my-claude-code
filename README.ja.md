@@ -106,17 +106,32 @@ managed > local (`.local.json`) > project (`settings.json`) > user (`~/.claude/s
 
 ### spec-kit のオプトイン
 
-プロジェクトで `specify init` を実行すると spec-kit がインストールされ、
-`/speckit.*` スラッシュコマンドがそのプロジェクト自身の `.claude/skills/` 配下に
-`speckit-*` スキルとして生成されます。これはプロジェクトローカルな成果物であり、
-このリポジトリが vendoring・配布するものではありません。各コマンドは独自のプレイブックを持ちます。
-
-Git Branching Workflow コマンド（`/speckit-git.*`）を使用するには、
-`specify init` 後に git extension を追加でインストールしてください:
+Spec Kit (https://github.com/github/spec-kit) はプロジェクトごとに個別に
+インストール・初期化します。このリポジトリや `~/.claude` に vendoring・配布
+されるものではありません。プロジェクトごとに一度、以下の手順を実行してください:
 
 ```sh
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+specify self upgrade
+specify init --here --force --integration claude
+# specify init --here --force --integration codex
+# specify init --here --force --integration cursor-agent
 specify extension add git
 ```
+
+- `uv tool install ... @vX.Y.Z` — ブランチ追従ではなく、明示的なリリースタグ
+  （`vX.Y.Z` を置き換える）を指定してインストールすることで、再現可能な状態を保ちます。
+- `specify self upgrade` — 内蔵のアップデーターで `specify` CLI 自体を
+  最新リリースに更新します。
+- `specify init --here --force --integration <agent>` — `/speckit.*`
+  スラッシュコマンドを、そのプロジェクト自身の `.claude/skills/`（または
+  指定した `--integration` に対応するパス）配下に `speckit-*` スキルとして
+  生成します — プロジェクトローカルな成果物です。同一プロジェクト内で別の
+  エージェントにも導入する場合は、`--integration` の値を変えて再実行して
+  ください。各コマンドは独自のプレイブックを持ちます。`coder` スキルの SDD
+  セクションは spec-kit の導入有無にかかわらず適用されます。
+- `specify extension add git` — Git Branching Workflow 拡張
+  （`/speckit-git.*`）をインストールします。
 
 追加されるコマンド: `speckit.git.feature`、`speckit.git.validate`、
 `speckit.git.remote`、`speckit.git.initialize`、`speckit.git.commit`

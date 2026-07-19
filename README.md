@@ -169,19 +169,32 @@ managed > local (`.local.json`) > project (`settings.json`) > user (`~/.claude/s
 
 ### Opt-in to spec-kit
 
-Run `specify init` in the project to install spec-kit. It generates
-`/speckit.*` slash commands as `speckit-*` skills under that project's own
-`.claude/skills/` — a project-local artifact, not something this repo vendors
-or copies into `~/.claude`. Each command carries its own playbook. The
-`coder` skill's SDD section applies regardless of whether spec-kit is
-installed.
-
-To enable Git Branching Workflow commands (`/speckit-git.*`), install the git
-extension after `specify init`:
+Spec Kit (https://github.com/github/spec-kit) is installed and initialized
+per project — nothing is vendored into this repo or `~/.claude`. Run this
+sequence once per project:
 
 ```sh
+uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
+specify self upgrade
+specify init --here --force --integration claude
+# specify init --here --force --integration codex
+# specify init --here --force --integration cursor-agent
 specify extension add git
 ```
+
+- `uv tool install ... @vX.Y.Z` — pin an explicit released tag (replace
+  `vX.Y.Z`) rather than tracking a branch, so the install is reproducible.
+- `specify self upgrade` — updates the `specify` CLI itself to the latest
+  release via its built-in updater.
+- `specify init --here --force --integration <agent>` — generates
+  `/speckit.*` slash commands as `speckit-*` skills under that project's own
+  `.claude/skills/` (or the equivalent path for the chosen `--integration`)
+  — a project-local artifact. Re-run with a different `--integration` value
+  to target another agent in the same project; each command carries its own
+  playbook. The `coder` skill's SDD section applies regardless of whether
+  spec-kit is installed.
+- `specify extension add git` — installs the Git Branching Workflow
+  extension (`/speckit-git.*`).
 
 This adds 5 commands: `speckit.git.feature`, `speckit.git.validate`,
 `speckit.git.remote`, `speckit.git.initialize`, and `speckit.git.commit`.
