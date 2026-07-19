@@ -8,6 +8,12 @@
 
 **Input**: User description: "Cross-agent config migration: for each of the 14 Claude Code-specific hooks/rules identified in this session's investigation (pre-bash.sh destructive-command blocking, user-prompt-submit.sh secret detection, pre-edit.sh .git/-edit block, pre-edit.sh main/master-branch block, pre-edit.sh CI/settings/production warnings, post-edit-format.sh auto-formatting, session-start.sh lint toolchain bootstrap, recommend-speckit.sh nudge, speckit-expand-update.sh auto-update, tools.md dedicated-tools/parallel-calls principles, tools.md Memory section, tools.md Subagents section, skill-routing.md routing table, mcp.md catalog+usage rule), decide and record whether to unify it for OpenAI Codex CLI and Cursor compatibility (via AGENTS.md prose, native hook reimplementation using Codex's PreToolUse/approval_policy/sandbox_mode or Cursor's beforeShellExecution/beforeSubmitPrompt/afterFileEdit hooks, or migration to GitHub Branch Protection), or keep it Claude Code-only. The spec should capture this as a decision record: for each item, the current Claude Code behavior, the cross-agent options considered, and the criteria for choosing. No source code implementation is in scope for this feature — the deliverable is a written decision document."
 
+## Clarifications
+
+### Session 2026-07-19
+
+- Q: `pre-edit.sh` — CI/settings/production編集時の警告を共通化するか？ → A: 共通化する（AGENTS.mdに転記。ブロックでなく警告のため実効性の劣化なし）
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Decide the low-cost, low-risk unification items (Priority: P1)
@@ -23,7 +29,7 @@ As the maintainer of this `.claude/` configuration, I want to walk through the i
 1. **Given** the `mcp.md` catalog-and-usage-rule item, **When** the maintainer is presented with its current behavior and options, **Then** the maintainer records a verdict (unify into `AGENTS.md` / keep Claude-only) with rationale.
 2. **Given** the `skill-routing.md` routing-table item, **When** the maintainer is presented with its current behavior, options, and the precondition that skill files must be discoverable by each tool, **Then** the maintainer records a verdict with rationale.
 3. **Given** the `tools.md` "prefer dedicated tools / parallelize independent calls" principles, **When** the maintainer is presented with the tool-name-genericization tradeoff, **Then** the maintainer records a verdict with rationale.
-4. **Given** the `pre-edit.sh` warning-only checks (CI config, `.claude/settings.json`, production config), **When** the maintainer is presented with the warning-vs-block distinction, **Then** the maintainer records a verdict with rationale.
+4. **Given** the `pre-edit.sh` warning-only checks (CI config, `.claude/settings.json`, production config), **When** the maintainer is presented with the warning-vs-block distinction, **Then** the maintainer records a verdict with rationale. **Recorded verdict**: 共通化 — transcribe verbatim into `AGENTS.md`.
 
 ---
 
