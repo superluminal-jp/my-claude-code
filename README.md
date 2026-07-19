@@ -25,7 +25,7 @@ every project on the machine.
   selection, clarification triggers, skill routing, live-documentation
   enforcement, advisor baseline, MCP catalog
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
-  (TDD, SDD, code quality, security, docs), the Minto document suite —
+  (TDD, SDD, code quality, security, type safety, docs), the Minto document suite —
   `minto-reviewer` (structure diagnosis), `minto-rewriter` (rewrite to
   final), `minto-builder` (build via dialogue) — `clarifier` (requirement
   elicitation, INVEST/Gherkin),
@@ -100,7 +100,7 @@ my-claude-code/
     │   ├── advisor.md              # Decision/trade-off gate; Lite/Full output modes
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: body loaded when relevant
-    │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + docs
+    │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
     │   ├── minto-reviewer/SKILL.md # Diagnose document structure
     │   ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
     │   ├── minto-builder/SKILL.md  # Build a document through dialogue
