@@ -1,6 +1,6 @@
 # Permission Rules
 
-Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in the security design principles of **least privilege** and **fail-safe defaults** (default-deny for destructive and network actions) — Saltzer & Schroeder, 1975 (see [References](#references)).
+Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in the security design principles of **least privilege** and **fail-safe defaults** (default-deny for destructive and network actions) — Saltzer & Schroeder, 1975 (see [References](#references)). This file states policy only; hook mechanics (exact scripts, matchers, regexes) are `.claude/hooks/README.md`'s domain — don't restate them here.
 
 Evaluation order: **deny → ask → allow** (first match wins; deny always overrides).
 
@@ -10,15 +10,14 @@ Evaluation order: **deny → ask → allow** (first match wins; deny always over
 - `git reset --hard` (discards uncommitted work)
 - `git push --force` / `-f` (rewrites remote history)
 - `git clean -f` (deletes untracked files)
-- Drop database table / collection
-- Overwrite files with uncommitted changes
+- Drop database table / collection — no hook can detect this; self-apply
+- Overwrite files with uncommitted changes — no hook can detect this; self-apply
 
 ## Package Installs — Claude installs project-scoped only
 
 Claude may install dependencies only within the scope of the current project (virtual env, `package.json` local deps, etc.), never globally. This governs Claude's own Bash calls; the user remains free to install tools globally themselves.
 
 - Blocked for Claude: `pip`/`pip3 install --user` or under `sudo`, `uv pip install --system`, `npm`/`pnpm install|add -g`/`--global`, `yarn global add`, `gem install` without `--user-install`, `cargo install` without `--path`.
-- Enforced by `.claude/hooks/pre-bash.sh` (hard block, `exit 2` — no confirmation path, unlike `sudo` below).
 
 ## Credential Safety — never read, display, log, or commit
 
@@ -27,21 +26,18 @@ Claude may install dependencies only within the scope of the current project (vi
 - Filenames containing `secret`, `credential`, `token`, `key`
 - Private keys: `.pem`, `.p12`, `.pfx`
 
-Enforcement:
-
-- `Read` denies in `.claude/settings.json` cover the credential paths above.
-- `.claude/hooks/pre-bash.sh` (PreToolUse/Bash) blocks destructive commands, `curl | bash`, non-localhost `http://`, credential reads (`cat`/`less`/`more`/`head`/`tail`/`od`/`hexdump`, including `.env`, `secrets/`, and `credentials/`), credential-path writes (redirection or `tee`), and global package installs (see "Package Installs" above). `sudo` is routed to user confirmation via `permissionDecision: "ask"`, except `sudo pip`/`pip3 install`, which is hard-blocked as a global install.
-- `.claude/hooks/user-prompt-submit.sh` (UserPromptSubmit) blocks prompts containing AWS access keys (`AKIA…`/`ASIA…`), GitHub tokens (`ghp_…`, `github_pat_…`), Slack tokens (`xox[abpors]-…`), Google API keys (`AIza…`), and `-----BEGIN … PRIVATE KEY-----` blocks.
-- `.claude/hooks/speckit-expand-update.sh` (UserPromptExpansion, matcher `speckit.(specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution|converge)`, **and** `SessionStart`, no matcher) runs before `/speckit-*` expands **and** at every session start for a project that already has `.specify/`: if `specify-cli` is already on PATH, runs `specify self upgrade` (its built-in updater — resolves the latest stable release via GitHub Releases and reinstalls in place for uv-tool/pipx installs); otherwise bootstraps an initial install by resolving the latest stable tag from GitHub's `releases/latest` API (excludes drafts/prereleases; falls back to `gh release list --exclude-drafts --exclude-pre-releases`) and installing via `uv` or `pipx` from an HTTPS release tarball (falls back to `git+https://...` if the tarball download fails). Either way, then runs `specify init --here --force` when `.specify/` exists (network access; may refresh slash commands and overwrite Spec Kit template files—see Spec Kit upgrade guide), throttled to once per `SPECIFY_AUTO_UPDATE_INTERVAL_SECONDS` (default 86400s) on every trigger except an explicit `/speckit-specify`. This only refreshes the current workspace's own `.specify/` and its `speckit-*` skill directories (`.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, depending on which `--integration` targets were initialized) — Spec Kit is opt-in per project and is never propagated to `~/.claude` or any other project (see ADR 0001).
-- `.claude/hooks/recommend-speckit.sh` (UserPromptSubmit) never blocks (`exit 0` always). When a submitted prompt looks like non-trivial implementation work (>40 chars, matches an implementation-intent keyword, doesn't already mention Spec Kit) in a project without `.specify/`, it adds `additionalContext` suggesting Claude recommend `specify init` to the user; throttled to once per `SPECKIT_RECOMMEND_INTERVAL_SECONDS` (default 7 days) per project, tracked outside the project in a temp cache file.
-- Git permissions in `.claude/settings.json` default to read-style allow (`status`, `diff`, `log`, `fetch`), plus `commit` (auto-allowed — `git-workflow.md`'s "commit only when asked" still governs *whether* Claude commits, this only removes the per-call prompt), and ask for other write-style operations (`add`, `checkout`, `branch`, `stash`, `pull`).
-- The repo's own non-destructive verification commands are allow-listed in `.claude/settings.json` to avoid prompt friction: the behavior suites (`tests/run-*.sh`), `scripts/check-mcp-consistency.sh`, and the lint/format tools (`shellcheck`, `shfmt`, `jq`, `yamllint`). These read or reformat repo files only; remaining git write operations (`add`, `checkout`, `branch`, `stash`, `pull`) stay on `ask`.
+`Read` denies in `.claude/settings.json` cover the paths above; prompt-level and shell-level enforcement mechanics: `.claude/hooks/README.md`.
 
 ## Network — default deny
 
 - `curl | bash` / `wget | sh`
-- Execute scripts downloaded from external URLs
+- Execute scripts downloaded from external URLs — no hook can detect this two-step pattern; self-apply
 - Non-HTTPS endpoints (except `localhost` / `127.0.0.1`)
+
+## `.claude/settings.json` permissions
+
+- Git: `status`/`diff`/`log`/`fetch`/`commit` allow (`commit` auto-allowed — `git-workflow.md`'s "commit only when asked" still governs *whether* Claude commits, this only removes the per-call prompt); `add`/`checkout`/`branch`/`stash`/`pull` ask.
+- Allow-listed to avoid prompt friction (read or reformat repo files only, no write-style git ops among them): the behavior suites (`tests/run-*.sh`), `scripts/check-mcp-consistency.sh`, `scripts/guardrails/*.sh`, `.codex/hooks/*.sh`, and the lint/format tools (`shellcheck`, `shfmt`, `jq`, `yamllint`).
 
 ## References
 

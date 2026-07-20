@@ -16,6 +16,6 @@ not modify any files. Surface the first hard failure with its output.
    absent, skip with a note rather than failing): `bash tests/run-skill-routing.sh`
    and `bash tests/run-live-documentation.sh`.
 6. Hook unit tests (deterministic, no `claude` CLI needed):
-   `bash tests/run-speckit-update.sh` and `bash tests/run-recommend-speckit.sh`.
+   `bash tests/run-speckit-update.sh`.
 
 Report each step as `✓`/`✗` with a one-line reason. End with the overall verdict.

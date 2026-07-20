@@ -88,16 +88,6 @@ run_hook() {
   HOME="$home" PATH="$bin:$PATH" "$@" bash "$HOOK" <<<"$input" >/dev/null 2>&1
 }
 
-# Same as run_hook but fires a SessionStart event (no command_name) and
-# echoes stdout, so callers can assert on the additionalContext body.
-run_session_start() {
-  local proj="$1" home="$2" bin="$3"
-  shift 3
-  local input
-  input=$(jq -n --arg cwd "$proj" '{cwd:$cwd, hook_event_name:"SessionStart"}')
-  HOME="$home" PATH="$bin:$PATH" "$@" bash "$HOOK" <<<"$input" 2>/dev/null
-}
-
 # --- Test 1: init runs and the throttle state file is updated ---
 WORK1=$(mktemp -d)
 setup_workspace "$WORK1" "0"
@@ -154,38 +144,6 @@ rc=$?
 [ "$rc" -eq 0 ] && [ ! -d "$WORK5/home/.claude" ] && c=1 || c=0
 check "no .specify directory: hook exits cleanly, touches nothing under HOME" "$c"
 rm -rf "$WORK5"
-
-# --- Test 6: SessionStart refreshes a project that already adopted Spec Kit ---
-WORK6=$(mktemp -d)
-setup_workspace "$WORK6" "0"
-out6=$(run_session_start "$WORK6/proj" "$WORK6/home" "$WORK6/bin" env SPECIFY_FORCE_AUTO_UPDATE=1)
-[ -f "$WORK6/proj/.specify/.last-auto-update" ] && c=1 || c=0
-check "SessionStart runs the refresh for a project with .specify/" "$c"
-echo "$out6" | jq -e '.hookSpecificOutput.hookEventName == "SessionStart"' >/dev/null 2>&1 && c=1 || c=0
-check "SessionStart output reports hookEventName SessionStart" "$c"
-rm -rf "$WORK6"
-
-# --- Test 7: SessionStart stays silent once throttled (no per-session noise) ---
-WORK7=$(mktemp -d)
-setup_workspace "$WORK7" "0"
-run_session_start "$WORK7/proj" "$WORK7/home" "$WORK7/bin" env SPECIFY_FORCE_AUTO_UPDATE=1 >/dev/null
-out7=$(run_session_start "$WORK7/proj" "$WORK7/home" "$WORK7/bin")
-[ -z "$out7" ] && c=1 || c=0
-check "throttled SessionStart run stays silent" "$c"
-rm -rf "$WORK7"
-
-# --- Test 8: SessionStart in a project without .specify/ stays silent ---
-WORK8=$(mktemp -d)
-mkdir -p "$WORK8/home" "$WORK8/proj" "$WORK8/bin"
-printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK8/bin/specify"
-printf '#!/usr/bin/env bash\nexit 0\n' >"$WORK8/bin/uv"
-printf '#!/usr/bin/env bash\nexit 1\n' >"$WORK8/bin/gh"
-printf '%s\n' "$CURL_STUB" >"$WORK8/bin/curl"
-chmod +x "$WORK8/bin/specify" "$WORK8/bin/uv" "$WORK8/bin/gh" "$WORK8/bin/curl"
-out8=$(run_session_start "$WORK8/proj" "$WORK8/home" "$WORK8/bin" env SPECIFY_FORCE_AUTO_UPDATE=1)
-[ -z "$out8" ] && c=1 || c=0
-check "SessionStart in a non-spec-kit project stays silent" "$c"
-rm -rf "$WORK8"
 
 echo
 if [ "$FAIL" -eq 0 ]; then

@@ -1,6 +1,27 @@
 # Live Documentation Rules
 
-Purpose: keep documentation truthful and co-located with the code it describes. Applies when reviewing diffs/commits/PRs or creating any Documentation Artifact. Documentation must never lie; these rules operationalize the Living Documentation approach (Martraire, 2019 — see [References](#references)) as five enforcement checks applied in every session: drift, separate-doc-PR, auto-generation, proximity, and no-redundancy. The five checks are this repo's own operationalization, not a canonical list from the source.
+Purpose: keep documentation truthful and co-located with the code it describes, across the whole lifecycle — not only as an after-the-fact patch. Applies when reviewing diffs/commits/PRs, when creating any Documentation Artifact, and before/during non-trivial work (see § 0). Documentation must never lie; sections 1–5 operationalize the Living Documentation approach (Martraire, 2019 — see [References](#references)) as five enforcement checks applied in every session: drift, separate-doc-PR, auto-generation, proximity, and no-redundancy. The five checks are this repo's own operationalization, not a canonical list from the source.
+
+## 0. Documentation Across the Lifecycle (named standards)
+
+Apply recognized documentation-process practices at each phase, from both the software-engineering and the project-management discipline — not only at close-out. Deviating from a named practice is fine — state the rationale (Core Principle #2, `.claude/CLAUDE.md`).
+
+| Phase | Discipline | Practice / standard | Governs |
+|---|---|---|---|
+| Before work | Software eng. | ISO/IEC/IEEE 29148:2018 | requirements are unambiguous, verifiable, feasible before implementation starts (`rules/clarifier.md`) |
+| Before work | Software eng. | README-Driven Development (Preston-Werner, 2010) | write the README/interface first — a "perfect implementation of the wrong spec is worthless" |
+| Before work | Software eng. | arc42 (Starke & Hruschka, 2005) | template for architecture documentation on non-trivial design work |
+| Before / at decision | Software eng. | MADR / Nygard ADRs | one-way-door decisions recorded with rationale before or as they're made (`adr` skill) |
+| Before work | Project mgmt. | ISO 21502:2020 | project-management guidance across the life cycle, incl. what a project plan/business case must document |
+| Before work | Project mgmt. | PMBOK® Guide, 7th ed. (PMI, 2021) | project charter, project management plan, and project documents (requirements/risk/stakeholder registers) drafted before execution |
+| Before work | Project mgmt. | PRINCE2 (originated UK Cabinet Office; PeopleCert since 2021) | Project Initiation Documentation (PID) — business case, plan, quality/risk approach — baselined before a stage starts |
+| During work | Software eng. | Docs as Code / *Docs Like Code* (Gentle, 2017) | docs versioned, reviewed, and updated in the same change as code, using the same tooling |
+| During work | Software eng. | Living Documentation (Martraire, 2019) | docs stay truthful and co-located — operationalized as §§ 1–5 below |
+| During work (structure) | Software eng. | Diátaxis (Procida, 2020) | organizes documentation output into tutorial / how-to guide / reference / explanation |
+| During work | Project mgmt. | PRINCE2 management products | Highlight Reports / End Stage Reports track progress against the PID as work proceeds |
+| Lifecycle-wide | Software eng. | ISO/IEC/IEEE 15289:2019 | defines required content for life-cycle documentation items across the whole process |
+| Lifecycle-wide | Project mgmt. | ISO 10006:2017 | quality-management guidance for project documentation (e.g., the project quality plan) |
+| User-facing docs | Software eng. | ISO/IEC/IEEE 26514:2022 | design & development requirements for information aimed at users |
 
 ## 1. Drift Detection
 
@@ -61,3 +82,15 @@ A developer may explicitly accept a Live Documentation violation by stating a re
 ## References
 
 - Cyrille Martraire, *Living Documentation: Continuous Knowledge Sharing by Design*, Addison-Wesley, 2019 — <https://www.oreilly.com/library/view/living-documentation-continuous/9780134689418/>
+- ISO/IEC/IEEE 29148:2018, *Systems and software engineering — Life cycle processes — Requirements engineering* (2nd ed.) — <https://www.iso.org/standard/72089.html>
+- Tom Preston-Werner, "Readme Driven Development," 2010 — <https://tom.preston-werner.com/2010/08/23/readme-driven-development>
+- arc42 template (Gernot Starke & Peter Hruschka), since 2005 — <https://arc42.org/>
+- Michael Nygard, "Documenting Architecture Decisions," Cognitect, 2011; MADR 4.0.0 — see `adr` skill § References
+- Anne Gentle, *Docs Like Code*, 2017 (3rd ed. 2022) — <https://www.docslikecode.com/>
+- Daniele Procida, Diátaxis framework, 2020 — <https://diataxis.fr/>
+- ISO/IEC/IEEE 15289:2019, *Systems and software engineering — Content of life-cycle information items (documentation)* — <https://www.iso.org/standard/74909.html>
+- ISO/IEC/IEEE 26514:2022, *Systems and software engineering — Design and development of information for users* — <https://www.iso.org/standard/77451.html>
+- ISO 21502:2020, *Project, programme and portfolio management — Guidance on project management* — <https://www.iso.org/standard/74947.html>
+- Project Management Institute, *A Guide to the Project Management Body of Knowledge (PMBOK® Guide)*, 7th ed., 2021 — <https://www.pmi.org/standards/pmbok>
+- PRINCE2 (PeopleCert / formerly AXELOS), project management method — <https://www.axelos.com/certifications/propath/prince2-project-management>
+- ISO 10006:2017, *Quality management — Guidelines for quality management in projects* — <https://www.iso.org/standard/70376.html>
