@@ -29,7 +29,9 @@ the same baseline guidance and enforcement (see
   selection, clarification triggers, skill routing, live-documentation
   enforcement, MCP catalog
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
-  (TDD, SDD, code quality, security, type safety, docs), the Minto document suite —
+  (TDD, SDD, code quality, security, type safety, docs);
+  `digital-agency-frontend` (DADS-based accessible React/Tailwind public-service
+  frontends and web dashboards); and the Minto document suite —
   `minto-reviewer` (structure diagnosis), `minto-rewriter` (rewrite to
   final), `minto-builder` (build via dialogue) — `clarifier` (requirement
   elicitation, INVEST/Gherkin), `adr` (architecture decision records).
@@ -82,7 +84,7 @@ mirroring the same "author here, apply everywhere" model:
 | Repo source | Installed to | Purpose |
 |---|---|---|
 | `.codex/AGENTS.md` | `~/.codex/AGENTS.md` | Baseline guidance (Codex CLI's equivalent of `.claude/rules/`) |
-| `.claude/skills/{adr,clarifier,coder,minto-builder,minto-reviewer,minto-rewriter}` | `~/.agents/skills/<name>` (symlink) | Native skill discovery — the same `SKILL.md`, not a copy |
+| `.claude/skills/{adr,clarifier,coder,digital-agency-frontend,minto-builder,minto-reviewer,minto-rewriter}` | `~/.agents/skills/<name>` (symlink) | Native skill discovery — the same `SKILL.md` and bundled resources, not a copy |
 | `scripts/guardrails/*.sh` | `~/.claude/scripts/guardrails/*.sh` | Shared guardrail logic, consumed by both tools' hooks |
 | `.codex/hooks/*.sh` | `~/.codex/hooks/*.sh`, registered in `~/.codex/config.toml` `[hooks]` | Four adapters: destructive commands, edit protection, post-edit formatting, prompt-secret blocking |
 | `.codex/rules/guardrails.rules` | `~/.codex/rules/guardrails.rules` | Allow routine verification/read operations; prompt for git worktree/index writes |
@@ -183,6 +185,7 @@ my-claude-code/
     │   └── mcp.md                  # MCP server catalog + usage rule
     ├── skills/                     # On-demand: body loaded when relevant
     │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
+    │   ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references
     │   ├── minto-reviewer/SKILL.md # Diagnose document structure
     │   ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
     │   ├── minto-builder/SKILL.md  # Build a document through dialogue
@@ -203,6 +206,7 @@ After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
 
 ```sh
 ./scripts/check-mcp-consistency.sh
+bash tests/run-digital-agency-frontend-skill.sh
 ./tests/run-codex-sync.sh
 ./tests/run-prompt-secret-guard.sh
 ./tests/run-codex-sync-drift.sh

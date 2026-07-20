@@ -114,7 +114,7 @@ CODEX_SKILLS_DIR="$HOME/.agents/skills"
 # restructure"); listing them here would make sync_path("skills") delete
 # them from ~/.claude/skills on every install.sh run while this list still
 # tried to symlink them, producing broken links (spec 014 research.md R0/R2).
-CUSTOM_SKILLS="adr clarifier coder minto-builder minto-reviewer minto-rewriter"
+CUSTOM_SKILLS="adr clarifier coder digital-agency-frontend minto-builder minto-reviewer minto-rewriter"
 if [ -d "$TARGET_DIR/skills" ]; then
   mkdir -p "$CODEX_SKILLS_DIR"
   for skill in $CUSTOM_SKILLS; do

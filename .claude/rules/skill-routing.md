@@ -3,6 +3,7 @@
 Purpose: map each request to the one skill that should load before responding. Applies on every turn, before the first answer.
 
 - Resolve compound work first: a request that requires code changes and an update to an existing document routes to `coder` then `minto-rewriter`; do not collapse it to either skill alone.
+- For React/Tailwind work that uses the Digital Agency Design System or dashboard guidance, load `coder` then `digital-agency-frontend` for implementation or changes; use `digital-agency-frontend` alone for review, and add `clarifier` when material product or dashboard requirements remain ambiguous.
 - Code implementation or behavior changes -> load `coder`.
 - Document work (produce, rewrite, or diagnose a written artifact) -> load the matching document skill:
   - Diagnose or critique the structure of an existing document, outline, or slide storyline -> `minto-reviewer` (returns analysis and target requirements, not a silent rewrite).

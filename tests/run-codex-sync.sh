@@ -69,10 +69,18 @@ repo_broken=$(find_broken_symlinks "$REPO_SKILLS")
 check "SYNC-01: repository skill links resolve" "$([ -z "$repo_broken" ] && echo 1 || echo 0)"
 
 if [ -d "$HOME_SKILLS" ]; then
+  HOME_SKILLS_OK=1
   home_broken=$(find_broken_symlinks "$HOME_SKILLS")
-  check "SYNC-02: deployed user skill links resolve" "$([ -z "$home_broken" ] && echo 1 || echo 0)"
+  [ -z "$home_broken" ] || HOME_SKILLS_OK=0
+  for skill_name in adr clarifier coder digital-agency-frontend minto-builder minto-reviewer minto-rewriter; do
+    deployed_link="$HOME_SKILLS/$skill_name"
+    expected_target="$SYNC_HOME/.claude/skills/$skill_name"
+    deployed_target=$(readlink "$deployed_link" 2>/dev/null || true)
+    [ -L "$deployed_link" ] && [ "$deployed_target" = "$expected_target" ] && [ -f "$deployed_link/SKILL.md" ] || HOME_SKILLS_OK=0
+  done
+  check "SYNC-02: deployed user skill catalog is complete and resolves" "$HOME_SKILLS_OK"
 else
-  skip "SYNC-02: deployed user skill links resolve" "~/.agents/skills not deployed — run install.sh"
+  skip "SYNC-02: deployed user skill catalog is complete and resolves" "~/.agents/skills not deployed — run install.sh"
 fi
 
 # ---------------------------------------------------------------------------
@@ -93,7 +101,7 @@ if [ -f "$CODEX_AGENTS_SRC" ]; then
   done
   check "SYNC-03: shared guidance covers core Claude prose rules" "$GUIDANCE_OK"
   SKILL_ROUTING_OK=1
-  for skill_name in adr clarifier coder minto-builder minto-reviewer minto-rewriter; do
+  for skill_name in adr clarifier coder digital-agency-frontend minto-builder minto-reviewer minto-rewriter; do
     skill_reference="@.agents/skills/$skill_name/SKILL.md"
     grep -Fq "$skill_reference" "$CODEX_AGENTS_SRC" || SKILL_ROUTING_OK=0
   done
