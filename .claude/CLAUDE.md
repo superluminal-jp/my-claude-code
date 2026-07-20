@@ -11,12 +11,13 @@ Priorities, highest first:
 Load the matching skill before responding (`.claude/skills/` has full playbooks):
 
 - `coder` — implement, modify, refactor, test, or debug code
+- `digital-agency-frontend` — build or review React/Tailwind public-service frontends and web dashboards using DADS
 - `minto-reviewer` — diagnose an existing document/outline's structure (analysis only, no rewrite)
 - `minto-rewriter` — rewrite a draft into a finished document
 - `minto-builder` — build a document through dialogue from incomplete material
 - `clarifier` — ambiguous intent, scope, acceptance, or constraints
 
-Mixed request (code + docs): load `coder` first, then the matching document skill (usually `minto-rewriter`). `/speckit-*` commands are excluded — each has its own playbook.
+React/Tailwind DADS or Digital Agency dashboard work: load `coder` first, then `digital-agency-frontend`; add `clarifier` when its domain requirements are materially ambiguous. Mixed code + document work: load `coder` first, then the matching document skill (usually `minto-rewriter`). `/speckit-*` commands are excluded — each has its own playbook.
 
 @.claude/rules/skill-routing.md
 

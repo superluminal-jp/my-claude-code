@@ -1,0 +1,4 @@
+interface:
+  display_name: "Digital Agency Frontend"
+  short_description: "Build accessible DADS React/Tailwind UIs"
+  default_prompt: "Use $digital-agency-frontend to build an accessible React/Tailwind public-service frontend with Digital Agency guidance."

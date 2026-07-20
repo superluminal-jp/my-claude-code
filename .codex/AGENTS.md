@@ -17,12 +17,13 @@ Shared guidance for Codex CLI, deployed globally to `~/.codex/AGENTS.md` by `ins
 
 - Before acting, read the matching project's skill instructions completely. In this repository, route work through these sources:
   - Code, behavior, configuration, or synchronized documentation changes → `coder` (`@.agents/skills/coder/SKILL.md`).
+  - React/Tailwind public-service frontends or web dashboards using the Digital Agency Design System or dashboard guidebook → `digital-agency-frontend` (`@.agents/skills/digital-agency-frontend/SKILL.md`), after `coder` for implementation work.
   - Materially ambiguous requirements or acceptance criteria → `clarifier` (`@.agents/skills/clarifier/SKILL.md`).
   - Diagnosis of an existing document's argument structure → `minto-reviewer` (`@.agents/skills/minto-reviewer/SKILL.md`).
   - Rewriting an existing substantial draft into its final form → `minto-rewriter` (`@.agents/skills/minto-rewriter/SKILL.md`).
   - Building a document collaboratively from incomplete material → `minto-builder` (`@.agents/skills/minto-builder/SKILL.md`).
   - Architecturally significant, hard-to-reverse decisions → `adr` (`@.agents/skills/adr/SKILL.md`).
-- Resolve compound work first: code changes plus an existing-document update use `coder` followed by `minto-rewriter`, never either skill alone.
+- Resolve compound work first: Digital Agency frontend implementation uses `coder` followed by `digital-agency-frontend`; code changes plus an existing-document update use `coder` followed by `minto-rewriter`, never either skill alone.
 - Route a recognizable work category before generic ambiguity. A brief request that names a document and asks to create it uses `minto-builder`; brevity alone does not make it a `clarifier` task.
 - For Spec Kit projects, invoke the applicable `speckit-*` workflow explicitly and read its `@.agents/skills/<skill-name>/SKILL.md`. Its command-specific playbook replaces the generic routing above.
 

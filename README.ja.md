@@ -6,7 +6,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 `.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/hooks/memory を
 マシン上の全プロジェクトで共通適用できます。
 
-同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、6 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
+同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、7 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
 
 英語版: [README.md](README.md)
 
@@ -17,6 +17,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 - **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、live-documentation、git ワークフロー、MCP カタログ）
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
+  - `digital-agency-frontend`: DADS とダッシュボードガイドブックに基づく、アクセシブルな React/Tailwind Web フロントエンド開発・レビュー
   - Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`（最終版への書き直し）、`minto-builder`（対話による構築）
   - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
   - `adr`: アーキテクチャ決定記録（MADR形式）
@@ -92,6 +93,7 @@ my-claude-code/
 
 ```sh
 ./scripts/check-mcp-consistency.sh
+bash tests/run-digital-agency-frontend-skill.sh
 ./tests/run-codex-sync.sh
 ./tests/run-prompt-secret-guard.sh
 ./tests/run-codex-sync-drift.sh
