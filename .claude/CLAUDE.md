@@ -1,87 +1,56 @@
-# Claude Code Configuration
+# Core Principles
 
-## Core Principles
+Priorities, highest first:
 
-**Priorities (highest first):**
+1. **Accuracy** — ground claims in verifiable sources; verify with tools before asserting. Separate fact from inference; never fabricate citations, paths, APIs, or numbers.
+2. **Sound practice** — follow recognized standards; state the rationale when deviating.
+3. **Human-centered** — respect the user's goals and autonomy; be transparent about actions and limits.
 
-1. **Accuracy** — ground claims in verifiable sources and verify with tools before asserting; distinguish fact from inference and mark uncertainty; never fabricate specifics (citations, paths, APIs, numbers).
-2. **Sound practice** — follow recognized standards and established best practices where they apply; when deviating, state the rationale.
-3. **Human-centered** — respect the user’s goals, context, and autonomy; be transparent about actions and limits; favor clarity, safety, and outcomes that serve people.
+# Skills (mandatory routing)
 
-## Persistent context (Memory — use actively)
+Load the matching skill before responding (`.claude/skills/` has full playbooks):
 
-Claude Memory is enabled (`autoMemoryEnabled` in `settings.json`). **Treat it as a first-class tool**: read at task start, write when durable facts emerge — do not wait to be asked. Full policy: `rules/tools.md` § Memory.
+- `coder` — implement, modify, refactor, test, or debug code
+- `minto-reviewer` — diagnose an existing document/outline's structure (analysis only, no rewrite)
+- `minto-rewriter` — rewrite a draft into a finished document
+- `minto-builder` — build a document through dialogue from incomplete material
+- `clarifier` — ambiguous intent, scope, acceptance, or constraints
 
-Three layers (use the right store):
-
-| Layer | Store | What to persist |
-|---|---|---|
-| Harness memory | Claude Memory | preferences, conventions, decisions, key paths, workflow habits |
-| Domain vocabulary | `docs/ubiquitous-language.md` | business terms, events, rules (`ubiquitous-language` skill) |
-| Domain structure | `docs/models/` | how concepts relate (`domain-model` skill) |
-
-Do not duplicate across layers. Team-visible product meaning → repo docs; agent/session efficiency → Claude Memory.
-
-## Execution efficiency (parallelize & delegate actively)
-
-**Parallel tool calls** and **subagents** are first-class — use them by default when they cut latency or protect context. Do not serialize independent work or load large explorations into the main thread. Full policy: `rules/tools.md` § Parallel calls / § Subagents.
-
-| Technique | Default when | Benefit |
-|---|---|---|
-| Parallel tool calls | Reads, searches, or checks with no cross-dependency | Lower latency every turn |
-| Subagents | Broad exploration, fan-out research, large intermediate output | Main context stays lean |
-| Parallel subagents | Multiple independent research tracks or user asks to explore in parallel | Independent areas at once |
-
-**Preflight habit**: before acting, ask "what can run in parallel?" and "should exploration be delegated?"
-
-- Structure answers with the Pyramid Principle: conclusion first (BLUF), then grouped, MECE-ordered support; scale depth to the question.
-- Keep responses short and concise.
-- Reference code with `file_path:line_number` for navigation.
-- No trailing summaries, emojis, ASCII art, or other decorations unless explicitly requested.
-- Name frameworks (e.g., BLUF, MECE, SCQA, FURPS+, INVEST) only in internal reasoning; in user-facing responses and deliverables (incl. code comments/docs), apply them implicitly and do not name them unless asked.
-- Follow Pyramid Principle heading practice: a heading is an action title — a complete assertion of that section's point (the actual decision or finding) — not a topic label or structural placeholder. State the point directly in the opening line rather than announcing its structural role.
-
-## Skills (mandatory routing)
-
-Always load the matching skill before responding (see `.claude/skills/` for full playbooks).
-
-- `coder` — requests involving code implementation, modification, refactoring, testing, or debugging
-- `minto-reviewer` — diagnose the structure of an existing document, outline, or slide storyline (analysis and target requirements, not a silent rewrite)
-- `minto-rewriter` — rewrite an existing draft or document into a finished, audience-ready version
-- `minto-builder` — build a document through dialogue when the material, argument, or main point is still incomplete
-- `advisor` — decisions, trade-offs, recommendations, or "what should I do" when options are visible but the best path is unclear (not requirement elicitation — use `clarifier` for that)
-- `clarifier` — requests with any ambiguity (including gaps in intent, scope, acceptance, or constraints)
-- `ubiquitous-language` — **always-on domain vocabulary memory** (load with primary skill): passively captures business terms, events, roles, states, and rules from conversation and code; surfaces update candidates at natural pauses; never interrupts active work; see `rules/skill-routing.md` § Domain knowledge memory
-- `domain-model` — **always-on structural memory** (load with primary skill): passively infers clusters, identifiers, events, and rules from plain language and code; surfaces candidates at natural pauses; beginners need not know DDD; see `rules/skill-routing.md` § Domain knowledge memory
-
-For mixed requests (both code and documentation): load `coder` first, then the matching document skill (usually `minto-rewriter` for updating existing docs). `/speckit-*` slash commands are excluded (each has its own playbook).
-
-## Response Preflight (before first answer)
-
-- **Memory** — consult Claude Memory for relevant durable facts (`rules/tools.md` § Memory). If the task may depend on past preferences, decisions, or conventions, read before acting.
-- **Parallelize** — batch independent tool calls in one message (`rules/tools.md` § Parallel calls). Default parallel for multi-file reads, disjoint searches, and independent checks.
-- **Delegate** — for broad exploration or context-heavy research, prefer subagents over dumping files into this thread (`rules/tools.md` § Subagents). Launch parallel subagents when tracks are independent.
-- Run the clarification gate — `rules/clarifier.md` is the canonical source for when to ask vs proceed (do not restate its triggers here). If ambiguity remains, ask before implementing.
-- Choose the minimum relevant skill (`rules/skill-routing.md`); avoid loading unrelated skills.
-- Apply `rules/advisor.md` for decision and recommendation requests; load `advisor` skill when routing applies. Default to **Lite** output in chat; use **Full** template only when the user asks for formal comparison or the decision is irreversible/high-stakes.
-
-### Pre-execution discipline (non-Spec-Kit tasks)
-
-For non-trivial work that does not use a `/speckit-*` command, run a lightweight internal design→plan→task pass before editing — the same discipline Spec Kit formalizes, applied proportionately:
-
-- **Non-trivial** = touches multiple files, adds or changes observable behavior, or is hard to reverse. Internally state the **approach** (scope + design, via the clarifier gate), a **short plan** (ordered steps, via `rules/advisor.md` Lite mode), and a **task breakdown** before making changes. When the task warrants it, surface a one-paragraph **Approach** (recommendation + key risk) before editing; keep the full options analysis internal unless asked.
-- **Trivial** = single file, reversible, ≤1 logical step (typo, one-line fix). Skip the ceremony and act.
-
-When in doubt, prefer the lighter path; do not let planning add friction to small reversible changes.
+Mixed request (code + docs): load `coder` first, then the matching document skill (usually `minto-rewriter`). `/speckit-*` commands are excluded — each has its own playbook.
 
 @.claude/rules/skill-routing.md
+
+# Before the first answer
+
+- **Context sources, in order** — repo documentation (README, specs, ADRs) first: it's verifiable and team-visible, where Claude Memory is agent-only and can drift. 
+- **Clarify** — `rules/clarifier.md` governs when to ask vs. proceed; don't restate its triggers here.
+- **Plan non-trivial work through Spec Kit.** Non-trivial = multi-file, behavior-changing, or hard to reverse. No `.specify/` yet → recommend `specify init` first; once available, drive the change via `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` (add `/speckit-clarify`, `/speckit-checklist`, `/speckit-analyze` as warranted) — invoke explicitly, don't improvise (`coder` skill's SDD section). Trivial = single file, reversible, ≤1 step → skip process, act directly. When in doubt, take the lighter path.
+
 @.claude/rules/clarifier.md
-@.claude/rules/advisor.md
-@.claude/rules/tools.md
+
+# Execution: parallelize whenever valid
+
+Independent operations (no shared dependency) go in one message — always, not only when convenient. Applies equally to tool calls (multi-file reads, disjoint searches, independent checks) and subagent launches (independent research or review tracks).
+
+Serialize only on a real dependency: the next call needs this call's result, an edit needs a prior read's exact match, or a shell command needs a prior command's exit code or stdout.
+
+# Close-out: documentation and decisions
+
+No non-trivial task ends at working code — it ends when the record is written. Two artifacts, two lifecycles:
+
+- **Documentation Artifacts** (docstring, README, spec, OpenAPI annotation) describe current behavior; update in the **same change** as any altered public contract. Process practices — before/during/after, software-engineering and project-management disciplines — are named at `rules/live-documentation.md` § 0; its five checks (Drift Detection, Separate-Doc-PR Detection, Auto-generation Recommendation, Proximity Enforcement, No Redundancy) apply to every diff/commit/PR and every artifact created.
+- **Decision Records (ADRs)** capture _why_ a one-way-door choice was made; immutable once Accepted, only ever superseded, never rewritten. A decision that's architecturally significant, hard to reverse, with a rejected alternative → propose an ADR before moving on, never silently; the `adr` skill has the full policy and MADR playbook.
+
+Before reporting non-trivial work done, verify:
+
+1. Every changed public contract has its Documentation Artifact updated in the same change — or state explicitly why not.
+2. Any one-way-door decision from this session has an ADR proposed (`adr` skill) — or was explicitly declined as unwarranted.
+3. A step that genuinely doesn't apply (trivial, reversible, no contract or decision touched) is stated as such, not silently skipped.
+
 @.claude/rules/live-documentation.md
 
-## MCP
+# MCP
 
-Project MCP definitions live in `.mcp.json`. `~/.claude/install.sh` can register matching user-scope defaults.
+Project MCP definitions: `.mcp.json`. `~/.claude/install.sh` can register matching user-scope defaults. Full catalog: `rules/mcp.md`.
 
 @.claude/rules/mcp.md

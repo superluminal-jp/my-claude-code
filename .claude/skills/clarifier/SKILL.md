@@ -54,10 +54,6 @@ Assumptions if proceeding:
 
 ## References
 
-- ISO/IEC/IEEE 29148:2018, *Systems and software engineering — Life cycle processes — Requirements engineering* — <https://www.iso.org/standard/72089.html>
-- Bill Wake, "INVEST in Good Stories, and SMART Tasks," 2003 — <https://xp123.com/invest-in-good-stories-and-smart-tasks/>
-- George T. Doran, "There's a S.M.A.R.T. Way to Write Management's Goals and Objectives," *Management Review* 70(11): 35–36, 1981.
-- Cucumber, Gherkin reference (Given/When/Then) — <https://cucumber.io/docs/gherkin/>
-- Dai Clegg & Richard Barker, *Case Method Fast-Track: A RAD Approach*, 1994 (origin of MoSCoW); DSDM / Agile Business Consortium.
+Shared standards (ISO/IEC/IEEE 29148:2018, INVEST, SMART, Gherkin, MoSCoW, BABOK): full citations at `rules/clarifier.md` § References. Plus, for FURPS+:
+
 - Robert B. Grady, *Practical Software Metrics for Project Management and Process Improvement*, Prentice Hall, 1992 (FURPS/FURPS+; originally Grady & Caswell, 1987).
-- IIBA, *A Guide to the Business Analysis Body of Knowledge (BABOK Guide)*, v3, 2015 — <https://www.iiba.org/>

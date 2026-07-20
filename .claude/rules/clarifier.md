@@ -36,22 +36,7 @@ If the gap is trivial and the default is obvious (two-way door, local, reversibl
 
 ## How to ask
 
-- **Batch questions, don't drip** — surface blocking gaps in one turn.
-- **Offer a default** — "Default: X. Confirm or choose Y/Z."
-- **State assumption cost** — reversibility, effort, blast radius.
-- **One decision per question** — no compound asks.
-- **Confidence tagging** — mark inferred answers with `high / medium / low`.
-
-### Template
-
-```
-Blocking gaps:
-1. <dimension>: <question> — Default: <X>. Alt: <Y>. Impact: <reversible/irreversible, scope>.
-2. …
-
-Assumed (proceed unless corrected):
-- <assumption> — confidence: <H/M/L>
-```
+Batch blocking gaps into one turn — never drip questions turn-by-turn. Each gap: state a default, the cost of assuming it (reversibility, effort, blast radius), and one decision per question. Tag any inferred answer's confidence (`high`/`medium`/`low`). Template and formal elicitation toolbox (5W2H, INVEST, Gherkin, MoSCoW, FURPS+): `clarifier` skill.
 
 ## Anti-patterns
 

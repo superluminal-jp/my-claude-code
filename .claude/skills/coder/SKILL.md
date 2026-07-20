@@ -60,7 +60,7 @@ Applies whenever the active language supports static or gradual typing (e.g., Ty
 
 # Code quality and security
 
-Applies to implementation work in the repo. Composes with TDD/SDD/docs above and with `tools.md` in `rules/`.
+Applies to implementation work in the repo. Composes with TDD/SDD/docs above.
 
 ## Code quality
 
@@ -89,7 +89,7 @@ This is the single coding skill; it is language-agnostic. For the active languag
 Load when the task reaches these stages:
 
 - **Committing / branching / opening a PR** → `rules/git-workflow.md` (Conventional Commits, branch naming, PR body).
-- **A significant, hard-to-reverse decision is settled** → load the `adr` skill (`rules/adr.md`) to record it.
+- **A significant, hard-to-reverse decision is settled** → load the `adr` skill to record it.
 
 # References
 

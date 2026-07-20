@@ -14,9 +14,7 @@ Wiring is declared in `../settings.json` under `hooks` (and `statusLine` for the
 | `pre-edit.sh` | `PreToolUse` | `Edit\|Write\|Delete` | Blocks edits to `.git/` internals and to the `main`/`master` branch; warns on sensitive paths |
 | `post-edit-format.sh` | `PostToolUse` | `Edit\|Write` | Formats/lints the file just written (shfmt, shellcheck, yamllint, jq, `@import` check) |
 | `user-prompt-submit.sh` | `UserPromptSubmit` | — | Blocks prompts that contain obvious credential material |
-| `recommend-speckit.sh` | `UserPromptSubmit` | — | Nudges toward `specify init` when a prompt reads like non-trivial feature work in a project without `.specify/` |
-| `speckit-expand-update.sh` | `UserPromptExpansion` + `SessionStart` | `speckit\.(specify\|clarify\|plan\|tasks\|implement\|checklist\|analyze\|taskstoissues\|constitution\|converge)` (SessionStart has no matcher) | Upgrades `specify-cli` and refreshes Spec Kit project files before a `/speckit-*` command expands, and at every session start for a project that already has `.specify/` |
-| `session-start.sh` | `SessionStart` | — | Installs the lint toolchain (jq/shellcheck/yamllint/shfmt) on Claude Code Web containers only |
+| `speckit-expand-update.sh` | `UserPromptExpansion` | `speckit\.(specify\|clarify\|plan\|tasks\|implement\|checklist\|analyze\|taskstoissues\|constitution\|converge)` | Upgrades `specify-cli` and refreshes Spec Kit project files before a `/speckit-*` command expands |
 | `statusline.sh` | `statusLine` (not a hook event) | — | Renders `<model> \| <dir> \| <branch>` for the TUI status line |
 
 Exit-code convention for `PreToolUse` / `UserPromptSubmit`: `exit 2` blocks the action and shows stderr to Claude; `exit 0` allows it. A hook can also allow-with-confirmation by emitting a JSON body with `permissionDecision: "ask"` (see `pre-bash.sh`).
@@ -54,25 +52,17 @@ Never blocks (`exit 0` always); missing tools are silently skipped.
 
 Scans the raw prompt text for secret-shaped substrings and blocks (`exit 2`) if found: AWS access key IDs (`AKIA…`/`ASIA…`), GitHub tokens (`ghp_/gho_/ghu_/ghs_/ghr_…`, `github_pat_…`), Slack tokens (`xox[abpors]-…`), `-----BEGIN … PRIVATE KEY-----` blocks, and Google API keys (`AIza…`). Empty prompts pass through.
 
-## `recommend-speckit.sh` — UserPromptSubmit
+## `speckit-expand-update.sh` — UserPromptExpansion, matcher on `speckit.*` commands
 
-Never blocks (`exit 0` always). When the submitted prompt (a) is longer than 40 characters after trimming, (b) matches an implementation-intent keyword (English or Japanese: implement/add feature/refactor/architecture/実装/新機能/開発して/…), (c) doesn't already mention Spec Kit/`specify init`, and (d) the current project has no `.specify/` directory, it emits `additionalContext` suggesting Claude recommend `specify init` to the user (see README.md "Opt-in to spec-kit"). Throttled to once per `SPECKIT_RECOMMEND_INTERVAL_SECONDS` (default 7 days) per project directory, tracked in a temp cache file (`${TMPDIR:-/tmp}/claude-speckit-recommend/`) — never written inside the project. Silent in every other case.
-
-## `speckit-expand-update.sh` — UserPromptExpansion (matcher on `speckit.*` commands) + SessionStart
-
-Runs (a) before any `/speckit-specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution|converge` command expands, and (b) at every `SessionStart`, scoped in both cases to workspaces that already have a `.specify/` directory (silent no-op otherwise — on `SessionStart` this is the common case, so nothing is reported):
+Runs before any `/speckit-specify|clarify|plan|tasks|implement|checklist|analyze|taskstoissues|constitution|converge` command expands, scoped to workspaces that already have a `.specify/` directory (silent no-op otherwise):
 
 1. **Upgrade specify-cli**: if `specify` is on `PATH`, runs `specify self upgrade` (its own updater, resolves latest stable via GitHub Releases). Otherwise bootstraps a first install by resolving the latest non-prerelease tag (GitHub `releases/latest` API, falling back to `gh release list`) and installing from an HTTPS tarball via `uv tool install` or `pipx`, falling back to `git+https://...` if the tarball fetch fails.
-2. **Refresh project files**: runs `specify init --here --force --integration "$INTEGRATION"` (`INTEGRATION` defaults to `claude`, override via `SPECIFY_INTEGRATION`). `speckit.specify` always runs this step; every other trigger — including `SessionStart` — throttles it to once per `SPECIFY_AUTO_UPDATE_INTERVAL_SECONDS` (default 86400s), tracked in `.specify/.last-auto-update`. Set `SPECIFY_FORCE_AUTO_UPDATE=1` to bypass the throttle.
+2. **Refresh project files**: runs `specify init --here --force --integration "$INTEGRATION"` (`INTEGRATION` defaults to `claude`, override via `SPECIFY_INTEGRATION`). `speckit.specify` always runs this step; every other command throttles it to once per `SPECIFY_AUTO_UPDATE_INTERVAL_SECONDS` (default 86400s), tracked in `.specify/.last-auto-update`. Set `SPECIFY_FORCE_AUTO_UPDATE=1` to bypass the throttle.
 3. **Protect the constitution**: if `.specify/memory/constitution.md` differs from its template, it's backed up before `specify init` and restored immediately after, so customizations survive the refresh.
 
-Spec Kit is opt-in per project: the regenerated `speckit-*` skills (under `.claude/skills/`, `.agents/skills/`, or `.cursor/skills/`, depending on which `--integration` targets were initialized) stay local to the workspace that ran `specify init` — this hook never copies them to `~/.claude` or any other project (see `docs/adr/0001-remove-vendored-speckit-skills.md`). The `SessionStart` trigger exists so that a project that already adopted Spec Kit keeps getting refreshed even in sessions where no `/speckit-*` command is invoked; a throttled (no-op) `SessionStart` run stays silent rather than reporting a skip every session.
+Spec Kit is opt-in per project: the regenerated `speckit-*` skills (under `.claude/skills/`, `.agents/skills/`, or `.cursor/skills/`, depending on which `--integration` targets were initialized) stay local to the workspace that ran `specify init` — this hook never copies them to `~/.claude` or any other project (see `docs/adr/0001-remove-vendored-speckit-skills.md`).
 
 Output is captured to a temp log and returned as `additionalContext` so Claude sees what happened; the hook itself never fails the turn (`|| true` around the body).
-
-## `session-start.sh` — SessionStart
-
-No-ops immediately unless `CLAUDE_CODE_REMOTE=true` (i.e., Claude Code Web). On web containers, best-effort installs `jq`, `shellcheck`, `yamllint`, and `shfmt` (apt, then pip/go fallbacks as applicable) so `post-edit-format.sh` and `scripts/check-mcp-consistency.sh` have their toolchain available. Never blocks session startup; reports what's still missing to stderr.
 
 ## `statusline.sh` — statusLine
 
