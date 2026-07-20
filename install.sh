@@ -83,9 +83,14 @@ if [ -d "$GUARDRAILS_SRC" ]; then
   echo "Synced shared guardrail scripts -> $GUARDRAILS_DST"
 fi
 
-# 1b. Deploy AGENTS.md to Codex CLI's global config (mirrors the .claude/ sync above)
+# 1b. Deploy AGENTS.md to Codex CLI's global config (mirrors the .claude/ sync
+# above). Source is .codex/AGENTS.md, not this repo's root AGENTS.md — the
+# root file is reserved for content specific to working in this repository
+# (read by Codex as project-scope, never expanded); the shared/user-scope
+# prose lives under .codex/ alongside the rest of the Codex source tree (spec
+# 014 research.md R0/R1).
 CODEX_TARGET_DIR="$HOME/.codex"
-AGENTS_MD_SRC="$SCRIPT_DIR/AGENTS.md"
+AGENTS_MD_SRC="$SCRIPT_DIR/.codex/AGENTS.md"
 AGENTS_MD_DST="$CODEX_TARGET_DIR/AGENTS.md"
 if [ -f "$AGENTS_MD_SRC" ]; then
   mkdir -p "$CODEX_TARGET_DIR"
@@ -104,7 +109,12 @@ fi
 # speckit-* skills are excluded: they're per-project generated artifacts (see
 # the speckit-* stripping above), not part of this repo's global skill set.
 CODEX_SKILLS_DIR="$HOME/.agents/skills"
-CUSTOM_SKILLS="adr advisor clarifier coder domain-model minto-builder minto-reviewer minto-rewriter ubiquitous-language"
+# advisor/domain-model/ubiquitous-language were intentionally removed from
+# .claude/skills/ in 33c82eb ("prune rules/hooks" — "unused after the
+# restructure"); listing them here would make sync_path("skills") delete
+# them from ~/.claude/skills on every install.sh run while this list still
+# tried to symlink them, producing broken links (spec 014 research.md R0/R2).
+CUSTOM_SKILLS="adr clarifier coder minto-builder minto-reviewer minto-rewriter"
 if [ -d "$TARGET_DIR/skills" ]; then
   mkdir -p "$CODEX_SKILLS_DIR"
   for skill in $CUSTOM_SKILLS; do
@@ -162,6 +172,7 @@ ADAPTERS = [
     ("destructive-command-adapter.sh", "PreToolUse", "Bash"),
     ("pre-edit-adapter.sh", "PreToolUse", "apply_patch|Edit|Write"),
     ("post-edit-adapter.sh", "PostToolUse", "apply_patch|Edit|Write"),
+    ("prompt-secret-adapter.sh", "UserPromptSubmit", None),
 ]
 
 import os
@@ -171,7 +182,9 @@ for filename, event, matcher in ADAPTERS:
     if not os.path.isfile(script_path):
         continue
     lines.append(f"[[hooks.{event}]]")
-    lines.append(f'matcher = "{matcher}"')
+    # UserPromptSubmit does not support matchers; Codex ignores one if present.
+    if matcher is not None:
+        lines.append(f'matcher = "{matcher}"')
     lines.append(f"[[hooks.{event}.hooks]]")
     lines.append('type = "command"')
     lines.append(f'command = "{script_path}"')
@@ -183,6 +196,116 @@ PYEOF
 
   echo "Registered Codex CLI hook adapters -> $CODEX_CONFIG"
 fi
+
+# 1e. Deploy repository-managed Codex command rules without touching Codex's
+# own default.rules or any other user-owned rules.
+CODEX_RULES_SRC="$SCRIPT_DIR/.codex/rules/guardrails.rules"
+CODEX_RULES_DST="$CODEX_TARGET_DIR/rules/guardrails.rules"
+if [ -f "$CODEX_RULES_SRC" ]; then
+  mkdir -p "$(dirname "$CODEX_RULES_DST")"
+  cp "$CODEX_RULES_SRC" "$CODEX_RULES_DST"
+  echo "Synced Codex guardrail rules -> $CODEX_RULES_DST"
+fi
+
+# 1f. Deploy the compatibility custom prompt. Codex custom prompts are
+# deprecated upstream in favor of skills, but remain supported and are the
+# required counterpart for this repository's existing /verify-config command.
+CODEX_PROMPT_SRC="$SCRIPT_DIR/.codex/prompts/verify-config.md"
+CODEX_PROMPT_DST="$CODEX_TARGET_DIR/prompts/verify-config.md"
+if [ -f "$CODEX_PROMPT_SRC" ]; then
+  mkdir -p "$(dirname "$CODEX_PROMPT_DST")"
+  cp "$CODEX_PROMPT_SRC" "$CODEX_PROMPT_DST"
+  echo "Synced Codex verify-config prompt -> $CODEX_PROMPT_DST"
+fi
+
+# 1g. Mirror the repository MCP catalog into a separate marker-delimited
+# block in Codex's config.toml. Header values must be environment references;
+# actual credential values are never copied into config.toml.
+CODEX_MCP_BEGIN="# >>> my-claude-code managed MCP servers (do not edit by hand; see install.sh) >>>"
+CODEX_MCP_END="# <<< my-claude-code managed MCP servers <<<"
+mkdir -p "$(dirname "$CODEX_CONFIG")"
+touch "$CODEX_CONFIG"
+python3 - "$SCRIPT_DIR/.mcp.json" "$CODEX_CONFIG" "$CODEX_MCP_BEGIN" "$CODEX_MCP_END" <<'PYEOF'
+import json
+import os
+import re
+import sys
+
+catalog_path, config_path, begin, end = sys.argv[1:5]
+with open(catalog_path) as f:
+    servers = json.load(f)["mcpServers"]
+
+with open(config_path) as f:
+    existing = f.readlines()
+
+kept = []
+skipping = False
+for line in existing:
+    if line.strip() == begin:
+        skipping = True
+        continue
+    if line.strip() == end:
+        skipping = False
+        continue
+    if not skipping:
+        kept.append(line)
+
+while kept and not kept[-1].strip():
+    kept.pop()
+
+server_header = re.compile(
+    r'^\s*\[mcp_servers\.(?:"([^"]+)"|([A-Za-z0-9_-]+))(?:\.[^]]+)?\]\s*(?:#.*)?$'
+)
+non_managed_servers = set()
+for line in kept:
+    match = server_header.match(line)
+    if match:
+        non_managed_servers.add(match.group(1) or match.group(2))
+
+def quote(value):
+    return json.dumps(value)
+
+managed = [begin]
+for name, definition in servers.items():
+    if name in non_managed_servers:
+        print(f"Preserved non-managed Codex MCP server '{name}'; managed catalog entry skipped")
+        continue
+    managed.append(f"[mcp_servers.{name}]")
+    if definition.get("type") == "http":
+        managed.append(f"url = {quote(definition['url'])}")
+        env_headers = {}
+        for header, value in definition.get("headers", {}).items():
+            match = re.fullmatch(r"\$\{([A-Z][A-Z0-9_]*)\}", value)
+            if not match:
+                raise SystemExit(f"Refusing non-environment MCP header for {name}")
+            env_headers[header] = match.group(1)
+        if env_headers:
+            pairs = ", ".join(f"{quote(key)} = {quote(value)}" for key, value in env_headers.items())
+            managed.append(f"env_http_headers = {{ {pairs} }}")
+            if any(not os.environ.get(variable) for variable in env_headers.values()):
+                managed.append("enabled = false")
+    else:
+        managed.append(f"command = {quote(definition['command'])}")
+        if definition.get("args"):
+            managed.append(f"args = {json.dumps(definition['args'])}")
+        if definition.get("env"):
+            managed.append(f"[mcp_servers.{name}.env]")
+            for key, value in definition["env"].items():
+                managed.append(f"{key} = {quote(value)}")
+    managed.append("")
+managed.append(end)
+
+with open(config_path, "w") as f:
+    if kept:
+        f.writelines(kept)
+        f.write("\n\n")
+    f.write("\n".join(managed) + "\n")
+PYEOF
+
+if [ -z "${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}" ]; then
+  echo "Configured google-developer-knowledge MCP as disabled: GOOGLE_DEV_KNOWLEDGE_API_KEY is not set" >&2
+fi
+echo "Synced Codex MCP catalog -> $CODEX_CONFIG"
 
 # 2. Ensure hook scripts and this installer are executable
 chmod +x "$TARGET_DIR"/hooks/*.sh
@@ -252,4 +375,5 @@ if ! claude plugin list 2>/dev/null | grep -q "codex@openai-codex"; then
   claude plugin install codex@openai-codex
 fi
 
+echo "Codex hook trust: start Codex and use /hooks to review and trust new or changed user hooks before relying on guardrails."
 echo "Done. ~/.claude and user-scope MCP are synced to this repository state."

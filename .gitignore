@@ -2,6 +2,8 @@
 .DS_Store
 .AppleDouble
 .LSOverride
+Thumbs.db
+*.tmp
 
 # Credentials & secrets
 .env

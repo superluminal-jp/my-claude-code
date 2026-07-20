@@ -1,49 +1,45 @@
 #!/usr/bin/env bash
-# UserPromptSubmit hook: block prompts containing obvious secrets
-# Exit 2 = blocking error (prompt rejected, stderr shown to Claude)
-# Exit 0 = allow
-# Grounded in .claude/rules/permissions.md "Credential Safety".
+# UserPromptSubmit hook: block prompts containing obvious secrets.
+# Thin wrapper around scripts/guardrails/prompt-secret-scan.sh, shared with
+# Codex's UserPromptSubmit adapter.
 
 set -euo pipefail
 
-PROMPT=$(jq -r '.prompt // empty' 2>/dev/null || echo "")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -z "$PROMPT" ]; then
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -x "$CLAUDE_PROJECT_DIR/scripts/guardrails/prompt-secret-scan.sh" ]; then
+  SHARED="$CLAUDE_PROJECT_DIR/scripts/guardrails/prompt-secret-scan.sh"
+elif [ -x "$HOME/.claude/scripts/guardrails/prompt-secret-scan.sh" ]; then
+  SHARED="$HOME/.claude/scripts/guardrails/prompt-secret-scan.sh"
+else
+  SHARED="$SCRIPT_DIR/../../scripts/guardrails/prompt-secret-scan.sh"
+fi
+
+# Match the established wrappers: a missing optional guardrail must not break
+# all prompts, while an installed scanner that errors fails closed.
+if [ ! -x "$SHARED" ]; then
   exit 0
 fi
 
-# AWS access key ID
-if echo "$PROMPT" | grep -qE '\b(AKIA|ASIA)[0-9A-Z]{16}\b'; then
-  echo "Blocked: prompt contains an AWS access key ID. Rotate the key and resubmit without it." >&2
+HOOK_INPUT="$(cat 2>/dev/null || true)"
+RESULT=$(printf '%s' "$HOOK_INPUT" | bash "$SHARED" 2>/dev/null) || {
+  echo "Prompt-secret guardrail script failed; blocking as a precaution." >&2
   exit 2
-fi
+}
 
-# GitHub tokens
-if echo "$PROMPT" | grep -qE '\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}\b'; then
-  echo "Blocked: prompt contains a GitHub token. Rotate the token and resubmit without it." >&2
-  exit 2
-fi
-if echo "$PROMPT" | grep -qE '\bgithub_pat_[A-Za-z0-9_]{22,}\b'; then
-  echo "Blocked: prompt contains a GitHub fine-grained PAT. Rotate the token and resubmit without it." >&2
-  exit 2
-fi
+DECISION=$(printf '%s' "$RESULT" | jq -r '.decision // empty')
+REASON=$(printf '%s' "$RESULT" | jq -r '.reason // empty')
 
-# Slack tokens
-if echo "$PROMPT" | grep -qE '\bxox[abpors]-[A-Za-z0-9-]{10,}\b'; then
-  echo "Blocked: prompt contains a Slack token. Rotate the token and resubmit without it." >&2
+case "$DECISION" in
+deny)
+  echo "$REASON" >&2
   exit 2
-fi
-
-# Private key headers
-if echo "$PROMPT" | grep -qE -- '-----BEGIN ([A-Z]+ )?PRIVATE KEY-----'; then
-  echo "Blocked: prompt contains a private key. Remove it and resubmit." >&2
+  ;;
+allow | "")
+  exit 0
+  ;;
+*)
+  echo "Prompt-secret guardrail returned an unrecognized decision; blocking as a precaution." >&2
   exit 2
-fi
-
-# Google API key
-if echo "$PROMPT" | grep -qE '\bAIza[0-9A-Za-z_\-]{35}\b'; then
-  echo "Blocked: prompt contains a Google API key. Rotate the key and resubmit without it." >&2
-  exit 2
-fi
-
-exit 0
+  ;;
+esac

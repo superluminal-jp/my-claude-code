@@ -13,9 +13,10 @@ improvement history.
 The entire `.claude/` directory is designed to be copied wholesale to
 `~/.claude/`, making these settings, rules, hooks, and memory apply across
 every project on the machine. `install.sh` also deploys a Codex CLI
-counterpart — `AGENTS.md`, this repo's custom skills, and shared guardrail
-scripts — so Codex CLI sessions get the same baseline guidance and
-enforcement (see [Codex CLI support](#codex-cli-support)).
+counterpart — global guidance, custom skills, four shared guardrails, command
+Rules, the MCP catalog, and a verification prompt — so Codex CLI sessions get
+the same baseline guidance and enforcement (see
+[Codex CLI support](#codex-cli-support)).
 
 ## What this provides
 
@@ -49,21 +50,29 @@ enforcement (see [Codex CLI support](#codex-cli-support)).
 - **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and pinned
   versions across `.mcp.json`, `install.sh`, `settings.json`, and
   [`mcp.md`](.claude/rules/mcp.md) (requires `jq` on `PATH`)
-- **`AGENTS.md`** — Codex CLI's equivalent of the always-on prose in
+- **`.codex/AGENTS.md`** — Codex CLI's equivalent of the always-on prose in
   `.claude/rules/`: baseline guidance plus explicit notes on which items
   Codex CLI enforces via hook (destructive commands, `.git/`-edit and
   main/master-edit blocks, post-edit formatting). Installed to
   `~/.codex/AGENTS.md`
 - **`scripts/guardrails/`** — Shared, tool-agnostic guardrail scripts
-  (destructive-command blocking, pre-edit blocking, post-edit formatting).
-  `.claude/hooks/pre-bash.sh`, `pre-edit.sh`, and `post-edit-format.sh` are
+  (destructive-command blocking, pre-edit blocking, post-edit formatting,
+  prompt-secret blocking).
+  `.claude/hooks/pre-bash.sh`, `pre-edit.sh`, `post-edit-format.sh`, and
+  `user-prompt-submit.sh` are
   thin wrappers around these; `.codex/hooks/` adapts the same scripts for
   Codex CLI. See
   [`specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md`](specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md)
   for the shared stdin/stdout contract
-- **`.codex/hooks/`** — Codex CLI `PreToolUse`/`PostToolUse` adapters wrapping
+- **`.codex/hooks/`** — Four Codex CLI `PreToolUse`/`PostToolUse`/`UserPromptSubmit` adapters wrapping
   `scripts/guardrails/`, installed to `~/.codex/hooks/` and registered in
   `~/.codex/config.toml`
+- **`.codex/rules/guardrails.rules`** — Exact-prefix allow/prompt policy for
+  test, lint, and git commands, deployed without touching `default.rules`
+- **`.codex/prompts/verify-config.md`** — Compatibility verification command,
+  invoked as `/prompts:verify-config` (custom prompts are deprecated upstream)
+- **`.codex/README.md`** — Complete Claude-to-Codex deployment map and known
+  behavior differences
 
 ## Codex CLI support
 
@@ -72,17 +81,19 @@ mirroring the same "author here, apply everywhere" model:
 
 | Repo source | Installed to | Purpose |
 |---|---|---|
-| `AGENTS.md` | `~/.codex/AGENTS.md` | Baseline guidance (Codex CLI's equivalent of `.claude/rules/`) |
+| `.codex/AGENTS.md` | `~/.codex/AGENTS.md` | Baseline guidance (Codex CLI's equivalent of `.claude/rules/`) |
 | `.claude/skills/{adr,clarifier,coder,minto-builder,minto-reviewer,minto-rewriter}` | `~/.agents/skills/<name>` (symlink) | Native skill discovery — the same `SKILL.md`, not a copy |
 | `scripts/guardrails/*.sh` | `~/.claude/scripts/guardrails/*.sh` | Shared guardrail logic, consumed by both tools' hooks |
-| `.codex/hooks/*.sh` | `~/.codex/hooks/*.sh`, registered in `~/.codex/config.toml` `[hooks]` | Codex CLI enforcement: destructive-command blocking, `.git/`/main-branch edit blocking, post-edit formatting |
+| `.codex/hooks/*.sh` | `~/.codex/hooks/*.sh`, registered in `~/.codex/config.toml` `[hooks]` | Four adapters: destructive commands, edit protection, post-edit formatting, prompt-secret blocking |
+| `.codex/rules/guardrails.rules` | `~/.codex/rules/guardrails.rules` | Allow routine verification/read operations; prompt for git worktree/index writes |
+| `.codex/prompts/verify-config.md` | `~/.codex/prompts/verify-config.md` | Explicit `/prompts:verify-config` compatibility entry point |
+| `.mcp.json` | managed `[mcp_servers.*]` block in `~/.codex/config.toml` | Six-server catalog; credentials remain environment references. Existing same-name non-managed definitions are preserved and not duplicated |
 
 Cursor is explicitly out of scope — see
 [`specs/013-cross-agent-guardrail-implementation/spec.md`](specs/013-cross-agent-guardrail-implementation/spec.md).
-Codex CLI's exact hook registration format (`~/.codex/config.toml`'s
-`[hooks]` schema) was confirmed via documentation, not a live Codex CLI
-session, in the implementing session — re-verify against a real Codex CLI
-session before relying on it in a new environment.
+The full element-by-element classification and residual differences are in
+[`.codex/README.md`](.codex/README.md). Codex requires non-managed hooks to be
+reviewed/trusted with `/hooks` after installation or changes.
 
 ## Install as user configuration
 
@@ -95,6 +106,9 @@ bash path/to/my-claude-code/install.sh
 ```
 
 Re-running is safe: it re-syncs managed paths and upserts MCP servers.
+After the first install, or whenever a hook changes, open `/hooks` in the Codex
+TUI and review and trust the four user hooks. Codex skips changed non-managed
+command hooks until their current definition hashes are trusted.
 
 **Important (overwrite/replace behavior):**
 
@@ -111,6 +125,15 @@ Re-running is safe: it re-syncs managed paths and upserts MCP servers.
   marker-delimited block (`# >>> my-claude-code managed hooks ... <<<`) that
   the installer replaces wholesale on each run — the rest of `config.toml` is
   never touched.
+- The six Codex MCP entries normally use a separate managed marker block. If a
+  same-name server already exists in a non-managed section, that user-owned
+  definition is preserved and omitted from the generated block to avoid an
+  invalid duplicate TOML table. The managed Google entry uses
+  `GOOGLE_DEV_KNOWLEDGE_API_KEY` through `env_http_headers` and is deployed
+  disabled when that variable is absent; no credential value is written to
+  disk.
+- `~/.codex/rules/default.rules` and every non-managed Codex config section
+  remain user-owned and are never replaced.
 
 ### Alternative: import via your own `CLAUDE.md`
 
@@ -126,19 +149,25 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
-├── AGENTS.md                       # Codex CLI baseline guidance; installed to ~/.codex/AGENTS.md
+├── AGENTS.md                       # Project-only Codex guidance for this repository
 ├── install.sh                      # Copy .claude/ to ~/.claude/ + Codex CLI artifacts + register MCP servers
 ├── scripts/
 │   ├── check-mcp-consistency.sh    # MCP catalog drift check (jq required)
 │   └── guardrails/                 # Shared guardrail scripts (Claude Code + Codex CLI both call these)
 │       ├── destructive-command.sh
 │       ├── pre-edit-block.sh
-│       └── post-edit-format.sh
+│       ├── post-edit-format.sh
+│       └── prompt-secret-scan.sh
 ├── .codex/
-│   └── hooks/                      # Codex CLI PreToolUse/PostToolUse adapters; installed to ~/.codex/hooks/
+│   ├── AGENTS.md                   # Shared guidance source; installed to ~/.codex/AGENTS.md
+│   ├── README.md                   # Complete Claude-to-Codex deployment map
+│   ├── rules/guardrails.rules      # Command allow/prompt policy
+│   ├── prompts/verify-config.md    # /prompts:verify-config compatibility prompt
+│   └── hooks/                      # Four Codex lifecycle adapters
 │       ├── destructive-command-adapter.sh
 │       ├── pre-edit-adapter.sh
-│       └── post-edit-adapter.sh
+│       ├── post-edit-adapter.sh
+│       └── prompt-secret-adapter.sh
 ├── .agents/
 │   └── skills/                     # Symlinks to .claude/skills/<name>, for Codex CLI's native discovery
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
@@ -174,6 +203,9 @@ After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
 
 ```sh
 ./scripts/check-mcp-consistency.sh
+./tests/run-codex-sync.sh
+./tests/run-prompt-secret-guard.sh
+./tests/run-codex-sync-drift.sh
 ```
 
 ## MCP Servers

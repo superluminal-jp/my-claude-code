@@ -12,14 +12,6 @@ hooks:
     description: Elicit intent, scope, constraints, and acceptance criteria before
       generating the spec
     condition: null
-  - extension: ubiquitous-language
-    command: ubiquitous-language
-    enabled: true
-    optional: true
-    prompt: Run ubiquitous language collection/validation before this phase?
-    description: Validate UL coverage and surface new candidates before generating
-      artifacts
-    condition: null
   - extension: git
     command: speckit.git.feature
     enabled: true
@@ -29,14 +21,6 @@ hooks:
     description: Create feature branch before specification
     condition: null
   before_clarify:
-  - extension: ubiquitous-language
-    command: ubiquitous-language
-    enabled: true
-    optional: true
-    prompt: Run ubiquitous language collection/validation before this phase?
-    description: Validate UL coverage and surface new candidates before generating
-      artifacts
-    condition: null
   - extension: git
     command: speckit.git.commit
     enabled: true
@@ -46,14 +30,6 @@ hooks:
     description: Auto-commit before spec clarification
     condition: null
   before_plan:
-  - extension: ubiquitous-language
-    command: ubiquitous-language
-    enabled: true
-    optional: true
-    prompt: Run ubiquitous language collection/validation before this phase?
-    description: Validate UL coverage and surface new candidates before generating
-      artifacts
-    condition: null
   - extension: git
     command: speckit.git.commit
     enabled: true
@@ -63,14 +39,6 @@ hooks:
     description: Auto-commit before implementation planning
     condition: null
   before_tasks:
-  - extension: ubiquitous-language
-    command: ubiquitous-language
-    enabled: true
-    optional: true
-    prompt: Run ubiquitous language collection/validation before this phase?
-    description: Validate UL coverage and surface new candidates before generating
-      artifacts
-    condition: null
   - extension: git
     command: speckit.git.commit
     enabled: true
@@ -80,14 +48,6 @@ hooks:
     description: Auto-commit before task generation
     condition: null
   before_analyze:
-  - extension: ubiquitous-language
-    command: ubiquitous-language
-    enabled: true
-    optional: true
-    prompt: Run ubiquitous language collection/validation before this phase?
-    description: Validate UL coverage and surface new candidates before generating
-      artifacts
-    condition: null
   - extension: git
     command: speckit.git.commit
     enabled: true
@@ -97,14 +57,6 @@ hooks:
     description: Auto-commit before analysis
     condition: null
   after_implement:
-  - extension: live-documentation
-    command: editor
-    enabled: true
-    optional: false
-    prompt: Create or update README and module documentation for the implemented feature
-    description: Create or update README / module documentation after implementation
-      (Live Documentation enforcement)
-    condition: null
   - extension: git
     command: speckit.git.commit
     enabled: true

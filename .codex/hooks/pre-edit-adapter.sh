@@ -4,10 +4,9 @@
 # scripts/guardrails/pre-edit-block.sh's tool-agnostic decision into Codex
 # CLI's PreToolUse response shape.
 #
-# NOTE (research.md R1, FR-022): Codex CLI's exact coverage of apply_patch/
-# Edit/Write under PreToolUse was confirmed via secondary documentation, not
-# a live session — this adapter has not yet been re-verified against a real
-# Codex CLI.
+# Live verification on 2026-07-20 confirmed the current command-hook contract:
+# exit 0 with no output allows and exit 2 with stderr blocks. The older
+# hookSpecificOutput/continue JSON shape is rejected by PreToolUse.
 #
 # Input (Codex CLI PreToolUse): JSON on stdin with .tool_input.path and .cwd
 # (Codex CLI's documented common field for the working directory).
@@ -22,29 +21,7 @@ else
   SHARED="$HOME/.claude/scripts/guardrails/pre-edit-block.sh"
 fi
 
-deny_response() {
-  jq -n --arg reason "$1" '{
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: $reason
-    }
-  }'
-}
-
-allow_response() {
-  jq -n '{
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "allow"
-    }
-  }'
-}
-
 if [ ! -x "$SHARED" ]; then
-  allow_response
   exit 0
 fi
 
@@ -55,8 +32,8 @@ PROJECT_DIR=$(echo "$HOOK_INPUT" | jq -r '.cwd // empty' 2>/dev/null || echo "")
 
 RESULT=$(jq -n --arg tool_name "$TOOL_NAME" --arg path "$FILE_PATH" --arg project_dir "$PROJECT_DIR" \
   '{tool_name:$tool_name, path:$path, project_dir:$project_dir}' | bash "$SHARED" 2>/dev/null) || {
-  deny_response "Pre-edit guardrail script failed; blocking as a precaution."
-  exit 0
+  echo "Pre-edit guardrail script failed; blocking as a precaution." >&2
+  exit 2
 }
 
 DECISION=$(echo "$RESULT" | jq -r '.decision // empty')
@@ -64,12 +41,14 @@ REASON=$(echo "$RESULT" | jq -r '.reason // empty')
 
 case "$DECISION" in
 deny)
-  deny_response "$REASON"
+  echo "$REASON" >&2
+  exit 2
   ;;
 allow | "")
-  allow_response
+  exit 0
   ;;
 *)
-  deny_response "Pre-edit guardrail returned an unrecognized decision; blocking as a precaution."
+  echo "Pre-edit guardrail returned an unrecognized decision; blocking as a precaution." >&2
+  exit 2
   ;;
 esac

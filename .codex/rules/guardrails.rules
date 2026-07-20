@@ -1,0 +1,47 @@
+# Repository-managed Codex command policy. Rules match exact argument prefixes,
+# so test runners are enumerated instead of using shell globs. install.sh copies
+# this file beside (and never overwrites) Codex's user-owned default.rules.
+
+# Behavior and configuration suites.
+prefix_rule(pattern = ["tests/run-codex-sync.sh"], decision = "allow", justification = "Run the repository's deterministic Codex sync suite")
+prefix_rule(pattern = ["bash", "tests/run-codex-sync.sh"], decision = "allow", justification = "Run the repository's deterministic Codex sync suite")
+prefix_rule(pattern = ["tests/run-codex-sync-drift.sh"], decision = "allow", justification = "Run isolated drift-detection acceptance tests")
+prefix_rule(pattern = ["bash", "tests/run-codex-sync-drift.sh"], decision = "allow", justification = "Run isolated drift-detection acceptance tests")
+prefix_rule(pattern = ["tests/run-destructive-command-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-destructive-command-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["tests/run-live-documentation.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-live-documentation.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["tests/run-post-edit-format-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-post-edit-format-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["tests/run-pre-edit-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-pre-edit-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["tests/run-prompt-secret-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-prompt-secret-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["tests/run-skill-routing.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-skill-routing.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["tests/run-speckit-update.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-speckit-update.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["tests/run-type-safety-coder.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["bash", "tests/run-type-safety-coder.sh"], decision = "allow", justification = "Run a repository behavior suite")
+prefix_rule(pattern = ["scripts/check-mcp-consistency.sh"], decision = "allow", justification = "Verify the repository MCP catalog")
+prefix_rule(pattern = ["bash", "scripts/check-mcp-consistency.sh"], decision = "allow", justification = "Verify the repository MCP catalog")
+
+# Repository lint and structured-data tools.
+prefix_rule(pattern = ["shellcheck"], decision = "allow", justification = "Lint shell scripts")
+prefix_rule(pattern = ["shfmt"], decision = "allow", justification = "Check or format shell scripts")
+prefix_rule(pattern = ["jq"], decision = "allow", justification = "Inspect or validate JSON")
+prefix_rule(pattern = ["yamllint"], decision = "allow", justification = "Lint YAML")
+
+# Git inspection and intentionally approved local commits.
+prefix_rule(pattern = ["git", "status"], decision = "allow", justification = "Inspect worktree state")
+prefix_rule(pattern = ["git", "diff"], decision = "allow", justification = "Inspect changes")
+prefix_rule(pattern = ["git", "log"], decision = "allow", justification = "Inspect repository history")
+prefix_rule(pattern = ["git", "fetch"], decision = "allow", justification = "Refresh remote references without changing the worktree")
+prefix_rule(pattern = ["git", "commit"], decision = "allow", justification = "Create an intentional local commit")
+
+# Git operations that can change the index or worktree require confirmation.
+prefix_rule(pattern = ["git", "add"], decision = "prompt", justification = "Confirm files before staging")
+prefix_rule(pattern = ["git", "checkout"], decision = "prompt", justification = "Checkout can replace worktree content")
+prefix_rule(pattern = ["git", "branch"], decision = "prompt", justification = "Confirm branch mutations")
+prefix_rule(pattern = ["git", "stash"], decision = "prompt", justification = "Stash changes worktree state")
+prefix_rule(pattern = ["git", "pull"], decision = "prompt", justification = "Pull can update the current branch and worktree")

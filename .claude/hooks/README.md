@@ -4,7 +4,7 @@ Purpose: document what each hook script actually does and when it fires, so this
 
 Wiring is declared in `../settings.json` under `hooks` (and `statusLine` for the status line). All scripts are read-only with respect to their trigger unless noted, fail open on missing dependencies (`jq`, `shellcheck`, etc.), and never abort the session on their own errors except where a hook explicitly blocks (`exit 2`).
 
-**`pre-bash.sh`, `pre-edit.sh`, and `post-edit-format.sh` are thin wrappers** around shared scripts in `../../scripts/guardrails/`, so Codex CLI's adapters under `../../.codex/hooks/` can produce identical decisions from the same logic. See `../../specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md` for the shared stdin/stdout contract. Each wrapper resolves its shared script from (in order): the current project's own `scripts/guardrails/` (useful when working in this repo directly), then the globally-installed `~/.claude/scripts/guardrails/` (deployed by `install.sh` — **not** resolved via `CLAUDE_PROJECT_DIR`, since once installed these hooks run for every project on the machine, most of which aren't this repository), then a repo-relative fallback. Behavior test suites for all three live under `../../tests/run-destructive-command-guard.sh`, `run-pre-edit-guard.sh`, and `run-post-edit-format-guard.sh`.
+**`pre-bash.sh`, `pre-edit.sh`, `post-edit-format.sh`, and `user-prompt-submit.sh` are thin wrappers** around shared scripts in `../../scripts/guardrails/`, so Codex CLI's adapters under `../../.codex/hooks/` can produce identical decisions from the same logic. See `../../specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md` for the shared stdin/stdout contract. Each wrapper resolves its shared script from (in order): the current project's own `scripts/guardrails/` (useful when working in this repo directly), then the globally-installed `~/.claude/scripts/guardrails/` (deployed by `install.sh` — **not** resolved via `CLAUDE_PROJECT_DIR`, since once installed these hooks run for every project on the machine, most of which aren't this repository), then a repo-relative fallback. Behavior suites live under `../../tests/run-destructive-command-guard.sh`, `run-pre-edit-guard.sh`, `run-post-edit-format-guard.sh`, and `run-prompt-secret-guard.sh`.
 
 ## Hook index
 
@@ -13,7 +13,7 @@ Wiring is declared in `../settings.json` under `hooks` (and `statusLine` for the
 | `pre-bash.sh` | `PreToolUse` | `Bash` | Blocks or gates dangerous shell commands before they run |
 | `pre-edit.sh` | `PreToolUse` | `Edit\|Write\|Delete` | Blocks edits to `.git/` internals and to the `main`/`master` branch; warns on sensitive paths |
 | `post-edit-format.sh` | `PostToolUse` | `Edit\|Write` | Formats/lints the file just written (shfmt, shellcheck, yamllint, jq, `@import` check) |
-| `user-prompt-submit.sh` | `UserPromptSubmit` | — | Blocks prompts that contain obvious credential material |
+| `user-prompt-submit.sh` | `UserPromptSubmit` | — | Calls `scripts/guardrails/prompt-secret-scan.sh`; Codex uses the same scanner through `.codex/hooks/prompt-secret-adapter.sh` |
 | `speckit-expand-update.sh` | `UserPromptExpansion` | `speckit\.(specify\|clarify\|plan\|tasks\|implement\|checklist\|analyze\|taskstoissues\|constitution\|converge)` | Upgrades `specify-cli` and refreshes Spec Kit project files before a `/speckit-*` command expands |
 | `statusline.sh` | `statusLine` (not a hook event) | — | Renders `<model> \| <dir> \| <branch>` for the TUI status line |
 
@@ -50,7 +50,7 @@ Never blocks (`exit 0` always); missing tools are silently skipped.
 
 ## `user-prompt-submit.sh` — UserPromptSubmit
 
-Scans the raw prompt text for secret-shaped substrings and blocks (`exit 2`) if found: AWS access key IDs (`AKIA…`/`ASIA…`), GitHub tokens (`ghp_/gho_/ghu_/ghs_/ghr_…`, `github_pat_…`), Slack tokens (`xox[abpors]-…`), `-----BEGIN … PRIVATE KEY-----` blocks, and Google API keys (`AIza…`). Empty prompts pass through.
+Delegates the raw prompt to `scripts/guardrails/prompt-secret-scan.sh` and blocks (`exit 2`) if the shared decision is deny: AWS access key IDs (`AKIA…`/`ASIA…`), GitHub tokens (`ghp_/gho_/ghu_/ghs_/ghr_…`, `github_pat_…`), Slack tokens (`xox[abpors]-…`), `-----BEGIN … PRIVATE KEY-----` blocks, and Google API keys (`AIza…`). Empty prompts pass through. `.codex/hooks/prompt-secret-adapter.sh` passes the same input to the same scanner and maps deny to Codex's `{continue:false, stopReason}` response without echoing the matched value.
 
 ## `speckit-expand-update.sh` — UserPromptExpansion, matcher on `speckit.*` commands
 

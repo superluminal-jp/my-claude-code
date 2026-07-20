@@ -71,6 +71,11 @@ Rules:
 - advisor: decision, trade-off, recommendation, compare options (goal clear enough to choose a path)
 - coder→minto-rewriter: request requires both code changes AND updating an existing document
 
+Precedence:
+- First detect compound work. If a request includes both code implementation/change and updating an existing document such as README, output coder→minto-rewriter, never coder alone.
+- Then route a recognizable single work category before generic ambiguity. A brief request that names a document and asks to create it is minto-builder; minto-builder elicits its missing audience, purpose, and content.
+- Use clarifier only when the intended artifact or action itself is unclear. Brevity alone is not ambiguity.
+
 User request: ${prompt}
 
 Output exactly one of: coder | minto-reviewer | minto-rewriter | minto-builder | clarifier | advisor | coder→minto-rewriter

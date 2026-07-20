@@ -6,6 +6,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 `.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/hooks/memory を
 マシン上の全プロジェクトで共通適用できます。
 
+同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、6 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
+
 英語版: [README.md](README.md)
 
 ## このリポジトリで提供するもの
@@ -33,7 +35,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 bash path/to/my-claude-code/install.sh
 ```
 
-インストーラーは `~/.claude` を同期し、ユーザースコープ MCP を登録/更新します。
+インストーラーは `~/.claude` を同期し、Claude Code のユーザースコープ MCP を登録/更新します。Codex 側は `.codex/AGENTS.md` → `~/.codex/AGENTS.md`、共有スキル → `~/.agents/skills/`、4 アダプタ → `~/.codex/hooks/`、Rules/プロンプト、および `~/.codex/config.toml` 内の管理マーカー区間へ展開します。同名 MCP が非管理区間に既存ならユーザー定義を保持し、重複する管理定義は生成しません。Google MCP の API キー値は書き込まず環境変数名だけを保持し、未設定時は同エントリを無効化します。
+
+初回インストール後またはフック変更後は Codex TUI の `/hooks` を開き、4 件のユーザーフックを確認して信頼してください。Codex は変更された非管理コマンドフックの現在の定義ハッシュが信頼されるまで、そのフックを実行しません。
 
 ### 重要: 上書き置換（削除同期）について
 
@@ -64,7 +68,15 @@ my-claude-code/
 ├── README.ja.md
 ├── install.sh
 ├── scripts/
-│   └── check-mcp-consistency.sh
+│   ├── check-mcp-consistency.sh
+│   └── guardrails/
+├── .codex/
+│   ├── AGENTS.md
+│   ├── README.md
+│   ├── hooks/
+│   ├── rules/guardrails.rules
+│   └── prompts/verify-config.md
+├── .agents/skills/
 ├── .mcp.json
 └── .claude/
     ├── CLAUDE.md
@@ -80,6 +92,9 @@ my-claude-code/
 
 ```sh
 ./scripts/check-mcp-consistency.sh
+./tests/run-codex-sync.sh
+./tests/run-prompt-secret-guard.sh
+./tests/run-codex-sync-drift.sh
 ```
 
 ## MCP サーバー

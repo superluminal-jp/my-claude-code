@@ -90,7 +90,7 @@ check "claude hook: feature branch exits 0 (allow)" "$([ "$(claude_hook_exit 'fo
 # Part 3: Codex CLI adapter
 # ---------------------------------------------------------------------------
 
-codex_adapter_decision() {
+codex_adapter_exit() {
   local path="$1" proj="$2"
   [ -x "$CODEX_ADAPTER" ] || {
     echo "MISSING"
@@ -98,12 +98,13 @@ codex_adapter_decision() {
   }
   jq -n --arg path "$path" --arg proj "$proj" \
     '{hook_event_name:"PreToolUse", tool_name:"Edit", tool_input:{path:$path}, cwd:$proj}' \
-    | bash "$CODEX_ADAPTER" 2>/dev/null | jq -r '.hookSpecificOutput.permissionDecision // "PARSE_ERROR"'
+    | bash "$CODEX_ADAPTER" >/dev/null 2>&1
+  echo $?
 }
 
-check "codex adapter: .git/ path -> deny" "$([ "$(codex_adapter_decision '.git/config' "$FEATURE_PROJ")" = "deny" ] && echo 1 || echo 0)"
-check "codex adapter: main branch -> deny" "$([ "$(codex_adapter_decision 'foo.txt' "$MAIN_PROJ")" = "deny" ] && echo 1 || echo 0)"
-check "codex adapter: feature branch -> allow" "$([ "$(codex_adapter_decision 'foo.txt' "$FEATURE_PROJ")" = "allow" ] && echo 1 || echo 0)"
+check "codex adapter: .git/ path exits 2 (deny)" "$([ "$(codex_adapter_exit '.git/config' "$FEATURE_PROJ")" = "2" ] && echo 1 || echo 0)"
+check "codex adapter: main branch exits 2 (deny)" "$([ "$(codex_adapter_exit 'foo.txt' "$MAIN_PROJ")" = "2" ] && echo 1 || echo 0)"
+check "codex adapter: feature branch exits 0 (allow)" "$([ "$(codex_adapter_exit 'foo.txt' "$FEATURE_PROJ")" = "0" ] && echo 1 || echo 0)"
 
 echo ""
 echo "===================="

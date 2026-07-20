@@ -26,6 +26,6 @@ docs/configuration.md の内容を更新して
 ## Baseline (変更前の動作記録)
 
 <!-- 変更前にこの欄を記録してから実装に進むこと -->
-実行日: ___
-観察した動作: ___
-Pass / Fail: ___
+実行日: 2026-07-20
+観察した動作: minto-rewriter
+Pass / Fail: Pass

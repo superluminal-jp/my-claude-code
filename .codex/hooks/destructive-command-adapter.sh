@@ -3,15 +3,13 @@
 # command guardrail (Q6). Translates scripts/guardrails/destructive-command.sh's
 # tool-agnostic decision into Codex CLI's PreToolUse response shape.
 #
-# NOTE (research.md R1, Medium confidence): Codex CLI's exact PreToolUse
-# response schema was confirmed via secondary documentation, not a live
-# session (spec FR-010) — this adapter has not yet been re-verified against
-# a real Codex CLI. In particular, only "deny" is documented for
-# permissionDecision; a three-way "ask" is not confirmed, so per FR-008 this
-# adapter maps the shared script's "ask" to "deny" (fail closed).
+# Live verification on 2026-07-20 confirmed the current Codex command-hook
+# contract: exit 0 with no output allows; exit 2 with a safe stderr reason
+# blocks. The older hookSpecificOutput/continue JSON shape is rejected by
+# PreToolUse. The shared script's "ask" therefore maps to exit 2 (fail closed).
 #
 # Input (Codex CLI PreToolUse, matcher Bash): JSON on stdin with at least
-# .tool_input.command. Output: JSON with hookSpecificOutput.permissionDecision.
+# .tool_input.command.
 
 set -euo pipefail
 
@@ -27,37 +25,15 @@ else
   SHARED="$HOME/.claude/scripts/guardrails/destructive-command.sh"
 fi
 
-deny_response() {
-  jq -n --arg reason "$1" '{
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: $reason
-    }
-  }'
-}
-
-allow_response() {
-  jq -n '{
-    continue: true,
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "allow"
-    }
-  }'
-}
-
 if [ ! -x "$SHARED" ]; then
-  allow_response
   exit 0
 fi
 
 COMMAND=$(jq -r '.tool_input.command // empty' 2>/dev/null || echo "")
 
 RESULT=$(jq -n --arg command "$COMMAND" '{command:$command}' | bash "$SHARED" 2>/dev/null) || {
-  deny_response "Destructive-command guardrail script failed; blocking as a precaution."
-  exit 0
+  echo "Destructive-command guardrail script failed; blocking as a precaution." >&2
+  exit 2
 }
 
 DECISION=$(echo "$RESULT" | jq -r '.decision // empty')
@@ -65,16 +41,18 @@ REASON=$(echo "$RESULT" | jq -r '.reason // empty')
 
 case "$DECISION" in
 deny)
-  deny_response "$REASON"
+  echo "$REASON" >&2
+  exit 2
   ;;
 ask)
-  # No confirmed three-way primitive in Codex CLI's PreToolUse (FR-008): fail closed.
-  deny_response "${REASON:-Requires explicit user approval; Codex CLI has no confirmed confirmation primitive, so this is blocked.}"
+  echo "${REASON:-Requires explicit user approval; the PreToolUse hook fails closed.}" >&2
+  exit 2
   ;;
 allow | "")
-  allow_response
+  exit 0
   ;;
 *)
-  deny_response "Destructive-command guardrail returned an unrecognized decision; blocking as a precaution."
+  echo "Destructive-command guardrail returned an unrecognized decision; blocking as a precaution." >&2
+  exit 2
   ;;
 esac

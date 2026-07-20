@@ -98,25 +98,24 @@ check "claude hook: force push exits 2 (block)" "$([ "$(claude_hook_exit 'git pu
 check "claude hook: benign command exits 0 (allow)" "$([ "$(claude_hook_exit 'ls -la')" = "0" ] && echo 1 || echo 0)"
 
 # ---------------------------------------------------------------------------
-# Part 3: Codex CLI adapter — translates the shared decision to Codex's
-# PreToolUse response shape (per research.md R1: hookSpecificOutput.permissionDecision)
+# Part 3: Codex CLI adapter — current PreToolUse command-hook contract uses
+# exit 2 to block and exit 0 with no output to allow.
 # ---------------------------------------------------------------------------
 
-codex_adapter_decision() {
+codex_adapter_exit() {
   local cmd="$1"
   [ -x "$CODEX_ADAPTER" ] || {
     echo "MISSING"
     return
   }
   jq -n --arg command "$cmd" '{hook_event_name:"PreToolUse", tool_name:"Bash", tool_input:{command:$command}}' \
-    | bash "$CODEX_ADAPTER" 2>/dev/null | jq -r '.hookSpecificOutput.permissionDecision // "PARSE_ERROR"'
+    | bash "$CODEX_ADAPTER" >/dev/null 2>&1
+  echo $?
 }
 
-check "codex adapter: force push -> deny" "$([ "$(codex_adapter_decision 'git push --force')" = "deny" ] && echo 1 || echo 0)"
-# Codex CLI's PreToolUse response is not confirmed to support a three-way "ask"
-# (only "deny" is documented); FR-008 requires the adapter to fail closed here.
-check "codex adapter: rm -rf other -> deny (ask has no confirmed Codex CLI primitive, FR-008)" "$([ "$(codex_adapter_decision 'rm -rf /tmp/scratch')" = "deny" ] && echo 1 || echo 0)"
-check "codex adapter: benign command -> allow" "$([ "$(codex_adapter_decision 'ls -la')" = "allow" ] && echo 1 || echo 0)"
+check "codex adapter: force push exits 2 (deny)" "$([ "$(codex_adapter_exit 'git push --force')" = "2" ] && echo 1 || echo 0)"
+check "codex adapter: rm -rf other exits 2 (ask fails closed)" "$([ "$(codex_adapter_exit 'rm -rf /tmp/scratch')" = "2" ] && echo 1 || echo 0)"
+check "codex adapter: benign command exits 0 (allow)" "$([ "$(codex_adapter_exit 'ls -la')" = "0" ] && echo 1 || echo 0)"
 
 echo ""
 echo "===================="
