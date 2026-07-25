@@ -75,6 +75,10 @@ preserved_strands_command=$(grep -Ec '^command = "existing-strands"$' "$FIXTURE_
 check "installer preserves a non-managed MCP definition without duplication" \
   "$([ "$preserved_strands_count" -eq 1 ] && [ "$preserved_strands_command" -eq 1 ] && echo 1 || echo 0)"
 
+mv "$FIXTURE_HOME/.agents/skills/digital-agency-frontend" "$FIXTURE_ROOT/digital-agency-frontend-link"
+assert_only_failure "missing deployed custom skill triggers only SYNC-02" "SYNC-02"
+mv "$FIXTURE_ROOT/digital-agency-frontend-link" "$FIXTURE_HOME/.agents/skills/digital-agency-frontend"
+
 mv "$FIXTURE_REPO/.claude/skills/adr" "$FIXTURE_REPO/.claude/skills/adr.disabled"
 assert_only_failure "skill target deletion triggers only SYNC-01" "SYNC-01"
 mv "$FIXTURE_REPO/.claude/skills/adr.disabled" "$FIXTURE_REPO/.claude/skills/adr"

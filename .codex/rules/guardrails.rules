@@ -7,6 +7,8 @@ prefix_rule(pattern = ["tests/run-codex-sync.sh"], decision = "allow", justifica
 prefix_rule(pattern = ["bash", "tests/run-codex-sync.sh"], decision = "allow", justification = "Run the repository's deterministic Codex sync suite")
 prefix_rule(pattern = ["tests/run-codex-sync-drift.sh"], decision = "allow", justification = "Run isolated drift-detection acceptance tests")
 prefix_rule(pattern = ["bash", "tests/run-codex-sync-drift.sh"], decision = "allow", justification = "Run isolated drift-detection acceptance tests")
+prefix_rule(pattern = ["tests/run-digital-agency-frontend-skill.sh"], decision = "allow", justification = "Run the Digital Agency frontend skill contract suite")
+prefix_rule(pattern = ["bash", "tests/run-digital-agency-frontend-skill.sh"], decision = "allow", justification = "Run the Digital Agency frontend skill contract suite")
 prefix_rule(pattern = ["tests/run-destructive-command-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
 prefix_rule(pattern = ["bash", "tests/run-destructive-command-guard.sh"], decision = "allow", justification = "Run a repository behavior suite")
 prefix_rule(pattern = ["tests/run-live-documentation.sh"], decision = "allow", justification = "Run a repository behavior suite")
