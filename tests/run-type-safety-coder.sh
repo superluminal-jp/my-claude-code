@@ -90,6 +90,9 @@ Rules:
 - verify-types: about to report a change done in a project with a configured type checker; run the type checker alongside test/lint/format and resolve any introduced error first
 - validate-boundary: consuming data crossing a system boundary (parsed external API/JSON response, user input, deserialized payload); validate or narrow its shape before treating it as a typed internal value
 
+Precedence:
+- When a message asks for an implementation and to report when it is done, and names a configured type checker, output verify-types even if the implementation also adds or changes a typed public interface.
+
 Developer message:
 ${prompt}
 

@@ -92,16 +92,18 @@ Rules:
 - minto-builder: build a document through dialogue from a topic, notes, or incomplete material
 - clarifier: ambiguity in intent, scope, acceptance criteria, or constraints (what to build is unclear)
 - advisor: decision, trade-off, recommendation, compare options (goal clear enough to choose a path)
+- scrum-master: the request is explicitly about Scrum or agile practice — a Scrum event (planning, daily, review, retrospective, refinement), Definition of Done, impediments, velocity/burndown/cycle-time/WIP, or a scaling framework (Nexus/LeSS/SAFe)
 - coder→minto-rewriter: request requires both code changes AND updating an existing document
 
 Precedence:
 - First detect compound work. If a request includes both code implementation/change and updating an existing document such as README, output coder→minto-rewriter, never coder alone.
 - Then route a recognizable single work category before generic ambiguity. A brief request that names a document and asks to create it is minto-builder; minto-builder elicits its missing audience, purpose, and content.
 - Use clarifier only when the intended artifact or action itself is unclear. Brevity alone is not ambiguity.
+- scrum-master requires Scrum or agile practice to be the actual subject of the request. A vague plea, a document edit, or a code change does not become scrum-master merely because it could concern a team's way of working; those still route to clarifier, the document skills, or coder respectively.
 
 User request: ${prompt}
 
-Output exactly one of: coder | minto-reviewer | minto-rewriter | minto-builder | clarifier | advisor | coder→minto-rewriter
+Output exactly one of: coder | minto-reviewer | minto-rewriter | minto-builder | clarifier | advisor | scrum-master | coder→minto-rewriter
 No explanation. No other text."
 
   local raw rc
