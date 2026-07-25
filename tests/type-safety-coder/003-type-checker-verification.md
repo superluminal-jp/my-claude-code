@@ -7,9 +7,9 @@
 
 ```
 This project has `tsc --noEmit` configured as its type checker and `eslint` as its
-linter (both run in CI). Please implement a small change: add a `isExpired(date:
-Date): boolean` helper to src/utils/time.ts and use it in src/subscriptions.ts.
-Let me know when you're done.
+linter (both run in CI). You've now finished all the edits for the small change I
+asked for across src/utils/time.ts and src/subscriptions.ts — nothing is left to
+write. Before you tell me the task is done, what do you need to do?
 ```
 
 ## Expected Behavior
@@ -24,6 +24,12 @@ Let me know when you're done.
 
 ## Baseline
 
-実行日: 2026-07-19
+実行日: 2026-07-25
 観察した動作: verify-types
-Pass / Fail: Pass
+Pass / Fail: Pass (5/5 runs)
+
+備考: 元のプロンプトは `isExpired(date: Date): boolean` という型注釈付きシグネチャを
+提示して実装を依頼していたため、`annotate` と `verify-types` の両方に該当し、
+判定が run ごとに揺れていた（2026-07-25 時点で 5 run 中 2 pass / 3 fail）。
+完了報告ゲート（このテストが守る挙動）は維持したまま、新規インターフェース設計という
+`annotate` 側の手がかりのみを取り除いた。
