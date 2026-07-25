@@ -93,7 +93,7 @@ if [ -f "$CODEX_AGENTS_SRC" ]; then
   done
   check "SYNC-03: shared guidance covers core Claude prose rules" "$GUIDANCE_OK"
   SKILL_ROUTING_OK=1
-  for skill_name in adr clarifier coder minto-builder minto-reviewer minto-rewriter; do
+  for skill_name in adr clarifier coder minto-builder minto-reviewer minto-rewriter scrum-master; do
     skill_reference="@.agents/skills/$skill_name/SKILL.md"
     grep -Fq "$skill_reference" "$CODEX_AGENTS_SRC" || SKILL_ROUTING_OK=0
   done
