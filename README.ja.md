@@ -6,7 +6,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 `.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/hooks/memory を
 マシン上の全プロジェクトで共通適用できます。
 
-同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、7 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
+同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、8 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
 
 英語版: [README.md](README.md)
 
@@ -21,6 +21,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`（最終版への書き直し）、`minto-builder`（対話による構築）
   - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
   - `adr`: アーキテクチャ決定記録（MADR形式）
+  - `scrum-master`: Scrumイベントの設計・ファシリテーション、障害除去、フロー指標（チーム／個人のソロプラクティス双方）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
