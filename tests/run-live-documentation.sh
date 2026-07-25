@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Automated Live Documentation rule test runner
 # Usage: bash tests/run-live-documentation.sh
+#        TEST_MODEL=opus bash tests/run-live-documentation.sh   # override eval model (default: haiku)
+#
+# Exit codes: 0 = all passed; 1 = at least one assertion failed OR the claude CLI
+# errored. CLI errors are reported separately as ERROR, never as a failed assertion.
 
 set -uo pipefail
 
@@ -9,12 +13,31 @@ TEST_DIR="$REPO_ROOT/tests/live-documentation"
 
 PASS=0
 FAIL=0
+ERROR=0
 FAIL_NAMES=""
+ERROR_NAMES=""
+
+# Model used to evaluate the rule prompts. Overridable: TEST_MODEL=sonnet bash tests/...
+TEST_MODEL="${TEST_MODEL:-haiku}"
+
+# Every keyword the evaluation prompt is allowed to return. Anything else means the
+# CLI failed (session limit, auth error, crash) rather than the rule being misapplied.
+VALID_KEYWORDS="drift violation autogen proximity override-rejected"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
+YELLOW='\033[0;33m'
 BOLD='\033[1m'
 NC='\033[0m'
+
+# True when the CLI returned one of the keywords the prompt asked for
+is_valid_keyword() {
+  local candidate="$1" k
+  for k in $VALID_KEYWORDS; do
+    [ "$candidate" = "$k" ] && return 0
+  done
+  return 1
+}
 
 # Require claude CLI
 if ! command -v claude &>/dev/null; then
@@ -74,10 +97,24 @@ ${prompt}
 Output exactly one of: drift | violation | autogen | proximity | override-rejected
 No explanation. No other text."
 
-  result=$(printf '%s' "$query" | claude -p 2>/dev/null \
-    | tr -d '\n' \
-    | sed 's/[[:space:]]//g' \
-    | tr '[:upper:]' '[:lower:]')
+  local raw rc
+  raw=$(printf '%s' "$query" | claude -p --model "$TEST_MODEL" 2>&1)
+  rc=$?
+  result=$(printf '%s' "$raw" |
+    tr -d '\n' |
+    sed 's/[[:space:]]//g' |
+    tr '[:upper:]' '[:lower:]')
+
+  # Distinguish infrastructure failure from a genuine rule miss: a CLI error would
+  # otherwise be recorded as a failed assertion and written into the baseline file.
+  if [ "$rc" -ne 0 ] || ! is_valid_keyword "$result"; then
+    printf "${YELLOW}⚠ ERROR${NC}  %s\n" "$name"
+    printf "         claude CLI failed or returned no recognized keyword (exit %s)\n" "$rc"
+    printf "         output   : %s\n" "${raw:-<empty>}"
+    ERROR=$((ERROR + 1))
+    ERROR_NAMES="${ERROR_NAMES}\n  - ${name} (exit ${rc}, output: ${result:-<empty>})"
+    return
+  fi
 
   if [ "$result" = "$exp_norm" ]; then
     printf "${GREEN}✓ PASS${NC}  %s  (→ %s)\n" "$name" "$result"
@@ -102,7 +139,7 @@ No explanation. No other text."
     "$file" 2>/dev/null || true
 }
 
-printf "\n${BOLD}Live Documentation Tests${NC}\n"
+printf "\n${BOLD}Live Documentation Tests${NC}  [model: %s]\n" "$TEST_MODEL"
 echo "========================"
 echo ""
 
@@ -113,9 +150,16 @@ done
 
 echo ""
 echo "========================"
-printf "Results: ${GREEN}%d passed${NC}, ${RED}%d failed${NC}\n" "$PASS" "$FAIL"
+printf "Results: ${GREEN}%d passed${NC}, ${RED}%d failed${NC}, ${YELLOW}%d errored${NC}\n" "$PASS" "$FAIL" "$ERROR"
+
+if [ "$ERROR" -gt 0 ]; then
+  printf "\nErrored (CLI problem, not a rule miss — results are inconclusive):%b\n" "$ERROR_NAMES"
+fi
 
 if [ "$FAIL" -gt 0 ]; then
   printf "\nFailed:%b\n" "$FAIL_NAMES"
+fi
+
+if [ "$FAIL" -gt 0 ] || [ "$ERROR" -gt 0 ]; then
   exit 1
 fi

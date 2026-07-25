@@ -1,6 +1,6 @@
 # Test: Scrum Facilitation Request Auto-Routes to Scrum Master
 
-**Category**: scrum  
+**Category**: scrum
 **ID**: 007
 
 ## Input Prompt
