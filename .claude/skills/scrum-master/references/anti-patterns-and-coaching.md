@@ -1,32 +1,32 @@
-# 反パターンとコーチング
+# アンチパターンとコーチング
 
 ## 目次
 
-- [チーム・プロセスレベルの反パターン](#チームプロセスレベルの反パターン)
-- [Scrum Master自身の反パターン](#scrum-master自身の反パターン)
+- [チーム・プロセスレベルのアンチパターン](#チームプロセスレベルのアンチパターン)
+- [Scrum Master自身のアンチパターン](#scrum-master自身のアンチパターン)
 - [機能不全を診断する：処方の前に問う](#機能不全を診断する処方の前に問う)
 - [記述を分析するときのコーチング作法](#記述を分析するときのコーチング作法)
 
-出典：Scrum.orgの反パターン記事群（180以上のパターンを役割・イベント・作成物別に分類する「Scrum Anti-Patterns Guide」を含む）[SAP]、Agile Allianceの「Scrum Master Anti-Patterns」[AAP]、Zombie Scrumの概念（zombiescrum.org / Christiaan Verwijs & Johannes Schartau、Scrum.org経由でも紹介）[ZBS]。詳細リンクは[sources.md](sources.md)を参照。
+出典：Scrum.orgのアンチパターン記事群（180以上のパターンを役割・イベント・作成物別に分類する「Scrum Anti-Patterns Guide」を含む）[SAP]、Agile Allianceの「Scrum Master Anti-Patterns」[AAP]、Zombie Scrumの概念（zombiescrum.org / Christiaan Verwijs & Johannes Schartau、Scrum.org経由でも紹介）[ZBS]。詳細リンクは[sources.md](sources.md)を参照。
 
-## チーム・プロセスレベルの反パターン
+## チーム・プロセスレベルのアンチパターン
 
 - **Zombie Scrum**：チームは形式上すべてのイベントを開催し、すべての作成物を作るが、機械的で本当の検査・適応がない。儀式だけが、本来の価値が失われた後も続く。兆候：レトロが実質的な変化を生まない、Sprint Reviewが承認だけのデモになる、「Done」が使用可能を意味しない。[ZBS]
-- **状況報告化したDaily Scrum**：メンバーがSprint Goalへの進捗を一緒に検査するのではなく、Scrum Masterへ報告する。イベントがGuideの意図から外れているサイン。
-- **スイカ・ステータス**（実務用語、Guide外）：表面（ダッシュボード、バーンダウン）は緑だが中身は赤。多くの場合、デリバリー不足ではなく透明性の欠如が原因。
-- **凍結・変更されるSprint Backlog**：POや管理職がSprint Goalを再交渉せずにSprint途中で作業を追加し、チームの予測力と集中を損なう。
-- **XのつもりでYを届ける**：POとDevelopersが同じバックログ項目について異なるメンタルモデルを持ってしまう。コミュニケーションの些細な行き違いではなく、リファインメント不足のサイン。
-- **可変Sprint長**：Sprint Goal未達の理由に向き合わず、期日に合わせてSprintを伸ばす。測定基準を変えれば問題が解決するかのように症状だけを扱っている。
-- **ハードニングSprint**：前のSprintの品質問題を修正するための（あるいはSprint終盤に設ける）専用フェーズ。多くの場合、チームがまだ本当のDefinition of Doneを満たせていないか、品質を犠牲にする外部圧力にさらされていることを示す。
+- **状況報告化したDaily Scrum**：メンバーがSprint Goalへの進捗を一緒に検査するのではなく、Scrum Masterへ報告する。イベントがGuideの意図から外れているサイン。[SAP]
+- **スイカ・ステータス**（実務用語、Guide外・特定の単一出典なし）：表面（ダッシュボード、バーンダウン）は緑だが中身は赤。多くの場合、デリバリー不足ではなく透明性の欠如が原因。
+- **凍結・変更されるSprint Backlog**：POや管理職がSprint Goalを再交渉せずにSprint途中で作業を追加し、チームの予測力と集中を損なう。[SAP]
+- **XのつもりでYを届ける**：POとDevelopersが同じバックログ項目について異なるメンタルモデルを持ってしまう。コミュニケーションの些細な行き違いではなく、リファインメント不足のサイン。[SAP]
+- **可変Sprint長**：Sprint Goal未達の理由に向き合わず、期日に合わせてSprintを伸ばす。測定基準を変えれば問題が解決するかのように症状だけを扱っている。[SAP]
+- **ハードニングSprint**：前のSprintの品質問題を修正するための（あるいはSprint終盤に設ける）専用フェーズ。多くの場合、チームがまだ本当のDefinition of Doneを満たせていないか、品質を犠牲にする外部圧力にさらされていることを示す。[SAP]
 
-## Scrum Master自身の反パターン
+## Scrum Master自身のアンチパターン
 
 チームを診断するだけでなく、自己点検にも使う。[AAP]
 
-- **「Scrumの王・女王」**：「正しい」Scrumの殉教者になり、関係構築ではなく管理職の失策を公然と批判する。政治的資本を消費するだけで結果を変えないことが多い。
-- **チームの自己管理を代行する**：タスクを割り当てる、Daily Scrumの司会をDevelopersから奪う、本来POが決めるバックログの判断を代わりに行う。
-- **対立回避**：チームが厳しい真実を必要としているときに純粋なファシリテーションに留まり続ける。勇気はScrum Master自身にも求められるScrumの価値基準である。
-- **指標劇場**：ベロシティやバーンダウンを、チームの予測補助ではなく管理職向けの生産性スコアとして提示する（[measurement-and-diagnostics.md](measurement-and-diagnostics.md)を参照）。
+- **「Scrumの王・女王」**：「正しい」Scrumの殉教者になり、関係構築ではなく管理職の失策を公然と批判する。政治的資本を消費するだけで結果を変えないことが多い。[AAP]
+- **チームの自己管理を代行する**：タスクを割り当てる、Daily Scrumの司会をDevelopersから奪う、本来POが決めるバックログの判断を代わりに行う。[AAP]
+- **対立回避**：チームが厳しい真実を必要としているときに純粋なファシリテーションに留まり続ける。「勇気」はScrum Master自身にも求められるScrumの価値基準である。[AAP][SG20, p.4]
+- **指標劇場**：ベロシティやバーンダウンを、チームの予測補助ではなく管理職向けの生産性スコアとして提示する（[AAP]、詳細は[measurement-and-diagnostics.md](measurement-and-diagnostics.md)を参照）。
 
 ## 機能不全を診断する：処方の前に問う
 

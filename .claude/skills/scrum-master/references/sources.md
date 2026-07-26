@@ -5,14 +5,13 @@
 - [使い方](#使い方)
 - [規範的な基準](#規範的な基準)
 - [補完的な実践と研究](#補完的な実践と研究)
-- [反パターンとコーチングの実務資料](#反パターンとコーチングの実務資料)
+- [アンチパターンとコーチングの実務資料](#アンチパターンとコーチングの実務資料)
 - [スケーリングフレームワークの資料](#スケーリングフレームワークの資料)
-- [Claude Codeスキル仕様](#claude-codeスキル仕様)
 - [引用ルール](#引用ルール)
 
 ## 使い方
 
-Scrumそのものの定義はScrum Guideを最優先する。ほかの資料は、Scrumを置き換えず、測定、フロー、ファシリテーション、反パターン、スケーリング、チーム環境を補完するために使う。
+Scrumそのものの定義はScrum Guideを最優先する。ほかの資料は、Scrumを置き換えず、測定、フロー、ファシリテーション、アンチパターン、スケーリング、チーム環境を補完するために使う。
 
 根拠の強さを次のように区別する。
 
@@ -25,7 +24,7 @@ Scrumそのものの定義はScrum Guideを最優先する。ほかの資料は�
 
 ### [SG20] The Scrum Guide
 
-Ken Schwaber and Jeff Sutherland, *The Scrum Guide: The Definitive Guide to Scrum—The Rules of the Game*, November 2020.
+Ken Schwaber and Jeff Sutherland, _The Scrum Guide: The Definitive Guide to Scrum—The Rules of the Game_, November 2020.
 
 https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf
 
@@ -45,9 +44,11 @@ Scrum Guideの最新版表示と各言語版：
 
 https://scrumguides.org/
 
+ページ番号は英語版（*The Scrum Guide*, November 2020）に基づく。日本語版PDFは目次が2ページに渡るため「スクラムの定義」以降、英語版より1ページ後ろにずれる（例：スクラムの定義は英語版p.3・日本語版p.4、スクラムマスターは英語版p.6・日本語版p.7）。日本語版で本文を確認する場合は+1ページで読み替える。
+
 ### [NXG] The Nexus Guide
 
-Scrum.org, *The Nexus Guide*（最新版、2026-07-25取得）。
+Scrum.org, _The Nexus Guide_（最新版、2026-07-25取得）。
 
 https://www.scrum.org/resources/online-nexus-guide
 
@@ -55,7 +56,7 @@ https://www.scrum.org/resources/online-nexus-guide
 
 ### [AM01] Manifesto for Agile Software Development and Principles
 
-Beck et al., *Manifesto for Agile Software Development*, 2001.
+Beck et al., _Manifesto for Agile Software Development_, 2001.
 
 https://agilemanifesto.org/
 
@@ -71,7 +72,7 @@ https://agilemanifesto.org/principles.html
 
 ### [EBM24] Evidence-Based Management Guide
 
-Scrum.org, *Evidence-Based Management Guide*, updated 2024.
+Scrum.org, _Evidence-Based Management Guide_, updated 2024.
 
 https://www.scrum.org/resources/evidence-based-management-guide
 
@@ -83,7 +84,7 @@ Scrum Teamの活動量ではなく、顧客成果、組織能力、事業成果�
 
 ### [KGS21] The Kanban Guide for Scrum Teams
 
-Scrum.org, Daniel Vacanti, and Yuval Yeret, *The Kanban Guide for Scrum Teams*, January 2021.
+Scrum.org, Daniel Vacanti, and Yuval Yeret, _The Kanban Guide for Scrum Teams_, January 2021.
 
 https://scrumorg-website-prod.s3.amazonaws.com/drupal/2021-01/01-2021%20Kanban%20Guide.pdf
 
@@ -91,7 +92,7 @@ Scrumを置き換えず、価値のフローを改善する補完策として使
 
 ### [DORA26] DORA software delivery performance metrics
 
-DORA / Google Cloud, *DORA's software delivery performance metrics*, current page retrieved 2026-07-25.
+DORA / Google Cloud, _DORA's software delivery performance metrics_, current page retrieved 2026-07-25.
 
 https://dora.dev/guides/dora-metrics/
 
@@ -99,7 +100,7 @@ https://dora.dev/guides/dora-metrics/
 
 ### [EDM99] Psychological safety and learning behavior
 
-Amy C. Edmondson, "Psychological Safety and Learning Behavior in Work Teams," *Administrative Science Quarterly*, 44(2), 350–383, 1999.
+Amy C. Edmondson, "Psychological Safety and Learning Behavior in Work Teams," _Administrative Science Quarterly_, 44(2), 350–383, 1999.
 
 https://doi.org/10.2307/2666999
 
@@ -111,17 +112,17 @@ https://www.apa.org/topics/healthy-workplaces/psychological-safety
 
 ### [ART] Agile Retrospectives
 
-Esther Derby & Diana Larsen, *Agile Retrospectives: Making Good Teams Great*, Pragmatic Bookshelf, 2006.
+Esther Derby & Diana Larsen, _Agile Retrospectives: Making Good Teams Great_, Pragmatic Bookshelf, 2006.
 
 レトロスペクティブの5段階構造（場を整える・データを集める・意味を探る・選ぶ・閉じる）の出典。[event-playbooks.md](event-playbooks.md)で使用。
 
 ### [ICA] Coaching Agile Teams
 
-Lyssa Adkins, *Coaching Agile Teams: A Companion for ScrumMasters, Agile Coaches, and Project Managers in Transition*, Addison-Wesley, 2010.
+Lyssa Adkins, _Coaching Agile Teams: A Companion for ScrumMasters, Agile Coaches, and Project Managers in Transition_, Addison-Wesley, 2010.
 
 Scrum Master／アジャイルコーチのスタンス（ファシリテーター、コーチ、ティーチャー、メンター、対立の航行者）の出典。[scrum-master-role.md](scrum-master-role.md)で使用。
 
-## 反パターンとコーチングの実務資料
+## アンチパターンとコーチングの実務資料
 
 ### [SAP] Scrum.org anti-patterns series
 
@@ -161,26 +162,13 @@ Scaled Agile, Inc.。https://scaledagileframework.com
 
 Agile Release TrainsとProgram Incrementsを軸とする、より規定的な大規模フレームワーク。
 
-## Claude Codeスキル仕様
+### [SC@S] The Scrum@Scale Guide
 
-### [CC26] Extend Claude with skills / Skill authoring best practices
+Jeff Sutherland and Scrum Inc., *The Scrum@Scale Guide*, Version 2.1, February 2022.
 
-Anthropic, *Extend Claude with skills*, current page retrieved 2026-07-25.
+https://www.scrumatscale.com/scrum-at-scale-guide/
 
-https://code.claude.com/docs/en/skills
-
-Anthropic, *Skill authoring best practices*, current page retrieved 2026-07-25.
-
-https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-
-本スキルが従う仕様・慣行：
-
-- エントリーポイントは`SKILL.md`。個人スキルは`~/.claude/skills/<skill-name>/SKILL.md`、プロジェクトスキルは`.claude/skills/<skill-name>/SKILL.md`。
-- YAML frontmatterの`description`は第三者視点で、何を行い、いつ使うかを具体的なトリガー語とともに示す。`when_to_use`は追加のトリガー表現に使える。
-- 詳細資料はスキルディレクトリ内に置き、`SKILL.md`から直接（1階層で）参照する。参照ファイル同士のネストした参照は避ける。
-- 100行を超える参照ファイルには目次を置く。
-- `SKILL.md`本体は500行未満に保ち、詳細は参照資料へ分離する。
-- 決定的な計算はClaudeに再現させず、`scripts/`配下のスクリプトを実行させる。`${CLAUDE_SKILL_DIR}`でスキルの設置場所によらずスクリプトを参照できる。
+適用する主要箇所：「Scrum@Scale helps an organization to focus multiple networks of Scrum Teams on prioritized goals.」(p.2) — 最小限のガバナンス構造（minimum viable bureaucracy）で複数チームを調整する別系統のスケーリングガイド。手元にある日本語訳はVersion 1.02（英語版2.1とは版が異なる）のため、[scaling-frameworks.md](scaling-frameworks.md)では直接引用ではなく要約として扱う。
 
 ## 引用ルール
 
@@ -188,7 +176,7 @@ https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 - アジャイルの価値・原則を根拠にするときは`[AM01]`を付ける。
 - フロー指標やWIP制限は`[KGS21, p.X]`を付ける。
 - EBMまたはDORAの指標は、適用範囲と注意点を併記する。
-- スケーリングフレームワーク（Nexus/LeSS/SAFe）は、Scrum Guide自体の一部ではなく別の実践体系として出典を分けて引用する。
+- スケーリングフレームワーク（Nexus/LeSS/SAFe/Scrum@Scale）は、Scrum Guide自体の一部ではなく別の実践体系として出典を分けて引用する。
 - 心理的安全性について因果を断定しない。研究の設計と適用範囲を超えて一般化しない。
 - 原文引用は必要最小限にし、引用符とページを付ける。通常は正確に要約して出典を示す。
 - 出典間で矛盾があれば、Scrumの定義はScrum Guideを優先し、相違を明示する。
