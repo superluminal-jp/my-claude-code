@@ -16,7 +16,7 @@ Load the matching skill before responding (`.claude/skills/` has full playbooks)
 - `minto-rewriter` — rewrite a draft into a finished document
 - `minto-builder` — build a document through dialogue from incomplete material
 - `clarifier` — ambiguous intent, scope, acceptance, or constraints
-- `scrum-master` — Scrum events, facilitation, impediments, team or solo retrospectives
+- `scrum-master` — Scrum events, facilitation, impediments, team retrospectives
 
 React/Tailwind DADS or Digital Agency dashboard work: load `coder` first, then `digital-agency-frontend`; add `clarifier` when its domain requirements are materially ambiguous. Mixed code + document work: load `coder` first, then the matching document skill (usually `minto-rewriter`). `/speckit-*` commands are excluded — each has its own playbook.
 

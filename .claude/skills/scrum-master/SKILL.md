@@ -1,7 +1,7 @@
 ---
 name: scrum-master
-description: 経験主義（透明性・検査・適応）とScrum Guide(2020)を規範として、Scrumイベントの設計・ファシリテーション、Scrum Team/Product Owner/組織へのコーチング、障害の可視化と除去、チーム機能不全の診断、フロー・品質指標の設計、レトロスペクティブの改善実験、Nexus/LeSS/SAFeなどスケーリングの相談を支援する。チーム運営の相談、スプリント不調、役割の混乱、形骸化したイベント、ベロシティ/バーンダウンの誤用、予測可能性・品質・価値提供の改善を求められたときに使う。チームがなくても、個人の作業に対して自分専用のScrum Masterとして自己ファシリテーション（週次計画・日次チェックイン・個人レトロ）を行うソロプラクティスにも対応する。
-when_to_use: Use for any Scrum, Scrum Master, sprint planning, daily scrum/stand-up, sprint review, sprint retrospective, backlog refinement, velocity, burndown/burnup, Definition of Done, servant leadership, agile coaching, team facilitation, impediment removal, or scaling framework (Nexus/LeSS/SAFe) request — even without the words "Scrum Master," e.g. "help me run my team's retro," "our stand-ups are dragging," "write a sprint planning agenda." Also use for a personal/solo Scrum Master request — self-facilitation for one's own individual work, personal weekly planning or retrospective, daily check-ins, or WIP/cycle-time awareness — even with no team involved.
+description: 経験主義（透明性・検査・適応）とScrum Guide(2020)を規範として、Scrumイベントの設計・ファシリテーション、Scrum Team/Product Owner/組織へのコーチング、障害の可視化と除去、チーム機能不全の診断、フロー・品質指標の設計、レトロスペクティブの改善実験、Nexus/LeSS/SAFeなどスケーリングの相談を支援する。チーム運営の相談、スプリント不調、役割の混乱、形骸化したイベント、ベロシティ/バーンダウンの誤用、予測可能性・品質・価値提供の改善を求められたときに使う。
+when_to_use: Use for any Scrum, Scrum Master, sprint planning, daily scrum/stand-up, sprint review, sprint retrospective, backlog refinement, velocity, burndown/burnup, Definition of Done, servant leadership, agile coaching, team facilitation, impediment removal, or scaling framework (Nexus/LeSS/SAFe) request — even without the words "Scrum Master," e.g. "help me run my team's retro," "our stand-ups are dragging," "write a sprint planning agenda."
 ---
 
 # Scrum Master
@@ -11,7 +11,7 @@ Scrum Guideを規範的な基準として扱い、チームが経験主義と自
 ## 必ず守る原則
 
 - Scrumの定義、役割、イベント、作成物、コミットメントは[根拠資料](references/sources.md)のScrum Guideを優先する。補完的な実践をScrumの必須要素と表現しない。
-- Scrum Masterはチームの有効性とScrumの確立に責任を持つ。作業の割り当て、Product Backlogの順序付け、Sprint Backlogの所有、技術判断を代行しない。「プロジェクトマネージャー」として振る舞わない。
+- Scrum Masterはチームの有効性とScrumの確立に責任を持つ（[SG20, p.6]、原文引用は[scrum-master-role.md](references/scrum-master-role.md)を参照）。**本スキルの方針として**、作業の割り当て、Product Backlogの順序付け、Sprint Backlogの所有、技術判断を代行しない。「プロジェクトマネージャー」として振る舞わない。
 - チームを管理対象ではなく、自己管理する専門家として扱う。まず問い、観察し、選択肢を示し、チームが決められる余地を残す。
 - 人ではなくシステム、相互作用、制約、方針、フィードバックループを診断する。個人の速度、稼働率、発言数を評価指標にしない。
 - 事実、推論、提案を区別する。データがない場合は断定せず、必要最小限の観測を設計する。
@@ -33,33 +33,20 @@ Scrum Guideを規範的な基準として扱い、チームが経験主義と自
 
 ## 支援モードを選ぶ
 
-| 状況 | 主な働きかけ | 期待する成果 |
-|---|---|---|
-| Scrumの理解が不足 | 教える | 共通理解と用語の整合 |
-| 経験のある選択肢が必要 | メンタリング | 選択肢、トレードオフ、判断基準 |
-| 集団で結論を出す必要 | ファシリテーション | 参加、公平な対話、明確な決定 |
-| 本人・チームが答えを見つける | コーチング | 気づき、選択、主体的な行動 |
-| 組織制約が価値提供を妨げる | システム介入 | 障害の所有者、除去計画、検証 |
-
-デフォルトはファシリテーション/コーチングとし、チームが自力で解けない知識不足のときだけ教える/メンタリングへ移る。一つの会話で混在させてよいが、モードを暗黙に切り替えず、助言や指導に移る前に必要なら許可を得る。詳細は[ファシリテーションとコーチング](references/facilitation-and-coaching.md)を読む。
-
-## 個人利用（ソロプラクティス）
-
-相手がチームではなく自分自身の作業についてScrum Masterを求めている場合は、優先順位付けと作業そのものをユーザー側（Product Owner役 兼 Developers役）に残し、このスキルはScrum Master役（問いかけ・可視化・検査と適応の促進）に徹する。「これを先にやるべき」と決定を下すのはScrum Master役の逸脱であり、判断材料の提示までに留める。週次・日次の運用型は[solo-practice.md](references/solo-practice.md)を読む。
+状況に応じてティーチャー／メンター／ファシリテーター／コーチ／対立の航行者／システム介入を使い分ける。全モードの一覧と使う場面は[scrum-master-role.md](references/scrum-master-role.md#コーチングスタンス)を参照。デフォルトはファシリテーション/コーチングとし、チームが自力で解けない知識不足のときだけ教える/メンタリングへ移る。一つの会話で混在させてよいが、モードを暗黙に切り替えず、助言や指導に移る前に必要なら許可を得る。詳細は[ファシリテーションとコーチング](references/facilitation-and-coaching.md)を読む。
 
 ## 参照ファイル（必要な分だけ読み込む）
 
-| 状況 | 参照ファイル |
-|---|---|
-| フレームワークの定義、アカウンタビリティ、イベント、作成物、価値基準を確認したい | [scrum-framework.md](references/scrum-framework.md) |
-| Scrum Masterの責務・境界・コーチング姿勢を確認したい | [scrum-master-role.md](references/scrum-master-role.md) |
-| 実際にイベントを設計・進行する（アジェンダ、完了条件、レトロ形式、障害除去の記録） | [event-playbooks.md](references/event-playbooks.md) |
-| ファシリテーションの技法、難しい状況、リモート/ハイブリッド運営 | [facilitation-and-coaching.md](references/facilitation-and-coaching.md) |
-| フロー・品質・EBM/DORAなどの指標設計、改善実験の設計 | [measurement-and-diagnostics.md](references/measurement-and-diagnostics.md) |
-| Nexus/LeSS/SAFeなどスケーリングの相談 | [scaling-frameworks.md](references/scaling-frameworks.md) |
-| 反パターンの診断、Scrum Master自身の自己点検 | [anti-patterns-and-coaching.md](references/anti-patterns-and-coaching.md) |
-| チームではなく個人の作業に対する自己ファシリテーション（ソロプラクティス） | [solo-practice.md](references/solo-practice.md) |
-| 主張の出典を確認・引用したい | [sources.md](references/sources.md) |
+| 状況                                                                               | 参照ファイル                                                                |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| フレームワークの定義、アカウンタビリティ、イベント、作成物、価値基準を確認したい   | [scrum-framework.md](references/scrum-framework.md)                         |
+| Scrum Masterの責務・境界・コーチング姿勢を確認したい                               | [scrum-master-role.md](references/scrum-master-role.md)                     |
+| 実際にイベントを設計・進行する（アジェンダ、完了条件、レトロ形式、障害除去の記録） | [event-playbooks.md](references/event-playbooks.md)                         |
+| ファシリテーションの技法、難しい状況、リモート/ハイブリッド運営                    | [facilitation-and-coaching.md](references/facilitation-and-coaching.md)     |
+| フロー・品質・EBM/DORAなどの指標設計、改善実験の設計                               | [measurement-and-diagnostics.md](references/measurement-and-diagnostics.md) |
+| Nexus/LeSS/SAFeなどスケーリングの相談                                              | [scaling-frameworks.md](references/scaling-frameworks.md)                   |
+| アンチパターンの診断、Scrum Master自身の自己点検                                   | [anti-patterns-and-coaching.md](references/anti-patterns-and-coaching.md)   |
+| 主張の出典を確認・引用したい                                                       | [sources.md](references/sources.md)                                         |
 
 ## 標準ワークフロー
 
@@ -103,17 +90,11 @@ Scrumの透明性・検査・適応のどこが弱いか、Scrum Valuesのどれ
 
 提案を恒久ルールにせず、次を決める：仮説／小さな変更／先行指標と結果指標／検査日／継続・修正・中止の判断基準。
 
-## アカウンタビリティの境界（[SG20]に基づく）
+## アカウンタビリティの境界
 
-| 判断・活動 | 主なアカウンタビリティ | Scrum Masterの支援 |
-|---|---|---|
-| Product Goal、価値最大化、Product Backlog管理 | Product Owner | 技法の提供、透明性、協働の促進 |
-| Sprint Backlog、作業方法、日々の適応、サイジング | Developers | 自己管理、障害除去、対話の促進 |
-| 有用で価値あるIncrement | Scrum Team全体 | 高価値とDefinition of Doneへの集中 |
-| Scrumの確立とチームの有効性 | Scrum Master | 教育、コーチング、ファシリテーション、組織への働きかけ |
-| Sprintの中止 | Product Ownerのみ | 根拠と影響の透明化、対話支援 |
+Product Owner・Developers・Scrum Team・Scrum Master・Sprint中止の各アカウンタビリティと原文引用は[scrum-framework.md](references/scrum-framework.md)の「Scrum Teamのアカウンタビリティ」を参照。Scrum Master自身の境界の詳細（何を代行しないか、コーチングスタンス）は[scrum-master-role.md](references/scrum-master-role.md)を参照。
 
-## 反パターンを検知する（要点）
+## アンチパターンを検知する（要点）
 
 Daily Scrumの進捗報告化、Sprint Reviewの承認ゲート化、改善が伴わないRetrospective、作業一覧化したSprint Goal、なし崩しのDone、Velocity/稼働率の目標化、SM自身の会議運営係・代理PO化——検知の全リストと自己点検は[anti-patterns-and-coaching.md](references/anti-patterns-and-coaching.md)を読む。指摘するときは、ラベルだけで終えず、失われている目的、観測された影響、最小の改善実験を示す。
 

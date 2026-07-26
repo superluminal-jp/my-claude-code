@@ -23,7 +23,7 @@ Shared guidance for Codex CLI, deployed globally to `~/.codex/AGENTS.md` by `ins
   - Rewriting an existing substantial draft into its final form → `minto-rewriter` (`@.agents/skills/minto-rewriter/SKILL.md`).
   - Building a document collaboratively from incomplete material → `minto-builder` (`@.agents/skills/minto-builder/SKILL.md`).
   - Architecturally significant, hard-to-reverse decisions → `adr` (`@.agents/skills/adr/SKILL.md`).
-  - Scrum events, facilitation, impediment removal, team or solo retrospectives → `scrum-master` (`@.agents/skills/scrum-master/SKILL.md`). Not for general project management — schedules, status reports, Gantt charts.
+  - Scrum events, facilitation, impediment removal, team retrospectives → `scrum-master` (`@.agents/skills/scrum-master/SKILL.md`). Not for general project management — schedules, status reports, Gantt charts.
 - Resolve compound work first: Digital Agency frontend implementation uses `coder` followed by `digital-agency-frontend`; code changes plus an existing-document update use `coder` followed by `minto-rewriter`, never either skill alone.
 - Route a recognizable work category before generic ambiguity. A brief request that names a document and asks to create it uses `minto-builder`; brevity alone does not make it a `clarifier` task.
 - For Spec Kit projects, invoke the applicable `speckit-*` workflow explicitly and read its `@.agents/skills/<skill-name>/SKILL.md`. Its command-specific playbook replaces the generic routing above.
