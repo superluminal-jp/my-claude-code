@@ -195,7 +195,7 @@ my-claude-code/
     │   └── scrum-master/           # Scrum events, facilitation, flow metrics
     │       ├── SKILL.md            #   playbook
     │       ├── references/         #   8 on-demand reference documents
-    │       └── scripts/            #   flow_metrics.py (cycle time, throughput, WIP)
+    │       └── scripts/            #   flow_metrics.py (cycle time, work item age, throughput, WIP)
     └── hooks/
         ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
         ├── pre-edit.sh             # PreToolUse/Edit|Write|Delete: guardrails
@@ -216,6 +216,16 @@ bash tests/run-digital-agency-frontend-skill.sh
 ./tests/run-prompt-secret-guard.sh
 ./tests/run-codex-sync-drift.sh
 ```
+
+After changing the `scrum-master` skill's
+[`flow_metrics.py`](.claude/skills/scrum-master/scripts/flow_metrics.py):
+
+```sh
+bash tests/run-flow-metrics.sh
+```
+
+Unlike the suites above, this one is a plain `unittest` run — no model, no
+network, no dependencies.
 
 ## MCP Servers
 
