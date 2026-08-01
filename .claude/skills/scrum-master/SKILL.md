@@ -107,7 +107,9 @@ Daily Scrumの進捗報告化、Sprint Reviewの承認ゲート化、改善が�
 
 ### スクリプト：フロー指標の計算
 
-`scripts/flow_metrics.py`は、完了済みチケットのCSVからCycle Time分布（中央値・85パーセンタイルのSLE）、週次Throughput、WIPの推移を計算する。[KGS21] 手元の実データを使うためのツールであり、指標を創作しない。
+`scripts/flow_metrics.py`は、チケットのCSVから4つの基本フロー指標——Cycle Time分布（中央値・85パーセンタイルのSLE）、進行中項目のWork Item Age、週次Throughput、WIPの推移——を計算する。[KGS21] 手元の実データを使うためのツールであり、指標を創作しない。
+
+Work Item Ageは進行中の項目をSLE超過で印付けして古い順に並べる。完了済みの事後分析ではなく「今日動かせる項目」を示すため、Daily Scrumでの検査に使う（[event-playbooks.md](references/event-playbooks.md#daily-scrum)）。
 
 プロジェクト内のスキルから実行する場合：
 
@@ -124,6 +126,10 @@ python3 ~/.claude/skills/scrum-master/scripts/flow_metrics.py tickets.csv
 この2つの形式は`.claude/settings.json`の`permissions.allow`に登録済みであり、そのまま実行できる。パスを省略・変形すると許可に一致せず確認を求められるため、上記のいずれかをそのまま使う。
 
 入力CSVの列：`item_id,started_at,completed_at`（ISO 8601日付、未完了項目は`completed_at`を空欄にする）。
+
+`--as-of YYYY-MM-DD`で報告基準日を固定できる（既定は本日）。Work Item Ageの基準日と、Throughput・WIPの週範囲がこれで決まるため、同じCSVから常に同じ結果が出る。
+
+なお本スクリプトは、Scrum GuideもKanban Guideも規定しない実務上の慣行を一つ採用している：**Cycle TimeとWork Item Ageは両端を含めて数える**（同日の着手・完了は0日ではなく1日）。単純な経過日数だと短いSprintで中央値が0に張り付き、SLEが「85%が0日以内」という無意味な文になるため。
 
 ## 出力品質の確認
 

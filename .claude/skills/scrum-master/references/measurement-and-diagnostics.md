@@ -111,10 +111,12 @@ Story PointsやVelocityはチーム内部の予測補助として使えるが、
 
 ## フロー指標を計算する
 
-Cycle Time分布・週次Throughput・WIPの推移を手元のチケットデータから計算する場合は、数値を創作せず`scripts/flow_metrics.py`を使う。
+Cycle Time分布・Work Item Age・週次Throughput・WIPの推移を手元のチケットデータから計算する場合は、数値を創作せず`scripts/flow_metrics.py`を使う。
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/flow_metrics.py tickets.csv
+python3 .claude/skills/scrum-master/scripts/flow_metrics.py tickets.csv --as-of 2026-07-31
 ```
 
-入力CSVの列：`item_id,started_at,completed_at`。使い方の詳細は[SKILL.md](../SKILL.md)の「スクリプト：フロー指標の計算」を参照。
+入力CSVの列：`item_id,started_at,completed_at`。`--as-of`は報告基準日（既定は本日）で、Work Item Ageの基準と週範囲を決める。Cycle TimeとWork Item Ageは両端を含めて数える（同日完了は1日）——これはGuideの規定ではなく実務上の慣行である。
+
+パス・オプション・慣行の詳細は[SKILL.md](../SKILL.md)の「スクリプト：フロー指標の計算」を参照（ユーザースコープにインストール済みの場合は`~/.claude/skills/...`形式を使う。この2形式が`.claude/settings.json`の`permissions.allow`に登録されている）。
