@@ -59,6 +59,10 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   # blanket skills sync above would otherwise re-vendor them into the shared
   # user-scope install; strip them so ~/.claude/skills never carries Spec Kit.
   rm -rf "$TARGET_DIR"/skills/speckit-*
+  # No .claude/commands/ remains in this repository: /verify-config became a
+  # skill in specs/019-verify-fork-test-runner so it could carry `context: fork`.
+  # The sync stays because it is now the uninstall path — it clears the retired
+  # command from installs made before that move.
   sync_path "commands"
   sync_path "CLAUDE.md"
   sync_path "settings.json"
@@ -209,7 +213,8 @@ fi
 
 # 1f. Deploy the compatibility custom prompt. Codex custom prompts are
 # deprecated upstream in favor of skills, but remain supported and are the
-# required counterpart for this repository's existing /verify-config command.
+# required counterpart for this repository's /verify-config skill
+# (.claude/skills/verify-config/SKILL.md).
 CODEX_PROMPT_SRC="$SCRIPT_DIR/.codex/prompts/verify-config.md"
 CODEX_PROMPT_DST="$CODEX_TARGET_DIR/prompts/verify-config.md"
 if [ -f "$CODEX_PROMPT_SRC" ]; then
