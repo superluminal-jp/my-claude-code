@@ -26,8 +26,9 @@ the same baseline guidance and enforcement (see
 - **`.claude/settings.json`** — User-level settings with safe defaults,
   permission allowlist/denylist, and hook wiring
 - **`.claude/rules/`** — Always-on universal rules: permissions/safety, tool
-  selection, clarification triggers, skill routing, live-documentation
-  enforcement, MCP catalog
+  selection, clarification triggers, skill routing, subagent delegation
+  (when to isolate work in a subagent vs. keep it in the main conversation),
+  live-documentation enforcement, MCP catalog
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
   (TDD, SDD, code quality, security, type safety, docs);
   `digital-agency-frontend` (DADS-based accessible React/Tailwind public-service
@@ -185,6 +186,7 @@ my-claude-code/
     │   ├── permissions.md          # Credential safety, destructive ops
     │   ├── clarifier.md            # When to ask; batch questions + template
     │   ├── skill-routing.md        # Which skill to load for a request
+    │   ├── subagent-delegation.md  # Whether work runs here or in a subagent
     │   ├── live-documentation.md   # Doc drift enforcement (5 principles) + lifecycle standards
     │   ├── git-workflow.md         # Commit/branch/PR conventions
     │   └── mcp.md                  # MCP server catalog + usage rule

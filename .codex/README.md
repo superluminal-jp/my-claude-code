@@ -14,6 +14,7 @@ Sync method legend: **単一ソース** = one file/link, no duplication; **自�
 | `.claude/rules/live-documentation.md` | `.codex/AGENTS.md`「Live documentation」 | 本機能で移植(014) | 検証付き二重管理 | 詳細な標準一覧は省き、同一変更での文書同期と ADR ゲートを保持 | FR-003/012; SYNC-03 |
 | `.claude/rules/mcp.md` | `.codex/AGENTS.md` の MCP 表 + `~/.codex/config.toml` | 本機能で移植(014) | 検証付き二重管理 | 接続形式は非互換。サーバ集合と秘密情報非平文を検証 | 012 Q4; research R6; SYNC-04/12 |
 | `.claude/rules/permissions.md` | `.codex/rules/guardrails.rules` + `.codex/hooks/*` | 本機能で移植(014) | 検証付き二重管理 | Rules は shell prefix 限定。正規表現・ファイル境界の判定は共有フック、ネイティブ非 shell 読取には残差あり | 012 Q6; research R5; FR-005; SYNC-10/11 |
+| `.claude/rules/subagent-delegation.md` | — | 対象外 | — | Codex CLI に独立コンテキストのサブエージェント機構が存在せず、委譲判断そのものが成立しない。Claude 固有の実行モデルに対する規則のため移植先がない | 020 research R5; plan D4 |
 | `.claude/rules/skill-routing.md` | `.codex/AGENTS.md`「Skill routing」+ `.agents/skills/*` | 本機能で移植(014) | 検証付き二重管理 | 用途ごとに `@.agents/skills/<name>/SKILL.md` を直接参照。実体はリンクで単一ソース | 012 Q3; research R2; FR-007; SYNC-01/02/03 |
 | `.claude/hooks/README.md` | `.codex/README.md` + 各 `.codex/hooks/*-adapter.sh` のヘッダ | 本機能で移植(014) | 検証付き二重管理 | ツール固有のイベント/応答差分は各近接文書で管理 | FR-012; research R4; SYNC-05 |
 | `.claude/hooks/pre-bash.sh` | `.codex/hooks/destructive-command-adapter.sh` | 移植済み(013) | 単一ソース | 両ラッパが `scripts/guardrails/destructive-command.sh` を使用。Codex の未確認 ask は安全側に deny | 012 Q6; research R3; FR-004; SYNC-05 |

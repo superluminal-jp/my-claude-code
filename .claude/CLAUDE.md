@@ -36,6 +36,10 @@ Independent operations (no shared dependency) go in one message — always, not 
 
 Serialize only on a real dependency: the next call needs this call's result, an edit needs a prior read's exact match, or a shell command needs a prior command's exit code or stdout.
 
+This section covers *how* to issue calls. Whether work belongs in a subagent at all is `rules/subagent-delegation.md`'s decision — check it before planning non-trivial work, not after.
+
+@.claude/rules/subagent-delegation.md
+
 # Close-out: documentation and decisions
 
 No non-trivial task ends at working code — it ends when the record is written. Two artifacts, two lifecycles:
