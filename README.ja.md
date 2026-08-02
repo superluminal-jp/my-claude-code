@@ -14,13 +14,14 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 - **`.claude/CLAUDE.md`**: 常時メモリ（原則、応答スタイル、skill インデックス、MCP 参照）
 - **`.claude/settings.json`**: モデル既定値、権限ルール、hook 設定
-- **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、live-documentation、git ワークフロー、MCP カタログ）
+- **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、サブエージェント委譲（独立コンテキストに切り出すか本体で進めるかの判断）、live-documentation、git ワークフロー、MCP カタログ）
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
   - `digital-agency-frontend`: DADS とダッシュボードガイドブックに基づく、アクセシブルな React/Tailwind Web フロントエンド開発・レビュー
   - Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`（最終版への書き直し）、`minto-builder`（対話による構築）
   - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
   - `adr`: アーキテクチャ決定記録（MADR形式）
+  - `verify-config`: 設定検証（`/verify-config`）。オペレーターからの明示起動のみで、唯一 fork したコンテキストで実行されるスキル
   - `scrum-master`: Scrumイベントの設計・ファシリテーション、障害除去、フロー指標（チーム／個人のソロプラクティス双方）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
@@ -85,10 +86,15 @@ my-claude-code/
     ├── settings.json
     ├── rules/
     ├── skills/
+    ├── agents/                 # サブエージェント定義（プロジェクトスコープ、~/.claude へは展開しない）
     └── hooks/
 ```
 
 ## 検証
+
+Claude Code では `/verify-config` が設定検査（JSON 妥当性、`@`-import の整合、hook の lint/format、MCP カタログ整合、behavior スイート）を実行し、`✓`/`✗` のチェックリストを返します。実行は [`verification-runner`](.claude/agents/verification-runner.md) サブエージェント上の fork したコンテキストで行われるため、lint やスイートの生出力は会話に入りません。このサブエージェントは読み取り専用で、失敗を報告するだけで修正はしません。Codex CLI の対応物は `/prompts:verify-config` で、同じ検査を本体セッション内で実行します。
+
+以下は同じ検査をシェルや CI から直接実行する場合のコマンドです。
 
 `.mcp.json` / `install.sh` / `.claude/settings.json` / `.claude/rules/mcp.md` を変更したら:
 
@@ -99,6 +105,14 @@ bash tests/run-digital-agency-frontend-skill.sh
 ./tests/run-prompt-secret-guard.sh
 ./tests/run-codex-sync-drift.sh
 ```
+
+`verify-config` スキルまたは `verification-runner` サブエージェントを変更したら:
+
+```sh
+bash tests/run-verification-agent.sh
+```
+
+リポジトリのファイルを検査するだけの決定的なスイートです。
 
 ## MCP サーバー
 

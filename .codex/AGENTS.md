@@ -64,7 +64,7 @@ When a question directly concerns AWS, GCP, or Azure services, features, or docu
 - Keep Spec Kit current by running `specify init` (or this project's Spec Kit update flow) periodically, if this project uses Spec Kit.
 - `shfmt`, `shellcheck`, `yamllint`, and `jq` are expected to be available in the environment for formatting and lint checks to work.
 - Persist decisions, conventions, and durable facts learned while working so they can be reused later, rather than re-deriving them every session.
-- A configuration-verification entry point equivalent to Claude Code's `/verify-config` is available as `/prompts:verify-config` from `~/.codex/prompts/verify-config.md`. Codex custom prompts are deprecated upstream; this compatibility entry remains explicit-only and should migrate to a skill if the Claude-side command is retired.
+- A configuration-verification entry point equivalent to Claude Code's `/verify-config` is available as `/prompts:verify-config` from `~/.codex/prompts/verify-config.md`. It delegates to `.claude/skills/verify-config/SKILL.md` and runs that skill's numbered checks inline — Codex has no equivalent of the forked-subagent context the Claude side uses, so the raw output stays in this session. Codex custom prompts are deprecated upstream; this entry remains explicit-only.
 
 ## Enforced via hook or rule (Codex CLI only)
 

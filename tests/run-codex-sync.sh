@@ -223,16 +223,19 @@ fi
 check "SYNC-08: deployment map classifies every Claude configuration element" "$COVERAGE_OK"
 
 # ---------------------------------------------------------------------------
-# SYNC-09: .codex/prompts/verify-config.md <-> .claude/commands/verify-config.md
+# SYNC-09: .codex/prompts/verify-config.md <-> .claude/skills/verify-config/SKILL.md
+# The Claude side moved from .claude/commands/ to a skill so it could carry
+# `context: fork` (specs/019-verify-fork-test-runner); Codex has no forked-context
+# equivalent, so its counterpart stays a custom prompt that delegates to the skill.
 # ---------------------------------------------------------------------------
 
 CODEX_VERIFY_PROMPT="$REPO_ROOT/.codex/prompts/verify-config.md"
-CLAUDE_VERIFY_COMMAND="$REPO_ROOT/.claude/commands/verify-config.md"
+CLAUDE_VERIFY_SKILL="$REPO_ROOT/.claude/skills/verify-config/SKILL.md"
 VERIFY_PROMPT_OK=1
 [ -f "$CODEX_VERIFY_PROMPT" ] || VERIFY_PROMPT_OK=0
-[ -f "$CLAUDE_VERIFY_COMMAND" ] || VERIFY_PROMPT_OK=0
+[ -f "$CLAUDE_VERIFY_SKILL" ] || VERIFY_PROMPT_OK=0
 if [ -f "$CODEX_VERIFY_PROMPT" ]; then
-  grep -Fq '.claude/commands/verify-config.md' "$CODEX_VERIFY_PROMPT" || VERIFY_PROMPT_OK=0
+  grep -Fq '.claude/skills/verify-config/SKILL.md' "$CODEX_VERIFY_PROMPT" || VERIFY_PROMPT_OK=0
   grep -Fqi 'do not modify' "$CODEX_VERIFY_PROMPT" || VERIFY_PROMPT_OK=0
 fi
 check "SYNC-09: Codex prompt delegates to the Claude verification procedure" "$VERIFY_PROMPT_OK"
