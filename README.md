@@ -36,10 +36,7 @@ the same baseline guidance and enforcement (see
   `minto-reviewer` (structure diagnosis), `minto-rewriter` (rewrite to
   final), `minto-builder` (build via dialogue) — `clarifier` (requirement
   elicitation, INVEST/Gherkin), `adr` (architecture decision records),
-  `scrum-master` (Scrum events, facilitation, impediments, flow metrics);
-  `apple-reminders` and `apple-notes` (operate Reminders.app and Notes.app from
-  macOS — EventKit for Reminders, AppleScript for Notes, which has no framework;
-  each is preloaded into a matching operator subagent); and
+  `scrum-master` (Scrum events, facilitation, impediments, flow metrics), and
   `verify-config` (configuration verification — operator-invoked only, and the
   one skill that runs in a forked context rather than the main conversation).
   Spec Kit's `speckit-*`
@@ -93,7 +90,7 @@ mirroring the same "author here, apply everywhere" model:
 | Repo source | Installed to | Purpose |
 |---|---|---|
 | `.codex/AGENTS.md` | `~/.codex/AGENTS.md` | Baseline guidance (Codex CLI's equivalent of `.claude/rules/`) |
-| `.claude/skills/{adr,apple-notes,apple-reminders,clarifier,coder,digital-agency-frontend,minto-builder,minto-reviewer,minto-rewriter,scrum-master}` | `~/.agents/skills/<name>` (symlink) | Native skill discovery — the same `SKILL.md` and bundled resources, not a copy. Codex CLI has no subagent concept, so the Apple skills are usable there on their own |
+| `.claude/skills/{adr,clarifier,coder,digital-agency-frontend,minto-builder,minto-reviewer,minto-rewriter,scrum-master}` | `~/.agents/skills/<name>` (symlink) | Native skill discovery — the same `SKILL.md` and bundled resources, not a copy |
 | `scripts/guardrails/*.sh` | `~/.claude/scripts/guardrails/*.sh` | Shared guardrail logic, consumed by both tools' hooks |
 | `.codex/hooks/*.sh` | `~/.codex/hooks/*.sh`, registered in `~/.codex/config.toml` `[hooks]` | Four adapters: destructive commands, edit protection, post-edit formatting, prompt-secret blocking |
 | `.codex/rules/guardrails.rules` | `~/.codex/rules/guardrails.rules` | Allow routine verification/read operations; prompt for git worktree/index writes |
@@ -127,14 +124,6 @@ command hooks until their current definition hashes are trusted.
   `skills/`, `CLAUDE.md`, `settings.json`, `install.sh`.
 - Files removed from this repository are also removed from `~/.claude` under
   those managed paths.
-- `agents/` is the one exception: it is **not** replaced wholesale, because
-  `~/.claude/agents/` is where you keep your own subagents. Only the names in
-  the installer's `MANAGED_AGENTS` list — currently `apple-notes-operator` and
-  `apple-reminders-operator` — are written, and only those names are pruned
-  when they leave this repository. Everything else there is left untouched.
-  `verification-runner` stays project-scope: it drives this repository's own
-  `tests/run-*.sh` and means nothing elsewhere. See
-  [`docs/adr/0004-distribute-apple-operator-subagents.md`](docs/adr/0004-distribute-apple-operator-subagents.md).
 - Keep personal-only files in `~/.claude` outside managed paths, or re-apply
   them from a separate backup after install.
 - `~/.codex/AGENTS.md` is also synchronized by replacement, with one
@@ -210,20 +199,12 @@ my-claude-code/
     │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
     │   ├── adr/SKILL.md            # Architecture decision records (MADR)
     │   ├── verify-config/SKILL.md  # /verify-config — runs forked on verification-runner
-    │   ├── apple-reminders/        # Reminders.app via EventKit
-    │   │   ├── SKILL.md            #   property surface, build step, permissions, scrum block
-    │   │   └── scripts/            #   main.swift + Info.plist + build.sh, scrum_block.py (unit-tested)
-    │   ├── apple-notes/            # Notes.app via osascript (JXA — no framework exists)
-    │   │   ├── SKILL.md            #   HTML body model, permissions, linking
-    │   │   └── scripts/            #   list/write JXA
     │   └── scrum-master/           # Scrum events, facilitation, flow metrics
     │       ├── SKILL.md            #   playbook
     │       ├── references/         #   8 on-demand reference documents
     │       └── scripts/            #   flow_metrics.py (cycle time, work item age, throughput, WIP)
-    ├── agents/                     # Subagent definitions
-    │   ├── verification-runner.md  # Read-only runner: checks and suites, returns a checklist (project scope)
-    │   ├── apple-reminders-operator.md # Preloads apple-reminders; returns the answer, not the JSON dump
-    │   └── apple-notes-operator.md # Preloads apple-notes; returns the content, not the HTML
+    ├── agents/                     # Subagent definitions (project scope, not installed to ~/.claude)
+    │   └── verification-runner.md  # Read-only runner: checks and suites, returns a checklist
     └── hooks/
         ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
         ├── pre-edit.sh             # PreToolUse/Edit|Write|Delete: guardrails
@@ -272,21 +253,6 @@ bash tests/run-verification-agent.sh
 ```
 
 Deterministic — it inspects repository files only.
-
-After changing the `apple-reminders` / `apple-notes` skills, either operator
-subagent, or the `scrum-master` section that delegates to them:
-
-```sh
-bash tests/run-apple-operators.sh   # contract between the skills, agents, installer, and scrum-master
-bash tests/run-scrum-block.sh       # unit tests for scrum_block.py
-```
-
-Both are deterministic and need no macOS. `scrum_block.py` is Python precisely
-so it can be tested anywhere — it survived the Reminders backend moving from
-AppleScript to EventKit without a single change. The native code beside it is
-**not** exercised by any suite and must be verified by hand on a Mac:
-`remind-cli` needs macOS and `swiftc` to compile at all, and the Notes JXA
-needs Notes.app plus an Automation grant.
 
 ## MCP Servers
 

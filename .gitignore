@@ -72,8 +72,3 @@ coverage/
 
 # Logs
 *.log
-
-# Build artifact of .claude/skills/apple-reminders (EventKit CLI, macOS only).
-# Built on demand by that skill's scripts/build.sh; a compiled binary has no
-# business in a diff.
-.claude/skills/apple-reminders/scripts/remind-cli

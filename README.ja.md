@@ -6,7 +6,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 `.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/hooks/memory を
 マシン上の全プロジェクトで共通適用できます。
 
-同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、10 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
+同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、8 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
 
 英語版: [README.md](README.md)
 
@@ -23,7 +23,6 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `adr`: アーキテクチャ決定記録（MADR形式）
   - `verify-config`: 設定検証（`/verify-config`）。オペレーターからの明示起動のみで、唯一 fork したコンテキストで実行されるスキル
   - `scrum-master`: Scrumイベントの設計・ファシリテーション、障害除去、フロー指標
-  - `apple-reminders` / `apple-notes`: Reminders.app / Notes.app を操作する。アプリごとに最適な経路を使い分ける——Reminders は **EventKit**（同梱の `main.swift` からビルドする `remind-cli`）、Notes は framework が存在しないため **AppleScript（JXA）**。各スキルは対応するオペレーターサブエージェントに `skills:` で読み込まれる（[ADR 0004](docs/adr/0004-distribute-apple-operator-subagents.md)）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
@@ -54,13 +53,6 @@ bash path/to/my-claude-code/install.sh
   - `install.sh`
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側でも削除されます。
 - 個人用ファイルは管理対象外の場所に置くか、別バックアップから再適用してください。
-- `agents/` だけは例外で、**置換同期しません**。`~/.claude/agents/` は利用者自身が
-  自作のサブエージェントを置く場所だからです。インストーラーの `MANAGED_AGENTS`
-  に列挙された名前——現在は `apple-notes-operator` と `apple-reminders-operator`
-  ——だけを書き込み、リストから消えた名前だけを削除します。それ以外のファイルには
-  触れません。`verification-runner` は本リポジトリの `tests/run-*.sh` を実行する
-  ものであり他プロジェクトでは意味を持たないため、プロジェクトスコープに留めます
-  （[ADR 0004](docs/adr/0004-distribute-apple-operator-subagents.md)）。
 
 ## 代替: `CLAUDE.md` から import
 
@@ -94,7 +86,7 @@ my-claude-code/
     ├── settings.json
     ├── rules/
     ├── skills/
-    ├── agents/                 # サブエージェント定義（Apple 系2つのみ ~/.claude へ名前指定で配布）
+    ├── agents/                 # サブエージェント定義（プロジェクトスコープ、~/.claude へは展開しない）
     └── hooks/
 ```
 
@@ -121,21 +113,6 @@ bash tests/run-verification-agent.sh
 ```
 
 リポジトリのファイルを検査するだけの決定的なスイートです。
-
-`apple-reminders` / `apple-notes` スキル、いずれかのオペレーターサブエージェント、
-またはそれらに委譲する `scrum-master` のセクションを変更したら:
-
-```sh
-bash tests/run-apple-operators.sh   # スキル・エージェント・インストーラー・scrum-master 間の契約
-bash tests/run-scrum-block.sh       # scrum_block.py の単体テスト
-```
-
-いずれも決定的で macOS を必要としません。`scrum_block.py` を Python にしているのは、
-まさにどの環境でもテストできるようにするためです——実際、Reminders のバックエンドが
-AppleScript から EventKit に移った際も1行も変わらず全テストが通りました。
-隣接するネイティブコードは**どのスイートでも実行されません**：`remind-cli` は
-コンパイルに macOS と `swiftc` が要り、Notes の JXA は Notes.app と Automation 許可の
-ある Mac でしか動きません。そちらは macOS 上で手動確認してください。
 
 ## MCP サーバー
 
