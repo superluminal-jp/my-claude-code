@@ -70,6 +70,35 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   echo "Synced managed paths from $SOURCE_DIR -> $TARGET_DIR"
 fi
 
+# 1-bis. Deploy subagents by name, NOT via sync_path().
+#
+# Two deliberate differences from the paths above:
+#
+#   - No wholesale replace. sync_path() does `rm -rf` on its target first, which
+#     is correct for hooks/rules/skills (this repo owns them) but destructive
+#     for ~/.claude/agents/, where a user keeps their own subagents. Only the
+#     names below are written, and only those names are pruned when they leave
+#     this repository. Anything else in that directory is left alone.
+#   - Not every agent ships. verification-runner drives this repository's own
+#     tests/run-*.sh and means nothing in another project, so it stays
+#     project-scope. Only agents that are useful anywhere are listed here.
+#     (docs/adr/0004-distribute-apple-operator-subagents.md)
+MANAGED_AGENTS="apple-notes-operator apple-reminders-operator"
+AGENTS_SRC="$SOURCE_DIR/agents"
+AGENTS_DST="$TARGET_DIR/agents"
+if [ -d "$AGENTS_SRC" ] && [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
+  mkdir -p "$AGENTS_DST"
+  for agent in $MANAGED_AGENTS; do
+    if [ -f "$AGENTS_SRC/$agent.md" ]; then
+      cp "$AGENTS_SRC/$agent.md" "$AGENTS_DST/$agent.md"
+    else
+      # Retired from the repo: remove the stale user-scope copy too.
+      rm -f "$AGENTS_DST/$agent.md"
+    fi
+  done
+  echo "Synced managed subagents -> $AGENTS_DST"
+fi
+
 # 1a. Sync the shared guardrail scripts (repo-root scripts/guardrails/, not
 # under .claude/ — they're consumed by both Claude Code's hooks and Codex
 # CLI's adapters, so they're deployed here as a sibling of hooks/rules/skills
@@ -118,7 +147,10 @@ CODEX_SKILLS_DIR="$HOME/.agents/skills"
 # restructure"); listing them here would make sync_path("skills") delete
 # them from ~/.claude/skills on every install.sh run while this list still
 # tried to symlink them, producing broken links (spec 014 research.md R0/R2).
-CUSTOM_SKILLS="adr clarifier coder digital-agency-frontend minto-builder minto-reviewer minto-rewriter scrum-master"
+# apple-notes/apple-reminders are listed here too: Codex CLI has no subagent
+# equivalent, so the operator subagents above do not exist there, but the
+# skills they preload are self-contained and usable on their own.
+CUSTOM_SKILLS="adr apple-notes apple-reminders clarifier coder digital-agency-frontend minto-builder minto-reviewer minto-rewriter scrum-master"
 if [ -d "$TARGET_DIR/skills" ]; then
   mkdir -p "$CODEX_SKILLS_DIR"
   for skill in $CUSTOM_SKILLS; do
