@@ -18,17 +18,18 @@ block:
 Prose above and below the block is preserved untouched, because a human editing
 the reminder in Reminders.app will put it there.
 
-This module exists so the parsing lives in Python rather than in AppleScript:
-it is unit-testable on any platform, while the JXA scripts beside it cannot run
-off macOS. The division is deliberate -- JXA fetches and writes, Python decides.
+This module exists so the parsing lives in Python rather than in Swift: it is
+unit-testable on any platform, while `remind-cli` beside it needs macOS and an
+EventKit grant. The division is deliberate -- EventKit fetches and writes,
+Python decides. It also means the parsing layer survived the backend moving
+from AppleScript to EventKit without a single change: it reads the JSON
+contract, not the framework.
 
-Usage (stdin/stdout throughout, so it composes with the JXA layer):
+Usage (stdin/stdout throughout, so it composes with the EventKit layer):
 
-    osascript -l JavaScript list_reminders.js "Sprint Backlog" \\
-      | python3 scrum_block.py csv > tickets.csv
-    osascript -l JavaScript list_reminders.js "Sprint Backlog" \\
-      | python3 scrum_block.py unstarted
-    osascript -l JavaScript list_reminders.js --id "<id>" --field body \\
+    remind-cli list "Sprint Backlog" | python3 scrum_block.py csv > tickets.csv
+    remind-cli list "Sprint Backlog" --open-only | python3 scrum_block.py unstarted
+    remind-cli get "<id>" | python3 -c 'import json,sys; print(json.load(sys.stdin)["body"] or "")' \\
       | python3 scrum_block.py set --started today
 
 `csv` emits exactly the three columns `flow_metrics.py` reads, so the
@@ -56,9 +57,11 @@ CLOSE_FENCE = "---"
 
 # The note-side counterpart of the `note:` key above. A note's body is HTML and
 # is edited by hand, so a fenced block there would not survive; a single inline
-# marker does. Both directions carry the app's own object id, which is the most
-# stable identifier Apple exposes -- see the skill's SKILL.md on why neither the
-# GUI's linked-item UI nor the undocumented URL schemes are used.
+# marker does. Both directions carry an identifier the app itself publishes,
+# which is the most stable thing available -- see the skill's SKILL.md on why
+# neither the GUI's linked-item UI nor the undocumented URL schemes are used.
+# The marker is format-agnostic on purpose: it held AppleScript ids before the
+# Reminders backend moved to EventKit, and holds externalIds now.
 REMINDER_MARKER = re.compile(r"\[\[reminder:([^\]]+)\]\]")
 
 
@@ -217,9 +220,9 @@ def _is_iso_date(value):
 def _as_date(value):
     """Truncate an ISO 8601 timestamp to its date, or None if there isn't one.
 
-    JXA emits `Date.toISOString()`, so values arrive as `2026-08-05T14:30:00.000Z`.
-    Flow metrics are counted in days; keeping the time would only invite
-    timezone drift between two runs over the same data.
+    `remind-cli` emits ISO 8601 internet date-times, so values arrive as
+    `2026-08-05T14:30:00Z`. Flow metrics are counted in days; keeping the time
+    would only invite timezone drift between two runs over the same data.
     """
     if not value:
         return None

@@ -72,7 +72,7 @@ Reminders と Notes はユーザー個人のデータであり、本リポジト
 
 **スキルだけを作る（サブエージェントを作らない）。** 却下。追加の成果物カテゴリも
 配布経路も不要で、費用が最も低いという実利があった。却下理由は2つ。
-(1) スキルは本体の会話にロードされるため、`osascript` の生出力——リスト全件の
+(1) スキルは本体の会話にロードされるため、CLI の生出力——リスト全件の
 JSON、ノート本文の HTML——がそのまま会話に入る。これは委譲の第一条件そのもので
 あり、機構の選択を誤ることになる。(2) 「リポジトリのファイルを変更しない」を
 ツール許可リストで構造的に保証できない。スキルの `disallowed-tools` は
@@ -104,7 +104,7 @@ JSON、ノート本文の HTML——がそのまま会話に入る。これは�
 
 ## Consequences
 
-- 肯定：`osascript` の生出力が本体の会話に入らない。委譲の第一条件を満たす
+- 肯定：CLI の生出力が本体の会話に入らない。委譲の第一条件を満たす
   使い方になる。
 - 肯定：「リポジトリを変更しない」が `tools` 許可リストによる構造的保証になる。
   `verification-runner` で確立した設計をそのまま踏襲している。
@@ -133,15 +133,20 @@ JSON、ノート本文の HTML——がそのまま会話に入る。これは�
   (c) スキルが `disable-model-invocation: true` を持たないこと
   （持つと preload できない）、(d) `install.sh` が両スキルと両エージェントを
   配布すること、(e) `scrum-master` が両者を参照すること、
-  (f) `scrum-master` の routing 定義に個人利用の記述が戻っていないことを検査する。
+  (f) `scrum-master` の routing 定義に個人利用の記述が戻っていないこと、
+  (g) Reminders 側の EventKit ビルドが `-sectcreate` で `Info.plist` を
+  埋め込むこと（欠けると許可ダイアログが出ず利用者が回復できない）、
+  (h) どちらの write 経路にも削除機能が無いことを検査する。
 - `tests/run-scrum-block.sh` が、`scrum_block.py` の出力が
   `flow_metrics.py` に無改造で通ることを含めて検証する。
 - `.claude/CLAUDE.md` と `rules/skill-routing.md` に Apple 系の記述が
   無いことで、ルーティング表を汚さない決定の遵守が確認できる。
 - **未検証**：本決定を記録した環境（Linux コンテナ、macOS なし）では
-  `osascript` を実行していない。JXA スクリプトの実挙動、TCC ダイアログの挙動、
+  ネイティブコードを一切実行していない。`remind-cli` は `swiftc` が無いため
+  コンパイルすらされておらず（EventKit は Darwin 専用）、Notes の JXA も
+  実行されていない。ビルドの成否、2種類の TCC ダイアログの挙動、
   Notes の `body` が HTML であることの取り扱いは macOS 上で初めて検証される。
-  Python 側（`scrum_block.py`）は 44 件の単体テストで検証済みである。
+  Python 側（`scrum_block.py`）は 46 件の単体テストで検証済みである。
 
 ## More information
 

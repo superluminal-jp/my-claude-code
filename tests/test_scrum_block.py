@@ -4,10 +4,14 @@
 Standard library only (unittest) -- this repository deliberately carries no
 Python package manifest, so the suite must run with a bare `python3`.
 
-These tests are the reason the parsing layer is Python and not AppleScript:
-they run on any platform, with no Reminders.app, no TCC prompt, and no macOS.
-The JXA scripts beside `scrum_block.py` are a thin fetch/write layer and are
-deliberately not covered here -- they cannot be executed off macOS.
+These tests are the reason the parsing layer is Python and not Swift: they run
+on any platform, with no Reminders.app, no TCC prompt, and no macOS. The
+EventKit CLI beside `scrum_block.py` is a thin fetch/write layer and is
+deliberately not covered here -- it cannot be executed off macOS.
+
+The fixtures below are `remind-cli` output. They were AppleScript output before
+the Reminders backend moved to EventKit, and every test survived that move
+unchanged: this layer reads the JSON contract, not the framework.
 
 Run via: bash tests/run-scrum-block.sh
 """
@@ -44,17 +48,20 @@ def run_cli(payload, *args):
 
 
 def reminder(**overrides):
-    """A reminder as list_reminders.js emits it, with a full scrum block."""
+    """A reminder as `remind-cli` emits it, with a full scrum block."""
     base = {
-        "id": "x-apple-reminder://11111111-1111-1111-1111-111111111111",
+        "id": "11111111-1111-1111-1111-111111111111",
+        "externalId": "22222222-2222-2222-2222-222222222222",
         "name": "Ship the login form",
         "body": "--- scrum ---\nsprint: 7\nsize: M\nstarted: 2026-08-01\n---",
         "completed": False,
         "completionDate": None,
-        "creationDate": "2026-07-20",
+        "creationDate": "2026-07-20T09:00:00Z",
+        "modificationDate": "2026-07-20T09:00:00Z",
         "dueDate": None,
         "priority": 0,
         "list": "Sprint Backlog",
+        "hasRecurrenceRules": False,
     }
     base.update(overrides)
     return base
@@ -162,15 +169,22 @@ class LinkingTests(unittest.TestCase):
         self.assertEqual(sb.parse_block(body)[0]["note"], note_id)
 
     def test_reminder_marker_is_the_note_side_counterpart(self):
-        marker = sb.reminder_marker("x-apple-reminder://UUID")
-        self.assertEqual(marker, "[[reminder:x-apple-reminder://UUID]]")
+        marker = sb.reminder_marker("22222222-2222-2222-2222-222222222222")
+        self.assertEqual(marker, "[[reminder:22222222-2222-2222-2222-222222222222]]")
 
     def test_reminder_markers_are_found_in_free_text(self):
         found = sb.find_reminder_markers(
-            "<div>Retro for Sprint 7</div><div>[[reminder:x-apple-reminder://A]] "
-            "and [[reminder:x-apple-reminder://B]]</div>"
+            "<div>Retro for Sprint 7</div><div>[[reminder:ext-A]] "
+            "and [[reminder:ext-B]]</div>"
         )
-        self.assertEqual(found, ["x-apple-reminder://A", "x-apple-reminder://B"])
+        self.assertEqual(found, ["ext-A", "ext-B"])
+
+    def test_marker_format_is_agnostic_to_the_backend(self):
+        """It held AppleScript ids before EventKit; both must still round-trip."""
+        for identifier in ("x-apple-reminder://UUID", "22222222-2222-2222-2222-222222222222"):
+            self.assertEqual(
+                sb.find_reminder_markers(sb.reminder_marker(identifier)), [identifier]
+            )
 
     def test_no_markers_in_plain_text(self):
         self.assertEqual(sb.find_reminder_markers("nothing to see"), [])
@@ -190,6 +204,12 @@ class NormalizeTests(unittest.TestCase):
     def test_timestamps_are_truncated_to_dates(self):
         item = sb.normalize(reminder(creationDate="2026-07-20T09:15:00Z"))
         self.assertEqual(item["created_at"], "2026-07-20")
+
+    def test_eventkit_only_fields_do_not_disturb_normalization(self):
+        """externalId and hasRecurrenceRules arrived with the EventKit backend."""
+        item = sb.normalize(reminder())
+        self.assertEqual(item["id"], "11111111-1111-1111-1111-111111111111")
+        self.assertEqual(item["state"], "in_progress")
 
     def test_an_item_with_started_and_no_completion_is_in_progress(self):
         item = sb.normalize(reminder())

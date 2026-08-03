@@ -12,11 +12,12 @@ Evaluation order: **deny → ask → allow** (first match wins; deny always over
 - `git clean -f` (deletes untracked files)
 - Drop database table / collection — no hook can detect this; self-apply
 - Overwrite files with uncommitted changes — no hook can detect this; self-apply
-- Delete or bulk-overwrite the user's own data in a desktop app via `osascript`
-  (Reminders, Notes, Calendar, Mail) — the destructive-command hook inspects the
-  shell command, not the Apple Event it sends, so nothing detects this;
-  self-apply. The `apple-notes` / `apple-reminders` skills' scripts refuse
-  deletes by construction — do not route around them with inline AppleScript.
+- Delete or bulk-overwrite the user's own data in a desktop app (Reminders,
+  Notes, Calendar, Mail), whether via `osascript` or a self-built EventKit
+  binary — the destructive-command hook inspects the shell command, not the
+  Apple Event or framework call it makes, so nothing detects this; self-apply.
+  The `apple-notes` / `apple-reminders` skills refuse deletes by construction —
+  do not route around them with inline AppleScript or ad-hoc Swift.
 
 ## Package Installs — Claude installs project-scoped only
 

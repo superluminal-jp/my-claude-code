@@ -23,7 +23,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `adr`: アーキテクチャ決定記録（MADR形式）
   - `verify-config`: 設定検証（`/verify-config`）。オペレーターからの明示起動のみで、唯一 fork したコンテキストで実行されるスキル
   - `scrum-master`: Scrumイベントの設計・ファシリテーション、障害除去、フロー指標
-  - `apple-reminders` / `apple-notes`: macOS 同梱の `osascript`（JXA）で Reminders.app / Notes.app を操作する。各スキルは対応するオペレーターサブエージェントに `skills:` で読み込まれる（[ADR 0004](docs/adr/0004-distribute-apple-operator-subagents.md)）
+  - `apple-reminders` / `apple-notes`: Reminders.app / Notes.app を操作する。アプリごとに最適な経路を使い分ける——Reminders は **EventKit**（同梱の `main.swift` からビルドする `remind-cli`）、Notes は framework が存在しないため **AppleScript（JXA）**。各スキルは対応するオペレーターサブエージェントに `skills:` で読み込まれる（[ADR 0004](docs/adr/0004-distribute-apple-operator-subagents.md)）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
@@ -131,9 +131,11 @@ bash tests/run-scrum-block.sh       # scrum_block.py の単体テスト
 ```
 
 いずれも決定的で macOS を必要としません。`scrum_block.py` を Python にしているのは、
-まさにどの環境でもテストできるようにするためです。隣接する JXA スクリプトは
-Reminders.app / Notes.app と Automation 許可のある Mac でしか動かず、**どのスイートでも
-実行されません**——そちらは macOS 上で手動確認してください。
+まさにどの環境でもテストできるようにするためです——実際、Reminders のバックエンドが
+AppleScript から EventKit に移った際も1行も変わらず全テストが通りました。
+隣接するネイティブコードは**どのスイートでも実行されません**：`remind-cli` は
+コンパイルに macOS と `swiftc` が要り、Notes の JXA は Notes.app と Automation 許可の
+ある Mac でしか動きません。そちらは macOS 上で手動確認してください。
 
 ## MCP サーバー
 

@@ -80,10 +80,12 @@ for app in notes reminders; do
   grep -qi 'Automation' "$SKILL" 2>/dev/null && c=1 || c=0
   check "apple-$app skill documents the Automation (TCC) grant" "$c"
 
-  # The write scripts refuse destructive operations by construction; the skill
-  # has to say so, or a reader will route around them with inline AppleScript.
-  grep -qi 'cannot delete' "$SKILL" 2>/dev/null && c=1 || c=0
-  check "apple-$app skill states that its write script cannot delete" "$c"
+  # The write paths refuse destructive operations by construction; the skill
+  # has to say so, or a reader will route around them with inline AppleScript
+  # or their own EventKit code. The two skills word it differently because
+  # their backends differ ("cannot delete" vs "no delete command").
+  grep -Eqi 'cannot delete|no delete command' "$SKILL" 2>/dev/null && c=1 || c=0
+  check "apple-$app skill states that deletion is unavailable" "$c"
 
   grep -q '## Sources' "$SKILL" 2>/dev/null && c=1 || c=0
   check "apple-$app skill cites its sources" "$c"
@@ -91,9 +93,46 @@ done
 
 # --- Scripts ----------------------------------------------------------------
 
-for script in list_reminders.js write_reminder.js scrum_block.py; do
+for script in main.swift Info.plist build.sh scrum_block.py; do
   [ -f "$SKILLS/apple-reminders/scripts/$script" ] && c=1 || c=0
   check "apple-reminders ships $script" "$c"
+done
+
+# The JXA layer for Reminders was superseded by EventKit; leaving it would give
+# two ways to do the same thing and no statement of which is current.
+ls "$SKILLS/apple-reminders/scripts/"*.js >/dev/null 2>&1 && c=0 || c=1
+check "the superseded JXA Reminders scripts are gone" "$c"
+
+# TCC reads the usage description out of the running binary. Without the
+# section, no permission dialog can appear and every call fails as a denial
+# the user has no way to reverse -- a build defect that mimics a user choice.
+grep -q 'sectcreate' "$SKILLS/apple-reminders/scripts/build.sh" 2>/dev/null &&
+  grep -q '__info_plist' "$SKILLS/apple-reminders/scripts/build.sh" 2>/dev/null && c=1 || c=0
+check "build.sh links Info.plist into the binary so TCC can prompt" "$c"
+
+grep -q 'NSRemindersFullAccessUsageDescription' \
+  "$SKILLS/apple-reminders/scripts/Info.plist" 2>/dev/null && c=1 || c=0
+check "Info.plist carries the macOS 14+ Reminders usage description" "$c"
+
+# macOS 14 split Reminders access into full and write-only; this tool reads.
+grep -q 'requestFullAccessToReminders' \
+  "$SKILLS/apple-reminders/scripts/main.swift" 2>/dev/null && c=1 || c=0
+check "main.swift requests full (not write-only) Reminders access" "$c"
+
+# No package manifest, no lockfile: the build is one compiler call.
+ls "$SKILLS/apple-reminders/scripts/Package.swift" \
+  "$SKILLS/apple-reminders/scripts/"*.lock >/dev/null 2>&1 && c=0 || c=1
+check "the EventKit build introduces no package manifest or lockfile" "$c"
+
+# A compiled binary must not reach a diff.
+grep -q 'apple-reminders/scripts/remind-cli' "$REPO_ROOT/.gitignore" 2>/dev/null && c=1 || c=0
+check "the built remind-cli binary is gitignored" "$c"
+
+# Both identifiers are emitted: local ids do not survive an account move, and
+# link markers need the server-provided one.
+for field in calendarItemIdentifier calendarItemExternalIdentifier; do
+  grep -q "$field" "$SKILLS/apple-reminders/scripts/main.swift" 2>/dev/null && c=1 || c=0
+  check "main.swift exposes $field" "$c"
 done
 
 for script in list_notes.js write_note.js; do
@@ -121,14 +160,20 @@ check "scrum_block.py csv header matches what flow_metrics.py documents" "$c"
 python3 "$SKILLS/apple-reminders/scripts/scrum_block.py" unstarted --help >/dev/null 2>&1 && c=1 || c=0
 check "scrum_block.py exposes the unstarted-item detection" "$c"
 
-# The write scripts must not carry a deletion path at all. Comment lines are
-# stripped first: both files discuss deletion at length in order to explain why
-# they refuse it, and matching that prose would assert the opposite of the code.
+# The write paths must not carry a deletion capability at all. Comment lines
+# are stripped first: both files discuss deletion at length in order to explain
+# why they refuse it, and matching that prose would assert the opposite of the
+# code.
 code_only() { grep -vE '^\s*//' "$1" 2>/dev/null; }
 
-code_only "$SKILLS/apple-reminders/scripts/write_reminder.js" |
-  grep -Eq '\.delete\s*\(|\bdelete\s*\(|\bremove\s*\(' && c=0 || c=1
-check "write_reminder.js contains no deletion path" "$c"
+# EventKit deletes via EKEventStore.remove(_:commit:).
+code_only "$SKILLS/apple-reminders/scripts/main.swift" |
+  grep -Eq '\.remove\s*\(|\bremoveReminder|EKSpan' && c=0 || c=1
+check "main.swift contains no deletion path" "$c"
+
+code_only "$SKILLS/apple-reminders/scripts/main.swift" |
+  grep -Eq '"delete"' && c=0 || c=1
+check "remind-cli exposes no delete command" "$c"
 
 code_only "$SKILLS/apple-notes/scripts/write_note.js" |
   grep -Eq '\.delete\s*\(|\bdelete\s*\(|\bremove\s*\(' && c=0 || c=1

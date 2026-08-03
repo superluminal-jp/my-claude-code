@@ -38,8 +38,8 @@ the same baseline guidance and enforcement (see
   elicitation, INVEST/Gherkin), `adr` (architecture decision records),
   `scrum-master` (Scrum events, facilitation, impediments, flow metrics);
   `apple-reminders` and `apple-notes` (operate Reminders.app and Notes.app from
-  macOS via bundled `osascript`/JXA scripts — each is also preloaded into a
-  matching operator subagent); and
+  macOS — EventKit for Reminders, AppleScript for Notes, which has no framework;
+  each is preloaded into a matching operator subagent); and
   `verify-config` (configuration verification — operator-invoked only, and the
   one skill that runs in a forked context rather than the main conversation).
   Spec Kit's `speckit-*`
@@ -210,10 +210,10 @@ my-claude-code/
     │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
     │   ├── adr/SKILL.md            # Architecture decision records (MADR)
     │   ├── verify-config/SKILL.md  # /verify-config — runs forked on verification-runner
-    │   ├── apple-reminders/        # Reminders.app via osascript (JXA)
-    │   │   ├── SKILL.md            #   property surface, permissions, scrum block
-    │   │   └── scripts/            #   list/write JXA + scrum_block.py (unit-tested)
-    │   ├── apple-notes/            # Notes.app via osascript (JXA)
+    │   ├── apple-reminders/        # Reminders.app via EventKit
+    │   │   ├── SKILL.md            #   property surface, build step, permissions, scrum block
+    │   │   └── scripts/            #   main.swift + Info.plist + build.sh, scrum_block.py (unit-tested)
+    │   ├── apple-notes/            # Notes.app via osascript (JXA — no framework exists)
     │   │   ├── SKILL.md            #   HTML body model, permissions, linking
     │   │   └── scripts/            #   list/write JXA
     │   └── scrum-master/           # Scrum events, facilitation, flow metrics
@@ -282,9 +282,11 @@ bash tests/run-scrum-block.sh       # unit tests for scrum_block.py
 ```
 
 Both are deterministic and need no macOS. `scrum_block.py` is Python precisely
-so it can be tested anywhere; the JXA scripts beside it only run on a Mac with
-Reminders.app or Notes.app and an Automation grant, and are **not** exercised
-by any suite — verify those by hand on macOS.
+so it can be tested anywhere — it survived the Reminders backend moving from
+AppleScript to EventKit without a single change. The native code beside it is
+**not** exercised by any suite and must be verified by hand on a Mac:
+`remind-cli` needs macOS and `swiftc` to compile at all, and the Notes JXA
+needs Notes.app plus an Automation grant.
 
 ## MCP Servers
 
