@@ -22,7 +22,7 @@ TEST_MODEL="${TEST_MODEL:-haiku}"
 
 # Every keyword the evaluation prompt is allowed to return. Anything else means the
 # CLI failed (session limit, auth error, crash) rather than the rule being misapplied.
-VALID_KEYWORDS="coder minto-reviewer minto-rewriter minto-builder clarifier advisor coder→minto-rewriter"
+VALID_KEYWORDS="coder minto-reviewer minto-rewriter minto-builder clarifier advisor scrum-master coder→minto-rewriter"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
