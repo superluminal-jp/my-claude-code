@@ -8,7 +8,7 @@ Runtime definitions are in `.mcp.json`. Optional user-scope defaults are install
 
 | Server | Transport | Endpoint / package | Key use cases |
 |---|---|---|---|
-| `aws-knowledge` | HTTP | `https://knowledge-mcp.global.api.aws` | AWS knowledge base |
+| `aws-knowledge` | HTTP | `https://knowledge-mcp.global.api.aws` | AWS knowledge base; also the only server here exposing AWS's official guided-skill registry (see below) |
 | `aws-documentation` | stdio | `awslabs.aws-documentation-mcp-server` | AWS official documentation search/fetch |
 | `bedrock-agentcore` | stdio | `awslabs.amazon-bedrock-agentcore-mcp-server` | Amazon Bedrock AgentCore docs |
 | `strands-agents` | stdio | `strands-agents-mcp-server` | Strands Agents framework docs |
@@ -29,3 +29,11 @@ If the MCP server is unreachable, warn the user that live documentation is unava
 Incidental mentions of AWS/GCP/Azure in otherwise generic questions (e.g., "I'm deployed on AWS but my question is about Python loops") do not require an MCP call.
 
 This mandatory-invoke rule does not apply to `drawio` — it is a generation tool, not a documentation source. See the `drawio` skill for when and how to use it.
+
+## Official provider skill registries
+
+Beyond plain docs lookup, prefer a provider's own guided skill over ad-hoc guidance when one exists for the task:
+
+- **AWS**: `aws-knowledge` exposes AWS's official skill registry. Call `aws___search_documentation` with `topics: ["agent_skills"]` to find a matching skill, then `aws___retrieve_skill` with the exact `skill_name` returned (never invent or guess one) to fetch its `SKILL.md` (and any referenced file via the `file` param). Use this for AWS workflows/patterns it covers, in place of freehand advice.
+- **GCP**: no equivalent found. `google-developer-knowledge`'s tools (`search_documents`, `answer_query`, `get_documents`) are docs search/answer only — no skill-retrieval tool exists in its schema.
+- **Azure**: unverified. `microsoft-learn` requires OAuth authorization; until it's authorized, its tool set — and whether it offers an equivalent — cannot be checked. Re-check once authorized rather than assuming either way.
