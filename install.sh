@@ -388,11 +388,24 @@ fi
 # 6. Install jgraph's official drawio plugin (bundles the @drawio/mcp server
 # and jgraph's own maintained skill, so the tool surface stays in sync with
 # upstream instead of drifting the way this repo's hand-written copy did).
-if ! claude plugin marketplace list 2>/dev/null | grep -q "jgraph/drawio-mcp"; then
+if ! claude plugin marketplace list 2>/dev/null | grep -q "drawio"; then
   claude plugin marketplace add jgraph/drawio-mcp
 fi
 if ! claude plugin list 2>/dev/null | grep -q "drawio@drawio"; then
   claude plugin install drawio@drawio
+fi
+
+# 7. Install AWS's official deploy-on-aws plugin: bundles aws-architecture-diagram
+# (validated AWS4-icon draw.io diagrams, independent of @drawio/mcp) and deploy
+# (codebase analysis, cost estimates, CDK/CloudFormation generation, and — given
+# AWS CLI credentials — live deployment). Adopting this plugin, including the
+# deploy skill's blast radius, is a deliberate decision; see
+# docs/adr/0004-adopt-deploy-on-aws-plugin.md.
+if ! claude plugin marketplace list 2>/dev/null | grep -q "agent-plugins-for-aws"; then
+  claude plugin marketplace add awslabs/agent-plugins
+fi
+if ! claude plugin list 2>/dev/null | grep -q "deploy-on-aws@agent-plugins-for-aws"; then
+  claude plugin install deploy-on-aws@agent-plugins-for-aws
 fi
 
 echo "Codex hook trust: start Codex and use /hooks to review and trust new or changed user hooks before relying on guardrails."
