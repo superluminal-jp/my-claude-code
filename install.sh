@@ -118,7 +118,7 @@ CODEX_SKILLS_DIR="$HOME/.agents/skills"
 # restructure"); listing them here would make sync_path("skills") delete
 # them from ~/.claude/skills on every install.sh run while this list still
 # tried to symlink them, producing broken links (spec 014 research.md R0/R2).
-CUSTOM_SKILLS="adr clarifier coder digital-agency-frontend minto-builder minto-reviewer minto-rewriter scrum-master"
+CUSTOM_SKILLS="adr clarifier coder digital-agency-frontend drawio minto-builder minto-reviewer minto-rewriter scrum-master"
 if [ -d "$TARGET_DIR/skills" ]; then
   mkdir -p "$CODEX_SKILLS_DIR"
   for skill in $CUSTOM_SKILLS; do
@@ -347,6 +347,9 @@ fi
 upsert_user_mcp microsoft-learn \
   --transport http \
   https://learn.microsoft.com/api/mcp
+
+upsert_user_mcp drawio \
+  -- npx @drawio/mcp@1.5.0
 
 # 4. Configure Spec Kit git extension (enable auto-commit if .specify is present)
 # Spec Kit is opt-in per project (`specify init`); this only tunes this repo's

@@ -23,6 +23,7 @@
       "mcp__strands-agents__*",
       "mcp__google-developer-knowledge__*",
       "mcp__microsoft-learn__*",
+      "mcp__drawio__*",
       "Bash(git status)",
       "Bash(git diff *)",
       "Bash(git log *)",
