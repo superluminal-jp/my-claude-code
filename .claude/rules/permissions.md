@@ -12,6 +12,7 @@ Evaluation order: **deny → ask → allow** (first match wins; deny always over
 - `git clean -f` (deletes untracked files)
 - Drop database table / collection — no hook can detect this; self-apply
 - Overwrite files with uncommitted changes — no hook can detect this; self-apply
+- AWS resource operations via the `deploy-on-aws` plugin's `deploy` skill, or any other action that creates, modifies, or deletes live AWS resources (IaC apply/deploy, `aws` CLI mutating commands) — no hook can detect this; self-apply. Default use of this plugin is diagram generation (`aws-architecture-diagram`); any deploy/resource-mutating action requires explicit confirmation every time, regardless of prior approvals in the same session (see `docs/adr/0004-adopt-deploy-on-aws-plugin.md`).
 
 ## Package Installs — Claude installs project-scoped only
 

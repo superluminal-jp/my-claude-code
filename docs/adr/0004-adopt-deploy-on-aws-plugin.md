@@ -63,7 +63,12 @@ of AWS's own upstream.
   generate and, given AWS CLI credentials, actually deploy infrastructure to
   AWS — a materially larger blast radius than any capability this repository
   granted before. No credentials are provisioned by this change itself, but
-  the capability is now present whenever they are.
+  the capability is now present whenever they are. Mitigated: `rules/
+  permissions.md` now lists AWS resource-mutating operations (via the
+  `deploy` skill or any `aws` CLI mutating command) under "Destructive
+  Operations — confirm before executing", requiring explicit confirmation on
+  every use, not just the first. This repository's intended default use of
+  the plugin is diagram generation; deployment is opt-in per action.
 - Negative: three additional MCP servers enter the toolset (`awsiac`,
   `awsknowledge`, `awspricing`). `awsknowledge` points at the same endpoint
   (`https://knowledge-mcp.global.api.aws`) as this repository's own
@@ -82,8 +87,10 @@ of AWS's own upstream.
 Re-running `install.sh` is idempotent for this step (`claude plugin
 marketplace list` / `claude plugin list` checks before adding or installing).
 There is no automated fitness function for the deployment blast radius; the
-control is this ADR plus `rules/permissions.md`'s existing requirement that
-destructive or blast-radius actions be confirmed before execution.
+control is the explicit, named entry for AWS resource operations added to
+`rules/permissions.md`'s "Destructive Operations — confirm before executing"
+list, which Claude self-applies since no hook can technically detect a
+plugin skill invoking a mutating `aws` CLI command.
 
 ## More information
 
