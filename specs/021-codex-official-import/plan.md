@@ -1,0 +1,167 @@
+# Implementation Plan: Replace the hand-maintained Codex port with OpenAI's official import path
+
+**Branch**: `021-codex-official-import` | **Date**: 2026-08-10 | **Spec**: [spec.md](./spec.md)
+
+**Input**: Feature specification from `/specs/021-codex-official-import/spec.md`
+
+## Summary
+
+Delete the hand-maintained Codex port (`.agents/` links, `.codex/**`, the Codex half of `install.sh`, the two codex-sync suites, the deployment map) and replace it with a documented, developer-run procedure using OpenAI's official tooling (`/import`, `migrate-to-codex`). Generated Codex artifacts become untracked local state.
+
+The empirical work in [research.md](./research.md) drives four design decisions that were not obvious from the spec alone:
+
+1. **Codex instructions move to the repo-root `AGENTS.md`.** Codex does not expand `@` imports, so the converter's `AGENTS.md → CLAUDE.md` symlink delivers nothing. Codex *does* read a repo-root `AGENTS.md` natively. Relocating the flattened content there satisfies FR-014 while still allowing `.codex/**` to be deleted whole — the artifact stops being a port and becomes the file Codex expects by convention.
+2. **Two guardrails are documented as absent, not reimplemented.** Codex fires `PreToolUse`/`PostToolUse` for shell commands only, so edit protection cannot be restored through any supported path. Decision recorded: state the absence (FR-006). The other two guardrails were **measured working** in Codex and are not lost.
+3. **The SYNC-01…12 suites are replaced by one reference-integrity check**, not by a generated-artifact comparison — generated artifacts are untracked, so there is nothing stable to diff.
+4. **`/import` is the documented path; `migrate-to-codex` is an inspection tool** — they are not equivalent, and only one of them is safe to run against this repository (D5).
+
+## Technical Context
+
+**Language/Version**: Bash (install.sh, tests, guardrail scripts), Markdown (documentation), Python 3 (external converter only)
+
+**Primary Dependencies**: git; `jq`, `shellcheck`, `shfmt`, `yamllint` (existing dev tooling). External and *not* vendored: Codex CLI (verified on 0.147.0) and the `migrate-to-codex` curated skill.
+
+**Storage**: Files only. No datastore.
+
+**Testing**: `tests/run-*.sh` — the repository's existing bash behaviour suites.
+
+**Target Platform**: macOS / Linux developer workstations.
+
+**Project Type**: Agent configuration repository (documentation + shell + installer).
+
+**Performance Goals**: N/A — no runtime component.
+
+**Constraints**: No Claude-side behaviour change (NFR-002, reaffirmed by the operator on 2026-08-10). Generated Codex artifacts stay untracked (FR-005). Historical specs and ADRs are immutable (NFR-001).
+
+**Scale/Scope**: ~10 files deleted, 5 documentation files edited, 1 test added, 1 ADR added.
+
+## Constitution Check
+
+`.specify/memory/constitution.md` is the **unmodified Spec Kit template** — every principle is still a `[PRINCIPLE_N_NAME]` placeholder and no version is ratified. There are therefore no project-specific gates to evaluate, and this section cannot pass or fail on substance.
+
+Gate evaluated against the repository's actual governing documents instead (`.claude/CLAUDE.md` and `.claude/rules/*`):
+
+| Gate | Source | Status |
+|---|---|---|
+| Accuracy — claims grounded, fact separated from inference | Core Principle 1 | **Pass.** Every load-bearing claim in `research.md` is either a command output captured in-session or a quoted primary source; the two earlier inference errors are recorded as corrections. |
+| Documentation moves with the change | `rules/live-documentation.md` § 1 | **Pass by construction** — the deliverable *is* documentation; README/AGENTS edits ship in the same change as the deletions. |
+| Proximity | `rules/live-documentation.md` § 4 | **Pass.** The Codex procedure lands in `README.md`/`README.ja.md` (where the install story already lives) and `AGENTS.md` at the root Codex actually reads. |
+| One-way-door decision recorded | `rules/live-documentation.md` § 0, `adr` skill | **Action required** — FR-010: new ADR superseding ADR-0002. |
+| Destructive operations confirmed | `rules/permissions.md` | **Action required** — deletions are staged in tasks and require the operator's go-ahead; no file is removed during planning. |
+
+**Complexity deviations**: none. The change removes machinery rather than adding it.
+
+## Project Structure
+
+### Documentation (this feature)
+
+```
+specs/021-codex-official-import/
+├── spec.md              # complete
+├── research.md          # complete — empirical trial (Phase 0)
+├── plan.md              # this file
+├── data-model.md        # artifact inventory and lifecycle states
+├── contracts/
+│   ├── removal-manifest.md        # exact deletion set + reference-integrity rules
+│   └── codex-setup-procedure.md   # required content of the documented procedure
+├── quickstart.md        # validation guide for SC-001…SC-004
+└── tasks.md             # generated by /speckit-tasks
+```
+
+### Source Code (repository root)
+
+```
+.agents/skills/                 # DELETE (8 tracked symlinks)
+.codex/                         # DELETE whole tree
+  ├── AGENTS.md                 #   content relocated → root AGENTS.md
+  ├── hooks/*.sh                #   dropped; coverage documented as absent
+  ├── rules/guardrails.rules    #   dropped; documented as absent
+  ├── prompts/verify-config.md  #   dropped
+  └── README.md                 #   deployment map retired
+AGENTS.md                       # REWRITE — flattened, @-free Codex instructions
+README.md, README.ja.md         # REWRITE — "Codex CLI support" → official procedure
+install.sh                      # EDIT — remove the Codex half (~71 referencing lines)
+.gitignore                      # EDIT — ignore generated .codex/ and .agents/
+tests/run-codex-sync.sh         # DELETE
+tests/run-codex-sync-drift.sh   # DELETE
+tests/run-codex-references.sh   # ADD — reference-integrity check (SC-002)
+tests/run-codex-drift.sh        # ADD — upstream drift check, SKIPs without codex (FR-015)
+docs/adr/0004-*.md              # ADD — supersedes ADR-0002
+.claude/**, scripts/guardrails/ # UNCHANGED (NFR-002)
+```
+
+**Structure decision**: no source layout choice applies — this is a configuration repository, and the change is confined to its existing top-level surfaces.
+
+## Design decisions
+
+### D1 — Flattened instructions live at the repo-root `AGENTS.md`
+
+*Problem*: `research.md` § R-05 — Codex composes instructions by directory-walk concatenation only (`~/.codex/AGENTS.override.md` → `~/.codex/AGENTS.md` → git root down to cwd). `@` imports are unimplemented (`openai/codex` #17401, open).
+
+*Decision*: move the flattened content currently in `.codex/AGENTS.md` to the repo-root `AGENTS.md`, which Codex already reads without any repo-specific machinery.
+
+*Consequences*: `.codex/` can be deleted entirely (FR-001) while FR-014 is still met. The file stops being a port artifact requiring a sync test, and becomes a conventional AGENTS.md. User-scope Codex guidance (`~/.codex/AGENTS.md`) is dropped along with `install.sh`'s Codex half — acceptable, because the repo's rules govern work *in this repo*, which is exactly project scope.
+
+*Hazard, must be documented*: a later `migrate-to-codex` run reports `symlinked: AGENTS.md - Linked to CLAUDE.md` and would replace this file with a symlink to the one-line `CLAUDE.md`. The procedure must warn against it, and `tests/run-codex-references.sh` must assert that root `AGENTS.md` is a regular file containing real guidance, not a symlink or a bare `@` line.
+
+### D2 — Absent guardrails are documented, not reimplemented
+
+*Decision* (operator, 2026-08-10): edit protection and `guardrails.rules` are not provided for Codex. Codex retains destructive-command blocking (`PreToolUse`/Bash) and prompt secret scanning (`UserPromptSubmit`) — both **measured working** in a live 0.147.0 session (`research.md` § R-09) — provided the developer imports the hooks and trusts them via `/hooks`. There is no feature flag to set; `hooks` is stable and on by default.
+
+*Rejected alternative*: rebuild edit protection as a Bash-scoped hook. Rejected because Codex edits do not go through Bash, so the rebuild would be theatre.
+
+*Claude side is untouched* — `pre-edit-block.sh` and `settings.json#permissions` (allow 25 / ask 5 / deny 9, including the credential-safety denies) remain exactly as they are.
+
+### D3 — Reference integrity replaces sync verification
+
+*Decision*: add `tests/run-codex-references.sh` asserting (a) no live file references a deleted path, (b) root `AGENTS.md` is a real file with content, (c) `.gitignore` covers the generated paths, (d) documentation cites only `developers.openai.com` / `learn.chatgpt.com`. Contract in `contracts/removal-manifest.md`.
+
+*Rationale*: generated artifacts are untracked and machine-specific, so a drift test has no stable baseline. What *can* be verified mechanically is that the repository is internally consistent after the removal.
+
+### D4 — Subagent exclusion is re-argued, not inherited
+
+`research.md` § R-06 — Codex has subagents, so ADR-0002-era reasoning ("no equivalent exists") is obsolete. The new ADR restates the exclusion on current grounds: Codex custom agents "set defaults, not hard isolation from the parent turn" (`differences.md`), so they do not provide the context isolation `verification-runner` exists for. If the operator disagrees, this is the line to change.
+
+### D5 — `/import` is the documented primary path; the converter is an inspection tool
+
+*Problem*: the two official paths are **not** interchangeable (`research.md` § R-08). On the same input, `migrate-to-codex` symlinks the root `AGENTS.md` to `CLAUDE.md` (destroying the flattened instructions this feature depends on) and overwrites all 23 skills with copies; `/import` leaves both alone.
+
+*Decision*: document `/import` as the path a developer follows. Present `migrate-to-codex` only for its read-only modes (`--scan-only`, `--plan`, `--doctor`, `--dry-run`), which are useful for inspecting what a migration would do, and call out its two destructive behaviours.
+
+*Consequences*: `quickstart.md` Step 4 validates `/import`, not the converter — the procedure that is tested is the procedure that is documented. Contract A0 already states this; this decision records why.
+
+### D6 — Behavioural claims are dated observations, guarded by a skip-if-absent drift check
+
+*Problem*: everything this feature documents about Codex is a measurement of software that changes under us. Within one session the CLI moved 0.130.0 → 0.147.0, the converter's reference file proved wrong on two points, and three claims in `spec.md` had to be withdrawn.
+
+*Decision*: never state Codex behaviour undated. Every claim carries its measured version and date (contract G1), and `tests/run-codex-drift.sh` re-derives the six upstream facts the documentation rests on (G3). The check **skips** rather than fails when `codex` is absent, matching the convention already used by `tests/run-codex-sync.sh`, so contributors without Codex are not blocked.
+
+*Rejected alternative*: run the drift check in CI. CI has no Codex installed, so it would always skip — the appearance of coverage with none of the substance.
+
+*Consequences*: a drift warning is a prompt to re-measure (re-run `quickstart.md` Steps 4–5), not a defect to suppress. The cost is one extra suite and a stamping pass; the benefit is that staleness surfaces on its own instead of waiting for someone to notice.
+
+## Phase 0 — Research
+
+**Complete.** See [research.md](./research.md). All spec-level unknowns were resolved by running the official converter's read-only modes against this repository and by reading primary sources. No `NEEDS CLARIFICATION` markers remain in Technical Context.
+
+Extended after planning: `/import` was executed on a repaired Codex CLI 0.147.0 and the guardrails were verified in live sessions (`research.md` §§ R-08, R-09). Two planning assumptions were overturned by that work:
+
+- `/import` and the `migrate-to-codex` CLI are **not equivalent** — they differ on `AGENTS.md`, skills, and subagents. Design decision D5 (below) follows.
+- Codex **does** honour Claude's deny contract, and there is no `codex_hooks` flag to set. Both were earlier recorded as defects; both were wrong.
+
+One residual remains, tracked in `research.md` § Still open: every live run used `--dangerously-bypass-hook-trust`, so the `/hooks` **trust path itself is unmeasured** even though FR-011 makes it a required procedure step.
+
+## Phase 1 — Design & Contracts
+
+**Complete.** Generated:
+
+- [data-model.md](./data-model.md) — the artifact inventory as entities with lifecycle states (`ported` → `deleted` / `relocated` / `generated-untracked`) and the validation rules each state must satisfy.
+- [contracts/removal-manifest.md](./contracts/removal-manifest.md) — the authoritative deletion set and the reference-integrity rules `tests/run-codex-references.sh` enforces.
+- [contracts/codex-setup-procedure.md](./contracts/codex-setup-procedure.md) — the required content of the documented procedure (FR-004, FR-006, FR-011, FR-012, FR-013), written as assertions so the procedure can be checked rather than admired.
+- [quickstart.md](./quickstart.md) — runnable validation for SC-001…SC-004.
+
+**Post-design Constitution re-check**: unchanged. No new complexity, no new dependency vendored, no Claude-side behaviour touched. The two action items (ADR, deletion confirmation) carry into `tasks.md`.
+
+## Complexity Tracking
+
+No entries. This change has negative complexity: it removes 2 test suites, ~71 lines of installer logic, and a 32-row deployment map, adding one focused check and one ADR.
