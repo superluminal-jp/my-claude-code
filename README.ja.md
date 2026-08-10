@@ -22,7 +22,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
   - `adr`: アーキテクチャ決定記録（MADR形式）
   - `verify-config`: 設定検証（`/verify-config`）。オペレーターからの明示起動のみで、唯一 fork したコンテキストで実行されるスキル
-  - `scrum-master`: Scrumイベントの設計・ファシリテーション、障害除去、フロー指標（チーム／個人のソロプラクティス双方）
+  - `scrum-master`: Scrumイベントの設計・ファシリテーション、障害除去、フロー指標
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke-test every stdio MCP package tracked in .mcp.json.
+# Smoke-test every uvx-based stdio MCP package tracked in .mcp.json.
 #
 # Closing stdin lets a healthy MCP server initialize and then exit cleanly on
 # EOF. Import-time dependency failures instead produce a non-zero exit, which
@@ -24,6 +24,7 @@ packages="$(jq -r '
   .mcpServers
   | to_entries[]
   | select((.value.type // "stdio") == "stdio")
+  | select(.value.command == "uvx")
   | .value.args[0] // empty
 ' "$MCP_JSON")"
 

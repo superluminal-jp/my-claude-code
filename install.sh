@@ -127,6 +127,11 @@ upsert_user_mcp microsoft-learn \
   --transport http \
   https://learn.microsoft.com/api/mcp
 
+# drawio is intentionally not upserted here: section 6 installs jgraph's
+# official Claude Code plugin, which bundles its own MCP config for
+# @drawio/mcp. Registering it again at user scope here would duplicate the
+# same server under the same name.
+
 # 4. Configure Spec Kit git extension (enable auto-commit if .specify is present)
 # Spec Kit is opt-in per project (`specify init`); this only tunes this repo's
 # own local .specify/, it does not propagate to ~/.claude or any other project.

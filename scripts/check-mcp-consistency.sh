@@ -5,11 +5,12 @@
 # .claude/rules/mcp.md (human catalog).
 #
 # Checks, per server in .mcp.json:
-#   - install.sh registers it (upsert_user_mcp <name>)
+#   - install.sh registers it (upsert_user_mcp <name>), unless a plugin owns it
 #   - settings.json allows it (permissions.allow has mcp__<name>__*)
 #   - mcp.md lists it in the catalog
 #   - http servers: the url in .mcp.json also appears in install.sh
-#   - stdio servers: the package@latest in .mcp.json matches install.sh
+#   - stdio servers: the package matches install.sh unless a plugin owns it;
+#     the three uvx documentation servers use package@latest
 # Plus the reverse: every name registered in install.sh exists in .mcp.json.
 #
 # Requires: jq. Exits 0 when consistent, 1 on any mismatch.
@@ -45,8 +46,12 @@ names="$(jq -r '.mcpServers | keys[]' "$MCP_JSON")"
 while IFS= read -r name; do
   [ -z "$name" ] && continue
 
+  plugin_managed=0
+  [ "$name" = "drawio" ] && plugin_managed=1
+
   # install.sh registration
-  if ! grep -qE "upsert_user_mcp[[:space:]]+$name([[:space:]]|\\\\|$)" "$INSTALL_SH" &&
+  if [ "$plugin_managed" = "0" ] &&
+    ! grep -qE "upsert_user_mcp[[:space:]]+$name([[:space:]]|\\\\|$)" "$INSTALL_SH" &&
     ! grep -qE "remove -s user[[:space:]]+$name" "$INSTALL_SH"; then
     fail "$name not registered in install.sh"
   fi
@@ -69,10 +74,11 @@ while IFS= read -r name; do
     fi
   else
     pkg="$(jq -r --arg n "$name" '.mcpServers[$n].args[0] // empty' "$MCP_JSON")"
-    if [ -n "$pkg" ] && ! grep -qF "$pkg" "$INSTALL_SH"; then
+    if [ "$plugin_managed" = "0" ] && [ -n "$pkg" ] && ! grep -qF "$pkg" "$INSTALL_SH"; then
       fail "$name package not found in install.sh ($pkg)"
     fi
-    if [[ "$pkg" != *@latest ]]; then
+    if [[ " aws-documentation bedrock-agentcore strands-agents " = *" $name "* ]] &&
+      [[ "$pkg" != *@latest ]]; then
       fail "$name must track the latest package release ($pkg)"
     fi
   fi
