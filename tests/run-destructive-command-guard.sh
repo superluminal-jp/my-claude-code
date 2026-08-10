@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Behavior test for the destructive-command guardrail across all three
-# integration points: the shared script, the refactored Claude Code hook,
-# and the new Codex CLI adapter. See specs/013-cross-agent-guardrail-implementation/
+# integration points: the shared script and the Claude Code hook wrapper.
+# See specs/013-cross-agent-guardrail-implementation/
 # contracts/guardrail-script-io.md for the shared script's I/O contract.
 #
 # Deterministic: no network, no external tools beyond jq.
@@ -12,7 +12,6 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO_ROOT/scripts/guardrails/destructive-command.sh"
 CLAUDE_HOOK="$REPO_ROOT/.claude/hooks/pre-bash.sh"
-CODEX_ADAPTER="$REPO_ROOT/.codex/hooks/destructive-command-adapter.sh"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -102,20 +101,11 @@ check "claude hook: benign command exits 0 (allow)" "$([ "$(claude_hook_exit 'ls
 # exit 2 to block and exit 0 with no output to allow.
 # ---------------------------------------------------------------------------
 
-codex_adapter_exit() {
-  local cmd="$1"
-  [ -x "$CODEX_ADAPTER" ] || {
-    echo "MISSING"
-    return
-  }
-  jq -n --arg command "$cmd" '{hook_event_name:"PreToolUse", tool_name:"Bash", tool_input:{command:$command}}' \
-    | bash "$CODEX_ADAPTER" >/dev/null 2>&1
-  echo $?
-}
-
-check "codex adapter: force push exits 2 (deny)" "$([ "$(codex_adapter_exit 'git push --force')" = "2" ] && echo 1 || echo 0)"
-check "codex adapter: rm -rf other exits 2 (ask fails closed)" "$([ "$(codex_adapter_exit 'rm -rf /tmp/scratch')" = "2" ] && echo 1 || echo 0)"
-check "codex adapter: benign command exits 0 (allow)" "$([ "$(codex_adapter_exit 'ls -la')" = "0" ] && echo 1 || echo 0)"
+# Removed by feature 021: this repository no longer ships a Codex adapter.
+# Codex reaches the same shared decision script through a hook imported by
+# `/import`, which was verified working in a live session — see
+# specs/021-codex-official-import/research.md § R-09. What is asserted here is
+# the shared script and the Claude wrapper, which both tools depend on.
 
 echo ""
 echo "===================="

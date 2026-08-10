@@ -22,7 +22,7 @@ TEST_MODEL="${TEST_MODEL:-haiku}"
 
 # Every keyword the evaluation prompt is allowed to return. Anything else means the
 # CLI failed (session limit, auth error, crash) rather than the rule being misapplied.
-VALID_KEYWORDS="coder minto-reviewer minto-rewriter minto-builder clarifier advisor coder→minto-rewriter"
+VALID_KEYWORDS="coder minto-reviewer minto-rewriter minto-builder clarifier advisor scrum-master coder→minto-rewriter"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -98,6 +98,7 @@ Rules:
 Precedence:
 - First detect compound work. If a request includes both code implementation/change and updating an existing document such as README, output coder→minto-rewriter, never coder alone.
 - Then route a recognizable single work category before generic ambiguity. A brief request that names a document and asks to create it is minto-builder; minto-builder elicits its missing audience, purpose, and content.
+- A request that names an existing document or documentation path and asks to update it is minto-rewriter, even when the requested content changes are not yet detailed.
 - Use clarifier only when the intended artifact or action itself is unclear. Brevity alone is not ambiguity.
 - scrum-master requires Scrum or agile practice to be the actual subject of the request. A vague plea, a document edit, or a code change does not become scrum-master merely because it could concern a team's way of working; those still route to clarifier, the document skills, or coder respectively.
 

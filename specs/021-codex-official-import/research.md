@@ -30,7 +30,9 @@ Two authoritative local sources were also read directly (they supersede the summ
 
 ## R-01 — Baseline (what the current hand-port deploys)
 
-Captured before any change, for comparison:
+Tracked source, captured 2026-08-10 immediately before implementation (`git ls-files .agents .codex`): 8 `.agents/skills/*` symlinks plus 8 files under `.codex/` — `AGENTS.md`, `README.md`, `hooks/{destructive-command,post-edit,pre-edit,prompt-secret}-adapter.sh`, `prompts/verify-config.md`, `rules/guardrails.rules`.
+
+Deployed state on this machine:
 
 - `~/.agents/skills/` — 8 symlinks into `~/.claude/skills/`; `~/.codex/skills/` is **empty** (Codex reads the `.agents` path)
 - `~/.codex/hooks/` — the 4 adapters

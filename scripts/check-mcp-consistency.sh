@@ -9,7 +9,7 @@
 #   - settings.json allows it (permissions.allow has mcp__<name>__*)
 #   - mcp.md lists it in the catalog
 #   - http servers: the url in .mcp.json also appears in install.sh
-#   - stdio servers: the pinned package@version in .mcp.json matches install.sh
+#   - stdio servers: the package@latest in .mcp.json matches install.sh
 # Plus the reverse: every name registered in install.sh exists in .mcp.json.
 #
 # Requires: jq. Exits 0 when consistent, 1 on any mismatch.
@@ -70,7 +70,10 @@ while IFS= read -r name; do
   else
     pkg="$(jq -r --arg n "$name" '.mcpServers[$n].args[0] // empty' "$MCP_JSON")"
     if [ -n "$pkg" ] && ! grep -qF "$pkg" "$INSTALL_SH"; then
-      fail "$name pinned package not found in install.sh ($pkg)"
+      fail "$name package not found in install.sh ($pkg)"
+    fi
+    if [[ "$pkg" != *@latest ]]; then
+      fail "$name must track the latest package release ($pkg)"
     fi
   fi
 done <<<"$names"

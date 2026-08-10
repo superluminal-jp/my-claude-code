@@ -13,7 +13,6 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO_ROOT/scripts/guardrails/post-edit-format.sh"
 CLAUDE_HOOK="$REPO_ROOT/.claude/hooks/post-edit-format.sh"
-CODEX_ADAPTER="$REPO_ROOT/.codex/hooks/post-edit-adapter.sh"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -93,25 +92,10 @@ fi
 # Part 3: Codex CLI adapter
 # ---------------------------------------------------------------------------
 
-if command -v shfmt >/dev/null 2>&1; then
-  SH_FILE2="$WORK/example2.sh"
-  printf '#!/usr/bin/env bash\nif true; then\n    echo hi\nfi\n' >"$SH_FILE2"
-  if [ -x "$CODEX_ADAPTER" ]; then
-    jq -n --arg path "$SH_FILE2" '{hook_event_name:"PostToolUse", tool_input:{path:$path}}' | bash "$CODEX_ADAPTER" >/dev/null 2>&1
-    check "codex adapter: .sh file reformatted to 2-space indent" "$(grep -q '^  echo hi$' "$SH_FILE2" && echo 1 || echo 0)"
-  else
-    check "codex adapter: .sh file reformatted to 2-space indent (MISSING)" 0
-  fi
-else
-  echo "(skipping shfmt-dependent adapter assertion: shfmt not installed)"
-fi
-
-if [ -x "$CODEX_ADAPTER" ]; then
-  jq -n --arg path "$TXT_FILE" '{hook_event_name:"PostToolUse", tool_input:{path:$path}}' | bash "$CODEX_ADAPTER" >/dev/null 2>&1
-  check "codex adapter: exits 0 for an unrelated file type (never blocks)" "$([ $? -eq 0 ] && echo 1 || echo 0)"
-else
-  check "codex adapter: exits 0 for an unrelated file type (never blocks) (MISSING)" 0
-fi
+# Removed by feature 021: this repository no longer ships a Codex adapter, and
+# post-edit formatting cannot work in Codex regardless — PostToolUse fires for
+# shell commands only, never for `apply_patch` edits. README.md § "Codex CLI
+# support" documents the absence. See specs/021-codex-official-import/.
 
 echo ""
 echo "===================="

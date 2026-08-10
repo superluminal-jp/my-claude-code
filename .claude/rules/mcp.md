@@ -9,9 +9,9 @@ Runtime definitions are in `.mcp.json`. Optional user-scope defaults are install
 | Server | Transport | Endpoint / package | Key use cases |
 |---|---|---|---|
 | `aws-knowledge` | HTTP | `https://knowledge-mcp.global.api.aws` | AWS knowledge base |
-| `aws-documentation` | stdio | `awslabs.aws-documentation-mcp-server` | AWS official documentation search/fetch |
-| `bedrock-agentcore` | stdio | `awslabs.amazon-bedrock-agentcore-mcp-server` | Amazon Bedrock AgentCore docs |
-| `strands-agents` | stdio | `strands-agents-mcp-server` | Strands Agents framework docs |
+| `aws-documentation` | stdio | `awslabs.aws-documentation-mcp-server@latest` | AWS official documentation search/fetch |
+| `bedrock-agentcore` | stdio | `awslabs.amazon-bedrock-agentcore-mcp-server@latest` | Amazon Bedrock AgentCore docs |
+| `strands-agents` | stdio | `strands-agents-mcp-server@latest` | Strands Agents framework docs |
 | `google-developer-knowledge` | HTTP | `https://developerknowledge.googleapis.com/mcp` | Google developer knowledge base |
 | `microsoft-learn` | HTTP | `https://learn.microsoft.com/api/mcp` | Microsoft Learn / Azure docs |
 

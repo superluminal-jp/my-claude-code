@@ -115,8 +115,8 @@ for tool in jq shellcheck shfmt yamllint check-mcp-consistency 'tests/run-'; do
   check "skill pre-approves $tool" "$c"
 done
 
-# FR-002 / R7: relocation only — the six checks and the report format stay.
-for step in 'settings.json' 'import' 'shellcheck' 'check-mcp-consistency' 'run-skill-routing' 'run-speckit-update'; do
+# FR-002 / R7: the established checks and report format stay intact.
+for step in 'settings.json' 'import' 'shellcheck' 'check-mcp-consistency' 'run-mcp-startup' 'run-skill-routing' 'run-speckit-update'; do
   grep -q "$step" "$SKILL" 2>/dev/null && c=1 || c=0
   check "skill still performs the $step check" "$c"
 done

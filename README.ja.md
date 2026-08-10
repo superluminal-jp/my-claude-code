@@ -6,7 +6,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 `.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/hooks/memory を
 マシン上の全プロジェクトで共通適用できます。
 
-同じ `install.sh` は `.codex/` と `.agents/` のソースもユーザースコープへ展開し、Codex CLI に共有指針、8 個のスキルリンク、4 個のガードレールアダプタ、コマンド Rules、6 サーバーの MCP カタログ、設定検証プロンプトを提供します。対応関係と既知差分は [`.codex/README.md`](.codex/README.md) を参照してください。
+**Codex CLI 向けの移植物はこのリポジトリでは配布しません。** `install.sh` は Codex 設定を一切展開せず、`~/.codex` にも `~/.agents` にも触れません。Codex 側の設定は OpenAI 公式の `/import` で各自生成します — 手順と、何が得られて何が得られないかは [Codex CLI サポート](#codex-cli-サポート)、判断の記録は [ADR-0004](docs/adr/0004-adopt-official-codex-import.md) を参照してください。
 
 英語版: [README.md](README.md)
 
@@ -38,9 +38,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 bash path/to/my-claude-code/install.sh
 ```
 
-インストーラーは `~/.claude` を同期し、Claude Code のユーザースコープ MCP を登録/更新します。Codex 側は `.codex/AGENTS.md` → `~/.codex/AGENTS.md`、共有スキル → `~/.agents/skills/`、4 アダプタ → `~/.codex/hooks/`、Rules/プロンプト、および `~/.codex/config.toml` 内の管理マーカー区間へ展開します。同名 MCP が非管理区間に既存ならユーザー定義を保持し、重複する管理定義は生成しません。Google MCP の API キー値は書き込まず環境変数名だけを保持し、未設定時は同エントリを無効化します。
-
-初回インストール後またはフック変更後は Codex TUI の `/hooks` を開き、4 件のユーザーフックを確認して信頼してください。Codex は変更された非管理コマンドフックの現在の定義ハッシュが信頼されるまで、そのフックを実行しません。
+インストーラーは `~/.claude` を同期し、Claude Code のユーザースコープ MCP を登録/更新します。**Codex 側には何も展開しません** — `~/.codex` と `~/.agents` はユーザーの所有物として一切触れません。
 
 ### 重要: 上書き置換（削除同期）について
 
@@ -53,6 +51,86 @@ bash path/to/my-claude-code/install.sh
   - `install.sh`
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側でも削除されます。
 - 個人用ファイルは管理対象外の場所に置くか、別バックアップから再適用してください。
+
+## Codex CLI サポート
+
+このリポジトリは **Codex 向けの移植物を配布しません**。Codex 設定は OpenAI 公式の import フローで各自の環境に生成します。判断の記録は [ADR-0004](docs/adr/0004-adopt-official-codex-import.md)、根拠となる実測は [`specs/021-codex-official-import/`](specs/021-codex-official-import/) にあります。
+
+> 以下の挙動に関する記述はすべて **Codex 0.147.0 で 2026-08-10 に測定**したものです。対象は変化するソフトウェアなので、バージョンが動いていたら `tests/run-codex-drift.sh` を実行し、第三者の移行ガイドより実測を優先してください。
+
+### 指示文は import なしで届く
+
+リポジトリ直下の [`AGENTS.md`](AGENTS.md) を Codex はそのまま読みます（git root から作業ディレクトリまでを走査して連結）。インストーラーも import 手順も不要です。
+
+**平坦に保ってください。** Codex は `@path` の import を展開しません（[openai/codex#17401](https://github.com/openai/codex/issues/17401) は未解決）。`CLAUDE.md` のように `.claude/rules/*.md` へ委譲できないため、Codex に届けたい規則は `AGENTS.md` に直接書きます。
+
+### スキル・MCP・フックのセットアップ
+
+**`/import`**（Codex CLI 内の対話コマンド）を使います。`codex import` というサブコマンドは存在せず、実行中タスク・リモートセッション・app-server 接続中は利用できません。
+
+```bash
+codex          # 対話セッションを開始
+# /import  →  Claude Code を選択  →  取り込む対象を選択
+```
+
+指示文は `AGENTS.md` へ、`settings.json` は `config.toml` へ変換され、スキル・MCP・フック・スラッシュコマンド・サブエージェント・メモリ・直近のチャットが取り込まれます。書き込み先は `~/.codex` と**プロジェクト配下（`.codex/`、`.agents/`）の両方**で、後者は gitignore 済みのため import してもコミット対象の差分は出ません。実行後に `git status` で確認してください。
+
+**任意: 事前確認。** `migrate-to-codex` スキルは非対話 CLI を同梱しており、読み取り専用モードで「何が起きるか」を確認できます。
+
+```bash
+M=~/.codex/vendor_imports/skills/skills/.curated/migrate-to-codex/scripts/migrate-to-codex.py
+python3 "$M" --source ./.claude/ --scan-only
+python3 "$M" --source ./.claude/ --target ./.codex/ --doctor
+python3 "$M" --source ./.claude/ --target ./.codex/ --dry-run
+python3 "$M" --validate-target ./.codex/     # import 後の検証
+```
+
+⚠️ **書き込みモードはこのリポジトリでは実行しないでください。** 直下の `AGENTS.md` を `CLAUDE.md` への symlink に置き換えて上記の指示文を破壊し、全スキルをコピーで上書きします。起きた場合は `git checkout AGENTS.md` で復旧できます。`/import` はどちらも行いません。
+
+### Codex が強制するもの／しないもの
+
+Claude Code より少ないです。import 後に Codex TUI で `/hooks` を開き、**取り込まれたフックを信頼**してください。非管理フックは定義ハッシュが信頼されるまで実行されず、フック変更のたびに再確認が必要です。設定すべきフィーチャーフラグはありません（`hooks` は stable かつ既定で有効）。
+
+| ガードレール | Claude Code | Codex |
+|---|---|---|
+| 破壊的コマンドの遮断 | あり | **あり**（信頼後）— エンドツーエンドで検証済み |
+| プロンプト秘密スキャン | あり | **あり**（信頼後）— ターンが停止しモデル応答なし |
+| 編集時保護（`.git/`、`main`/`master`） | あり | **なし** |
+| 編集後の自動フォーマット/lint | あり | **なし** |
+| コマンドの allow/prompt 方針 | あり | **なし** — Codex 既定（確認を求める側）にフォールバック |
+| Spec Kit のプロンプト展開 | あり | **なし** — 対応イベントが存在しない |
+
+上記「なし」のうち最初の3つは同一の構造的理由です: **Codex の `PreToolUse`/`PostToolUse` はシェルコマンドにしか発火しません。** Codex の編集は `apply_patch` を通り、これらのイベントからは見えないため、`Edit|Write|Delete` に一致するフックは取り込まれても実行されません。設定では解決できません。hosted tools（WebSearch 等）も対象外です。
+
+さらに2点:
+
+- **フックは設定レイヤーごとに1回ずつ発火します。** Codex はレイヤーを上書きせずマージするため、`~/.codex/hooks.json`・`~/.codex/config.toml`・`.codex/hooks.json` に同じフックがあると毎ターン3回走り、`loading hooks from both … prefer a single representation for this layer` と警告されます。1レイヤーにつき1表現に保ってください。
+- **`.codex/hooks/` にスクリプトがあること自体は実行の証拠になりません。** `/import` は登録しないスクリプト（`statusline.sh` など）もコピーします。実際の配線は `.codex/hooks.json` を見て確認してください。
+
+**Claude 側はこの変更の影響を受けません。** [`.claude/hooks/pre-edit.sh`](.claude/hooks/pre-edit.sh) と `.claude/settings.json` の `permissions` はそのまま維持され、`scripts/guardrails/*.sh` は Codex 側で動作する2つのガードも呼び出す共有判定ロジックとして残ります。
+
+### その他の変換ギャップ
+
+- **スキルは symlink ではなくコピーで届きます。** `/import` は不足分だけ追加し既存には触れませんが、以降 `.claude/skills/` を編集しても再 import するまで反映されず、ずれを検出する仕組みもありません。
+- **生成されたサブエージェントはサポート対象外です。** `/import` は `.codex/agents/*.toml` を作りますが、Codex のカスタムエージェントは既定値を設定するだけで親ターンからコンテキストを隔離しないため、このリポジトリでは依存しません。
+- **`speckit-*` スキルは移行不要**です（`specify init --integration codex` が各プロジェクトで再生成 — [ADR-0001](docs/adr/0001-remove-vendored-speckit-skills.md)）。
+- `--doctor` が `readiness: low` と多数の手動確認項目を出すのは想定内です。Claude 固有のスキル frontmatter（`when_to_use`、`metadata`、`argument-hint`、`context`）が挙動ではなく散文になるためです。
+
+### 以前のバージョンをインストールしていた場合
+
+旧版はホームディレクトリに Codex ファイルを展開していました。現在の `install.sh` はユーザー所有の Codex 設定に触れないため、**自動では削除しません**。整理したい場合は手動で削除してください。
+
+- `~/.codex/hooks/*-adapter.sh`
+- `~/.codex/rules/guardrails.rules`
+- `~/.codex/prompts/verify-config.md`
+- `~/.agents/skills/`（8 個の symlink）
+- `~/.codex/config.toml` 内の `# >>> my-claude-code managed hooks` / `# >>> my-claude-code managed MCP servers` 区間
+
+managed hooks 区間を残したままにすると、上記の多重発火警告の原因になります。
+
+### この節を古びさせないために
+
+`tests/run-codex-drift.sh` がこの節の前提となる上流の事実（`DRIFT-01`〜`DRIFT-06`）を再導出します。`codex` 未インストール環境では SKIP します。警告が出たら [`quickstart.md`](specs/021-codex-official-import/quickstart.md) の Step 4–5 を再実行し、上記の測定日を更新してください。
 
 ## 代替: `CLAUDE.md` から import
 
@@ -73,13 +151,7 @@ my-claude-code/
 ├── scripts/
 │   ├── check-mcp-consistency.sh
 │   └── guardrails/
-├── .codex/
-│   ├── AGENTS.md
-│   ├── README.md
-│   ├── hooks/
-│   ├── rules/guardrails.rules
-│   └── prompts/verify-config.md
-├── .agents/skills/
+├── AGENTS.md                        # Codex CLI がそのまま読む平坦な指針（@ import 不可）
 ├── .mcp.json
 └── .claude/
     ├── CLAUDE.md
@@ -92,7 +164,7 @@ my-claude-code/
 
 ## 検証
 
-Claude Code では `/verify-config` が設定検査（JSON 妥当性、`@`-import の整合、hook の lint/format、MCP カタログ整合、behavior スイート）を実行し、`✓`/`✗` のチェックリストを返します。実行は [`verification-runner`](.claude/agents/verification-runner.md) サブエージェント上の fork したコンテキストで行われるため、lint やスイートの生出力は会話に入りません。このサブエージェントは読み取り専用で、失敗を報告するだけで修正はしません。Codex CLI の対応物は `/prompts:verify-config` で、同じ検査を本体セッション内で実行します。
+Claude Code では `/verify-config` が設定検査（JSON 妥当性、`@`-import の整合、hook の lint/format、MCP カタログ整合・起動確認、behavior スイート）を実行し、`✓`/`✗` のチェックリストを返します。実行は [`verification-runner`](.claude/agents/verification-runner.md) サブエージェント上の fork したコンテキストで行われるため、lint やスイートの生出力は会話に入りません。このサブエージェントは読み取り専用で、失敗を報告するだけで修正はしません。Codex CLI には fork コンテキスト相当がないため、同じ検査を本体セッション内でインライン実行してください。
 
 以下は同じ検査をシェルや CI から直接実行する場合のコマンドです。
 
@@ -100,10 +172,11 @@ Claude Code では `/verify-config` が設定検査（JSON 妥当性、`@`-impor
 
 ```sh
 ./scripts/check-mcp-consistency.sh
+bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
 bash tests/run-digital-agency-frontend-skill.sh
-./tests/run-codex-sync.sh
 ./tests/run-prompt-secret-guard.sh
-./tests/run-codex-sync-drift.sh
+./tests/run-codex-references.sh
+./tests/run-codex-drift.sh
 ```
 
 `verify-config` スキルまたは `verification-runner` サブエージェントを変更したら:
@@ -117,7 +190,7 @@ bash tests/run-verification-agent.sh
 ## MCP サーバー
 
 プロジェクトスコープ定義は `.mcp.json` にあります。  
-カタログ（transport / バージョン等）は [`.claude/rules/mcp.md`](.claude/rules/mcp.md) を参照してください。
+カタログ（transport / パッケージ更新方針等）は [`.claude/rules/mcp.md`](.claude/rules/mcp.md) を参照してください。
 
 ## プロジェクト単位の上書き
 

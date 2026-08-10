@@ -16,7 +16,9 @@ not modify any files. Surface the first hard failure with its output.
    resolves to an existing file (paths are relative to the repo root).
 3. Hooks: `shellcheck .claude/hooks/*.sh`, then `shfmt -d -i 2 .claude/hooks/*.sh`
    (report diffs only — never write).
-4. MCP catalog consistency: `bash scripts/check-mcp-consistency.sh`.
+4. MCP catalog consistency and stdio startup: run
+   `bash scripts/check-mcp-consistency.sh`, then `bash tests/run-mcp-startup.sh`.
+   The startup smoke test requires the network and a writable `uv` cache.
 5. Behavior suites (require the `claude` CLI and the network; if `claude` is
    absent, skip with a note rather than failing): `bash tests/run-skill-routing.sh`
    and `bash tests/run-live-documentation.sh`.

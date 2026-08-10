@@ -1,5 +1,5 @@
 ---
-status: Proposed
+status: Superseded by 0004
 date: 2026-07-20
 deciders: repository maintainer
 ---

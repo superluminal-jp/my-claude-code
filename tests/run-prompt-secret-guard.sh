@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # Behavior test for prompt-secret detection across the shared scanner, the
-# Claude Code wrapper, and the Codex UserPromptSubmit adapter (spec 014 R4).
+# Claude Code wrapper (Codex adapter removed by feature 021).
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO_ROOT/scripts/guardrails/prompt-secret-scan.sh"
 CLAUDE_HOOK="$REPO_ROOT/.claude/hooks/user-prompt-submit.sh"
-CODEX_ADAPTER="$REPO_ROOT/.codex/hooks/prompt-secret-adapter.sh"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -80,21 +79,11 @@ check "claude hook: secret exits 2 (block)" "$([ "$(claude_hook_exit "credential
 check "claude hook: benign prompt exits 0 (allow)" "$([ "$(claude_hook_exit 'safe prompt')" = "0" ] && echo 1 || echo 0)"
 check "claude hook: delegates to shared scanner" "$(rg -q 'prompt-secret-scan\.sh' "$CLAUDE_HOOK" && echo 1 || echo 0)"
 
-codex_result() {
-  local prompt="$1"
-  [ -x "$CODEX_ADAPTER" ] || {
-    echo '{}'
-    return
-  }
-  jq -n --arg prompt "$prompt" '{hook_event_name:"UserPromptSubmit", prompt:$prompt}' \
-    | bash "$CODEX_ADAPTER" 2>/dev/null
-}
-
-codex_deny=$(codex_result "credential $GITHUB_TOKEN")
-codex_allow=$(codex_result "safe prompt")
-check "codex adapter: secret stops prompt" "$(printf '%s' "$codex_deny" | jq -e '.continue == false and (.stopReason | length > 0)' >/dev/null 2>&1 && echo 1 || echo 0)"
-check "codex adapter: benign prompt continues" "$(printf '%s' "$codex_allow" | jq -e '.continue == true' >/dev/null 2>&1 && echo 1 || echo 0)"
-check "codex adapter: stop reason does not echo secret value" "$(! printf '%s' "$codex_deny" | grep -Fq "$GITHUB_TOKEN" && echo 1 || echo 0)"
+# Removed by feature 021: this repository no longer ships a Codex adapter.
+# Codex reaches the same shared scanner through a hook imported by `/import`,
+# verified blocking a real turn in a live session (specs/021-codex-official-
+# import/research.md § R-09). The shared scanner and the Claude wrapper are
+# what this suite asserts.
 
 echo ""
 echo "===================="

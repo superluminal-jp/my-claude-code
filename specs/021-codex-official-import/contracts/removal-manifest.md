@@ -58,7 +58,7 @@ Enforced by `tests/run-codex-references.sh`. Each rule is a pass/fail check with
 
 | Id | Rule | Scope searched |
 |---|---|---|
-| `RULE-01` | No file references any path in the deletion set | `README.md`, `README.ja.md`, `AGENTS.md`, `CLAUDE.md`, `install.sh`, `.gitignore`, `scripts/**`, `tests/**`, `.claude/**` |
+| `RULE-01` | No file references any path in the deletion set, **except `.agents/skills/<name>`** | `README.md`, `README.ja.md`, `AGENTS.md`, `CLAUDE.md`, `install.sh`, `.gitignore`, `scripts/**`, `tests/**`, `.claude/**` |
 | `RULE-02` | No `SYNC-\d\d` token survives | `tests/**`, `README*.md`, `AGENTS.md` |
 | `RULE-03` | Root `AGENTS.md` is a regular file, not a symlink | `AGENTS.md` |
 | `RULE-04` | Root `AGENTS.md` is > 1 KiB and ≤ 32 KiB | `AGENTS.md` |
@@ -67,9 +67,11 @@ Enforced by `tests/run-codex-references.sh`. Each rule is a pass/fail check with
 | `RULE-07` | Host allowlist: every URL whose host or path contains `codex` resolves to `developers.openai.com`, `learn.chatgpt.com`, or `github.com/openai/` — any other host fails | whole repo except `.git/` |
 | `RULE-08` | Every documentation URL in the user-facing docs is `https://` and on an allowlisted host | `README.md`, `README.ja.md`, `AGENTS.md` |
 | `RULE-09` | `.claude/settings.json` still registers all five hooks and retains `permissions.deny` | `.claude/settings.json` |
-| `RULE-10` | `install.sh` contains no Codex/agents reference | `install.sh` |
+| `RULE-10` | `install.sh` contains no Codex/agents reference **on an executable line** (comment lines are exempt — the header states the installer does *not* touch `~/.codex`, and saying so must not trip the check proving it) | `install.sh` |
 
 **Exclusions**: `specs/**` and `docs/adr/**` are exempt from RULE-01 and RULE-02 — they are historical records and must keep naming what existed. **RULE-07 has no exclusions**: the host allowlist applies to the whole repository, historical documents included.
+
+**RULE-01's `.agents/skills/<name>` carve-out** (added during implementation, 2026-08-10): those paths are deleted *as tracked symlinks* but immediately reappear *as generated skills* once a developer runs `/import`. `AGENTS.md`'s skill-routing section must keep pointing at them, because that is where Codex genuinely finds the skills. Only `.codex/**` paths and the two codex-sync suites are true dangling references.
 
 **Failure output**: each violation prints `FAIL <RULE-id> <path>:<line> <matched text>`; the suite exits non-zero if any rule fails. This matches the existing `tests/run-*.sh` convention (named check ids, green/red output, non-zero exit).
 
