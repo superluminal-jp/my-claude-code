@@ -98,6 +98,7 @@ Phase 1のディレクトリ作成以外に共有のブロッキング作業は�
 - [X] T012 `bash tests/run-skill-routing.sh` を実行し、`tests/skill-routing/007-scrum-facilitation.md` を含む全件が変更後も通ることを確認する
 - [X] T013 リポジトリ横断の整合性チェックを実行する：`./scripts/check-mcp-consistency.sh`、`bash tests/run-codex-references.sh`、`bash tests/run-codex-drift.sh`
 - [X] T014 `git status`/`git diff`で変更内容を確認し、コミット前に`post-edit-format.sh`によるフォーマッタ差分がないか点検する
+- [X] T015（実装後追加、ユーザー指示による再構成）`templates/`配下を運用構造と一致させる：プロダクト単位で継続する2ファイル（`product-backlog.md`／`definition-of-done.md`）を`templates/`直下に、Sprintごとに作り直す6ファイルを`templates/sprint/`に配置し直す。`increment.md`から`definition-of-done.md`を分離。`templates/README.md`・`spec.md`・`data-model.md`・`quickstart.md`を新構造に合わせて更新し、SC-001〜SC-005を再検証する（2段階の訂正：最初は`product/`・`sprint/`の並列サブディレクトリにしたが、運用構造ではプロダクト単位のファイルがプロジェクト直下に来るため、`product/`を廃し`templates/`直下へ統合した）
 
 ---
 

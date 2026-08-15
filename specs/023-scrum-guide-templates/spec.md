@@ -78,13 +78,14 @@ scrum-masterスキルを使う人が、既存の「参照ファイル」表ま�
 
 - **FR-001**: 新規ディレクトリ `.claude/skills/scrum-master/references/templates/` を作成すること。
 - **FR-002**: `product-backlog.md` テンプレートを作成し、Product Backlog itemsの属性（description、order、estimate、value）の記入欄と、Product Goalの記入欄を含むこと [SG20, p.10]。
-- **FR-003**: `sprint-backlog.md` テンプレートを作成し、Sprint Goal（why）・選択したProduct Backlog items（what）・Incrementを届けるための実行可能な計画（how）の3要素の記入欄を含むこと [SG20, p.9]。
-- **FR-004**: `increment.md` テンプレートを作成し、Definition of Doneの記入欄と、DoDを満たした時点でIncrementが生まれるという定義の記載を含むこと [SG20, p.11]。
-- **FR-005**: `sprint-planning.md` テンプレートを作成し、Scrum Guideが定める3つの問い（Why is this Sprint valuable? What can be Done? How will the work get done?）と、一月Sprintでの最大タイムボックス（8時間、Sprintが短い場合は通常より短い）を含むこと [SG20, p.8]。
-- **FR-006**: `daily-scrum.md` テンプレートを作成し、目的（Sprint Goalへの進捗の検査とSprint Backlogの適応）とタイムボックス（15分）を含むこと [SG20, p.9]。
-- **FR-007**: `sprint-review.md` テンプレートを作成し、目的（Sprintの成果を提示しProduct Goalへの進捗を検討する作業セッションであり、ステータス報告の場ではない旨）とタイムボックス（一月Sprintで最大4時間）を含むこと [SG20, p.9-10]。
-- **FR-008**: `sprint-retrospective.md` テンプレートを作成し、検査対象（個人・相互作用・プロセス・ツール・Definition of Done）、目的（品質と効果を高める改善計画の作成）、タイムボックス（一月Sprintで最大3時間）を含むこと [SG20, p.10]。
+- **FR-003**: `sprint/sprint-backlog.md` テンプレートを作成し、Sprint Goal（why）・選択したProduct Backlog items（what）・Incrementを届けるための実行可能な計画（how）の3要素の記入欄を含むこと [SG20, p.9]。
+- **FR-004**: `definition-of-done.md`（Definition of Doneの記入欄、プロダクト単位で継続、`templates/`直下）と`sprint/increment.md`（Incrementの説明、DoDを満たした時点でIncrementが生まれるという定義の記載、Sprint単位）の2テンプレートを作成すること [SG20, p.11-12]。**実装後の訂正**：当初は単一の`increment.md`だったが、Definition of Doneはプロダクト単位で継続する性質を持つため、ユーザー指示により`templates/`直下と`sprint/`へ分割した（data-model.md参照）。
+- **FR-005**: `sprint/sprint-planning.md` テンプレートを作成し、Scrum Guideが定める3つの問い（Why is this Sprint valuable? What can be Done? How will the work get done?）と、一月Sprintでの最大タイムボックス（8時間、Sprintが短い場合は通常より短い）を含むこと [SG20, p.8]。
+- **FR-006**: `sprint/daily-scrum.md` テンプレートを作成し、目的（Sprint Goalへの進捗の検査とSprint Backlogの適応）とタイムボックス（15分）を含むこと [SG20, p.9]。
+- **FR-007**: `sprint/sprint-review.md` テンプレートを作成し、目的（Sprintの成果を提示しProduct Goalへの進捗を検討する作業セッションであり、ステータス報告の場ではない旨）とタイムボックス（一月Sprintで最大4時間）を含むこと [SG20, p.9-10]。
+- **FR-008**: `sprint/sprint-retrospective.md` テンプレートを作成し、検査対象（個人・相互作用・プロセス・ツール・Definition of Done）、目的（品質と効果を高める改善計画の作成）、タイムボックス（一月Sprintで最大3時間）を含むこと [SG20, p.10]。
 - **FR-009**: 全テンプレートは、Scrum Guideに明示されていない進行手順・ファシリテーション技法・見積もり手法などのHOW的内容を一切含まないこと。
+- **FR-013b**（実装後追加）：`templates/`配下は運用構造（`scrum/projects/<project_name>/product-backlog.md` + `.../definition-of-done.md` + `.../sprints/<num>-<date>/`）と一致させ、プロダクト単位で継続する作成物は`templates/`直下に、Sprintごとに作り直す作成物・イベントは`templates/sprint/`サブディレクトリに置くこと。この区分はScrum Guideの規範ではなく運用上の慣例であり、`templates/README.md`にその旨を明記すること。
 - **FR-010**: 各テンプレートは単体で完結すること（リポジトリ内の他ファイルへの相対リンクを含まない）。Scrum Guide由来の主張には `[SG20, p.X]` 形式の出典と、Scrum Guide公式サイト（scrumguides.org）への直リンクを付けること。
 - **FR-011**: `SKILL.md` の「参照ファイル」表または「成果物を作る」節に、新規テンプレート群への導線（リンク）を追加すること。
 - **FR-012**: 新規テンプレートは既存の `references/scrum-framework.md` および `references/scrum-master-role.md` の記述内容と矛盾しないこと。内容が重複する場合、詳細な説明・出典ページは既存ファイルに委ね、テンプレートは記入用の構造のみを提供する。
@@ -101,7 +102,7 @@ scrum-masterスキルを使う人が、既存の「参照ファイル」表ま�
 
 ### Measurable Outcomes
 
-- **SC-001**: 7つのテンプレートファイル（Product Backlog／Sprint Backlog／Increment／Sprint Planning／Daily Scrum／Sprint Review／Sprint Retrospective）が `.claude/skills/scrum-master/references/templates/` 配下に存在する。
+- **SC-001**: 8つのテンプレートファイル（Product Backlog／Definition of Done／Sprint Backlog／Increment／Sprint Planning／Daily Scrum／Sprint Review／Sprint Retrospective）が `.claude/skills/scrum-master/references/templates/` 直下および `.claude/skills/scrum-master/references/templates/sprint/` 配下に存在する。
 - **SC-002**: 各テンプレートは、開いた時点で見出しと記入欄が揃っており、追加の説明を読まずにそのまま埋め始められる。
 - **SC-003**: 全テンプレートを対象に、022番feature（scrum-masterスキル最小化）で削除対象となった語彙（スケーリング、フロー指標、アンチパターン分類、コーチングスタンス、Nexus、LeSS、SAFe、Scrum@Scale等）を検索しても一致しない。
 - **SC-004**: `SKILL.md` から新規テンプレート一覧への到達に必要な参照（クリック）が1回以内である。

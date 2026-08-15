@@ -7,13 +7,13 @@
 - リポジトリルートで実行する。
 - `.claude/skills/scrum-master/references/templates/` が作成済みであること。
 
-## SC-001: 7つのテンプレートファイルが存在する
+## SC-001: 8つのテンプレートファイルが存在する（templates/直下・sprint/配下、実装後の再構成を反映）
 
 ```bash
-ls .claude/skills/scrum-master/references/templates/*.md | wc -l
-# 期待値: 7
+find .claude/skills/scrum-master/references/templates -maxdepth 2 -name '*.md' ! -name 'README.md' | wc -l
+# 期待値: 8
 
-for f in product-backlog sprint-backlog increment sprint-planning daily-scrum sprint-review sprint-retrospective; do
+for f in product-backlog definition-of-done sprint/sprint-backlog sprint/increment sprint/sprint-planning sprint/daily-scrum sprint/sprint-review sprint/sprint-retrospective; do
   test -f ".claude/skills/scrum-master/references/templates/${f}.md" && echo "OK: ${f}.md" || echo "MISSING: ${f}.md"
 done
 ```
@@ -40,7 +40,8 @@ grep -n 'templates/' .claude/skills/scrum-master/SKILL.md
 ## SC-005: 各テンプレートに[SG20, p.X]形式の出典がある
 
 ```bash
-for f in .claude/skills/scrum-master/references/templates/*.md; do
+for f in .claude/skills/scrum-master/references/templates/*.md .claude/skills/scrum-master/references/templates/sprint/*.md; do
+  [[ "$(basename "$f")" == "README.md" ]] && continue
   grep -q '\[SG20, p\.' "$f" && echo "OK: $f" || echo "MISSING CITATION: $f"
 done
 ```
