@@ -20,7 +20,7 @@
 
 **Decision**: 全7テンプレートを次の統一構成にする。
 
-- 作成物3種（Product Backlog／Sprint Backlog／Increment）：①作成物の定義（Guideの記述の要約＋記入欄）、②対応するコミットメント（Product Goal／Sprint Goal／Definition of Done、原文引用＋記入欄）、③出典（`[SG20, p.X]`＋`sources.md`へのリンク）。
+- 作成物3種（Product Backlog／Sprint Backlog／Increment）：①作成物の定義（Guideの記述の要約＋記入欄）、②対応するコミットメント（Product Goal／Sprint Goal／Definition of Done、原文引用＋記入欄）、③出典（`[SG20, p.X]`＋Scrum Guide公式サイトへの直リンク。実装中にユーザー指示で確定：テンプレートは単体で完結させ、`sources.md`等リポジトリ内ファイルへの相対リンクは持たない）。
 - イベント4種（Sprint Planning／Daily Scrum／Sprint Review／Sprint Retrospective）：①目的（原文引用）、②タイムボックス、③Scrum Guideが定める検討内容（該当する場合のみ、例：Sprint Planningの3つの問い）の記入欄、④出典。
 
 **Rationale**: 統一構成にすることで、開いた瞬間に「どこに何を書けばよいか」が分かり、spec.md SC-002（開いてすぐ埋め始められる）を満たす。作成物とイベントで内部構成が異なるのは、Scrum Guideが作成物には「コミットメント」という共通概念を、イベントには「目的とタイムボックス」という共通概念を与えているため、この違いをそのまま反映する。

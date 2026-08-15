@@ -28,7 +28,7 @@ description: "Task list template for feature implementation"
 
 **Purpose**: テンプレートを配置する新規ディレクトリを用意する
 
-- [ ] T001 `.claude/skills/scrum-master/references/templates/` ディレクトリを作成する
+- [X] T001 `.claude/skills/scrum-master/references/templates/` ディレクトリを作成する
 
 ---
 
@@ -50,9 +50,9 @@ Phase 1のディレクトリ作成以外に共有のブロッキング作業は�
 
 ### Implementation for User Story 1
 
-- [ ] T002 [P] [US1] `.claude/skills/scrum-master/references/templates/product-backlog.md` を作成する：Product Backlog itemsの属性（description／order／estimate／value）の記入欄、Product Goal（コミットメント）の記入欄、`[SG20, p.10-11]`の出典、`sources.md`への参照リンクを含める（spec.md FR-002, data-model.md）
-- [ ] T003 [P] [US1] `.claude/skills/scrum-master/references/templates/sprint-backlog.md` を作成する：Sprint Goal（コミットメント）欄、選択したProduct Backlog items一覧欄、Incrementを届ける計画欄、`[SG20, p.9-11]`の出典を含める（spec.md FR-003, data-model.md）
-- [ ] T004 [P] [US1] `.claude/skills/scrum-master/references/templates/increment.md` を作成する：Definition of Done（コミットメント）欄、Incrementの説明欄、DoDを満たした時点でIncrementが生まれるという定義の記載、`[SG20, p.11-12]`の出典を含める（spec.md FR-004, data-model.md）
+- [X] T002 [P] [US1] `.claude/skills/scrum-master/references/templates/product-backlog.md` を作成する：Product Backlog itemsの属性（description／order／estimate／value）の記入欄、Product Goal（コミットメント）の記入欄、`[SG20, p.10-11]`の出典を含める（spec.md FR-002, data-model.md）。**実装時の訂正**：当初`sources.md`への相対リンクを含めていたが、ユーザー指示（「テンプレートは単体で完結するように。相対リンクなどは排除。公式URLの直リンクは許容」）によりScrum Guide公式サイトへの直リンクに差し替えた（全7テンプレート共通、FR-010改訂）。
+- [X] T003 [P] [US1] `.claude/skills/scrum-master/references/templates/sprint-backlog.md` を作成する：Sprint Goal（コミットメント）欄、選択したProduct Backlog items一覧欄、Incrementを届ける計画欄、`[SG20, p.9-11]`の出典を含める（spec.md FR-003, data-model.md）
+- [X] T004 [P] [US1] `.claude/skills/scrum-master/references/templates/increment.md` を作成する：Definition of Done（コミットメント）欄、Incrementの説明欄、DoDを満たした時点でIncrementが生まれるという定義の記載、`[SG20, p.11-12]`の出典を含める（spec.md FR-004, data-model.md）
 
 **Checkpoint**: 作成物3テンプレートが独立して開いて使える状態。`quickstart.md` SC-001（3/7分）・SC-005がこの3ファイルについて検証可能。
 
@@ -66,10 +66,10 @@ Phase 1のディレクトリ作成以外に共有のブロッキング作業は�
 
 ### Implementation for User Story 2
 
-- [ ] T005 [P] [US2] `.claude/skills/scrum-master/references/templates/sprint-planning.md` を作成する：Why／What／Howの3つの問いの記入欄、タイムボックス（1か月Sprintで最大8時間、短いSprintでは比例して短縮する旨の注記）、`[SG20, p.8]`の出典を含める（spec.md FR-005）
-- [ ] T006 [P] [US2] `.claude/skills/scrum-master/references/templates/daily-scrum.md` を作成する：目的（Sprint Goalへの進捗検査とSprint Backlogの適応）、タイムボックス（15分、毎日同じ時間・場所）、`[SG20, p.9]`の出典を含める（spec.md FR-006）
-- [ ] T007 [P] [US2] `.claude/skills/scrum-master/references/templates/sprint-review.md` を作成する：目的（成果の提示とProduct Goalへの進捗確認、作業セッションでありステータス報告ではない旨）、タイムボックス（1か月Sprintで最大4時間）、`[SG20, p.9-10, p.12]`の出典を含める（spec.md FR-007）
-- [ ] T008 [P] [US2] `.claude/skills/scrum-master/references/templates/sprint-retrospective.md` を作成する：検査対象（個人・相互作用・プロセス・ツール・Definition of Done）、目的（品質と効果を高める改善計画の作成）、タイムボックス（1か月Sprintで最大3時間）、`[SG20, p.10]`の出典を含める（spec.md FR-008）
+- [X] T005 [P] [US2] `.claude/skills/scrum-master/references/templates/sprint-planning.md` を作成する：Why／What／Howの3つの問いの記入欄、タイムボックス（1か月Sprintで最大8時間、短いSprintでは比例して短縮する旨の注記）、`[SG20, p.8]`の出典を含める（spec.md FR-005）
+- [X] T006 [P] [US2] `.claude/skills/scrum-master/references/templates/daily-scrum.md` を作成する：目的（Sprint Goalへの進捗検査とSprint Backlogの適応）、タイムボックス（15分、毎日同じ時間・場所）、`[SG20, p.9]`の出典を含める（spec.md FR-006）
+- [X] T007 [P] [US2] `.claude/skills/scrum-master/references/templates/sprint-review.md` を作成する：目的（成果の提示とProduct Goalへの進捗確認、作業セッションでありステータス報告ではない旨）、タイムボックス（1か月Sprintで最大4時間）、`[SG20, p.9-10, p.12]`の出典を含める（spec.md FR-007）
+- [X] T008 [P] [US2] `.claude/skills/scrum-master/references/templates/sprint-retrospective.md` を作成する：検査対象（個人・相互作用・プロセス・ツール・Definition of Done）、目的（品質と効果を高める改善計画の作成）、タイムボックス（1か月Sprintで最大3時間）、`[SG20, p.10]`の出典を含める（spec.md FR-008）
 
 **Checkpoint**: 7テンプレートすべてが揃う。`quickstart.md` SC-001（7/7）・SC-005が全ファイルで検証可能。
 
@@ -83,7 +83,7 @@ Phase 1のディレクトリ作成以外に共有のブロッキング作業は�
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] `.claude/skills/scrum-master/SKILL.md` の「参照ファイル」表に、`references/templates/` への導線となる行を1行追加する（spec.md FR-011。既存の`when_to_use`・原則・ワークフロー本文は変更しない）
+- [X] T009 [US3] `.claude/skills/scrum-master/SKILL.md` の「参照ファイル」表に、`references/templates/` への導線となる行を1行追加する（spec.md FR-011。既存の`when_to_use`・原則・ワークフロー本文は変更しない）
 
 **Checkpoint**: SKILL.mdからテンプレートへ1回の参照で到達できる。`quickstart.md` SC-004が検証可能。
 
@@ -93,11 +93,11 @@ Phase 1のディレクトリ作成以外に共有のブロッキング作業は�
 
 **Purpose**: リポジトリ横断の整合性確認とLive Documentation対応
 
-- [ ] T010 [P] `README.md` のscrum-masterスキルのファイルツリー説明（283-285行目付近）を更新し、`references/templates/`（7ファイル）の存在を反映する（research.md Decision 2）
-- [ ] T011 `quickstart.md` のSC-001〜SC-005検証コマンドとデッドリンク確認コマンドを実行し、全て期待値どおりであることを確認する
-- [ ] T012 `bash tests/run-skill-routing.sh` を実行し、`tests/skill-routing/007-scrum-facilitation.md` を含む全件が変更後も通ることを確認する
-- [ ] T013 リポジトリ横断の整合性チェックを実行する：`./scripts/check-mcp-consistency.sh`、`bash tests/run-codex-references.sh`、`bash tests/run-codex-drift.sh`
-- [ ] T014 `git status`/`git diff`で変更内容を確認し、コミット前に`post-edit-format.sh`によるフォーマッタ差分がないか点検する
+- [X] T010 [P] `README.md` のscrum-masterスキルのファイルツリー説明（283-285行目付近）を更新し、`references/templates/`（7ファイル）の存在を反映する（research.md Decision 2）
+- [X] T011 `quickstart.md` のSC-001〜SC-005検証コマンドとデッドリンク確認コマンドを実行し、全て期待値どおりであることを確認する
+- [X] T012 `bash tests/run-skill-routing.sh` を実行し、`tests/skill-routing/007-scrum-facilitation.md` を含む全件が変更後も通ることを確認する
+- [X] T013 リポジトリ横断の整合性チェックを実行する：`./scripts/check-mcp-consistency.sh`、`bash tests/run-codex-references.sh`、`bash tests/run-codex-drift.sh`
+- [X] T014 `git status`/`git diff`で変更内容を確認し、コミット前に`post-edit-format.sh`によるフォーマッタ差分がないか点検する
 
 ---
 

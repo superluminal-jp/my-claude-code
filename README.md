@@ -283,6 +283,7 @@ my-claude-code/
     │   └── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments
     │       ├── SKILL.md            #   playbook
     │       └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+    │           └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
     ├── agents/                     # Subagent definitions (project scope, not installed to ~/.claude)
     │   └── verification-runner.md  # Read-only runner: checks and suites, returns a checklist
     └── hooks/

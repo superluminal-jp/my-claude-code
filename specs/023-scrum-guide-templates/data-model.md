@@ -21,7 +21,7 @@
 | `sprint-review.md` | Sprint Review | 成果の検査と今後の適応の決定（作業セッション、ステータス報告ではない） | 1か月Sprintで最大4時間 | 成果の提示、Product Goalへの進捗確認 | [SG20, p.9-10, p.12] |
 | `sprint-retrospective.md` | Sprint Retrospective | 品質と効果を高める方法の計画 | 1か月Sprintで最大3時間 | 個人・相互作用・プロセス・ツール・Definition of Doneの検査 | [SG20, p.10] |
 
-各テンプレートは、末尾に共通のフッター「出典：`[sources.md](../sources.md)`」を持つ。短いSprintではタイムボックスを比例して短縮する旨の注記（`scrum-framework.md`行67）は、イベント4テンプレート共通の注記として含める。
+各テンプレートは、冒頭に共通の出典行「出典：_The Scrum Guide_（Ken Schwaber and Jeff Sutherland、2020年11月）+ scrumguides.orgへの直リンク + `[SG20, p.X]`」を持つ。テンプレートは単体で完結させるため、`sources.md`等リポジトリ内ファイルへの相対リンクは含まない（実装中にユーザー指示で確定）。短いSprintではタイムボックスを比例して短縮する旨の注記（`scrum-framework.md`行67）は、イベント4テンプレート共通の注記として含める。
 
 ## 編集対象ファイル（新規作成ではない）
 

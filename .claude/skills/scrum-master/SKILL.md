@@ -37,6 +37,7 @@ Scrum Guideを唯一の規範的な基準として扱い、チームが経験主
 | フレームワークの定義、アカウンタビリティ、イベントの目的・タイムボックス、作成物、価値基準を確認したい | [scrum-framework.md](references/scrum-framework.md)       |
 | Scrum Masterの責務・境界を確認したい                                              | [scrum-master-role.md](references/scrum-master-role.md)   |
 | 主張の出典を確認・引用したい                                                       | [sources.md](references/sources.md)                       |
+| 作成物・イベントの記入用テンプレートをすぐ使いたい                                 | [references/templates/](references/templates/)            |
 
 ## 標準ワークフロー
 
