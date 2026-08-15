@@ -117,7 +117,7 @@
             "type": "command",
             "command": "\"$HOME\"/.claude/hooks/speckit-expand-update.sh",
             "timeout": 300,
-            "statusMessage": "Updating Spec Kit before /speckit-* command…"
+            "statusMessage": "Updating Spec Kit before /speckit-* command\u2026"
           }
         ]
       }
