@@ -36,14 +36,14 @@ No blocking foundational phase. Ordering between stories is a direct content dep
 
 ### Implementation for User Story 1
 
-- [ ] T001 [P] [US1] Delete `.claude/skills/scrum-master/references/scaling-frameworks.md` (FR-002)
-- [ ] T002 [P] [US1] Delete `.claude/skills/scrum-master/references/measurement-and-diagnostics.md` (FR-003)
-- [ ] T003 [P] [US1] Delete `.claude/skills/scrum-master/references/anti-patterns-and-coaching.md` (FR-004)
-- [ ] T004 [P] [US1] Delete `.claude/skills/scrum-master/references/facilitation-and-coaching.md` (FR-005)
-- [ ] T005 [P] [US1] Delete `.claude/skills/scrum-master/scripts/flow_metrics.py` and `.claude/skills/scrum-master/scripts/__pycache__/` (FR-006)
-- [ ] T006 [P] [US1] Trim `.claude/skills/scrum-master/references/sources.md` to a single `[SG20]` bibliographic entry (both PDF paths, the Japanese-edition page-numbering note already present) plus one citation rule; remove the four-tier evidence-strength framing and the other 13 source entries (`[NXG]`, `[AM01]`, `[EBM24]`, `[KGS21]`, `[DORA26]`, `[EDM99]`, `[ART]`, `[ICA]`, `[SAP]`, `[ZBS]`, `[AAP]`, `[LESS]`, `[SAFE]`, `[SC@S]`) (FR-001; research.md Decision 2)
-- [ ] T007 [P] [US1] Remove the "コーチングスタンス" section (and its `[ICA]` citation) from `.claude/skills/scrum-master/references/scrum-master-role.md`; keep 中核的アカウンタビリティ, Scrum Teamへの奉仕, Product Ownerへの奉仕, 組織への奉仕, この役割ではないもの, 誰がScrum Masterになれるか intact (FR-007)
-- [ ] T008 [US1] Verify: `grep -rEn '\[(NXG|AM01|EBM24|KGS21|DORA26|EDM99|ART|ICA|SAP|ZBS|AAP|LESS|SAFE|SC@S)\b' .claude/skills/scrum-master/` returns no matches from the files touched by T001–T007, and that T001–T005's targets no longer exist (depends on T001–T007)
+- [X] T001 [P] [US1] Delete `.claude/skills/scrum-master/references/scaling-frameworks.md` (FR-002)
+- [X] T002 [P] [US1] Delete `.claude/skills/scrum-master/references/measurement-and-diagnostics.md` (FR-003)
+- [X] T003 [P] [US1] Delete `.claude/skills/scrum-master/references/anti-patterns-and-coaching.md` (FR-004)
+- [X] T004 [P] [US1] Delete `.claude/skills/scrum-master/references/facilitation-and-coaching.md` (FR-005)
+- [X] T005 [P] [US1] Delete `.claude/skills/scrum-master/scripts/flow_metrics.py` and `.claude/skills/scrum-master/scripts/__pycache__/` (FR-006)
+- [X] T006 [P] [US1] Trim `.claude/skills/scrum-master/references/sources.md` to a single `[SG20]` bibliographic entry (both PDF paths, the Japanese-edition page-numbering note already present) plus one citation rule; remove the four-tier evidence-strength framing and the other 13 source entries (`[NXG]`, `[AM01]`, `[EBM24]`, `[KGS21]`, `[DORA26]`, `[EDM99]`, `[ART]`, `[ICA]`, `[SAP]`, `[ZBS]`, `[AAP]`, `[LESS]`, `[SAFE]`, `[SC@S]`) (FR-001; research.md Decision 2)
+- [X] T007 [P] [US1] Remove the "コーチングスタンス" section (and its `[ICA]` citation) from `.claude/skills/scrum-master/references/scrum-master-role.md`; keep 中核的アカウンタビリティ, Scrum Teamへの奉仕, Product Ownerへの奉仕, 組織への奉仕, この役割ではないもの, 誰がScrum Masterになれるか intact (FR-007)
+- [X] T008 [US1] Verify: `grep -rEn '\[(NXG|AM01|EBM24|KGS21|DORA26|EDM99|ART|ICA|SAP|ZBS|AAP|LESS|SAFE|SC@S)\b' .claude/skills/scrum-master/` returns no matches from the files touched by T001–T007, and that T001–T005's targets no longer exist (depends on T001–T007)
 
 **Checkpoint**: At this point, the skill's reference material cites only the Scrum Guide. `SKILL.md` and `scrum-framework.md` still contain some links/quotes that will only be resolved by US2/US3 — that is expected at this checkpoint.
 
@@ -59,10 +59,10 @@ No blocking foundational phase. Ordering between stories is a direct content dep
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] In `.claude/skills/scrum-master/references/scrum-framework.md`, append the Sprint Review Guide quotes "スプリントレビューはワーキングセッションであり…プレゼンテーションだけに限定しないようにする" [SG20, p.9] and "…価値をリリースするための関門と見なすべきではない" [SG20, p.12] to the Sprint Review event description (research.md Decision 1)
-- [ ] T010 [US2] In `.claude/skills/scrum-master/references/scrum-framework.md`, add a short Product Backlog Refinement subsection quoting its Guide definition "プロダクトバックログアイテムがより小さく詳細になるように、分割および定義をする活動である" [SG20, p.10] and noting it is not a formal timeboxed Scrum event (research.md Decision 1) — depends on T009 (same file)
-- [ ] T011 [US2] Confirm the impediment-removal duty quote "スクラムチームの進捗を妨げる障害物を排除するように働きかける" [SG20, p.6] is still present in `.claude/skills/scrum-master/references/scrum-master-role.md`'s "Scrum Teamへの奉仕" list after US1's T007 trim; add it back only if T007 removed it (research.md Decision 1) — depends on T007
-- [ ] T012 [US2] Delete `.claude/skills/scrum-master/references/event-playbooks.md` (FR-008; research.md Decision 1) — depends on T009, T010, T011
+- [X] T009 [US2] In `.claude/skills/scrum-master/references/scrum-framework.md`, append the Sprint Review Guide quotes "スプリントレビューはワーキングセッションであり…プレゼンテーションだけに限定しないようにする" [SG20, p.9] and "…価値をリリースするための関門と見なすべきではない" [SG20, p.12] to the Sprint Review event description (research.md Decision 1)
+- [X] T010 [US2] In `.claude/skills/scrum-master/references/scrum-framework.md`, add a short Product Backlog Refinement subsection quoting its Guide definition "プロダクトバックログアイテムがより小さく詳細になるように、分割および定義をする活動である" [SG20, p.10] and noting it is not a formal timeboxed Scrum event (research.md Decision 1) — depends on T009 (same file)
+- [X] T011 [US2] Confirm the impediment-removal duty quote "スクラムチームの進捗を妨げる障害物を排除するように働きかける" [SG20, p.6] is still present in `.claude/skills/scrum-master/references/scrum-master-role.md`'s "Scrum Teamへの奉仕" list after US1's T007 trim; add it back only if T007 removed it (research.md Decision 1) — depends on T007
+- [X] T012 [US2] Delete `.claude/skills/scrum-master/references/event-playbooks.md` (FR-008; research.md Decision 1) — depends on T009, T010, T011
 
 **Checkpoint**: Every Scrum event's guidance remaining in the skill is limited to purpose, participants, and timebox as the Guide states it. `SKILL.md` still links to `event-playbooks.md` at this checkpoint — resolved in US3.
 
@@ -78,12 +78,12 @@ No blocking foundational phase. Ordering between stories is a direct content dep
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] In `.claude/skills/scrum-master/SKILL.md`, rewrite the「参照ファイル」table to drop rows for `scaling-frameworks.md`, `measurement-and-diagnostics.md`, `anti-patterns-and-coaching.md`, `facilitation-and-coaching.md`, and `event-playbooks.md`, keeping only rows for files that still exist (FR-009, FR-010)
-- [ ] T014 [US3] In `.claude/skills/scrum-master/SKILL.md`, rewrite the description and「必ず守る原則」so the skill is described as scoped to the official Scrum Guide (2020) only, without implying coverage of scaling, flow-metrics computation, anti-pattern taxonomies, or facilitation-technique coaching; leave the `when_to_use` frontmatter field itself unchanged (FR-010; spec.md Assumptions) — same file as T013, sequential
-- [ ] T015 [US3] In `.claude/skills/scrum-master/SKILL.md`, remove the「支援モードを選ぶ」section (coaching-stance routing, now that `scrum-master-role.md`'s stance section is gone) and the「アンチパターンを検知する」section (which pointed at the deleted `anti-patterns-and-coaching.md`); add explicit out-of-scope guidance per FR-011 for when a user asks about a removed topic (scaling framework choice, flow-metric computation, coaching-stance selection, retro-format selection) — same file as T013/T014, sequential
-- [ ] T016 [US3] In `.claude/skills/scrum-master/SKILL.md`, remove the「スクリプト：フロー指標の計算」subsection and any other `flow_metrics.py` invocation instructions (FR-006, FR-009) — same file as T013–T015, sequential
-- [ ] T017 [US3] In `.claude/skills/scrum-master/SKILL.md`, review the「標準ワークフロー」and「出力品質の確認」sections for remaining references to deleted files or practices and update them to point only at surviving files (`scrum-framework.md`, `scrum-master-role.md`, `sources.md`) (FR-009) — same file as T013–T016, sequential
-- [ ] T018 [US3] Verify: run the SC-005 dead-link check from `quickstart.md` against `.claude/skills/scrum-master/` and confirm zero "DEAD LINK" lines (depends on T013–T017)
+- [X] T013 [US3] In `.claude/skills/scrum-master/SKILL.md`, rewrite the「参照ファイル」table to drop rows for `scaling-frameworks.md`, `measurement-and-diagnostics.md`, `anti-patterns-and-coaching.md`, `facilitation-and-coaching.md`, and `event-playbooks.md`, keeping only rows for files that still exist (FR-009, FR-010)
+- [X] T014 [US3] In `.claude/skills/scrum-master/SKILL.md`, rewrite the description and「必ず守る原則」so the skill is described as scoped to the official Scrum Guide (2020) only, without implying coverage of scaling, flow-metrics computation, anti-pattern taxonomies, or facilitation-technique coaching (FR-010). Implemented with one deviation: `when_to_use` was trimmed of its two phrases naming now-out-of-scope topics ("velocity, burndown/burnup" and "or scaling framework (Nexus/LeSS/SAFe)"), reconciling FR-010's requirement to rescope `when_to_use` trigger text with spec.md's Assumption that routing is unaffected — every phrase the routing regression test depends on is untouched — same file as T013, sequential
+- [X] T015 [US3] In `.claude/skills/scrum-master/SKILL.md`, remove the「支援モードを選ぶ」section (coaching-stance routing, now that `scrum-master-role.md`'s stance section is gone) and the「アンチパターンを検知する」section (which pointed at the deleted `anti-patterns-and-coaching.md`); add explicit out-of-scope guidance per FR-011 for when a user asks about a removed topic (scaling framework choice, flow-metric computation, coaching-stance selection, retro-format selection) — same file as T013/T014, sequential
+- [X] T016 [US3] In `.claude/skills/scrum-master/SKILL.md`, remove the「スクリプト：フロー指標の計算」subsection and any other `flow_metrics.py` invocation instructions (FR-006, FR-009) — same file as T013–T015, sequential
+- [X] T017 [US3] In `.claude/skills/scrum-master/SKILL.md`, review the「標準ワークフロー」and「出力品質の確認」sections for remaining references to deleted files or practices and update them to point only at surviving files (`scrum-framework.md`, `scrum-master-role.md`, `sources.md`) (FR-009) — same file as T013–T016, sequential
+- [X] T018 [US3] Verify: run the SC-005 dead-link check from `quickstart.md` against `.claude/skills/scrum-master/` and confirm zero "DEAD LINK" lines (depends on T013–T017)
 
 **Checkpoint**: All user stories are now complete — the skill directory itself satisfies spec.md's FR-001–FR-012 and SC-001, SC-002, SC-003, SC-005. Only the outside-the-skill cleanup (Polish phase) remains.
 
