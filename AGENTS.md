@@ -87,4 +87,4 @@ This repository no longer ships Codex enforcement of its own. What you get depen
 
 The first three are absent for one structural reason: **Codex fires `PreToolUse`/`PostToolUse` for shell commands only.** Edits go through `apply_patch`, which those events never see, so a hook matching `Edit|Write|Delete` is imported and then never runs. This is not something a different configuration can fix.
 
-Claude Code no longer has an equivalent for these three either — `.claude/hooks/pre-edit.sh` was removed along with the rest of `.claude/hooks/`. The one guardrail Claude Code still enforces is `.claude/settings.json`'s `permissions` block (allow/ask/deny), which is independent of hooks and was not affected by that removal.
+Claude Code no longer has an equivalent for these three either — `.claude/hooks/pre-edit.sh` was removed along with the rest of `.claude/hooks/`. `.claude/settings.json`'s `permissions` block, which used to be Claude Code's one remaining automatic guardrail, was also removed (see `specs/026-remove-permissions-config/`). Claude Code now enforces nothing automatically for this repository.

@@ -86,12 +86,12 @@ python3 "$M" --validate-target ./.codex/     # import 後の検証
 
 ### Codex が強制するもの／しないもの
 
-Claude Code はもうこの領域で自動的に何も強制しません。`.claude/hooks/` は
-全ファイルが削除され、代替の仕組みはありません。Claude Code に残る唯一の
-ガードレールは `.claude/settings.json` の `permissions` allow/ask/deny
-リストで、これは hooks とは独立しており今回の削除の影響を受けません。
-Codex は import して信頼すれば、Claude Code より**多く**強制するように
-なりました — import 後に Codex TUI で `/hooks` を開き、**取り込まれた
+Claude Code はもうこの領域で、いかなる形でも自動的に何も強制しません。
+`.claude/hooks/` は全ファイルが削除され、`.claude/settings.json` の
+`permissions` allow/ask/deny ブロック——一時的に最後の砦だったもの——も
+削除され、どちらにも代替の仕組みはありません。
+Codex は import して信頼すれば、Claude Code がもう持たないガードレールを
+引き続き強制します — import 後に Codex TUI で `/hooks` を開き、**取り込まれた
 フックを信頼**してください。非管理フックは定義ハッシュが信頼されるまで
 実行されず、フック変更のたびに再確認が必要です。設定すべきフィーチャー
 フラグはありません（`hooks` は stable かつ既定で有効）。
@@ -102,7 +102,7 @@ Codex は import して信頼すれば、Claude Code より**多く**強制す�
 | プロンプト秘密スキャン | **なし**（hooks 削除済み） | **あり**（信頼後）— ターンが停止しモデル応答なし |
 | 編集時保護（`.git/`、`main`/`master`） | **なし**（hooks 削除済み） | **なし** |
 | 編集後の自動フォーマット/lint | **なし**（hooks 削除済み） | **なし** |
-| コマンドの allow/prompt 方針 | **あり** — `.claude/settings.json` の `permissions` ブロック（hooks とは独立、削除対象外） | **なし** — Codex 既定（確認を求める側）にフォールバック |
+| コマンドの allow/prompt 方針 | **なし**（こちらも削除済み — `specs/026-remove-permissions-config/` 参照） | **なし** — Codex 既定（確認を求める側）にフォールバック |
 | Spec Kit のプロンプト展開 | **なし**（hooks 削除済み） | **なし** — 対応イベントが存在しない |
 
 上記「なし」のうち最初の3つは同一の構造的理由です: **Codex の `PreToolUse`/`PostToolUse` はシェルコマンドにしか発火しません。** Codex の編集は `apply_patch` を通り、これらのイベントからは見えないため、`Edit|Write|Delete` に一致するフックは取り込まれても実行されません。設定では解決できません。hosted tools（WebSearch 等）も対象外です。
@@ -112,7 +112,7 @@ Codex は import して信頼すれば、Claude Code より**多く**強制す�
 - **フックは設定レイヤーごとに1回ずつ発火します。** Codex はレイヤーを上書きせずマージするため、`~/.codex/hooks.json`・`~/.codex/config.toml`・`.codex/hooks.json` に同じフックがあると毎ターン3回走り、`loading hooks from both … prefer a single representation for this layer` と警告されます。1レイヤーにつき1表現に保ってください。
 - **`.codex/hooks/` にスクリプトがあること自体は実行の証拠になりません。** `/import` は登録しないスクリプト（`statusline.sh` など）もコピーします。実際の配線は `.codex/hooks.json` を見て確認してください。
 
-**Claude 側もこの変更の影響を受けます。** `.claude/hooks/pre-edit.sh` はもう存在せず、Claude Code は編集保護を一切強制しません。Claude Code 側に残るガードレールは `.claude/settings.json` の `permissions` ブロックだけで、これは `scripts/guardrails/*.sh` と判定ロジックを共有していません（共有していたのは、今回削除されたフックラッパーの役目でした）。`scripts/guardrails/*.sh` は、引き続き Codex 側で動作する2つのガードが呼び出す共有判定ロジックとして残ります。
+**Claude側もこの変更の影響を、今度は完全に受けます。** `.claude/hooks/pre-edit.sh` はもう存在せず、`.claude/settings.json` の `permissions` ブロックも同様です — Claude Code はこの領域で一切自動的に何も強制しません。`scripts/guardrails/*.sh` は参考用の判定ロジックとして残りますが、これを呼び出すものも、判定ロジックを共有するものも、もうありません（共有していたのは、削除済みのフックラッパーの役目でした）。
 
 ### その他の変換ギャップ
 

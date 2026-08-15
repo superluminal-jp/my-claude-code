@@ -5,51 +5,5 @@
   "tui": "fullscreen",
   "alwaysThinkingEnabled": true,
   "autoMemoryEnabled": true,
-  "enableAllProjectMcpServers": true,
-  "permissions": {
-    "allow": [
-      "mcp__aws-knowledge__*",
-      "mcp__aws-documentation__*",
-      "mcp__bedrock-agentcore__*",
-      "mcp__strands-agents__*",
-      "mcp__google-developer-knowledge__*",
-      "mcp__microsoft-learn__*",
-      "mcp__drawio__*",
-      "Bash(git status)",
-      "Bash(git diff *)",
-      "Bash(git log *)",
-      "Bash(git fetch *)",
-      "Bash(tests/run-*.sh)",
-      "Bash(bash tests/run-*.sh)",
-      "Bash(scripts/check-mcp-consistency.sh)",
-      "Bash(bash scripts/check-mcp-consistency.sh)",
-      "Bash(scripts/guardrails/*.sh)",
-      "Bash(bash scripts/guardrails/*.sh)",
-      "Bash(.codex/hooks/*.sh)",
-      "Bash(bash .codex/hooks/*.sh)",
-      "Bash(shellcheck *)",
-      "Bash(shfmt *)",
-      "Bash(jq *)",
-      "Bash(yamllint *)",
-      "Bash(git commit *)"
-    ],
-    "ask": [
-      "Bash(git add *)",
-      "Bash(git checkout *)",
-      "Bash(git branch *)",
-      "Bash(git stash *)",
-      "Bash(git pull *)"
-    ],
-    "deny": [
-      "Read(.env)",
-      "Read(.env.*)",
-      "Read(**/secrets/**)",
-      "Read(**/credentials/**)",
-      "Read(**/.aws/**)",
-      "Read(**/.ssh/**)",
-      "Read(**/*.pem)",
-      "Read(**/*.p12)",
-      "Read(**/*.pfx)"
-    ]
-  }
+  "enableAllProjectMcpServers": true
 }

@@ -27,7 +27,7 @@ Claude may install dependencies only within the scope of the current project (vi
 - Filenames containing `secret`, `credential`, `token`, `key`
 - Private keys: `.pem`, `.p12`, `.pfx`
 
-`Read` denies in `.claude/settings.json` cover the paths above and remain enforced. Prompt-level and shell-level enforcement (formerly `.claude/hooks/user-prompt-submit.sh` and `pre-bash.sh`) was removed with no automated replacement — see `specs/025-remove-claude-hooks/`.
+`Read` denies for these paths, prompt-level scanning, and shell-level blocking were all removed with no automated replacement — see `specs/025-remove-claude-hooks/` and `specs/026-remove-permissions-config/`. This section is policy only now; nothing in Claude Code enforces it automatically.
 
 ## Network — default deny
 
@@ -37,8 +37,11 @@ Claude may install dependencies only within the scope of the current project (vi
 
 ## `.claude/settings.json` permissions
 
-- Git: `status`/`diff`/`log`/`fetch`/`commit` allow (`commit` auto-allowed — `git-workflow.md`'s "commit only when asked" still governs *whether* Claude commits, this only removes the per-call prompt); `add`/`checkout`/`branch`/`stash`/`pull` ask.
-- Allow-listed to avoid prompt friction (read or reformat repo files only, no write-style git ops among them): the behavior suites (`tests/run-*.sh`), `scripts/check-mcp-consistency.sh`, `scripts/guardrails/*.sh`, `.codex/hooks/*.sh`, and the lint/format tools (`shellcheck`, `shfmt`, `jq`, `yamllint`).
+None anymore. The `permissions` block (allow/ask/deny) was removed entirely
+from both `.claude/settings.json` and `.claude/settings.local.json` — see
+`specs/026-remove-permissions-config/`. Every action, including commits and
+git writes, now goes through Claude Code's default interactive prompting
+with no automated allow/ask shortcuts or deny blocks.
 
 ## References
 

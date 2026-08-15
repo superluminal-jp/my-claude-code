@@ -122,12 +122,12 @@ every skill with a copy. If it happens, recover with `git checkout AGENTS.md`.
 
 ### What Codex enforces, and what it does not
 
-Claude Code enforces nothing automatically here anymore: `.claude/hooks/` was
-removed in its entirety, with no replacement mechanism. The only guardrail
-Claude Code still enforces is `.claude/settings.json`'s `permissions`
-allow/ask/deny list, which is independent of hooks and unaffected by the
-removal. Codex, once imported and trusted, now enforces **more** than Claude
-Code does: after importing, run `/hooks` in the Codex TUI and **trust the
+Claude Code enforces nothing automatically here anymore, in any form:
+`.claude/hooks/` was removed in its entirety, and `.claude/settings.json`'s
+`permissions` allow/ask/deny block — briefly the last guardrail standing —
+was removed too, with no replacement mechanism for either. Codex, once
+imported and trusted, enforces guardrails Claude Code no longer does: after
+importing, run `/hooks` in the Codex TUI and **trust the
 imported entries** — non-managed hooks are skipped until their definition
 hash is trusted, and re-review is needed whenever a hook changes. There is no
 feature flag to set: `hooks` is stable and enabled by default.
@@ -138,7 +138,7 @@ feature flag to set: `hooks` is stable and enabled by default.
 | Prompt secret scanning | **no** (hooks removed) | **yes**, once trusted — the turn stops with no model response |
 | Edit protection (`.git/`, `main`/`master`) | **no** (hooks removed) | **no** |
 | Post-edit formatting / linting | **no** (hooks removed) | **no** |
-| Allow/prompt command policy | **yes** — `.claude/settings.json`'s `permissions` block, independent of hooks and not removed | **no** — Codex falls back to its own defaults, which ask rather than allow |
+| Allow/prompt command policy | **no** (removed too — see `specs/026-remove-permissions-config/`) | **no** — Codex falls back to its own defaults, which ask rather than allow |
 | Spec Kit prompt expansion | **no** (hooks removed) | **no** — Codex has no equivalent event |
 
 The three "no" rows above the last share one structural cause: **Codex fires
@@ -158,11 +158,13 @@ Two more things worth knowing:
   copies scripts it never registers (e.g. `statusline.sh`); check
   `.codex/hooks.json` for what is actually wired.
 
-**The Claude side is affected by all of this too.** `.claude/hooks/pre-edit.sh`
-no longer exists — Claude Code enforces no edit protection anymore. Only
-`.claude/settings.json`'s `permissions` block remains as a Claude Code
-guardrail, and it does not share logic with `scripts/guardrails/*.sh`; that
-sharing was specifically the now-deleted hook wrappers' job.
+**The Claude side is affected by all of this too, now completely.**
+`.claude/hooks/pre-edit.sh` no longer exists, and neither does
+`.claude/settings.json`'s `permissions` block — Claude Code enforces nothing
+automatically here at all anymore. `scripts/guardrails/*.sh` still contains
+the guardrail matching logic for reference, but nothing calls it and nothing
+shares logic with it; that sharing was specifically the now-deleted hook
+wrappers' job.
 `scripts/guardrails/*.sh` remains the shared decision logic that Codex's two
 working guards call.
 

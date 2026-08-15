@@ -153,18 +153,11 @@ fi
 check "RULE-08: user-facing docs cite no non-HTTPS URL" \
   "$([ -z "$INSECURE" ] && echo 0 || echo 1)"
 
-# --- RULE-09: Claude-side credential-safety configuration is intact (NFR-002) ----------------
-# The Codex-import removal must not weaken Claude Code's Read-deny list.
-# `.claude/hooks/` (and settings.json's `hooks`/`statusLine` keys) were
-# separately, intentionally removed in full by specs/025-remove-claude-hooks/
-# — this rule no longer asserts hook presence, only permissions.deny.
-if [ -f .claude/settings.json ]; then
-  deny_count="$(jq -r '.permissions.deny | length' .claude/settings.json 2>/dev/null || echo 0)"
-  check "RULE-09: .claude/settings.json keeps permissions.deny (${deny_count} denies)" \
-    "$([ "$deny_count" -ge 5 ] && echo 0 || echo 1)"
-else
-  check "RULE-09: .claude/settings.json present" 1
-fi
+# RULE-09 (NFR-002, spec-021: the Codex-import migration must not weaken
+# Claude Code) is retired. It guarded `.claude/hooks/` presence, then (after
+# specs/025-remove-claude-hooks/) only `.permissions.deny`; that key no
+# longer exists either (specs/026-remove-permissions-config/), so there is
+# nothing left for this rule to check.
 
 # --- RULE-10: install.sh no longer deploys Codex artifacts -----------------
 if [ -f install.sh ]; then
