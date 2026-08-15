@@ -50,8 +50,8 @@ run_dads_contract() {
   check_contains "DADS-03: description routes React and Tailwind work" "$SKILL_FILE" '^description:.*React.*Tailwind CSS'
   check_contains "DADS-04: description routes DADS and public-service work" "$SKILL_FILE" '^description:.*(Digital Agency Design System|DADS).*(public-service|government|行政|公共)'
   check_contains "DADS-05: description routes dashboard work" "$SKILL_FILE" '^description:.*dashboard'
-  check_contains "DADS-06: workflow composes with coder" "$SKILL_FILE" '`coder`'
-  check_contains "DADS-07: workflow composes with clarifier" "$SKILL_FILE" '`clarifier`'
+  check "DADS-06: skill body names no sibling skill (self-contained)" "$([ -f "$SKILL_FILE" ] && ! grep -Eiq '\`(coder|clarifier|adr|minto-[a-z]+)\`' "$SKILL_FILE" && echo 1 || echo 0)"
+  check_contains "DADS-07: workflow states test-first, type-safe, documented practice in its own terms" "$SKILL_FILE" '(failing (behavior|accessibility) test|type-safe|documentation artifact)'
   check_contains "DADS-08: workflow checks live official source drift" "$SKILL_FILE" '(live official|official live).*(drift|conflict|newer|current)'
   check_contains "DADS-09: workflow links DADS reference directly" "$SKILL_FILE" 'references/dads-react-tailwind\.md'
   check_contains "DADS-10: workflow links dashboard reference directly" "$SKILL_FILE" 'references/dashboard-design\.md'

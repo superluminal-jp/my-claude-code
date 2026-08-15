@@ -45,10 +45,6 @@ Do not use this skill when the user already has a substantive document and prima
 - proofreading
 - factual research without document construction
 
-Route diagnosis to `minto-reviewer`.
-
-Route direct rewriting to `minto-rewriter`.
-
 ## Interaction contract
 
 The dialogue must make progress in every turn.

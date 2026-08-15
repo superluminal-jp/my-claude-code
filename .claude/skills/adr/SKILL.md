@@ -6,7 +6,7 @@ when_to_use: record architecture decision, write ADR, document why we chose, cap
 
 # Skill: adr
 
-Purpose: author and maintain Architecture Decision Records — policy and playbook in one place. Complements `coder` (SDD captures *what/why* of a feature) by recording the *decision* itself. Template follows Nygard's original structure extended with the MADR 4.0.0 optional sections; rationale content follows ISO/IEC/IEEE 42010:2022 (see [References](#references)).
+Purpose: author and maintain Architecture Decision Records — policy and playbook in one place. An ADR captures a decision's context, choice, consequences, and rejected alternatives, distinct from a feature's day-to-day *what/why*. Template follows Nygard's original structure extended with the MADR 4.0.0 optional sections; rationale content follows ISO/IEC/IEEE 42010:2022 (see [References](#references)).
 
 ## When to record
 

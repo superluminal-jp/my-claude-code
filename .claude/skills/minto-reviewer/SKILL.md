@@ -44,10 +44,6 @@ Do not use this skill when the user primarily asks to:
 - brainstorm a topic without an existing artifact
 - fact-check claims without reviewing structure
 
-Route finished-document rewriting to `minto-rewriter`.
-
-Route collaborative document development to `minto-builder`.
-
 ## Input assumptions
 
 The input must contain an existing artifact or a meaningful portion of one.

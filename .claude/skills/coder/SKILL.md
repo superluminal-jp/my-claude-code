@@ -89,7 +89,6 @@ This is the single coding skill; it is language-agnostic. For the active languag
 Load when the task reaches these stages:
 
 - **Committing / branching / opening a PR** → `rules/git-workflow.md` (Conventional Commits, branch naming, PR body).
-- **A significant, hard-to-reverse decision is settled** → load the `adr` skill to record it.
 # References
 
 - Kent Beck, *Test-Driven Development: By Example*, Addison-Wesley, 2002 (TDD).

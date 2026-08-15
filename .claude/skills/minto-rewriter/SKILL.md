@@ -48,10 +48,6 @@ Do not use this skill when the user primarily asks to:
 - collaboratively discover the argument through dialogue
 - create a document from only a topic and no substantive material
 
-Route structural diagnosis to `minto-reviewer`.
-
-Route collaborative development to `minto-builder`.
-
 ## Output contract
 
 Return the finished document as the primary output.

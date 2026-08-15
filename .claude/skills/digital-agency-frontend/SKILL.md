@@ -7,12 +7,12 @@ description: Build, modify, or review React and Tailwind CSS web frontends using
 
 Create source-grounded React/Tailwind interfaces that help people complete public-service tasks or understand data. Treat official examples as adaptable starting points, not a component package or proof of accessibility.
 
-## Compose the workflow
+## Scope of this skill
 
-1. Load `coder` before changing code; keep TDD, type safety, security, and documentation sync there.
-2. Use this skill for DADS-specific design, source, dashboard, and accessibility decisions.
-3. Load `clarifier` when the users, task, decision, data meaning, constraints, or success criteria are materially ambiguous.
-4. Preserve the target repository's architecture and instructions. Do not introduce React or Tailwind CSS solely to make this skill applicable.
+1. Use this skill for DADS-specific design, source, dashboard, and accessibility decisions.
+2. Preserve the target repository's architecture and instructions. Do not introduce React or Tailwind CSS solely to make this skill applicable.
+3. Resolve material ambiguity in users, task or decision, use context, content or data, constraints, and success criterion before implementation (step 1 below) rather than inventing intent.
+4. Treat implementation as test-first and boundary-safe: write or update a failing behavior or accessibility test before implementing, keep the change type-safe, validate external data at its boundary, and keep documentation synchronized with any changed contract in the same change (steps 4–6 below).
 
 ## Load references progressively
 
@@ -43,9 +43,10 @@ Create source-grounded React/Tailwind interfaces that help people complete publi
 - Reuse the project's existing primitives when they already meet the DADS intent; record material visual or behavioral deviations and their reason.
 - For dashboards, complete the audience/decision/type/information hierarchy work in the dashboard reference before selecting charts.
 
-### 4. Implement through `coder`
+### 4. Implement test-first and type-safe
 
 - Write or update a failing behavior or accessibility test before implementation where the repository can automate the contract.
+- Keep the change type-safe; do not weaken or bypass the project's type checker to make code compile.
 - Adapt only the needed official React example. Reconcile its React, Tailwind, and TypeScript assumptions with the active project instead of copying a directory wholesale or forcing a downgrade.
 - Use the official theme plugin only after checking current compatibility and installation guidance. Do not replace an established project token system without approval.
 - Validate external data at its boundary and render untrusted text through React's normal escaping; do not add unsafe HTML injection.
@@ -59,7 +60,8 @@ Create source-grounded React/Tailwind interfaces that help people complete publi
 
 ### 6. Close out with traceability
 
-- Run the project test, type-check, lint, format, and build commands required by `coder` and the repository.
+- Run the project's test, type-check, lint, format, and build commands.
+- Update the documentation artifact (README, component/prop reference, story) for any changed public component contract in the same change.
 - Report the official sources checked and whether live freshness was verified.
 - Report DADS adaptations or deviations, dashboard decisions when applicable, automated and manual accessibility evidence, and unresolved risks.
 - Apply the attribution or license guidance in the DADS reference when official content or code is reused.
