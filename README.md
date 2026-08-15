@@ -36,7 +36,7 @@ the same baseline guidance and enforcement (see
   `minto-reviewer` (structure diagnosis), `minto-rewriter` (rewrite to
   final), `minto-builder` (build via dialogue) — `clarifier` (requirement
   elicitation, INVEST/Gherkin), `adr` (architecture decision records),
-  `scrum-master` (Scrum events, facilitation, impediments, flow metrics), and
+  `scrum-master` (Scrum Guide-only events, roles, impediments), and
   `verify-config` (configuration verification — operator-invoked only, and the
   one skill that runs in a forked context rather than the main conversation).
   Spec Kit's `speckit-*`
@@ -280,10 +280,10 @@ my-claude-code/
     │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
     │   ├── adr/SKILL.md            # Architecture decision records (MADR)
     │   ├── verify-config/SKILL.md  # /verify-config — runs forked on verification-runner
-    │   └── scrum-master/           # Scrum events, facilitation, flow metrics
+    │   └── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments
     │       ├── SKILL.md            #   playbook
-    │       ├── references/         #   8 on-demand reference documents
-    │       └── scripts/            #   flow_metrics.py (cycle time, work item age, throughput, WIP)
+    │       └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+    │           └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
     ├── agents/                     # Subagent definitions (project scope, not installed to ~/.claude)
     │   └── verification-runner.md  # Read-only runner: checks and suites, returns a checklist
     └── hooks/
@@ -317,16 +317,6 @@ bash tests/run-digital-agency-frontend-skill.sh
 ./tests/run-codex-references.sh
 ./tests/run-codex-drift.sh
 ```
-
-After changing the `scrum-master` skill's
-[`flow_metrics.py`](.claude/skills/scrum-master/scripts/flow_metrics.py):
-
-```sh
-bash tests/run-flow-metrics.sh
-```
-
-Unlike the suites above, this one is a plain `unittest` run — no model, no
-network, no dependencies.
 
 After changing the `verify-config` skill or the `verification-runner` subagent:
 
