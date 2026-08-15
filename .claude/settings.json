@@ -1,11 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "defaultMode": "acceptEdits",
-  "model": "claude-opus-4-8",
-  "fallbackModel": [
-    "claude-sonnet-4-6",
-    "claude-haiku-4-5-20251001"
-  ],
   "effortLevel": "high",
   "tui": "fullscreen",
   "alwaysThinkingEnabled": true,
