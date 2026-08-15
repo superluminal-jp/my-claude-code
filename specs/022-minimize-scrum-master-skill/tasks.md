@@ -93,12 +93,12 @@ No blocking foundational phase. Ordering between stories is a direct content dep
 
 **Purpose**: Repository-root files that reference artifacts deleted in US1 (research.md Decision 3) — required by this repository's Live Documentation and least-privilege rules, not new scope.
 
-- [ ] T019 [P] Update `README.md`: remove "flow metrics" from the scrum-master skill's one-line capability summary (~L39); update the file-tree diagram to drop the `scripts/flow_metrics.py` row (~L283–286); correct "8 on-demand reference documents" to the actual post-deletion count; remove the "After changing... `flow_metrics.py`... run `tests/run-flow-metrics.sh`" instruction block (~L321–327) (research.md Decision 3) — depends on T001–T012 for an accurate final file count
-- [ ] T020 [P] Remove the two `Bash(python3 .../flow_metrics.py *)` entries from `.claude/settings.json`'s `permissions.allow`; confirm the file remains valid JSON (research.md Decision 3) — depends on T005
-- [ ] T021 [P] Delete `tests/run-flow-metrics.sh` (research.md Decision 3) — depends on T005
-- [ ] T022 [P] Delete `tests/test_flow_metrics.py` and `tests/__pycache__/test_flow_metrics.cpython-314.pyc` (research.md Decision 3) — depends on T005
-- [ ] T023 Run the full `quickstart.md` validation (SC-001 through SC-005 grep/find commands) and confirm every check passes (depends on T001–T022)
-- [ ] T024 Run the repo-wide consistency checks from `quickstart.md`: `./scripts/check-mcp-consistency.sh`, `bash tests/run-codex-sync.sh`, `bash tests/run-codex-references.sh`, `bash tests/run-codex-drift.sh`, and confirm `tests/skill-routing/007-scrum-facilitation.md` still passes unchanged via this repo's skill-routing regression harness (depends on T001–T022)
+- [X] T019 [P] Update `README.md`: remove "flow metrics" from the scrum-master skill's one-line capability summary (~L39); update the file-tree diagram to drop the `scripts/flow_metrics.py` row (~L283–286); correct "8 on-demand reference documents" to the actual post-deletion count (3); remove the "After changing... `flow_metrics.py`... run `tests/run-flow-metrics.sh`" instruction block (~L321–327) (research.md Decision 3) — depends on T001–T012 for an accurate final file count
+- [X] T020 [P] Remove the two `Bash(python3 .../flow_metrics.py *)` entries from `.claude/settings.json`'s `permissions.allow`; confirm the file remains valid JSON (research.md Decision 3) — depends on T005
+- [X] T021 [P] Delete `tests/run-flow-metrics.sh` (research.md Decision 3) — depends on T005
+- [X] T022 [P] Delete `tests/test_flow_metrics.py` and `tests/__pycache__/test_flow_metrics.cpython-314.pyc` (research.md Decision 3) — depends on T005
+- [X] T023 Run the full `quickstart.md` validation (SC-001, SC-002, SC-005 grep/find commands, plus the README/settings.json consistency checks) and confirm every automatable check passes (depends on T001–T022). SC-003 and SC-004 are manual live-invocation checks (quickstart.md documents them); not run as part of this automated pass.
+- [X] T024 Run the repo-wide consistency checks: `./scripts/check-mcp-consistency.sh` (7 servers consistent), `bash tests/run-codex-references.sh` (10/10 passed), `bash tests/run-codex-drift.sh` (6/6 passed), `bash tests/run-skill-routing.sh` (7/7 passed, including "Scrum Facilitation Request Auto-Routes to Scrum Master") (depends on T001–T022). Note: `tests/run-codex-sync.sh` named in the original task text no longer exists in this repo — corrected to `tests/run-skill-routing.sh` in `quickstart.md`/`plan.md` as part of this task.
 
 ---
 

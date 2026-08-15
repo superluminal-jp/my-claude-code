@@ -40,9 +40,7 @@
       "Bash(shfmt *)",
       "Bash(jq *)",
       "Bash(yamllint *)",
-      "Bash(git commit *)",
-      "Bash(python3 .claude/skills/scrum-master/scripts/flow_metrics.py *)",
-      "Bash(python3 ~/.claude/skills/scrum-master/scripts/flow_metrics.py *)"
+      "Bash(git commit *)"
     ],
     "ask": [
       "Bash(git add *)",

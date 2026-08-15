@@ -86,9 +86,9 @@ grep -n 'flow_metrics' .claude/settings.json     # expect: no output
 
 ```sh
 ./scripts/check-mcp-consistency.sh
-bash tests/run-codex-sync.sh
 bash tests/run-codex-references.sh
 bash tests/run-codex-drift.sh
+bash tests/run-skill-routing.sh
 ```
 
-**Expected outcome**: all pass — the `scrum-master` skill is still discovered, routed, and mirrored correctly; only its internal content changed. `tests/run-flow-metrics.sh` is intentionally absent from this list, since it is deleted by this feature.
+**Expected outcome**: all pass — the `scrum-master` skill is still discovered, routed, and mirrored correctly; only its internal content changed. `tests/run-flow-metrics.sh` is intentionally absent from this list, since it is deleted by this feature. (`tests/run-codex-sync.sh` no longer exists in this repository — its checks were consolidated into `run-codex-references.sh`'s RULE-02.)

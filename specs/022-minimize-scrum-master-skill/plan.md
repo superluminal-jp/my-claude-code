@@ -16,7 +16,7 @@ Strip `.claude/skills/scrum-master/` down to content traceable solely to the off
 
 **Storage**: N/A — flat Markdown/Python/JSON files only.
 
-**Testing**: `tests/skill-routing/007-scrum-facilitation.md` (via this repo's skill-routing regression harness) must keep passing unchanged. `tests/run-flow-metrics.sh` and `tests/test_flow_metrics.py` are deleted (research.md Decision 3). `.claude/settings.json` must remain valid JSON after edits. `spec.md`'s SC-001–SC-005 are verified via the grep/find commands in `quickstart.md`, not a new automated test.
+**Testing**: `tests/skill-routing/007-scrum-facilitation.md` (run via `tests/run-skill-routing.sh`) must keep passing unchanged. `tests/run-flow-metrics.sh` and `tests/test_flow_metrics.py` are deleted (research.md Decision 3). `.claude/settings.json` must remain valid JSON after edits. `spec.md`'s SC-001–SC-005 are verified via the grep/find commands in `quickstart.md`, not a new automated test.
 
 **Target Platform**: Claude Code (and Codex CLI via the existing mirror described in ADR 0003) skill file system, within this repository only — ADR 0003 already established this repo as the sole source of truth with no external sync surface.
 
