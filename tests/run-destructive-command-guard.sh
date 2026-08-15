@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Behavior test for the destructive-command guardrail across all three
-# integration points: the shared script and the Claude Code hook wrapper.
-# See specs/013-cross-agent-guardrail-implementation/
+# Behavior test for the destructive-command guardrail: the shared script that
+# Claude Code's settings.json permissions and Codex's imported hook both rely
+# on. See specs/013-cross-agent-guardrail-implementation/
 # contracts/guardrail-script-io.md for the shared script's I/O contract.
 #
 # Deterministic: no network, no external tools beyond jq.
@@ -11,7 +11,6 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO_ROOT/scripts/guardrails/destructive-command.sh"
-CLAUDE_HOOK="$REPO_ROOT/.claude/hooks/pre-bash.sh"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -80,24 +79,7 @@ assert_shared "sudo asks" "sudo ls" "ask"
 assert_shared "benign command allowed" "ls -la" "allow"
 
 # ---------------------------------------------------------------------------
-# Part 2: Claude Code hook wrapper — exit code contract preserved (FR-009)
-# ---------------------------------------------------------------------------
-
-claude_hook_exit() {
-  local cmd="$1"
-  [ -x "$CLAUDE_HOOK" ] || {
-    echo "MISSING"
-    return
-  }
-  jq -n --arg command "$cmd" '{tool_input:{command:$command}}' | bash "$CLAUDE_HOOK" >/dev/null 2>&1
-  echo $?
-}
-
-check "claude hook: force push exits 2 (block)" "$([ "$(claude_hook_exit 'git push --force')" = "2" ] && echo 1 || echo 0)"
-check "claude hook: benign command exits 0 (allow)" "$([ "$(claude_hook_exit 'ls -la')" = "0" ] && echo 1 || echo 0)"
-
-# ---------------------------------------------------------------------------
-# Part 3: Codex CLI adapter — current PreToolUse command-hook contract uses
+# Part 2: Codex CLI adapter — current PreToolUse command-hook contract uses
 # exit 2 to block and exit 0 with no output to allow.
 # ---------------------------------------------------------------------------
 
@@ -105,7 +87,7 @@ check "claude hook: benign command exits 0 (allow)" "$([ "$(claude_hook_exit 'ls
 # Codex reaches the same shared decision script through a hook imported by
 # `/import`, which was verified working in a live session — see
 # specs/021-codex-official-import/research.md § R-09. What is asserted here is
-# the shared script and the Claude wrapper, which both tools depend on.
+# the shared script, which both tools depend on.
 
 echo ""
 echo "===================="

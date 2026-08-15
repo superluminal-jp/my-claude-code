@@ -11,7 +11,7 @@ for structural and instruction-writing lessons distilled from this repo's
 improvement history.
 
 The entire `.claude/` directory is designed to be copied wholesale to
-`~/.claude/`, making these settings, rules, hooks, and memory apply across
+`~/.claude/`, making these settings, rules, and memory apply across
 every project on the machine. `install.sh` also deploys a Codex CLI
 counterpart — global guidance, custom skills, four shared guardrails, command
 Rules, the MCP catalog, and a verification prompt — so Codex CLI sessions get
@@ -23,8 +23,8 @@ the same baseline guidance and enforcement (see
 - **`.claude/CLAUDE.md`** — Persistent user memory: core principles, response
   style, skill index, MCP import (thin; most detail lives in `rules/` and
   on-demand `skills/`)
-- **`.claude/settings.json`** — User-level settings with safe defaults,
-  permission allowlist/denylist, and hook wiring
+- **`.claude/settings.json`** — User-level settings with safe defaults and
+  permission allowlist/denylist
 - **`.claude/rules/`** — Always-on universal rules: permissions/safety, tool
   selection, clarification triggers, skill routing, subagent delegation
   (when to isolate work in a subagent vs. keep it in the main conversation),
@@ -41,15 +41,8 @@ the same baseline guidance and enforcement (see
   `specify init` under whichever agent directory `--integration` targets
   (`.claude/skills/`, `.agents/skills/`, `.cursor/skills/`), all gitignored
   (see [Opt-in to spec-kit](#opt-in-to-spec-kit))
-- **`.claude/hooks/pre-bash.sh`** — PreToolUse/Bash: blocks destructive
-  git/`rm`, `curl | bash`, non-localhost `http://` for `curl`/`wget`, reading
-  and writing `.ssh`/`.aws` or `*.pem`/`*.p12`/`*.pfx` via common shell
-  commands, and routes `sudo` to user confirmation (see
-  [`.claude/rules/permissions.md`](.claude/rules/permissions.md))
-- **`.claude/hooks/user-prompt-submit.sh`** — UserPromptSubmit: blocks
-  prompts containing AWS/GitHub/Slack/Google API keys or private key blocks
-- **`install.sh`** — Copies `.claude/` to `~/.claude/`, makes hooks executable,
-  and registers all MCP servers at user scope
+- **`install.sh`** — Copies `.claude/` to `~/.claude/` and registers all MCP
+  servers at user scope
 - **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and the
   `@latest` release policy across `.mcp.json`, `install.sh`, `settings.json`, and
   [`mcp.md`](.claude/rules/mcp.md) (requires `jq` on `PATH`)
@@ -58,10 +51,12 @@ the same baseline guidance and enforcement (see
   expand `@` imports. Not installed anywhere; Codex picks it up from the repo
 - **`scripts/guardrails/`** — Shared, tool-agnostic guardrail scripts
   (destructive-command blocking, pre-edit blocking, post-edit formatting,
-  prompt-secret blocking).
-  `.claude/hooks/pre-bash.sh`, `pre-edit.sh`, `post-edit-format.sh`, and
-  `user-prompt-submit.sh` are thin wrappers around these; hooks imported into
-  Codex call the same scripts. See
+  prompt-secret blocking). No `.claude/hooks/` wrapper calls these
+  automatically anymore — that directory was removed in its entirety, with no
+  replacement (see [Codex CLI support](#codex-cli-support)). Codex's own
+  imported hooks still call the same scripts once trusted; otherwise these
+  scripts are invoked only by hand or from the surviving
+  `tests/run-*-guard.sh` suites. See
   [`specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md`](specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md)
   for the shared stdin/stdout contract
 
@@ -127,19 +122,24 @@ every skill with a copy. If it happens, recover with `git checkout AGENTS.md`.
 
 ### What Codex enforces, and what it does not
 
-Less than Claude Code does. After importing, run `/hooks` in the Codex TUI and
-**trust the imported entries** — non-managed hooks are skipped until their
-definition hash is trusted, and re-review is needed whenever a hook changes.
-There is no feature flag to set: `hooks` is stable and enabled by default.
+Claude Code enforces nothing automatically here anymore: `.claude/hooks/` was
+removed in its entirety, with no replacement mechanism. The only guardrail
+Claude Code still enforces is `.claude/settings.json`'s `permissions`
+allow/ask/deny list, which is independent of hooks and unaffected by the
+removal. Codex, once imported and trusted, now enforces **more** than Claude
+Code does: after importing, run `/hooks` in the Codex TUI and **trust the
+imported entries** — non-managed hooks are skipped until their definition
+hash is trusted, and re-review is needed whenever a hook changes. There is no
+feature flag to set: `hooks` is stable and enabled by default.
 
 | Guardrail | Claude Code | Codex |
 |---|---|---|
-| Destructive command blocking | yes | **yes**, once trusted — verified end to end |
-| Prompt secret scanning | yes | **yes**, once trusted — the turn stops with no model response |
-| Edit protection (`.git/`, `main`/`master`) | yes | **no** |
-| Post-edit formatting / linting | yes | **no** |
-| Allow/prompt command policy | yes | **no** — Codex falls back to its own defaults, which ask rather than allow |
-| Spec Kit prompt expansion | yes | **no** — Codex has no equivalent event |
+| Destructive command blocking | **no** (hooks removed) | **yes**, once trusted — verified end to end |
+| Prompt secret scanning | **no** (hooks removed) | **yes**, once trusted — the turn stops with no model response |
+| Edit protection (`.git/`, `main`/`master`) | **no** (hooks removed) | **no** |
+| Post-edit formatting / linting | **no** (hooks removed) | **no** |
+| Allow/prompt command policy | **yes** — `.claude/settings.json`'s `permissions` block, independent of hooks and not removed | **no** — Codex falls back to its own defaults, which ask rather than allow |
+| Spec Kit prompt expansion | **no** (hooks removed) | **no** — Codex has no equivalent event |
 
 The three "no" rows above the last share one structural cause: **Codex fires
 `PreToolUse`/`PostToolUse` for shell commands only.** Codex edits go through
@@ -158,11 +158,13 @@ Two more things worth knowing:
   copies scripts it never registers (e.g. `statusline.sh`); check
   `.codex/hooks.json` for what is actually wired.
 
-**The Claude side is unaffected by all of this.**
-[`.claude/hooks/pre-edit.sh`](.claude/hooks/pre-edit.sh) and
-`.claude/settings.json`'s `permissions` block are retained exactly as they were;
+**The Claude side is affected by all of this too.** `.claude/hooks/pre-edit.sh`
+no longer exists — Claude Code enforces no edit protection anymore. Only
+`.claude/settings.json`'s `permissions` block remains as a Claude Code
+guardrail, and it does not share logic with `scripts/guardrails/*.sh`; that
+sharing was specifically the now-deleted hook wrappers' job.
 `scripts/guardrails/*.sh` remains the shared decision logic that Codex's two
-working guards also call.
+working guards call.
 
 ### Other conversion gaps
 
@@ -207,17 +209,16 @@ Cursor is explicitly out of scope — see
 ## Install as user configuration
 
 Run the bundled installer from the cloned repo. It copies `.claude/` to
-`~/.claude/`, makes hooks executable, and registers all MCP servers at user
-scope:
+`~/.claude/` and registers all MCP servers at user scope:
 
 ```sh
 bash path/to/my-claude-code/install.sh
 ```
 
-Re-running is safe: it re-syncs managed paths and upserts MCP servers.
-After the first install, or whenever a hook changes, open `/hooks` in the Codex
-TUI and review and trust the four user hooks. Codex skips changed non-managed
-command hooks until their current definition hashes are trusted.
+Re-running is safe: it re-syncs managed paths and upserts MCP servers. This
+repository no longer ships any hooks to import into Codex — see
+[Codex CLI support](#codex-cli-support) for what Codex enforces on its own,
+independent of anything here.
 
 **Important (overwrite/replace behavior):**
 
@@ -259,7 +260,7 @@ my-claude-code/
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
 └── .claude/                        # <-- copy this directory's contents to ~/.claude/
     ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
-    ├── settings.json               # Permissions, hooks, MCP approval, model defaults
+    ├── settings.json               # Permissions, MCP approval, model defaults
     ├── rules/                      # Always-on: loaded every session
     │   ├── permissions.md          # Credential safety, destructive ops
     │   ├── clarifier.md            # When to ask; batch questions + template
@@ -268,24 +269,18 @@ my-claude-code/
     │   ├── live-documentation.md   # Doc drift enforcement (5 principles) + lifecycle standards
     │   ├── git-workflow.md         # Commit/branch/PR conventions
     │   └── mcp.md                  # MCP server catalog + usage rule
-    ├── skills/                     # On-demand: body loaded when relevant
-    │   ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
-    │   ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references
-    │   ├── minto-reviewer/SKILL.md # Diagnose document structure
-    │   ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
-    │   ├── minto-builder/SKILL.md  # Build a document through dialogue
-    │   ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
-    │   ├── adr/SKILL.md            # Architecture decision records (MADR)
-    │   └── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments
-    │       ├── SKILL.md            #   playbook
-    │       └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
-    │           └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
-    └── hooks/
-        ├── pre-bash.sh             # PreToolUse/Bash: block dangerous commands
-        ├── pre-edit.sh             # PreToolUse/Edit|Write|Delete: guardrails
-        ├── post-edit-format.sh     # PostToolUse/Edit|Write: format + lint
-        ├── user-prompt-submit.sh   # UserPromptSubmit: block secret leaks
-        └── speckit-expand-update.sh # UserPromptExpansion: refresh Spec Kit
+    └── skills/                     # On-demand: body loaded when relevant
+        ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
+        ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references
+        ├── minto-reviewer/SKILL.md # Diagnose document structure
+        ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
+        ├── minto-builder/SKILL.md  # Build a document through dialogue
+        ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
+        ├── adr/SKILL.md            # Architecture decision records (MADR)
+        └── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments
+            ├── SKILL.md            #   playbook
+            └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+                └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
 ```
 
 ## Verification
@@ -379,9 +374,10 @@ specify extension add git
 This adds 5 commands: `speckit.git.feature`, `speckit.git.validate`,
 `speckit.git.remote`, `speckit.git.initialize`, and `speckit.git.commit`.
 
-A hook supports this per-project workflow (see
-[`.claude/hooks/README.md`](.claude/hooks/README.md) for details):
-`speckit-expand-update.sh` keeps an already-adopted project's Spec Kit
-current — before any `/speckit-*` command expands. Recommending `specify init`
-in a project that hasn't adopted Spec Kit yet is handled by `CLAUDE.md`'s
-own instructions, not a separate hook.
+Keeping an already-adopted project's Spec Kit current is now a manual step —
+run `specify init` / `specify self upgrade` periodically yourself. The hook
+that used to do this automatically before any `/speckit-*` command expanded
+(`speckit-expand-update.sh`) was removed along with the rest of
+`.claude/hooks/`, with no replacement. Recommending `specify init` in a
+project that hasn't adopted Spec Kit yet is still handled by `CLAUDE.md`'s
+own instructions.

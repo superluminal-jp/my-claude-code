@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install this .claude/ tree into the user's ~/.claude/ and sync MCP servers.
-# Idempotent: re-running refreshes hooks/rules/skills/settings and upserts MCP servers.
+# Idempotent: re-running refreshes rules/skills/settings and upserts MCP servers.
 #
 # Claude Code only. This installer deploys NO Codex CLI configuration and never
 # touches ~/.codex or ~/.agents — Codex configuration is produced by the
@@ -52,9 +52,13 @@ for cmd in claude uvx jq; do
   fi
 done
 
-# 1. Sync managed .claude paths (prevents stale skills/rules/hooks)
+# 1. Sync managed .claude paths (prevents stale skills/rules)
 if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   mkdir -p "$TARGET_DIR"
+  # .claude/hooks/ no longer exists in this repository (removed entirely —
+  # see specs/025-remove-claude-hooks/). The sync stays because it is now the
+  # uninstall path — it clears ~/.claude/hooks/ from installs made before
+  # that removal, the same pattern used for "commands" below.
   sync_path "hooks"
   sync_path "rules"
   sync_path "skills"
@@ -77,10 +81,11 @@ fi
 
 # 1a. Sync the shared guardrail scripts (repo-root scripts/guardrails/, not
 # under .claude/ — they're tool-agnostic decision logic, so they're deployed
-# here as a sibling of hooks/rules/skills rather than nested under one tool's
-# directory). .claude/hooks/*.sh resolve this installed copy once deployed, so
-# guardrail behavior stays correct regardless of which project you're
-# currently working in. Hooks imported into Codex resolve the same scripts.
+# here as a sibling of rules/skills rather than nested under one tool's
+# directory). Claude Code no longer calls these automatically (the .claude/hooks/
+# wrappers that used to invoke them were removed — see
+# specs/025-remove-claude-hooks/); they stay available for direct/manual
+# invocation and for the tests/run-*-guard.sh suites that exercise them.
 GUARDRAILS_SRC="$SCRIPT_DIR/scripts/guardrails"
 GUARDRAILS_DST="$TARGET_DIR/scripts/guardrails"
 if [ -d "$GUARDRAILS_SRC" ]; then
@@ -91,8 +96,7 @@ if [ -d "$GUARDRAILS_SRC" ]; then
   echo "Synced shared guardrail scripts -> $GUARDRAILS_DST"
 fi
 
-# 2. Ensure hook scripts and this installer are executable
-chmod +x "$TARGET_DIR"/hooks/*.sh
+# 2. Ensure this installer is executable
 chmod +x "$TARGET_DIR"/install.sh
 
 # 3. Upsert user-scope MCP servers to match this repository

@@ -58,12 +58,12 @@ When a question directly concerns AWS, GCP, or Azure services, features, or docu
 ## Editing conventions
 
 - Editing CI/CD configuration (`.github/workflows/*`, `.gitlab-ci.yml`, `.circleci/*`): test in a feature branch first.
-- Editing Claude Code settings (`.claude/settings.json`, `.claude/settings.local.json`): verify hook paths and permission rules still resolve.
+- Editing Claude Code settings (`.claude/settings.json`, `.claude/settings.local.json`): verify permission rules still resolve.
 - Editing production-looking configuration (`*.prod.*`, `*production*`, `*.env.production`): make sure changes are tested before they land.
 
 ## Requests
 
-- Don't paste secrets (API keys, tokens, passwords, private key material) into a prompt — see "Enforced via hook or rule" below for the automated backstop.
+- Don't paste secrets (API keys, tokens, passwords, private key material) into a prompt. Claude Code has no automated backstop for this anymore (its prompt-secret-scanning hook was removed); see "Enforced via hook or rule" below for what Codex CLI still catches, once imported and trusted.
 - If a task looks like non-trivial implementation work and this project has no `.specify/` directory yet, suggest running `specify init` once — don't insist if declined.
 - Keep Spec Kit current by running `specify init` (or this project's Spec Kit update flow) periodically, if this project uses Spec Kit.
 - `shfmt`, `shellcheck`, `yamllint`, and `jq` are expected to be available in the environment for formatting and lint checks to work.
@@ -71,7 +71,7 @@ When a question directly concerns AWS, GCP, or Azure services, features, or docu
 
 ## Enforced via hook or rule (Codex CLI only)
 
-This repository no longer ships Codex enforcement of its own. What you get depends entirely on whether you ran the official import, and it is **less** than what Claude Code enforces. All rows below were measured on Codex 0.147.0, 2026-08-10.
+This repository no longer ships Codex enforcement of its own. What you get depends entirely on whether you ran the official import. Claude Code's own `.claude/hooks/` was removed in its entirety (see `specs/025-remove-claude-hooks/`), so Claude Code now enforces **less** automatically than an imported-and-trusted Codex session does for the two rows below — the comparison used to run the other way. All rows below were measured on Codex 0.147.0, 2026-08-10.
 
 **Two guards work, once armed.** After importing, run `/hooks` in the Codex TUI and trust the imported entries — Codex skips non-managed command hooks until their definition hashes are trusted, and re-review is required whenever a hook changes. There is no feature flag to set: `hooks` is stable and enabled by default (`codex_hooks` does not exist; ignore any guide that says otherwise).
 
@@ -87,4 +87,4 @@ This repository no longer ships Codex enforcement of its own. What you get depen
 
 The first three are absent for one structural reason: **Codex fires `PreToolUse`/`PostToolUse` for shell commands only.** Edits go through `apply_patch`, which those events never see, so a hook matching `Edit|Write|Delete` is imported and then never runs. This is not something a different configuration can fix.
 
-Claude Code's equivalents are unaffected and still enforced there — `.claude/hooks/pre-edit.sh` and `.claude/settings.json`'s `permissions` block, both sharing decision logic with Codex's working guards via `scripts/guardrails/*.sh`.
+Claude Code no longer has an equivalent for these three either — `.claude/hooks/pre-edit.sh` was removed along with the rest of `.claude/hooks/`. The one guardrail Claude Code still enforces is `.claude/settings.json`'s `permissions` block (allow/ask/deny), which is independent of hooks and was not affected by that removal.

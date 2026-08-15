@@ -3,7 +3,7 @@
 Claude Code の公式仕様・ベストプラクティス（https://code.claude.com/docs/）に
 沿った、再利用可能な **ユーザーレベル設定** です。
 
-`.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/hooks/memory を
+`.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/memory を
 マシン上の全プロジェクトで共通適用できます。
 
 **Codex CLI 向けの移植物はこのリポジトリでは配布しません。** `install.sh` は Codex 設定を一切展開せず、`~/.codex` にも `~/.agents` にも触れません。Codex 側の設定は OpenAI 公式の `/import` で各自生成します — 手順と、何が得られて何が得られないかは [Codex CLI サポート](#codex-cli-サポート)、判断の記録は [ADR-0004](docs/adr/0004-adopt-official-codex-import.md) を参照してください。
@@ -13,7 +13,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 ## このリポジトリで提供するもの
 
 - **`.claude/CLAUDE.md`**: 常時メモリ（原則、応答スタイル、skill インデックス、MCP 参照）
-- **`.claude/settings.json`**: モデル既定値、権限ルール、hook 設定
+- **`.claude/settings.json`**: モデル既定値、権限ルール
 - **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、サブエージェント委譲（独立コンテキストに切り出すか本体で進めるかの判断）、live-documentation、git ワークフロー、MCP カタログ）
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
@@ -26,8 +26,6 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
     プロジェクトローカルな成果物で、すべて gitignore 対象（後述「spec-kit のオプトイン」参照）
-- **`.claude/hooks/pre-bash.sh`**: 破壊的コマンドや危険な Bash を事前ブロック
-- **`.claude/hooks/user-prompt-submit.sh`**: キー/トークン等の秘密情報を含むプロンプト送信をブロック
 
 ## ユーザー設定としてインストール
 
@@ -88,16 +86,24 @@ python3 "$M" --validate-target ./.codex/     # import 後の検証
 
 ### Codex が強制するもの／しないもの
 
-Claude Code より少ないです。import 後に Codex TUI で `/hooks` を開き、**取り込まれたフックを信頼**してください。非管理フックは定義ハッシュが信頼されるまで実行されず、フック変更のたびに再確認が必要です。設定すべきフィーチャーフラグはありません（`hooks` は stable かつ既定で有効）。
+Claude Code はもうこの領域で自動的に何も強制しません。`.claude/hooks/` は
+全ファイルが削除され、代替の仕組みはありません。Claude Code に残る唯一の
+ガードレールは `.claude/settings.json` の `permissions` allow/ask/deny
+リストで、これは hooks とは独立しており今回の削除の影響を受けません。
+Codex は import して信頼すれば、Claude Code より**多く**強制するように
+なりました — import 後に Codex TUI で `/hooks` を開き、**取り込まれた
+フックを信頼**してください。非管理フックは定義ハッシュが信頼されるまで
+実行されず、フック変更のたびに再確認が必要です。設定すべきフィーチャー
+フラグはありません（`hooks` は stable かつ既定で有効）。
 
 | ガードレール | Claude Code | Codex |
 |---|---|---|
-| 破壊的コマンドの遮断 | あり | **あり**（信頼後）— エンドツーエンドで検証済み |
-| プロンプト秘密スキャン | あり | **あり**（信頼後）— ターンが停止しモデル応答なし |
-| 編集時保護（`.git/`、`main`/`master`） | あり | **なし** |
-| 編集後の自動フォーマット/lint | あり | **なし** |
-| コマンドの allow/prompt 方針 | あり | **なし** — Codex 既定（確認を求める側）にフォールバック |
-| Spec Kit のプロンプト展開 | あり | **なし** — 対応イベントが存在しない |
+| 破壊的コマンドの遮断 | **なし**（hooks 削除済み） | **あり**（信頼後）— エンドツーエンドで検証済み |
+| プロンプト秘密スキャン | **なし**（hooks 削除済み） | **あり**（信頼後）— ターンが停止しモデル応答なし |
+| 編集時保護（`.git/`、`main`/`master`） | **なし**（hooks 削除済み） | **なし** |
+| 編集後の自動フォーマット/lint | **なし**（hooks 削除済み） | **なし** |
+| コマンドの allow/prompt 方針 | **あり** — `.claude/settings.json` の `permissions` ブロック（hooks とは独立、削除対象外） | **なし** — Codex 既定（確認を求める側）にフォールバック |
+| Spec Kit のプロンプト展開 | **なし**（hooks 削除済み） | **なし** — 対応イベントが存在しない |
 
 上記「なし」のうち最初の3つは同一の構造的理由です: **Codex の `PreToolUse`/`PostToolUse` はシェルコマンドにしか発火しません。** Codex の編集は `apply_patch` を通り、これらのイベントからは見えないため、`Edit|Write|Delete` に一致するフックは取り込まれても実行されません。設定では解決できません。hosted tools（WebSearch 等）も対象外です。
 
@@ -106,7 +112,7 @@ Claude Code より少ないです。import 後に Codex TUI で `/hooks` を開�
 - **フックは設定レイヤーごとに1回ずつ発火します。** Codex はレイヤーを上書きせずマージするため、`~/.codex/hooks.json`・`~/.codex/config.toml`・`.codex/hooks.json` に同じフックがあると毎ターン3回走り、`loading hooks from both … prefer a single representation for this layer` と警告されます。1レイヤーにつき1表現に保ってください。
 - **`.codex/hooks/` にスクリプトがあること自体は実行の証拠になりません。** `/import` は登録しないスクリプト（`statusline.sh` など）もコピーします。実際の配線は `.codex/hooks.json` を見て確認してください。
 
-**Claude 側はこの変更の影響を受けません。** [`.claude/hooks/pre-edit.sh`](.claude/hooks/pre-edit.sh) と `.claude/settings.json` の `permissions` はそのまま維持され、`scripts/guardrails/*.sh` は Codex 側で動作する2つのガードも呼び出す共有判定ロジックとして残ります。
+**Claude 側もこの変更の影響を受けます。** `.claude/hooks/pre-edit.sh` はもう存在せず、Claude Code は編集保護を一切強制しません。Claude Code 側に残るガードレールは `.claude/settings.json` の `permissions` ブロックだけで、これは `scripts/guardrails/*.sh` と判定ロジックを共有していません（共有していたのは、今回削除されたフックラッパーの役目でした）。`scripts/guardrails/*.sh` は、引き続き Codex 側で動作する2つのガードが呼び出す共有判定ロジックとして残ります。
 
 ### その他の変換ギャップ
 
@@ -156,8 +162,7 @@ my-claude-code/
     ├── CLAUDE.md
     ├── settings.json
     ├── rules/
-    ├── skills/
-    └── hooks/
+    └── skills/
 ```
 
 ## 検証
@@ -232,8 +237,9 @@ specify extension add git
 追加されるコマンド: `speckit.git.feature`、`speckit.git.validate`、
 `speckit.git.remote`、`speckit.git.initialize`、`speckit.git.commit`
 
-このプロジェクト単位のワークフローを支える hook があります(詳細は
-[`.claude/hooks/README.md`](.claude/hooks/README.md)):
-`speckit-expand-update.sh` は、すでに導入済みのプロジェクトの Spec Kit を
-`/speckit-*` コマンド実行前に最新に保ちます。`.specify/` が未導入のプロジェクトへ
-`specify init` を提案するのは hook ではなく `CLAUDE.md` 自体の指示です。
+すでに導入済みのプロジェクトの Spec Kit を最新に保つのは、今では手動の
+作業です — 自分で定期的に `specify init` / `specify self upgrade` を実行して
+ください。以前は `/speckit-*` コマンド実行前にこれを自動で行っていた hook
+（`speckit-expand-update.sh`）は、`.claude/hooks/` の他のファイルとともに
+削除され、代替の仕組みはありません。`.specify/` が未導入のプロジェクトへ
+`specify init` を提案するのは、引き続き `CLAUDE.md` 自体の指示です。

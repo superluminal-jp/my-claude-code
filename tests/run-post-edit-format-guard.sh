@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Behavior test for the post-edit auto-format guardrail (Q7) across the
-# shared script, the refactored Claude Code hook, and the Codex CLI adapter.
-# See specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md.
+# Behavior test for the post-edit auto-format guardrail (Q7) against the
+# shared script. See
+# specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md.
 #
 # Deterministic: no network. Skips shfmt/shellcheck/yamllint-specific
 # assertions gracefully if those tools aren't installed (matches the
@@ -12,7 +12,6 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO_ROOT/scripts/guardrails/post-edit-format.sh"
-CLAUDE_HOOK="$REPO_ROOT/.claude/hooks/post-edit-format.sh"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -76,20 +75,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Part 2: Claude Code hook wrapper — never blocks (FR-021)
-# ---------------------------------------------------------------------------
-
-TXT_FILE="$WORK/plain.txt"
-echo "hello" >"$TXT_FILE"
-if [ -x "$CLAUDE_HOOK" ]; then
-  jq -n --arg path "$TXT_FILE" '{tool_input:{path:$path}}' | bash "$CLAUDE_HOOK" >/dev/null 2>&1
-  check "claude hook: exits 0 for an unrelated file type (never blocks)" "$([ $? -eq 0 ] && echo 1 || echo 0)"
-else
-  check "claude hook: exits 0 for an unrelated file type (never blocks) (MISSING)" 0
-fi
-
-# ---------------------------------------------------------------------------
-# Part 3: Codex CLI adapter
+# Part 2: Codex CLI adapter
 # ---------------------------------------------------------------------------
 
 # Removed by feature 021: this repository no longer ships a Codex adapter, and

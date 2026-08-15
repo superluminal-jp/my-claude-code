@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Behavior test for the pre-edit guardrail (Q9/Q10) across the shared script,
-# the refactored Claude Code hook, and the Codex CLI adapter. See
+# Behavior test for the pre-edit guardrail (Q9/Q10) against the shared
+# script. See
 # specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md.
 #
 # Deterministic: no network, no external tools beyond jq and git.
@@ -10,7 +10,6 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO_ROOT/scripts/guardrails/pre-edit-block.sh"
-CLAUDE_HOOK="$REPO_ROOT/.claude/hooks/pre-edit.sh"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -67,32 +66,13 @@ check "shared: feature branch allowed" "$([ "$(shared_decision 'foo.txt' "$FEATU
 check "shared: unknown project_dir allowed (no false positive)" "$([ "$(shared_decision 'foo.txt' '/nonexistent/path')" = "allow" ] && echo 1 || echo 0)"
 
 # ---------------------------------------------------------------------------
-# Part 2: Claude Code hook wrapper — exit code contract preserved (FR-018)
-# ---------------------------------------------------------------------------
-
-claude_hook_exit() {
-  local path="$1" proj="$2"
-  [ -x "$CLAUDE_HOOK" ] || {
-    echo "MISSING"
-    return
-  }
-  jq -n --arg path "$path" '{tool_name:"Edit", tool_input:{path:$path}}' |
-    CLAUDE_PROJECT_DIR="$proj" bash "$CLAUDE_HOOK" >/dev/null 2>&1
-  echo $?
-}
-
-check "claude hook: .git/ path exits 2 (block)" "$([ "$(claude_hook_exit '.git/config' "$FEATURE_PROJ")" = "2" ] && echo 1 || echo 0)"
-check "claude hook: main branch exits 2 (block)" "$([ "$(claude_hook_exit 'foo.txt' "$MAIN_PROJ")" = "2" ] && echo 1 || echo 0)"
-check "claude hook: feature branch exits 0 (allow)" "$([ "$(claude_hook_exit 'foo.txt' "$FEATURE_PROJ")" = "0" ] && echo 1 || echo 0)"
-
-# ---------------------------------------------------------------------------
-# Part 3: Codex CLI adapter — removed by feature 021.
+# Part 2: Codex CLI adapter — removed by feature 021.
 # ---------------------------------------------------------------------------
 # This repository no longer ships a Codex adapter for this guard. Codex fires
 # PreToolUse for shell commands only, so an edit-protection hook cannot run
 # there at all; README.md § "Codex CLI support" documents the absence.
-# The shared decision script (Part 1) and the Claude hook (Part 2) above are
-# unaffected. See specs/021-codex-official-import/.
+# The shared decision script (Part 1) above is unaffected. See
+# specs/021-codex-official-import/.
 
 echo ""
 echo "===================="

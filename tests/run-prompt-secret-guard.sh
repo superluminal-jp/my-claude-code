@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# Behavior test for prompt-secret detection across the shared scanner, the
-# Claude Code wrapper (Codex adapter removed by feature 021).
+# Behavior test for prompt-secret detection against the shared scanner
+# (Codex adapter removed by feature 021).
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO_ROOT/scripts/guardrails/prompt-secret-scan.sh"
-CLAUDE_HOOK="$REPO_ROOT/.claude/hooks/user-prompt-submit.sh"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -69,21 +68,10 @@ assert_shared "Google API key denied" "credential $GOOGLE_KEY" "deny"
 shared_secret_result=$(shared_result "credential $GITHUB_TOKEN")
 check "shared: reason does not echo secret value" "$(! printf '%s' "$shared_secret_result" | grep -Fq "$GITHUB_TOKEN" && echo 1 || echo 0)"
 
-claude_hook_exit() {
-  local prompt="$1"
-  jq -n --arg prompt "$prompt" '{prompt:$prompt}' | bash "$CLAUDE_HOOK" >/dev/null 2>&1
-  echo $?
-}
-
-check "claude hook: secret exits 2 (block)" "$([ "$(claude_hook_exit "credential $GITHUB_TOKEN")" = "2" ] && echo 1 || echo 0)"
-check "claude hook: benign prompt exits 0 (allow)" "$([ "$(claude_hook_exit 'safe prompt')" = "0" ] && echo 1 || echo 0)"
-check "claude hook: delegates to shared scanner" "$(rg -q 'prompt-secret-scan\.sh' "$CLAUDE_HOOK" && echo 1 || echo 0)"
-
 # Removed by feature 021: this repository no longer ships a Codex adapter.
 # Codex reaches the same shared scanner through a hook imported by `/import`,
 # verified blocking a real turn in a live session (specs/021-codex-official-
-# import/research.md § R-09). The shared scanner and the Claude wrapper are
-# what this suite asserts.
+# import/research.md § R-09). The shared scanner is what this suite asserts.
 
 echo ""
 echo "===================="

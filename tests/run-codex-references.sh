@@ -153,19 +153,15 @@ fi
 check "RULE-08: user-facing docs cite no non-HTTPS URL" \
   "$([ -z "$INSECURE" ] && echo 0 || echo 1)"
 
-# --- RULE-09: Claude-side configuration is intact (NFR-002) ----------------
-# The removal must not weaken Claude Code. Five hook registrations and a
-# non-empty permissions.deny list must survive.
+# --- RULE-09: Claude-side credential-safety configuration is intact (NFR-002) ----------------
+# The Codex-import removal must not weaken Claude Code's Read-deny list.
+# `.claude/hooks/` (and settings.json's `hooks`/`statusLine` keys) were
+# separately, intentionally removed in full by specs/025-remove-claude-hooks/
+# — this rule no longer asserts hook presence, only permissions.deny.
 if [ -f .claude/settings.json ]; then
-  # Assert by event name rather than by count: PreToolUse legitimately holds
-  # more than one matcher group, so counting registrations is ambiguous.
-  missing_events="$(jq -r '
-    ["PreToolUse","PostToolUse","UserPromptSubmit","UserPromptExpansion"]
-    - (.hooks // {} | keys) | join(",")' .claude/settings.json 2>/dev/null)"
   deny_count="$(jq -r '.permissions.deny | length' .claude/settings.json 2>/dev/null || echo 0)"
-  [ -n "$missing_events" ] && printf "    missing hook events: %s\n" "$missing_events"
-  check "RULE-09: .claude/settings.json keeps its four hook events and permissions.deny (${deny_count} denies)" \
-    "$([ -z "$missing_events" ] && [ "$deny_count" -ge 5 ] && echo 0 || echo 1)"
+  check "RULE-09: .claude/settings.json keeps permissions.deny (${deny_count} denies)" \
+    "$([ "$deny_count" -ge 5 ] && echo 0 || echo 1)"
 else
   check "RULE-09: .claude/settings.json present" 1
 fi
