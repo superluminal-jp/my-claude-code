@@ -41,12 +41,6 @@ cat >"$STUB_BIN/claude" <<'STUB'
 #!/usr/bin/env bash
 set -eu
 printf '%s\n' "$*" >>"$CLAUDE_LOG"
-
-if [ "${1:-}" = "plugin" ] && [ "${2:-}" = "marketplace" ] && [ "${3:-}" = "list" ]; then
-  printf '%s\n' 'openai-codex'
-elif [ "${1:-}" = "plugin" ] && [ "${2:-}" = "list" ]; then
-  printf '%s\n' 'codex@openai-codex'
-fi
 STUB
 
 cat >"$STUB_BIN/uvx" <<'STUB'

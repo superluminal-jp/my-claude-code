@@ -37,9 +37,9 @@ Not applicable — no shared infrastructure blocks the user stories below. US1/U
 
 **Independent Test**: Run `install.sh` against an isolated home with stubbed `claude`/`uvx`; the stub's command log contains no `plugin marketplace add`, `plugin marketplace update`, or `plugin install` call for `codex-plugin-cc` / `openai-codex` / `codex@openai-codex`.
 
-- [ ] T001 [US1] Confirm current state: run `grep -n "codex-plugin-cc\|openai-codex\|codex@openai-codex" install.sh` and verify the section-4 block (lines ~123-131) is present (pre-change baseline).
-- [ ] T002 [US1] Delete section 4 from `install.sh` (the `# 4. Install codex-plugin-cc ...` comment and both `if` blocks, lines 123-131, plus the blank line separating them from the closing `echo`), per research.md R1 — leave the `upsert_user_mcp microsoft-learn` block and the closing `echo "Done. ..."` line adjacent with a single blank line between them.
-- [ ] T003 [US1] Verify: run `grep -n "codex-plugin-cc\|openai-codex\|codex@openai-codex" install.sh` and confirm no output.
+- [X] T001 [US1] Confirm current state: run `grep -n "codex-plugin-cc\|openai-codex\|codex@openai-codex" install.sh` and verify the section-4 block (lines ~123-131) is present (pre-change baseline).
+- [X] T002 [US1] Delete section 4 from `install.sh` (the `# 4. Install codex-plugin-cc ...` comment and both `if` blocks, lines 123-131, plus the blank line separating them from the closing `echo`), per research.md R1 — leave the `upsert_user_mcp microsoft-learn` block and the closing `echo "Done. ..."` line adjacent with a single blank line between them.
+- [X] T003 [US1] Verify: run `grep -n "codex-plugin-cc\|openai-codex\|codex@openai-codex" install.sh` and confirm no output.
 
 **Checkpoint**: `install.sh` contains no codex-plugin-cc install logic. Story 1 is independently complete and testable via `bash tests/run-install.sh` (still using the not-yet-updated stub from US3 at this point — it will still pass, since the stub's extra branches are merely unused, not exercised).
 
@@ -51,8 +51,8 @@ Not applicable — no shared infrastructure blocks the user stories below. US1/U
 
 **Independent Test**: Read `install.sh` top to bottom; run `grep -nE '^# [0-9]' install.sh` and confirm the sequence `0.`, `1.`, `2.`, `3.` with no gap and no reference to a deleted step.
 
-- [ ] T004 [US2] Verify (no edit expected): run `grep -nE '^# [0-9]' install.sh` after T002 and confirm the sequence is `0.` (preflight), `1.` (sync managed paths), `2.` (chmod), `3.` (MCP upsert) — contiguous, per research.md R2 (step 4 was the last step, so its deletion leaves no gap).
-- [ ] T005 [US2] Read the full file (`install.sh`) end to end and confirm no remaining comment references the deleted codex-plugin-cc step or otherwise describes code that no longer exists, per research.md R3.
+- [X] T004 [US2] Verify (no edit expected): run `grep -nE '^# [0-9]' install.sh` after T002 and confirm the sequence is `0.` (preflight), `1.` (sync managed paths), `2.` (chmod), `3.` (MCP upsert) — contiguous, per research.md R2 (step 4 was the last step, so its deletion leaves no gap).
+- [X] T005 [US2] Read the full file (`install.sh`) end to end and confirm no remaining comment references the deleted codex-plugin-cc step or otherwise describes code that no longer exists, per research.md R3.
 
 **Checkpoint**: `install.sh`'s comments read as a complete, gap-free, accurate sequence. Story 2 is independently verifiable by inspection plus the grep in T004 — no code change beyond T002 was required (research.md R2/R3 confirmed the deletion alone satisfies this story).
 
@@ -64,10 +64,10 @@ Not applicable — no shared infrastructure blocks the user stories below. US1/U
 
 **Independent Test**: Run `tests/run-install.sh`; it passes, and `grep -n "plugin marketplace list\|plugin list" tests/run-install.sh` returns no output.
 
-- [ ] T006 [US3] Confirm current state: run `grep -n "plugin marketplace list\|plugin list" tests/run-install.sh` and verify the two stub branches (lines ~45-49) are present (pre-change baseline).
-- [ ] T007 [US3] Edit the `claude` stub heredoc in `tests/run-install.sh` (lines 40-50) to remove the `if [ "${1:-}" = "plugin" ] && [ "${2:-}" = "marketplace" ] && [ "${3:-}" = "list" ]; then ... elif ... fi` block, leaving only the `printf '%s\n' "$*" >>"$CLAUDE_LOG"` line inside the stub, per research.md R4.
-- [ ] T008 [US3] Verify: run `grep -n "plugin marketplace list\|plugin list" tests/run-install.sh` and confirm no output.
-- [ ] T009 [US3] Run `bash tests/run-install.sh` and confirm it passes end to end (exercises T002's `install.sh` change together with T007's stub cleanup).
+- [X] T006 [US3] Confirm current state: run `grep -n '"plugin"' tests/run-install.sh` and verify the two stub branches (lines ~45-49) are present (pre-change baseline).
+- [X] T007 [US3] Edit the `claude` stub heredoc in `tests/run-install.sh` (lines 40-50) to remove the `if [ "${1:-}" = "plugin" ] && [ "${2:-}" = "marketplace" ] && [ "${3:-}" = "list" ]; then ... elif ... fi` block, leaving only the `printf '%s\n' "$*" >>"$CLAUDE_LOG"` line inside the stub, per research.md R4.
+- [X] T008 [US3] Verify: run `grep -n '"plugin"' tests/run-install.sh` and confirm no output.
+- [X] T009 [US3] Run `bash tests/run-install.sh` and confirm it passes end to end (exercises T002's `install.sh` change together with T007's stub cleanup).
 
 **Checkpoint**: `tests/run-install.sh` has no dead stub branches and passes. All three user stories are complete.
 
@@ -77,10 +77,10 @@ Not applicable — no shared infrastructure blocks the user stories below. US1/U
 
 **Purpose**: Full-repository verification per spec.md Success Criteria.
 
-- [ ] T010 Run `bash -n install.sh tests/run-install.sh` (syntax check) and, if available, `shfmt -d -i 2 install.sh tests/run-install.sh` and `shellcheck install.sh tests/run-install.sh`.
-- [ ] T011 Run the full quickstart.md validation sequence (all 7 steps) and confirm every expected outcome holds, in `specs/029-remove-codex-plugin/quickstart.md`.
-- [ ] T012 [P] Run the full remaining behavior-suite set: `for t in tests/run-*.sh; do bash "$t" || echo "FAILED: $t"; done` and confirm every suite passes (SC-003).
-- [ ] T013 [P] Run `git status --porcelain docs/adr/` and confirm no output (SC-005 — no ADR was added or modified, per spec.md Assumptions).
+- [X] T010 Run `bash -n install.sh tests/run-install.sh` (syntax check) and, if available, `shfmt -d -i 2 install.sh tests/run-install.sh` and `shellcheck install.sh tests/run-install.sh`.
+- [X] T011 Run the full quickstart.md validation sequence (all 7 steps) and confirm every expected outcome holds, in `specs/029-remove-codex-plugin/quickstart.md`.
+- [X] T012 [P] Run the full remaining behavior-suite set: `for t in tests/run-*.sh; do bash "$t" || echo "FAILED: $t"; done` and confirm every suite passes (SC-003).
+- [X] T013 [P] Run `git status --porcelain docs/adr/` and confirm no output (SC-005 — no ADR was added or modified, per spec.md Assumptions).
 
 ---
 

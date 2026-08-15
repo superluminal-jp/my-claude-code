@@ -7,7 +7,7 @@ grep -rniE "codex-plugin-cc|openai-codex|codex@openai-codex" . \
   --include="*.md" --include="*.sh" --include="*.json" \
   --exclude-dir=.git \
   | grep -Ev "^(\./)?docs/adr/" \
-  | grep -Ev "^(\./)?specs/(0[0-2][0-8])-"
+  | grep -Ev "^(\./)?specs/0[0-2][0-9]-"
 ```
 Expected: no output — this feature is the last remaining live reference, and
 it is being deleted, not documented.
@@ -34,7 +34,7 @@ Expected: `0.`, `1.`, `2.`, `3.` in order (step `1a` is a lettered sub-step of
 ## 4. Confirm the installer test has no dead stub branches
 
 ```sh
-grep -n "plugin marketplace list\|plugin list\b" tests/run-install.sh
+grep -n '"plugin"' tests/run-install.sh
 ```
 Expected: no output.
 
