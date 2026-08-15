@@ -59,7 +59,6 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   # cleanup paths for artifacts managed by earlier repository versions;
   # everything else already under ~/.claude remains user-owned and untouched.
   for managed_path in \
-    hooks \
     rules \
     skills \
     agents \
@@ -77,13 +76,6 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   cp "$SCRIPT_DIR/install.sh" "$TARGET_DIR/install.sh"
   echo "Synced managed paths from $SOURCE_DIR -> $TARGET_DIR"
 fi
-
-# 1a. scripts/guardrails/ no longer exists in this repository (removed
-# entirely, along with its dedicated tests and scripts/check-mcp-consistency.sh
-# — see specs/027-remove-scripts/). This step stays as the uninstall path: it
-# clears any ~/.claude/scripts/guardrails/ left by an install made before
-# that removal, the same pattern used for "hooks" in install.sh above.
-rm -rf "$TARGET_DIR/scripts/guardrails"
 
 # 2. Ensure this installer is executable
 chmod +x "$TARGET_DIR"/install.sh
