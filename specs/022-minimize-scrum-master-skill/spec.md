@@ -1,109 +1,109 @@
-# Feature Specification: Minimize scrum-master Skill to Official Scrum Guide Content
+# 機能仕様書: scrum-masterスキルを公式Scrum Guideの内容へ最小化する
 
-**Feature Branch**: `022-minimize-scrum-master-skill`
+**フィーチャーブランチ**: `022-minimize-scrum-master-skill`
 
-**Created**: 2026-08-15
+**作成日**: 2026-08-15
 
-**Status**: Draft
+**ステータス**: Draft
 
-**Input**: User description: "@.claude/skills/scrum-master/references/2020-Scrum-Guide-US.pdf @.claude/skills/scrum-master/references/2020-Scrum-Guide-Japanese.pdf 公式スクラムガイドの内容に基づくものに @.claude/skills/scrum-master/ スキルを最小化。/clarifier"
+**入力**: ユーザーからの説明: 「@.claude/skills/scrum-master/references/2020-Scrum-Guide-US.pdf @.claude/skills/scrum-master/references/2020-Scrum-Guide-Japanese.pdf 公式スクラムガイドの内容に基づくものに @.claude/skills/scrum-master/ スキルを最小化。/clarifier」
 
-## Clarifications
+## 明確化
 
-### Session 2026-08-15
+### セッション 2026-08-15
 
-- Q: scrum-masterスキルを「公式Scrum Guide(2020)ベース」に最小化するとして、どこまで削るか？ → A: Scrum Guideのみに厳格化— SG20(英語版/日本語版PDF)に明記された定義・役割・イベント・作成物・価値基準のみを残し、Nexus Guide, EBM Guide, Kanban Guide, DORA, 心理的安全性研究, Agile Retrospectives, Coaching Agile Teams, アンチパターン記事(SAP/ZBS/AAP), LeSS/SAFe/Scrum@Scaleへの参照・引用・推奨内容を全て削除する。
+- Q: scrum-masterスキルを「公式Scrum Guide(2020)ベース」に最小化するとして、どこまで削るか？ → A: Scrum Guideのみに厳格化——SG20（英語版／日本語版PDF）に明記された定義・役割・イベント・作成物・価値基準のみを残し、Nexus Guide, EBM Guide, Kanban Guide, DORA, 心理的安全性研究, Agile Retrospectives, Coaching Agile Teams, アンチパターン記事（SAP/ZBS/AAP）, LeSS/SAFe/Scrum@Scaleへの参照・引用・推奨内容を全て削除する。
 - Q: scripts/flow_metrics.py（Kanban Guide由来）はどうするか？ → A: 削除する。
 - Q: Scrum Guideが規定しないHOW（レトロスペクティブの進め方、コーチングスタンス、ファシリテーション技法）はどうするか？ → A: 削除し、Scrum Guideが言う各イベントの目的とタイムボックスのみ残す。
 
-## User Scenarios & Testing *(mandatory)*
+## ユーザーシナリオとテスト *(必須)*
 
-### User Story 1 - Strip references to a single normative source (Priority: P1)
+### ユーザーストーリー1 - 出典を単一の規範資料に絞り込む（優先度: P1）
 
-As a maintainer of the scrum-master skill, I want the skill's reference material to cite only the official Scrum Guide (2020 edition), so that every claim in the skill can be traced to the single normative source instead of being diluted by supplementary frameworks and research the skill currently blends in.
+scrum-masterスキルの保守担当者として、スキルの参照資料が公式Scrum Guide（2020年版）のみを出典とするようにしたい。現状は補完的なフレームワークや研究知見が入り混じっているため、スキル内のあらゆる主張を単一の規範的出典まで遡れるようにする。
 
-**Why this priority**: This is the core of the request — without it, nothing else in the minimization has happened. It is also the highest-risk step (largest deletion), so validating it first surfaces any content that turns out to be load-bearing.
+**この優先度である理由**: これが今回の依頼の中核であり、これが実施されない限り他の変更に意味がない。同時に最も削除範囲が大きく（=リスクが高い）ステップでもあるため、最初に検証することで、実は他の部分の前提になっていた内容が残っていないかを早期に洗い出せる。
 
-**Independent Test**: Search every file under `.claude/skills/scrum-master/` for a citation tag other than `[SG20]` (e.g. `[NXG]`, `[AM01]`, `[EBM24]`, `[KGS21]`, `[DORA26]`, `[EDM99]`, `[ART]`, `[ICA]`, `[SAP]`, `[ZBS]`, `[AAP]`, `[LESS]`, `[SAFE]`, `[SC@S]`); confirm zero matches remain, and that `references/sources.md` lists only the Scrum Guide entry.
+**独立したテスト方法**: `.claude/skills/scrum-master/` 配下の全ファイルを対象に `[SG20]` 以外の引用タグ（例：`[NXG]`, `[AM01]`, `[EBM24]`, `[KGS21]`, `[DORA26]`, `[EDM99]`, `[ART]`, `[ICA]`, `[SAP]`, `[ZBS]`, `[AAP]`, `[LESS]`, `[SAFE]`, `[SC@S]`）を検索し、一致がゼロであることを確認する。あわせて `references/sources.md` にScrum Guideのエントリのみが残っていることを確認する。
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** the current skill cites 14 distinct sources in `references/sources.md`, **When** the minimization is applied, **Then** `references/sources.md` retains only the Scrum Guide (2020) entry and the citation rule for it.
-2. **Given** `references/scaling-frameworks.md`, `references/measurement-and-diagnostics.md`, `references/anti-patterns-and-coaching.md`, `references/facilitation-and-coaching.md`, and `scripts/flow_metrics.py` (plus its `__pycache__`) exist today and are sourced entirely from non-Scrum-Guide material, **When** the minimization is applied, **Then** none of these files exist in the skill directory.
-3. **Given** `references/scrum-master-role.md` contains a "コーチングスタンス" section that the file itself marks as absent from the Guide (cited to `[ICA]`), **When** the minimization is applied, **Then** that section is removed from the file.
-
----
-
-### User Story 2 - Limit event guidance to the Guide's stated purpose and timebox (Priority: P2)
-
-As a Scrum Master using the skill, I want guidance on Scrum events limited to what the Scrum Guide itself states about each event's purpose and timebox, so that the skill never presents practitioner conventions (retrospective formats, facilitation agendas, coaching-stance selection) as if the Guide required them.
-
-**Why this priority**: This is the second-largest source of non-Guide content by volume and the part most likely to be silently reintroduced (e.g., by copying "helpful" facilitation detail back in) if not explicitly scoped. It depends on User Story 1's source-citation cleanup being in place first.
-
-**Independent Test**: Ask the skill "How do I run a Sprint Retrospective?" and confirm the answer states only the Guide's purpose ("plan ways to increase quality and effectiveness") and timebox (3 hours for a one-month Sprint), without a staged facilitation structure or named retrospective formats.
-
-**Acceptance Scenarios**:
-
-1. **Given** a user asks about Sprint Retrospective facilitation, **When** the minimized skill responds, **Then** it states only the Guide's purpose and timebox for that event and does not offer a stage-by-stage facilitation structure, named retro format, or improvement-experiment template.
-2. **Given** a user asks which coaching stance (teacher/mentor/facilitator/coach) to take, **When** the minimized skill responds, **Then** it does not present a stance taxonomy, since the Guide defines no such stances.
-3. **Given** a user asks about Daily Scrum, Sprint Planning, Sprint Review, or Product Backlog Refinement, **When** the minimized skill responds, **Then** the answer is limited to the purpose, participants, and timebox (where the Guide defines one) stated in the Scrum Guide.
+1. **Given** 現状の`references/sources.md`が14種類の出典を引用している、**When** 最小化を適用する、**Then** `references/sources.md`にはScrum Guide（2020年版）のエントリとその引用ルールのみが残る。
+2. **Given** `references/scaling-frameworks.md`、`references/measurement-and-diagnostics.md`、`references/anti-patterns-and-coaching.md`、`references/facilitation-and-coaching.md`、`scripts/flow_metrics.py`（および`__pycache__`）が現在存在し、いずれも非Scrum-Guide資料のみを出典とする、**When** 最小化を適用する、**Then** これらのファイルはスキルディレクトリ内に一つも存在しない。
+3. **Given** `references/scrum-master-role.md`に「コーチングスタンス」セクションが存在し、当該ファイル自身がGuide本文に記載がない（`[ICA]`由来）と明記している、**When** 最小化を適用する、**Then** そのセクションはファイルから削除されている。
 
 ---
 
-### User Story 3 - Keep the skill's own routing free of dead links and scope overreach (Priority: P3)
+### ユーザーストーリー2 - イベントに関する記述をGuideが述べる目的とタイムボックスに限定する（優先度: P2）
 
-As a maintainer of this repository, I want `SKILL.md`'s reference-file table and workflow instructions to only point at files and practices that still exist after minimization, so that the skill doesn't produce dead links or contradict its own narrowed scope.
+scrum-masterスキルを使うScrum Masterとして、各Scrumイベントに関する記述をScrum Guide自身が述べる目的とタイムボックスのみに限定したい。実務上の慣行（レトロスペクティブの形式、ファシリテーションの進行例、コーチングスタンスの選び方）を、あたかもGuideが要求しているかのように提示されたくない。
 
-**Why this priority**: This is cleanup that depends on User Stories 1 and 2 being complete — it has no independent content of its own, only consistency with what remains. Lowest risk, but required for the skill to be usable at all after the deletions above.
+**この優先度である理由**: これは非Scrum-Guide資料のうち分量として2番目に大きく、かつ最も「有用そうだから」という理由で暗黙のうちに復活しやすい部分である。ユーザーストーリー1の出典整理が済んでいることを前提とする。
 
-**Independent Test**: Read `SKILL.md` (and any surviving `references/*.md`) after the change; confirm every relative markdown link resolves to a file that still exists, and no section instructs the skill to compute flow metrics, recommend a scaling framework, or select a coaching stance.
+**独立したテスト方法**: スキルに「スプリントレトロスペクティブはどう進めればよいか」と尋ね、回答がGuideの目的（「品質と効果を高める方法を計画する」）とタイムボックス（1か月Sprintで最大3時間）のみを述べ、段階的なファシリテーション構造や特定のレトロ形式を提示しないことを確認する。
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** `SKILL.md`'s reference-file table currently has a row for each of the deleted files, **When** the minimization is applied, **Then** every remaining row points to a file that still exists.
-2. **Given** a user asks something outside the new scope (e.g., "compute our team's cycle time" or "which scaling framework should we adopt"), **When** the minimized skill responds, **Then** it states that this is out of scope for a Scrum-Guide-only skill rather than answering from the removed material.
+1. **Given** ユーザーがスプリントレトロスペクティブの進め方を尋ねる、**When** 最小化されたスキルが回答する、**Then** 回答はそのイベントに関するGuide記載の目的とタイムボックスのみを述べ、段階的なファシリテーション構造・特定のレトロ形式・改善実験テンプレートを提示しない。
+2. **Given** ユーザーがどのコーチングスタンス（ティーチャー／メンター／ファシリテーター／コーチ）を取るべきか尋ねる、**When** 最小化されたスキルが回答する、**Then** Guideがそのようなスタンス分類を定義していないため、スタンスの分類を提示しない。
+3. **Given** ユーザーがデイリースクラム、スプリントプランニング、スプリントレビュー、プロダクトバックログリファインメントについて尋ねる、**When** 最小化されたスキルが回答する、**Then** 回答はScrum Guideに記載された目的・参加者・（Guideがタイムボックスを定めている場合は）タイムボックスに限定される。
 
 ---
 
-### Edge Cases
+### ユーザーストーリー3 - スキル自身のルーティングにリンク切れや範囲逸脱を残さない（優先度: P3）
 
-- What happens when a user explicitly asks for a Nexus/LeSS/SAFe/Scrum@Scale recommendation after minimization? The skill states this is out of scope and does not answer from memory of the removed content.
-- What happens when a user asks the skill to compute flow metrics (Cycle Time, WIP, Throughput, Work Item Age) from ticket data? The skill states that capability was removed as out of scope and does not attempt an ad hoc computation or substitute estimate.
-- What happens to cross-references inside files that are kept (e.g., `scrum-master-role.md` or `scrum-framework.md` linking to a now-deleted file)? Those links must be removed or updated so no dead link remains anywhere in the skill.
-- What happens to the previously delivered scrum-master specs (016, 017, 018) that established the richer, multi-source design this feature narrows? They are not modified retroactively; this feature is treated as a superseding scope decision where it conflicts with their broader design.
+このリポジトリの保守担当者として、`SKILL.md`の参照ファイル表とワークフロー記述が、最小化後も存在するファイルと実践のみを指すようにしたい。リンク切れや、スキル自身が宣言する縮小後のスコープと矛盾する記述を残したくない。
 
-## Requirements *(mandatory)*
+**この優先度である理由**: これはユーザーストーリー1・2が完了して初めて意味を持つ後始末であり、それ自体に独立したコンテンツはなく、残った内容との整合性を取るだけの作業である。リスクは最も低いが、上記の削除後にスキルを実用可能な状態に保つためには必須である。
 
-### Functional Requirements
+**独立したテスト方法**: 変更後に`SKILL.md`（および残存する`references/*.md`）を読み、すべての相対Markdownリンクが実在するファイルに解決すること、およびフロー指標の計算・スケーリングフレームワークの推奨・コーチングスタンスの選択をスキルに指示するセクションが存在しないことを確認する。
 
-- **FR-001**: The skill's source list (`references/sources.md`) MUST cite only the official Scrum Guide (2020 edition, English and Japanese PDFs already present under `references/`) as a normative or supplementary source; all other source entries currently present (Nexus Guide, Manifesto for Agile Software Development, Evidence-Based Management Guide, The Kanban Guide for Scrum Teams, DORA metrics, Edmondson's psychological-safety research, Agile Retrospectives, Coaching Agile Teams, Scrum.org/Zombie Scrum/Agile Alliance anti-pattern material, LeSS, SAFe, Scrum@Scale) MUST be removed.
-- **FR-002**: `references/scaling-frameworks.md` MUST be deleted, since none of its content (Nexus, LeSS, SAFe, Scrum@Scale) is defined by the Scrum Guide.
-- **FR-003**: `references/measurement-and-diagnostics.md` MUST be deleted, since its metric guidance (flow metrics, EBM Key Value Areas, DORA metrics) is sourced from the Kanban Guide, the EBM Guide, and DORA rather than the Scrum Guide.
-- **FR-004**: `references/anti-patterns-and-coaching.md` MUST be deleted, since its anti-pattern taxonomy is sourced from Scrum.org, Zombie Scrum, and Agile Alliance material rather than the Scrum Guide.
-- **FR-005**: `references/facilitation-and-coaching.md` MUST be deleted, since its facilitation techniques and coaching-stance model are sourced from Coaching Agile Teams, psychological-safety research, and unsourced practitioner convention rather than the Scrum Guide.
-- **FR-006**: `scripts/flow_metrics.py` and its `__pycache__` artifacts MUST be deleted, since the flow metrics it computes (Cycle Time, Work Item Age, Throughput, SLE) are Kanban Guide concepts, not Scrum Guide concepts.
-- **FR-007**: `references/scrum-master-role.md` MUST retain only the Scrum-Guide-grounded content on the Scrum Master's core accountabilities, service to the Team/Product Owner/organization, and role boundaries; its coaching-stance taxonomy (teacher/mentor/facilitator/coach/conflict navigator) MUST be removed.
-- **FR-008**: Any guidance for a Scrum event (Sprint, Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective, Product Backlog Refinement) retained anywhere in the skill MUST be limited to the purpose, participants, and timebox the Scrum Guide itself states; process techniques, retrospective formats, agenda breakdowns, improvement-experiment templates, or facilitation steps not stated in the Scrum Guide MUST NOT remain.
-- **FR-009**: No file remaining in the skill MUST link to, reference, or route to a file or practice deleted under FR-002 through FR-006 (coaching stances, anti-pattern taxonomy, flow-metrics script, scaling frameworks, measurement/diagnostics guidance) — every relative link must resolve to a file that still exists.
-- **FR-010**: `SKILL.md`'s description, `when_to_use` trigger text, and stated principles MUST describe the skill as scoped to the official Scrum Guide (2020) only, without implying coverage of scaling, flow-metrics computation, anti-pattern taxonomies, or facilitation-technique coaching.
-- **FR-011**: When a user asks about a topic the minimized skill no longer covers (e.g., Nexus/LeSS/SAFe/Scrum@Scale scaling, flow-metrics/velocity computation, a specific retrospective format, or coaching-stance selection), the skill MUST state that this is out of scope for its Scrum-Guide-only guidance rather than answering from the removed material.
-- **FR-012**: All content currently in the skill that is directly grounded in the Scrum Guide — the three pillars of empiricism, the five Scrum values, the accountabilities of Product Owner/Scrum Master/Developers, each event's Guide-stated purpose and timebox, the artifact commitments, the "enacting only parts of Scrum is not Scrum" statement (Guide p.13), and the Scrum Master's boundaries as literally stated by the Guide — MUST remain accessible in the minimized skill.
+**受け入れシナリオ**:
 
-## Success Criteria *(mandatory)*
+1. **Given** `SKILL.md`の参照ファイル表に、削除対象の各ファイルへの行が現状存在する、**When** 最小化を適用する、**Then** 残る各行はすべて実在するファイルを指す。
+2. **Given** ユーザーが新しいスコープの範囲外の質問をする（例：「私たちのチームのサイクルタイムを計算して」「どのスケーリングフレームワークを採用すべきか」）、**When** 最小化されたスキルが回答する、**Then** スキルは削除済みの資料に基づいて回答するのではなく、それが範囲外である旨を述べる。
 
-### Measurable Outcomes
+---
 
-- **SC-001**: Searching every file in the skill for a citation other than the Scrum Guide (2020) returns zero matches.
-- **SC-002**: The skill's `references/` directory contains only the two Scrum Guide PDFs plus markdown files whose content traces solely to the Scrum Guide; its `scripts/` directory contains no computation script.
-- **SC-003**: For each of the six Scrum events, asking the skill "how do I run this event" returns only the Guide-stated purpose, participants, and timebox — no additional facilitation technique, format, or template appears in the answer.
-- **SC-004**: Asking the skill about a removed topic (scaling framework choice, flow-metric computation, coaching-stance selection, anti-pattern taxonomy) results in an explicit out-of-scope statement, not an answer drawn from the removed material, in 100% of trials.
-- **SC-005**: Every relative markdown link remaining anywhere in the skill resolves to a file that exists in the skill directory (zero dead links).
+### エッジケース
 
-## Assumptions
+- 最小化後にユーザーがNexus/LeSS/SAFe/Scrum@Scaleの推奨を明示的に求めた場合はどうなるか？ スキルは範囲外である旨を述べ、削除済みの内容の記憶から回答することはない。
+- ユーザーがチケットデータからフロー指標（Cycle Time、WIP、Throughput、Work Item Age）の計算をスキルに求めた場合はどうなるか？ スキルはその機能が削除され範囲外になったことを述べ、その場しのぎの計算や代替の見積もりを行わない。
+- 残すファイル内の相互参照（例：`scrum-master-role.md`や`scrum-framework.md`が削除済みファイルへリンクしている箇所）はどうなるか？ そうしたリンクはすべて削除または更新し、スキル内のどこにもリンク切れが残らないようにする。
+- 現行のより広いスコープの設計を確立した過去のscrum-master関連スペック（016, 017, 018）はどう扱うか？ それらは遡って修正しない。本フィーチャーは、それらと矛盾する箇所についてはスコープを上書きする決定として扱う。
 
-- The two Scrum Guide PDFs already present under `references/` (`2020-Scrum-Guide-US.pdf`, `2020-Scrum-Guide-Japanese.pdf`) remain the sole normative source documents; no new source material is introduced by this change.
-- "Official Scrum Guide" means the November 2020 edition (Ken Schwaber and Jeff Sutherland), the same edition currently cited as `[SG20]` in `references/sources.md`; no other edition or future revision is in scope.
-- The Japanese Scrum Guide PDF's own translator appendix (the "2020年版での変更点" section, JA pp.16–17) is treated as part of the official Guide document itself, since it ships inside the official translated PDF rather than being third-party material, and may remain cited as `[SG20, JA pp.16–17]`.
-- This minimization supersedes the broader-scope design established by the prior scrum-master specs (`016-scrum-master-skill`, `017-scrum-master-rewrite`, `018-remove-solo-practice`) wherever the two conflict; those specs are not retroactively edited.
-- The skill's invocation triggers (`.claude/rules/skill-routing.md`, the `when_to_use` field) are unaffected — this feature narrows the skill's content, not when it is routed to.
-- No migration guide or user-facing announcement is required beyond the skill's own out-of-scope responses (FR-011); a conversation that previously relied on removed material (scaling advice, flow metrics, coaching stances) will simply be told, going forward, that the topic is out of scope.
+## 要件 *(必須)*
+
+### 機能要件
+
+- **FR-001**: スキルの出典一覧（`references/sources.md`）は、公式Scrum Guide（2020年版、`references/`配下に既に存在する英語版・日本語版PDF）のみを規範的または補完的出典として引用しなければならない（MUST）。現在含まれる他の出典エントリ（Nexus Guide, Manifesto for Agile Software Development, Evidence-Based Management Guide, The Kanban Guide for Scrum Teams, DORA metrics, Edmondsonの心理的安全性研究, Agile Retrospectives, Coaching Agile Teams, Scrum.org/Zombie Scrum/Agile Allianceのアンチパターン資料, LeSS, SAFe, Scrum@Scale）はすべて削除しなければならない（MUST）。
+- **FR-002**: `references/scaling-frameworks.md`は削除しなければならない（MUST）。その内容（Nexus, LeSS, SAFe, Scrum@Scale）はいずれもScrum Guideが定義するものではない。
+- **FR-003**: `references/measurement-and-diagnostics.md`は削除しなければならない（MUST）。その指標に関する記述（フロー指標、EBMの重要価値領域、DORA指標）はKanban Guide、EBM Guide、DORAを出典としており、Scrum Guideを出典としていない。
+- **FR-004**: `references/anti-patterns-and-coaching.md`は削除しなければならない（MUST）。そのアンチパターン分類はScrum.org、Zombie Scrum、Agile Allianceの資料を出典としており、Scrum Guideを出典としていない。
+- **FR-005**: `references/facilitation-and-coaching.md`は削除しなければならない（MUST）。そのファシリテーション技法とコーチングスタンスのモデルはCoaching Agile Teams、心理的安全性研究、出典のない実務慣行を出典としており、Scrum Guideを出典としていない。
+- **FR-006**: `scripts/flow_metrics.py`およびその`__pycache__`成果物は削除しなければならない（MUST）。それが計算するフロー指標（Cycle Time、Work Item Age、Throughput、SLE）はKanban Guideの概念であり、Scrum Guideの概念ではない。
+- **FR-007**: `references/scrum-master-role.md`は、Scrum Masterの中核的アカウンタビリティ、Scrum Team／Product Owner／組織への奉仕、役割の境界に関するScrum Guide根拠の内容のみを残さなければならない（MUST）。コーチングスタンスの分類（ティーチャー／メンター／ファシリテーター／コーチ／対立の航行者）は削除しなければならない（MUST）。
+- **FR-008**: スキル内のどこかに残る各Scrumイベント（Sprint、Sprint Planning、Daily Scrum、Sprint Review、Sprint Retrospective、Product Backlog Refinement）に関する記述は、Scrum Guide自身が述べる目的・参加者・タイムボックスに限定しなければならない（MUST）。Scrum Guideに記載のない進行技法、レトロスペクティブの形式、アジェンダの内訳、改善実験のテンプレート、ファシリテーションの手順は残してはならない（MUST NOT）。
+- **FR-009**: 残存するいかなるファイルも、FR-002からFR-006で削除される対象（コーチングスタンス、アンチパターン分類、フロー指標スクリプト、スケーリングフレームワーク、測定・診断ガイダンス）へのリンク・参照・誘導を含んではならない（MUST NOT）——すべての相対リンクは実在するファイルに解決しなければならない（MUST）。
+- **FR-010**: `SKILL.md`の説明文、`when_to_use`のトリガー文言、および明記された原則は、スキルを公式Scrum Guide（2020年版）のみに限定されたものとして記述しなければならない（MUST）。スケーリング、フロー指標の計算、アンチパターン分類、ファシリテーション技法のコーチングをカバーしているかのような含意を残してはならない（MUST NOT）。
+- **FR-011**: ユーザーが最小化後のスキルではカバーしなくなった話題（Nexus/LeSS/SAFe/Scrum@Scaleのスケーリング、フロー指標／ベロシティの計算、特定のレトロスペクティブ形式、コーチングスタンスの選択など）について尋ねた場合、スキルは削除済みの資料から回答を作り上げるのではなく、それがScrum Guideのみに基づくガイダンスの範囲外である旨を明示しなければならない（MUST）。
+- **FR-012**: スキル内に現在存在するScrum Guide直接根拠の内容——経験主義の三本柱、Scrumの5つの価値基準、Product Owner／Scrum Master／Developersのアカウンタビリティ、各イベントのGuide記載の目的とタイムボックス、作成物のコミットメント、「スクラムの一部だけを導入することはスクラムとは言えない」という規定（Guide p.13）、Guide本文が文字通り述べるScrum Masterの境界——は、最小化後のスキルでも参照可能な状態を維持しなければならない（MUST）。
+
+## 成功基準 *(必須)*
+
+### 測定可能な成果
+
+- **SC-001**: スキル内の全ファイルに対して、Scrum Guide（2020年版）以外の出典を検索した結果が0件になる。
+- **SC-002**: スキルの`references/`ディレクトリには、Scrum Guideの2つのPDFと、内容がすべてScrum Guideのみに遡れるMarkdownファイルのみが残る。`scripts/`ディレクトリには計算用スクリプトが一つも残らない。
+- **SC-003**: 6つのScrumイベントそれぞれについて「このイベントはどう進めるか」とスキルに尋ねると、Guide記載の目的・参加者・タイムボックスのみが返り、追加のファシリテーション技法・形式・テンプレートは回答に含まれない。
+- **SC-004**: 削除された話題（スケーリングフレームワークの選定、フロー指標の計算、コーチングスタンスの選択、アンチパターン分類）についてスキルに尋ねると、試行の100%で明示的な範囲外表明が返り、削除済み資料に基づく回答は返らない。
+- **SC-005**: スキル内に残るすべての相対Markdownリンクが、スキルディレクトリ内に実在するファイルに解決する（リンク切れゼロ）。
+
+## 前提条件
+
+- `references/`配下に既に存在する2つのScrum Guide PDF（`2020-Scrum-Guide-US.pdf`、`2020-Scrum-Guide-Japanese.pdf`）が引き続き唯一の規範的出典資料であり、本変更によって新たな出典資料は追加しない。
+- 「公式Scrum Guide」とは、現在`references/sources.md`で`[SG20]`として引用されているものと同じ、2020年11月版（Ken Schwaber and Jeff Sutherland）を指す。他の版や将来の改訂版は対象外とする。
+- 日本語版Scrum GuideのPDF自身に含まれる訳者付録（「2020年版での変更点」セクション、日本語版pp.16–17）は、第三者資料ではなく公式翻訳PDFに内包された公式Guide文書の一部として扱い、`[SG20, JA pp.16–17]`として引用し続けてよい。
+- 本最小化は、より広いスコープの設計を確立した過去のscrum-master関連スペック（`016-scrum-master-skill`、`017-scrum-master-rewrite`、`018-remove-solo-practice`）と矛盾する箇所について、それらを上書きする決定として扱う。これらのスペック自体を遡って編集することはしない。
+- スキルの起動トリガー（`.claude/rules/skill-routing.md`、`when_to_use`フィールド）は本変更の対象外である——本フィーチャーはスキルの内容を絞り込むものであり、いつスキルにルーティングされるかを変更するものではない。
+- FR-011で定める範囲外応答を超える移行ガイドやユーザー向けの告知は不要である。過去に削除対象の内容（スケーリングの助言、フロー指標、コーチングスタンス）に依拠していた会話には、今後はその話題が範囲外であると伝えるのみでよい。

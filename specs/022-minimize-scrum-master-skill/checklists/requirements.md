@@ -1,36 +1,36 @@
-# Specification Quality Checklist: Minimize scrum-master Skill to Official Scrum Guide Content
+# 仕様品質チェックリスト: scrum-masterスキルを公式Scrum Guideの内容へ最小化する
 
-**Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-08-15
-**Feature**: [spec.md](../spec.md)
+**目的**: プランニングへ進む前に、仕様の完全性と品質を検証する
+**作成日**: 2026-08-15
+**フィーチャー**: [spec.md](../spec.md)
 
-## Content Quality
+## コンテンツ品質
 
-- [x] No implementation details (languages, frameworks, APIs)
-- [x] Focused on user value and business needs
-- [x] Written for non-technical stakeholders
-- [x] All mandatory sections completed
+- [x] 実装の詳細（言語、フレームワーク、API）を含んでいない
+- [x] ユーザー価値とビジネスニーズに焦点を当てている
+- [x] 非技術者のステークホルダー向けに書かれている
+- [x] 必須セクションがすべて記入されている
 
-## Requirement Completeness
+## 要件の完全性
 
-- [x] No [NEEDS CLARIFICATION] markers remain
-- [x] Requirements are testable and unambiguous
-- [x] Success criteria are measurable
-- [x] Success criteria are technology-agnostic (no implementation details)
-- [x] All acceptance scenarios are defined
-- [x] Edge cases are identified
-- [x] Scope is clearly bounded
-- [x] Dependencies and assumptions identified
+- [x] [NEEDS CLARIFICATION]マーカーが残っていない
+- [x] 要件がテスト可能で曖昧さがない
+- [x] 成功基準が測定可能である
+- [x] 成功基準が技術非依存である（実装の詳細を含まない）
+- [x] すべての受け入れシナリオが定義されている
+- [x] エッジケースが識別されている
+- [x] スコープが明確に境界づけられている
+- [x] 依存関係と前提条件が識別されている
 
-## Feature Readiness
+## フィーチャーの準備状況
 
-- [x] All functional requirements have clear acceptance criteria
-- [x] User scenarios cover primary flows
-- [x] Feature meets measurable outcomes defined in Success Criteria
-- [x] No implementation details leak into specification
+- [x] すべての機能要件に明確な受け入れ基準がある
+- [x] ユーザーシナリオが主要なフローを網羅している
+- [x] フィーチャーが成功基準で定義された測定可能な成果を満たしている
+- [x] 実装の詳細が仕様に混入していない
 
-## Notes
+## 備考
 
-- All three blocking gaps (strip level, flow-metrics script fate, HOW-technique handling) were resolved via `/clarifier` before this spec was written; answers are recorded in spec.md's Clarifications section.
-- File and section names (e.g. `references/scaling-frameworks.md`, `scripts/flow_metrics.py`) appear in the requirements because the "system" under change is the skill package's own content files — naming them is necessary for testability, not implementation leakage into a separate downstream system.
-- Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
+- 3つのブロッキングギャップ（削減レベル、flow_metrics.pyの扱い、Guideが規定しないHOWの扱い）は本仕様の作成前に`/clarifier`で解消済み。回答内容はspec.mdの「明確化」セクションに記録している。
+- ファイル名・セクション名（例：`references/scaling-frameworks.md`、`scripts/flow_metrics.py`）が要件に登場するのは、今回変更対象の「システム」がスキルパッケージ自身のコンテンツファイルであるためであり、テスト可能性のために必要な明示であって、別システムへの実装詳細の混入ではない。
+- 未完了の項目がある場合は、`/speckit-clarify`または`/speckit-plan`に進む前に仕様を更新すること。
