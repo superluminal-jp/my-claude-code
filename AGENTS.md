@@ -68,7 +68,6 @@ When a question directly concerns AWS, GCP, or Azure services, features, or docu
 - Keep Spec Kit current by running `specify init` (or this project's Spec Kit update flow) periodically, if this project uses Spec Kit.
 - `shfmt`, `shellcheck`, `yamllint`, and `jq` are expected to be available in the environment for formatting and lint checks to work.
 - Persist decisions, conventions, and durable facts learned while working so they can be reused later, rather than re-deriving them every session.
-- To verify this repository's configuration, run the checks in `.claude/skills/verify-config/SKILL.md` inline. Codex has no equivalent of the forked-subagent context the Claude side uses, so the raw output stays in this session.
 
 ## Enforced via hook or rule (Codex CLI only)
 
