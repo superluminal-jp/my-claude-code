@@ -112,7 +112,7 @@ Codex は import して信頼すれば、Claude Code がもう持たないガー
 - **フックは設定レイヤーごとに1回ずつ発火します。** Codex はレイヤーを上書きせずマージするため、`~/.codex/hooks.json`・`~/.codex/config.toml`・`.codex/hooks.json` に同じフックがあると毎ターン3回走り、`loading hooks from both … prefer a single representation for this layer` と警告されます。1レイヤーにつき1表現に保ってください。
 - **`.codex/hooks/` にスクリプトがあること自体は実行の証拠になりません。** `/import` は登録しないスクリプト（`statusline.sh` など）もコピーします。実際の配線は `.codex/hooks.json` を見て確認してください。
 
-**Claude側もこの変更の影響を、今度は完全に受けます。** `.claude/hooks/pre-edit.sh` はもう存在せず、`.claude/settings.json` の `permissions` ブロックも同様です — Claude Code はこの領域で一切自動的に何も強制しません。`scripts/guardrails/*.sh` は参考用の判定ロジックとして残りますが、これを呼び出すものも、判定ロジックを共有するものも、もうありません（共有していたのは、削除済みのフックラッパーの役目でした）。
+**Claude側もこの変更の影響を、今度は完全に受けます。** `.claude/hooks/pre-edit.sh` はもう存在せず、`.claude/settings.json` の `permissions` ブロックも同様です — Claude Code はこの領域で一切自動的に何も強制しません。`scripts/guardrails/*.sh` も今はもう存在せず、共有すべき判定ロジック自体がありません。
 
 ### その他の変換ギャップ
 
@@ -153,9 +153,6 @@ my-claude-code/
 ├── README.md
 ├── README.ja.md
 ├── install.sh
-├── scripts/
-│   ├── check-mcp-consistency.sh
-│   └── guardrails/
 ├── AGENTS.md                        # Codex CLI がそのまま読む平坦な指針（@ import 不可）
 ├── .mcp.json
 └── .claude/
@@ -170,10 +167,8 @@ my-claude-code/
 `.mcp.json` / `install.sh` / `.claude/settings.json` / `.claude/rules/mcp.md` を変更したら:
 
 ```sh
-./scripts/check-mcp-consistency.sh
 bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
 bash tests/run-digital-agency-frontend-skill.sh
-./tests/run-prompt-secret-guard.sh
 ./tests/run-codex-references.sh
 ./tests/run-codex-drift.sh
 ```

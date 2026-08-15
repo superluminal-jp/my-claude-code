@@ -79,22 +79,12 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   echo "Synced managed paths from $SOURCE_DIR -> $TARGET_DIR"
 fi
 
-# 1a. Sync the shared guardrail scripts (repo-root scripts/guardrails/, not
-# under .claude/ — they're tool-agnostic decision logic, so they're deployed
-# here as a sibling of rules/skills rather than nested under one tool's
-# directory). Claude Code no longer calls these automatically (the .claude/hooks/
-# wrappers that used to invoke them were removed — see
-# specs/025-remove-claude-hooks/); they stay available for direct/manual
-# invocation and for the tests/run-*-guard.sh suites that exercise them.
-GUARDRAILS_SRC="$SCRIPT_DIR/scripts/guardrails"
-GUARDRAILS_DST="$TARGET_DIR/scripts/guardrails"
-if [ -d "$GUARDRAILS_SRC" ]; then
-  rm -rf "$GUARDRAILS_DST"
-  mkdir -p "$GUARDRAILS_DST"
-  cp -R "$GUARDRAILS_SRC"/. "$GUARDRAILS_DST/"
-  chmod +x "$GUARDRAILS_DST"/*.sh
-  echo "Synced shared guardrail scripts -> $GUARDRAILS_DST"
-fi
+# 1a. scripts/guardrails/ no longer exists in this repository (removed
+# entirely, along with its dedicated tests and scripts/check-mcp-consistency.sh
+# — see specs/027-remove-scripts/). This step stays as the uninstall path: it
+# clears any ~/.claude/scripts/guardrails/ left by an install made before
+# that removal, the same pattern used for "hooks" in install.sh above.
+rm -rf "$TARGET_DIR/scripts/guardrails"
 
 # 2. Ensure this installer is executable
 chmod +x "$TARGET_DIR"/install.sh

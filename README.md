@@ -43,22 +43,9 @@ the same baseline guidance and enforcement (see
   (see [Opt-in to spec-kit](#opt-in-to-spec-kit))
 - **`install.sh`** — Copies `.claude/` to `~/.claude/` and registers all MCP
   servers at user scope
-- **`scripts/check-mcp-consistency.sh`** — Verifies MCP names, URLs, and the
-  `@latest` release policy across `.mcp.json`, `install.sh`, `settings.json`, and
-  [`mcp.md`](.claude/rules/mcp.md) (requires `jq` on `PATH`)
 - **`AGENTS.md`** (repo root) — the always-on guidance Codex CLI reads natively,
   flattened from `.claude/CLAUDE.md` and `.claude/rules/` because Codex does not
   expand `@` imports. Not installed anywhere; Codex picks it up from the repo
-- **`scripts/guardrails/`** — Shared, tool-agnostic guardrail scripts
-  (destructive-command blocking, pre-edit blocking, post-edit formatting,
-  prompt-secret blocking). No `.claude/hooks/` wrapper calls these
-  automatically anymore — that directory was removed in its entirety, with no
-  replacement (see [Codex CLI support](#codex-cli-support)). Codex's own
-  imported hooks still call the same scripts once trusted; otherwise these
-  scripts are invoked only by hand or from the surviving
-  `tests/run-*-guard.sh` suites. See
-  [`specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md`](specs/013-cross-agent-guardrail-implementation/contracts/guardrail-script-io.md)
-  for the shared stdin/stdout contract
 
 ## Codex CLI support
 
@@ -161,12 +148,8 @@ Two more things worth knowing:
 **The Claude side is affected by all of this too, now completely.**
 `.claude/hooks/pre-edit.sh` no longer exists, and neither does
 `.claude/settings.json`'s `permissions` block — Claude Code enforces nothing
-automatically here at all anymore. `scripts/guardrails/*.sh` still contains
-the guardrail matching logic for reference, but nothing calls it and nothing
-shares logic with it; that sharing was specifically the now-deleted hook
-wrappers' job.
-`scripts/guardrails/*.sh` remains the shared decision logic that Codex's two
-working guards call.
+automatically here at all anymore. `scripts/guardrails/*.sh` doesn't exist
+either now; there is no shared decision logic left for anything to call.
 
 ### Other conversion gaps
 
@@ -251,13 +234,6 @@ my-claude-code/
 ├── README.md
 ├── AGENTS.md                       # Project-only Codex guidance for this repository
 ├── install.sh                      # Copy .claude/ to ~/.claude/ + Codex CLI artifacts + register MCP servers
-├── scripts/
-│   ├── check-mcp-consistency.sh    # MCP catalog drift check (jq required)
-│   └── guardrails/                 # Shared guardrail scripts (Claude Code + Codex CLI both call these)
-│       ├── destructive-command.sh
-│       ├── pre-edit-block.sh
-│       ├── post-edit-format.sh
-│       └── prompt-secret-scan.sh
 ├── AGENTS.md                       # Flat guidance Codex CLI reads natively (no @ imports)
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
 └── .claude/                        # <-- copy this directory's contents to ~/.claude/
@@ -291,10 +267,8 @@ After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
 (MCP allowlist), or [`.claude/rules/mcp.md`](.claude/rules/mcp.md):
 
 ```sh
-./scripts/check-mcp-consistency.sh
 bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
 bash tests/run-digital-agency-frontend-skill.sh
-./tests/run-prompt-secret-guard.sh
 ./tests/run-codex-references.sh
 ./tests/run-codex-drift.sh
 ```

@@ -1,6 +1,6 @@
 # Permission Rules
 
-Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in the security design principles of **least privilege** and **fail-safe defaults** (default-deny for destructive and network actions) — Saltzer & Schroeder, 1975 (see [References](#references)). This file states policy only. Automatic enforcement of the destructive-operation and credential-safety rules below via `.claude/hooks/` was removed with no replacement (see `specs/025-remove-claude-hooks/`); `scripts/guardrails/*.sh` still contains the pattern-matching logic these rules describe, for reference, though nothing invokes it automatically anymore.
+Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in the security design principles of **least privilege** and **fail-safe defaults** (default-deny for destructive and network actions) — Saltzer & Schroeder, 1975 (see [References](#references)). This file states policy only. Automatic enforcement of the destructive-operation and credential-safety rules below — via `.claude/hooks/` and the pattern-matching logic that used to live in `scripts/guardrails/*.sh` — was removed entirely with no replacement (see `specs/025-remove-claude-hooks/` and `specs/027-remove-scripts/`).
 
 Evaluation order: **deny → ask → allow** (first match wins; deny always overrides).
 

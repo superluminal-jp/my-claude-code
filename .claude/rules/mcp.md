@@ -1,6 +1,6 @@
 # MCP servers catalog
 
-Purpose: know which MCP server answers which cloud-docs question, and when calling one is mandatory. Applies when a request concerns AWS, GCP, or Azure. Also lists non-docs tool servers (e.g. `drawio`) for completeness, since `scripts/check-mcp-consistency.sh` requires every `.mcp.json` entry to appear here — their usage rules live with the skill that uses them, not in this file, to avoid duplication.
+Purpose: know which MCP server answers which cloud-docs question, and when calling one is mandatory. Applies when a request concerns AWS, GCP, or Azure. Also lists non-docs tool servers (e.g. `drawio`) for completeness — every `.mcp.json` entry is expected to appear here as a matter of manual policy (the script that used to check this, `scripts/check-mcp-consistency.sh`, was removed — see `specs/027-remove-scripts/`); their usage rules live with the skill that uses them, not in this file, to avoid duplication.
 
 Runtime definitions are in `.mcp.json`. Optional user-scope defaults are installed by `~/.claude/install.sh` (Google MCP requires `GOOGLE_DEV_KNOWLEDGE_API_KEY`).
 
