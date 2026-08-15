@@ -354,10 +354,15 @@ specify extension add git
 This adds 5 commands: `speckit.git.feature`, `speckit.git.validate`,
 `speckit.git.remote`, `speckit.git.initialize`, and `speckit.git.commit`.
 
-Keeping an already-adopted project's Spec Kit current is now a manual step —
-run `specify init` / `specify self upgrade` periodically yourself. The hook
-that used to do this automatically before any `/speckit-*` command expanded
-(`speckit-expand-update.sh`) was removed along with the rest of
-`.claude/hooks/`, with no replacement. Recommending `specify init` in a
-project that hasn't adopted Spec Kit yet is still handled by `CLAUDE.md`'s
-own instructions.
+Keeping an already-adopted project's generated `speckit-*` skills current is
+a manual step — run `specify init --here --force` periodically yourself. The
+`specify-cli` tool itself is different: `.claude/settings.json` carries a
+narrow `PreToolUse` hook (docs/adr/0008) that, only before the
+`speckit-specify` skill runs, checks the latest `github/spec-kit` release
+tag against the `rev=` pinned in `uv`'s install receipt and reinstalls via
+`uv tool install specify-cli --from git+... --force` on a mismatch — it
+fails open on any network error, and no other `speckit-*` skill triggers it.
+This is a deliberate, narrow exception to the broader "no `.claude/hooks/`,
+no automatic enforcement" removal in docs/adr/0005 — see docs/adr/0008 for
+why. Recommending `specify init` in a project that hasn't adopted Spec Kit
+yet is still handled by `CLAUDE.md`'s own instructions.

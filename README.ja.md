@@ -240,9 +240,15 @@ specify extension add git
 追加されるコマンド: `speckit.git.feature`、`speckit.git.validate`、
 `speckit.git.remote`、`speckit.git.initialize`、`speckit.git.commit`
 
-すでに導入済みのプロジェクトの Spec Kit を最新に保つのは、今では手動の
-作業です — 自分で定期的に `specify init` / `specify self upgrade` を実行して
-ください。以前は `/speckit-*` コマンド実行前にこれを自動で行っていた hook
-（`speckit-expand-update.sh`）は、`.claude/hooks/` の他のファイルとともに
-削除され、代替の仕組みはありません。`.specify/` が未導入のプロジェクトへ
+すでに導入済みのプロジェクトで生成済みの `speckit-*` スキルを最新に保つのは、
+今も手動の作業です — 自分で定期的に `specify init --here --force` を
+実行してください。`specify-cli` 本体は別です — `.claude/settings.json` には
+`speckit-specify` スキル実行の直前だけ発火する狭い範囲の `PreToolUse` hook
+（docs/adr/0008）があり、`github/spec-kit` の最新リリースタグと `uv` の
+インストールレシートに記録された `rev=` を比較し、不一致なら
+`uv tool install specify-cli --from git+... --force` で再インストールします
+（ネットワークエラー時は fail-open で処理を止めません。他の `speckit-*`
+スキルではこの hook は発火しません）。これは docs/adr/0005 の「`.claude/hooks/`
+なし・自動強制なし」という広い方針に対する、意図的かつ限定的な例外です —
+理由は docs/adr/0008 を参照してください。`.specify/` が未導入のプロジェクトへ
 `specify init` を提案するのは、引き続き `CLAUDE.md` 自体の指示です。
