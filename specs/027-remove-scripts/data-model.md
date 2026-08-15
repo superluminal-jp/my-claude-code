@@ -22,6 +22,33 @@ No runtime data entities — file deletions/edits and one new ADR.
 ### New ADR (`docs/adr/0007-*.md`)
 - **Relationship**: References ADR-0005 and ADR-0006 (both unchanged) as the two prior steps in the same decision arc.
 
+### Installer managed path set
+- **Members**: `hooks`, `rules`, `skills`, `agents`, `commands`, `CLAUDE.md`,
+  and `settings.json`.
+- **State rule**: Source present → destination replaced exactly; source absent →
+  stale destination removed.
+- **Boundary**: Any path outside the declared set remains user-owned and is
+  preserved.
+
+### Retired installer artifacts
+- **Members**: `hooks/`, `commands/`, and `scripts/guardrails/` while absent
+  from the repository.
+- **Relationship**: Cleanup is part of exact synchronization for upgrades, not
+  an installed current capability.
+
+### Test suite inventory
+- **Retained**: Codex drift/references, Digital Agency skill, MCP startup,
+  subagent delegation, and the new isolated-home installer contract.
+- **Removed**: Authenticated Claude prompt-evaluation runners and fixtures;
+  orphan ubiquitous-language fixtures.
+
+### draw.io capability
+- **Prior components**: `.mcp.json` entry, skill, routing, coder pointer,
+  installer comment, and MCP catalog documentation.
+- **State**: Removed atomically so no live surface routes to an unavailable MCP.
+
 ## Removal ordering
 
-Single atomic change — no cross-file ordering constraint at commit time.
+Write the installer contract test first and observe failure. Then change the
+installer and remove obsolete assets atomically; update live documentation in
+the same change.

@@ -64,3 +64,64 @@ Same rationale as specs/024-026.
 ## R4 — New ADR numbering
 
 `docs/adr/` has 0001-0004 (pre-existing numbering collision, not this feature's concern), 0005 (Accepted), 0006 (Accepted). Next available: **0007**.
+
+## R5 — Installer ownership boundary
+
+**Decision**: Treat `hooks`, `rules`, `skills`, `agents`, `commands`,
+`CLAUDE.md`, and `settings.json` as exact-sync managed paths. A missing source
+removes a stale managed destination. Files outside that set, including the
+untracked `settings.local.json`, remain user-owned and untouched.
+
+**Rationale**: This makes the installed managed state complete without turning
+the installer into a destructive mirror of all `~/.claude` state. `agents/`
+uses the same future-proof behavior as `hooks/` and `commands/`: absent now is a
+cleanup operation; present later becomes recursive distribution automatically.
+
+**Alternatives considered**: Mirror all of `~/.claude` (rejected: deletes
+unrelated user state); keep the current list without `agents/` (rejected by the
+maintainer).
+
+## R6 — Installer dead code and local generated artifacts
+
+**Decision**: Remove `jq` from preflight because the installer never invokes
+it. Remove the Spec Kit git-config rewrite because the file is already enabled,
+the operation mutates the source checkout rather than installed user state, and
+it is unrelated to configuration projection. Keep `uvx`, because installed MCP
+commands execute it. After syncing skills, remove ignored `speckit-*` skills and
+`.DS_Store` from the managed destination so local generated files are not
+mistaken for repository-managed configuration.
+
+**Alternatives considered**: Keep all preflight and rewrite steps (rejected as
+unused or out of ownership scope); depend on git to copy tracked files only
+(rejected because the installed copy can run outside a git checkout).
+
+## R7 — Test inventory
+
+**Decision**: Delete the three authenticated Claude CLI runners and their
+fixtures by maintainer choice. Delete `tests/ubiquitous-language/` because it
+has no runner and no active skill subject. Keep the five current structural/MCP
+runners. Add `tests/run-install.sh` as a deterministic isolated-home contract.
+
+**Rationale**: Every retained test has an active subject and no Claude login
+dependency. The installer test covers both clean install and upgrade cleanup
+without mutating the real home directory.
+
+## R8 — draw.io removal
+
+**Decision**: Remove the draw.io MCP entry, skill, routing instruction, coder
+composition pointer, MCP-catalog row/exemption, and stale installer comment.
+
+**Rationale**: The maintainer chose not to use draw.io MCP. Leaving any of the
+skill or routing surfaces would direct agents to a capability that no longer
+exists.
+
+## R9 — Installer test boundary
+
+**Decision**: Run `install.sh` with a temporary `HOME` and stubbed `claude` and
+`uvx` commands. Seed current, stale managed, and unrelated user paths; assert
+exact current copies, removal of retired paths, preservation of unrelated
+files, all expected MCP upserts, absence of draw.io, and no source-tree
+mutation.
+
+**Rationale**: This exercises observable behavior end to end while avoiding
+network access, credentials, plugin changes, and writes to the real home.

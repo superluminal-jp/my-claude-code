@@ -1,6 +1,6 @@
 # MCP servers catalog
 
-Purpose: know which MCP server answers which cloud-docs question, and when calling one is mandatory. Applies when a request concerns AWS, GCP, or Azure. Also lists non-docs tool servers (e.g. `drawio`) for completeness — every `.mcp.json` entry is expected to appear here as a matter of manual policy (the script that used to check this, `scripts/check-mcp-consistency.sh`, was removed — see `specs/027-remove-scripts/`); their usage rules live with the skill that uses them, not in this file, to avoid duplication.
+Purpose: know which MCP server answers which cloud-docs question, and when calling one is mandatory. Applies when a request concerns AWS, GCP, or Azure. Every `.mcp.json` entry is expected to appear here as a matter of manual policy (the script that used to check this was removed — see `specs/027-remove-scripts/`).
 
 Runtime definitions are in `.mcp.json`. Optional user-scope defaults are installed by `~/.claude/install.sh` (Google MCP requires `GOOGLE_DEV_KNOWLEDGE_API_KEY`).
 
@@ -14,7 +14,6 @@ Runtime definitions are in `.mcp.json`. Optional user-scope defaults are install
 | `strands-agents` | stdio | `strands-agents-mcp-server@latest` | Strands Agents framework docs |
 | `google-developer-knowledge` | HTTP | `https://developerknowledge.googleapis.com/mcp` | Google developer knowledge base |
 | `microsoft-learn` | HTTP | `https://learn.microsoft.com/api/mcp` | Microsoft Learn / Azure docs |
-| `drawio` | stdio | `@drawio/mcp` | draw.io diagram generation (`create_diagram`, `search_shapes`) — not a docs source; usage governed by the `drawio` skill, not the rule below |
 
 ## Usage rule
 
@@ -27,8 +26,6 @@ When a question directly concerns AWS, GCP, or Azure services, features, or docu
 If the MCP server is unreachable, warn the user that live documentation is unavailable, then answer from training knowledge.
 
 Incidental mentions of AWS/GCP/Azure in otherwise generic questions (e.g., "I'm deployed on AWS but my question is about Python loops") do not require an MCP call.
-
-This mandatory-invoke rule does not apply to `drawio` — it is a generation tool, not a documentation source. See the `drawio` skill for when and how to use it.
 
 ## Official provider skill registries
 

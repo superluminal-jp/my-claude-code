@@ -10,21 +10,18 @@ Building your own config? See
 for structural and instruction-writing lessons distilled from this repo's
 improvement history.
 
-The entire `.claude/` directory is designed to be copied wholesale to
-`~/.claude/`, making these settings, rules, and memory apply across
-every project on the machine. `install.sh` also deploys a Codex CLI
-counterpart — global guidance, custom skills, four shared guardrails, command
-Rules, the MCP catalog, and a verification prompt — so Codex CLI sessions get
-the same baseline guidance and enforcement (see
-[Codex CLI support](#codex-cli-support)).
+`install.sh` synchronizes the repository-managed parts of `.claude/` to
+`~/.claude/`, making its settings, rules, skills, agents, and memory available
+across projects while preserving unrelated user files. It does not deploy
+Codex CLI configuration; see [Codex CLI support](#codex-cli-support) for the
+official import flow.
 
 ## What this provides
 
 - **`.claude/CLAUDE.md`** — Persistent user memory: core principles, response
   style, skill index, MCP import (thin; most detail lives in `rules/` and
   on-demand `skills/`)
-- **`.claude/settings.json`** — User-level settings with safe defaults and
-  permission allowlist/denylist
+- **`.claude/settings.json`** — User-level Claude Code settings
 - **`.claude/rules/`** — Always-on universal rules: permissions/safety, tool
   selection, clarification triggers, skill routing, subagent delegation
   (when to isolate work in a subagent vs. keep it in the main conversation),
@@ -193,12 +190,16 @@ Cursor is explicitly out of scope — see
 
 ## Install as user configuration
 
-Run the bundled installer from the cloned repo. It copies `.claude/` to
-`~/.claude/` and registers all MCP servers at user scope:
+Run the bundled installer from the cloned repo. It synchronizes the declared
+managed paths from `.claude/` to `~/.claude/` and registers all MCP servers at
+user scope:
 
 ```sh
 bash path/to/my-claude-code/install.sh
 ```
+
+Requires the `claude` CLI and `uvx`. The Google Developer Knowledge MCP is
+registered only when `GOOGLE_DEV_KNOWLEDGE_API_KEY` is set.
 
 Re-running is safe: it re-syncs managed paths and upserts MCP servers. This
 repository no longer ships any hooks to import into Codex — see
@@ -208,11 +209,12 @@ independent of anything here.
 **Important (overwrite/replace behavior):**
 
 - Installer-managed paths are synchronized by replacement: `hooks/`, `rules/`,
-  `skills/`, `CLAUDE.md`, `settings.json`, `install.sh`.
+  `skills/`, `agents/`, `commands/`, `CLAUDE.md`, `settings.json`, and
+  `install.sh`.
 - Files removed from this repository are also removed from `~/.claude` under
   those managed paths.
-- Keep personal-only files in `~/.claude` outside managed paths, or re-apply
-  them from a separate backup after install.
+- Unrelated paths in `~/.claude`, including `settings.local.json`, are
+  preserved. Keep personal-only files outside the managed paths above.
 - **Nothing under `~/.codex` or `~/.agents` is touched.** Codex configuration is
   yours to manage via `/import`; see [Codex CLI support](#codex-cli-support),
   including how to clean up files an earlier version of this repository left
@@ -233,12 +235,11 @@ my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
 ├── AGENTS.md                       # Project-only Codex guidance for this repository
-├── install.sh                      # Copy .claude/ to ~/.claude/ + Codex CLI artifacts + register MCP servers
-├── AGENTS.md                       # Flat guidance Codex CLI reads natively (no @ imports)
+├── install.sh                      # Sync managed Claude paths + register MCP servers
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
-└── .claude/                        # <-- copy this directory's contents to ~/.claude/
+└── .claude/                        # Source for installer-managed Claude paths
     ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
-    ├── settings.json               # Permissions, MCP approval, model defaults
+    ├── settings.json               # User-level Claude Code settings
     ├── rules/                      # Always-on: loaded every session
     │   ├── permissions.md          # Credential safety, destructive ops
     │   ├── clarifier.md            # When to ask; batch questions + template
@@ -268,12 +269,15 @@ After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
 
 ```sh
 bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
+bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
 ./tests/run-codex-references.sh
 ./tests/run-codex-drift.sh
 ```
 
-Deterministic — it inspects repository files only.
+`run-install.sh` uses an isolated home and stubbed external commands. All suites
+except `run-mcp-startup.sh` are local checks; the startup suite exercises the
+configured MCP server commands and therefore requires network access.
 
 ## MCP Servers
 

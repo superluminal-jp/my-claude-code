@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Contract tests for the Digital Agency React/Tailwind frontend skill.
 # Usage: bash tests/run-digital-agency-frontend-skill.sh [dads|dashboard|sync]
+# Literal backticks and dollar-prefixed skill names are intentional patterns.
+# shellcheck disable=SC2016
 
 set -uo pipefail
 

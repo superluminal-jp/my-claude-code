@@ -3,8 +3,8 @@
 Claude Code の公式仕様・ベストプラクティス（https://code.claude.com/docs/）に
 沿った、再利用可能な **ユーザーレベル設定** です。
 
-`.claude/` ディレクトリ全体を `~/.claude/` に同期することで、settings/rules/skills/memory を
-マシン上の全プロジェクトで共通適用できます。
+`install.sh` は `.claude/` のうちリポジトリが管理する設定、rules、skills、agents、memory を
+`~/.claude/` に同期し、管理対象外のユーザーファイルは保持します。
 
 **Codex CLI 向けの移植物はこのリポジトリでは配布しません。** `install.sh` は Codex 設定を一切展開せず、`~/.codex` にも `~/.agents` にも触れません。Codex 側の設定は OpenAI 公式の `/import` で各自生成します — 手順と、何が得られて何が得られないかは [Codex CLI サポート](#codex-cli-サポート)、判断の記録は [ADR-0004](docs/adr/0004-adopt-official-codex-import.md) を参照してください。
 
@@ -13,7 +13,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 ## このリポジトリで提供するもの
 
 - **`.claude/CLAUDE.md`**: 常時メモリ（原則、応答スタイル、skill インデックス、MCP 参照）
-- **`.claude/settings.json`**: モデル既定値、権限ルール
+- **`.claude/settings.json`**: Claude Code のユーザーレベル設定
 - **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、サブエージェント委譲（独立コンテキストに切り出すか本体で進めるかの判断）、live-documentation、git ワークフロー、MCP カタログ）
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
@@ -37,17 +37,22 @@ bash path/to/my-claude-code/install.sh
 
 インストーラーは `~/.claude` を同期し、Claude Code のユーザースコープ MCP を登録/更新します。**Codex 側には何も展開しません** — `~/.codex` と `~/.agents` はユーザーの所有物として一切触れません。
 
+実行には `claude` CLI と `uvx` が必要です。Google Developer Knowledge MCP は
+`GOOGLE_DEV_KNOWLEDGE_API_KEY` が設定されている場合だけ登録されます。
+
 ### 重要: 上書き置換（削除同期）について
 
 - 次の管理対象は **置換同期** されます:
   - `hooks/`
   - `rules/`
   - `skills/`
+  - `agents/`
+  - `commands/`
   - `CLAUDE.md`
   - `settings.json`
   - `install.sh`
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側でも削除されます。
-- 個人用ファイルは管理対象外の場所に置くか、別バックアップから再適用してください。
+- `settings.local.json` を含む `~/.claude` の管理対象外パスは保持されます。個人用ファイルは上記の管理対象外に置いてください。
 
 ## Codex CLI サポート
 
@@ -168,12 +173,15 @@ my-claude-code/
 
 ```sh
 bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
+bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
 ./tests/run-codex-references.sh
 ./tests/run-codex-drift.sh
 ```
 
-リポジトリのファイルを検査するだけの決定的なスイートです。
+`run-install.sh` は隔離した HOME と外部コマンドの stub を使います。
+`run-mcp-startup.sh` だけは設定済み MCP サーバーの起動コマンドを実行するため
+ネットワーク接続が必要で、それ以外はローカル検証です。
 
 ## MCP サーバー
 

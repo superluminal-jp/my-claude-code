@@ -4,6 +4,6 @@
   "effortLevel": "high",
   "tui": "fullscreen",
   "alwaysThinkingEnabled": true,
-  "autoMemoryEnabled": true,
-  "enableAllProjectMcpServers": true
+  "autoApproveEdits": true,
+  "autoMemoryEnabled": true
 }

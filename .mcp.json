@@ -36,10 +36,6 @@
     "microsoft-learn": {
       "type": "http",
       "url": "https://learn.microsoft.com/api/mcp"
-    },
-    "drawio": {
-      "command": "npx",
-      "args": ["@drawio/mcp@1.5.0"]
     }
   }
 }

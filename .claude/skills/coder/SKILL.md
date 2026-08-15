@@ -90,8 +90,6 @@ Load when the task reaches these stages:
 
 - **Committing / branching / opening a PR** → `rules/git-workflow.md` (Conventional Commits, branch naming, PR body).
 - **A significant, hard-to-reverse decision is settled** → load the `adr` skill to record it.
-- **A document needs a draw.io diagram, or an existing `.drawio` file needs editing** → load the `drawio` skill.
-
 # References
 
 - Kent Beck, *Test-Driven Development: By Example*, Addison-Wesley, 2002 (TDD).

@@ -56,11 +56,7 @@ cd "$REPO_ROOT" || exit 1
 # Files searched for dangling references. specs/** and docs/adr/** are exempt
 # by design: they are historical records and must keep naming what existed.
 LIVE_FILES="README.md README.ja.md AGENTS.md CLAUDE.md install.sh .gitignore"
-# `.claude/**` is deliberately absent: NFR-002 forbids editing it in this
-# change, and the references it still carries (a permission allowlist entry and
-# two comments naming the retired adapters) are inert without those paths.
-# Cleaning them up is follow-up work, tracked in the feature's spec.
-LIVE_DIRS="scripts tests"
+LIVE_DIRS=".claude/rules .claude/skills tests"
 
 live_grep() {
   # Prints "path:line:text" for every match of $1 across the live surfaces.
@@ -69,7 +65,7 @@ live_grep() {
     [ -f "$f" ] && grep -nE "$pattern" "$f" 2>/dev/null | sed "s|^|$f:|"
   done
   for f in $LIVE_DIRS; do
-    [ -d "$f" ] && grep -rnE "$pattern" "$f" 2>/dev/null
+    [ -d "$f" ] && grep -rnE --exclude-dir='speckit-*' "$pattern" "$f" 2>/dev/null
   done
   return 0
 }
@@ -152,12 +148,6 @@ if [ -n "$INSECURE" ]; then
 fi
 check "RULE-08: user-facing docs cite no non-HTTPS URL" \
   "$([ -z "$INSECURE" ] && echo 0 || echo 1)"
-
-# RULE-09 (NFR-002, spec-021: the Codex-import migration must not weaken
-# Claude Code) is retired. It guarded `.claude/hooks/` presence, then (after
-# specs/025-remove-claude-hooks/) only `.permissions.deny`; that key no
-# longer exists either (specs/026-remove-permissions-config/), so there is
-# nothing left for this rule to check.
 
 # --- RULE-10: install.sh no longer deploys Codex artifacts -----------------
 if [ -f install.sh ]; then
