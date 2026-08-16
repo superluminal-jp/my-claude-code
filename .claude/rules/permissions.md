@@ -1,6 +1,6 @@
 # Permission Rules
 
-Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in the security design principles of **least privilege** and **fail-safe defaults** (default-deny for destructive and network actions) — Saltzer & Schroeder, 1975 (see [References](#references)). This file states policy only. Automatic enforcement of the destructive-operation and credential-safety rules below — via `.claude/hooks/` and the pattern-matching logic that used to live in `scripts/guardrails/*.sh` — was removed entirely with no replacement (see `specs/025-remove-claude-hooks/` and `specs/027-remove-scripts/`).
+Purpose: decide whether an action runs, prompts, or is blocked. Applies to every Bash command, file read/write, and network call. Grounded in the security design principles of **least privilege** and **fail-safe defaults** (default-deny for destructive and network actions) — Saltzer & Schroeder, 1975 (see [References](#references)). This file states policy only. Automatic enforcement of the destructive-operation and credential-safety rules below — via `.claude/hooks/` and the pattern-matching logic that used to live in `scripts/guardrails/*.sh` — was removed entirely with no replacement (see `docs/adr/0005-remove-claude-hooks.md` and `docs/adr/0007-remove-scripts.md`).
 
 Evaluation order: **deny → ask → allow** (first match wins; deny always overrides).
 
@@ -12,7 +12,7 @@ Evaluation order: **deny → ask → allow** (first match wins; deny always over
 - `git clean -f` (deletes untracked files)
 - Drop database table / collection — no hook can detect this; self-apply
 - Overwrite files with uncommitted changes — no hook can detect this; self-apply
-- AWS resource operations via the `deploy-on-aws` plugin's `deploy` skill, or any other action that creates, modifies, or deletes live AWS resources (IaC apply/deploy, `aws` CLI mutating commands) — no hook can detect this; self-apply. Default use of this plugin is diagram generation (`aws-architecture-diagram`); any deploy/resource-mutating action requires explicit confirmation every time, regardless of prior approvals in the same session (see `docs/adr/0004-adopt-deploy-on-aws-plugin.md`).
+- AWS resource operations via the `deploy-on-aws` plugin's `deploy` skill, or any other action that creates, modifies, or deletes live AWS resources (IaC apply/deploy, `aws` CLI mutating commands) — no hook can detect this; self-apply. Default use of this plugin is diagram generation (`aws-architecture-diagram`); any deploy/resource-mutating action requires explicit confirmation every time, regardless of prior approvals in the same session (see `docs/adr/0009-adopt-deploy-on-aws-plugin.md`).
 
 ## Package Installs — Claude installs project-scoped only
 
@@ -27,7 +27,7 @@ Claude may install dependencies only within the scope of the current project (vi
 - Filenames containing `secret`, `credential`, `token`, `key`
 - Private keys: `.pem`, `.p12`, `.pfx`
 
-`Read` denies for these paths, prompt-level scanning, and shell-level blocking were all removed with no automated replacement — see `specs/025-remove-claude-hooks/` and `specs/026-remove-permissions-config/`. This section is policy only now; nothing in Claude Code enforces it automatically.
+`Read` denies for these paths, prompt-level scanning, and shell-level blocking were all removed with no automated replacement — see `docs/adr/0005-remove-claude-hooks.md` and `docs/adr/0006-remove-permissions-config.md`. This section is policy only now; nothing in Claude Code enforces it automatically.
 
 ## Network — default deny
 
@@ -39,7 +39,7 @@ Claude may install dependencies only within the scope of the current project (vi
 
 None anymore. The `permissions` block (allow/ask/deny) was removed entirely
 from both `.claude/settings.json` and `.claude/settings.local.json` — see
-`specs/026-remove-permissions-config/`. Every action, including commits and
+`docs/adr/0006-remove-permissions-config.md`. Every action, including commits and
 git writes, now goes through Claude Code's default interactive prompting
 with no automated allow/ask shortcuts or deny blocks.
 

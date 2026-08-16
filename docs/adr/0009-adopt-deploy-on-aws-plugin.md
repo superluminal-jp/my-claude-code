@@ -4,7 +4,7 @@ date: 2026-08-07
 deciders: repository maintainer
 ---
 
-# 0004. Adopt AWS's official deploy-on-aws plugin
+# 0009. Adopt AWS's official deploy-on-aws plugin
 
 ## Context and problem statement
 

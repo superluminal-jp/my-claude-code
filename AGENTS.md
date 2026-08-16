@@ -71,7 +71,7 @@ When a question directly concerns AWS, GCP, or Azure services, features, or docu
 
 ## Enforced via hook or rule (Codex CLI only)
 
-This repository no longer ships Codex enforcement of its own. What you get depends entirely on whether you ran the official import. Claude Code's own `.claude/hooks/` was removed in its entirety (see `specs/025-remove-claude-hooks/`), so Claude Code now enforces **less** automatically than an imported-and-trusted Codex session does for the two rows below — the comparison used to run the other way. All rows below were measured on Codex 0.147.0, 2026-08-10.
+This repository no longer ships Codex enforcement of its own. What you get depends entirely on whether you ran the official import. Claude Code's own `.claude/hooks/` was removed in its entirety (see [ADR-0005](docs/adr/0005-remove-claude-hooks.md)), so Claude Code now enforces **less** automatically than an imported-and-trusted Codex session does for the two rows below — the comparison used to run the other way. All rows below were measured on Codex 0.147.0, 2026-08-10.
 
 **Two guards work, once armed.** After importing, run `/hooks` in the Codex TUI and trust the imported entries — Codex skips non-managed command hooks until their definition hashes are trusted, and re-review is required whenever a hook changes. There is no feature flag to set: `hooks` is stable and enabled by default (`codex_hooks` does not exist; ignore any guide that says otherwise).
 
@@ -87,4 +87,4 @@ This repository no longer ships Codex enforcement of its own. What you get depen
 
 The first three are absent for one structural reason: **Codex fires `PreToolUse`/`PostToolUse` for shell commands only.** Edits go through `apply_patch`, which those events never see, so a hook matching `Edit|Write|Delete` is imported and then never runs. This is not something a different configuration can fix.
 
-Claude Code no longer has an equivalent for these three either — `.claude/hooks/pre-edit.sh` was removed along with the rest of `.claude/hooks/`. `.claude/settings.json`'s `permissions` block, which used to be Claude Code's one remaining automatic guardrail, was also removed (see `specs/026-remove-permissions-config/`). Claude Code now enforces nothing automatically for this repository.
+Claude Code no longer has an equivalent for these three either — `.claude/hooks/pre-edit.sh` was removed along with the rest of `.claude/hooks/`. `.claude/settings.json`'s `permissions` block, which used to be Claude Code's one remaining automatic guardrail, was also removed (see [ADR-0006](docs/adr/0006-remove-permissions-config.md)). Claude Code now enforces nothing automatically for this repository.

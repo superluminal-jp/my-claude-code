@@ -56,7 +56,7 @@ bash path/to/my-claude-code/install.sh
 
 ## Codex CLI サポート
 
-このリポジトリは **Codex 向けの移植物を配布しません**。Codex 設定は OpenAI 公式の import フローで各自の環境に生成します。判断の記録は [ADR-0004](docs/adr/0004-adopt-official-codex-import.md)、根拠となる実測は [`specs/021-codex-official-import/`](specs/021-codex-official-import/) にあります。
+このリポジトリは **Codex 向けの移植物を配布しません**。Codex 設定は OpenAI 公式の import フローで各自の環境に生成します。判断の記録は [ADR-0004](docs/adr/0004-adopt-official-codex-import.md) を参照してください。以下の実測は `tests/run-codex-drift.sh` によってライブに再導出されます（「この節を古びさせないために」参照）。
 
 > 以下の挙動に関する記述はすべて **Codex 0.147.0 で 2026-08-10 に測定**したものです。対象は変化するソフトウェアなので、バージョンが動いていたら `tests/run-codex-drift.sh` を実行し、第三者の移行ガイドより実測を優先してください。
 
@@ -107,7 +107,7 @@ Codex は import して信頼すれば、Claude Code がもう持たないガー
 | プロンプト秘密スキャン | **なし**（hooks 削除済み） | **あり**（信頼後）— ターンが停止しモデル応答なし |
 | 編集時保護（`.git/`、`main`/`master`） | **なし**（hooks 削除済み） | **なし** |
 | 編集後の自動フォーマット/lint | **なし**（hooks 削除済み） | **なし** |
-| コマンドの allow/prompt 方針 | **なし**（こちらも削除済み — `specs/026-remove-permissions-config/` 参照） | **なし** — Codex 既定（確認を求める側）にフォールバック |
+| コマンドの allow/prompt 方針 | **なし**（こちらも削除済み — [ADR-0006](docs/adr/0006-remove-permissions-config.md) 参照） | **なし** — Codex 既定（確認を求める側）にフォールバック |
 | Spec Kit のプロンプト展開 | **なし**（hooks 削除済み） | **なし** — 対応イベントが存在しない |
 
 上記「なし」のうち最初の3つは同一の構造的理由です: **Codex の `PreToolUse`/`PostToolUse` はシェルコマンドにしか発火しません。** Codex の編集は `apply_patch` を通り、これらのイベントからは見えないため、`Edit|Write|Delete` に一致するフックは取り込まれても実行されません。設定では解決できません。hosted tools（WebSearch 等）も対象外です。
@@ -140,7 +140,7 @@ managed hooks 区間を残したままにすると、上記の多重発火警告
 
 ### この節を古びさせないために
 
-`tests/run-codex-drift.sh` がこの節の前提となる上流の事実（`DRIFT-01`〜`DRIFT-06`）を再導出します。`codex` 未インストール環境では SKIP します。警告が出たら [`quickstart.md`](specs/021-codex-official-import/quickstart.md) の Step 4–5 を再実行し、上記の測定日を更新してください。
+`tests/run-codex-drift.sh` がこの節の前提となる上流の事実（`DRIFT-01`〜`DRIFT-06`）を再導出します。`codex` 未インストール環境では SKIP します。警告が出たら、新しい Codex セッションで `/import` を実行し `/hooks` でインポート済みフックを信頼したうえで、上記のガードレール表が実際の挙動と一致するか手動で再確認し、測定日を更新してください。
 
 ## 代替: `CLAUDE.md` から import
 

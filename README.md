@@ -49,9 +49,9 @@ official import flow.
 This repository **no longer ships a Codex port**. Codex configuration is
 produced on your machine by OpenAI's official import flow; `install.sh` does not
 deploy any Codex artifact. See
-[ADR-0004](docs/adr/0004-adopt-official-codex-import.md) for why, and
-[`specs/021-codex-official-import/`](specs/021-codex-official-import/) for the
-measurements behind every claim below.
+[ADR-0004](docs/adr/0004-adopt-official-codex-import.md) for why; the
+measurements behind the claims below are re-derived live by
+`tests/run-codex-drift.sh` (see "Keeping this section true" below).
 
 > All behavioural statements in this section were **measured on Codex 0.147.0,
 > 2026-08-10**. They describe software that changes; re-run
@@ -122,7 +122,7 @@ feature flag to set: `hooks` is stable and enabled by default.
 | Prompt secret scanning | **no** (hooks removed) | **yes**, once trusted — the turn stops with no model response |
 | Edit protection (`.git/`, `main`/`master`) | **no** (hooks removed) | **no** |
 | Post-edit formatting / linting | **no** (hooks removed) | **no** |
-| Allow/prompt command policy | **no** (removed too — see `specs/026-remove-permissions-config/`) | **no** — Codex falls back to its own defaults, which ask rather than allow |
+| Allow/prompt command policy | **no** (removed too — see [ADR-0006](docs/adr/0006-remove-permissions-config.md)) | **no** — Codex falls back to its own defaults, which ask rather than allow |
 | Spec Kit prompt expansion | **no** (hooks removed) | **no** — Codex has no equivalent event |
 
 The three "no" rows above the last share one structural cause: **Codex fires
@@ -182,11 +182,13 @@ warning described above.
 
 `tests/run-codex-drift.sh` re-derives the upstream facts this section depends on
 (`DRIFT-01`…`DRIFT-06`) and **skips** when `codex` is not installed. When it
-warns, re-run `specs/021-codex-official-import/quickstart.md` Steps 4–5 and
-update the measured-on stamp above.
+warns, manually re-verify in a fresh Codex session: run `/import`, trust the
+imported hooks via `/hooks`, and re-check the guardrail table above still
+matches observed behaviour; then update the measured-on stamp.
 
-Cursor is explicitly out of scope — see
-[`specs/013-cross-agent-guardrail-implementation/spec.md`](specs/013-cross-agent-guardrail-implementation/spec.md).
+Cursor is explicitly out of scope: this repository builds guardrails for
+Claude Code and Codex CLI only, and a future feature may extend Cursor
+coverage using the same tool-agnostic script pattern.
 
 ## Install as user configuration
 

@@ -1,6 +1,6 @@
 # Live Documentation Rules
 
-Purpose: keep documentation truthful and co-located with the code it describes, across the whole lifecycle — not only as an after-the-fact patch. Applies when reviewing diffs/commits/PRs, when creating any Documentation Artifact, and before/during non-trivial work (see § 0). Documentation must never lie; sections 1–5 operationalize the Living Documentation approach (Martraire, 2019 — see [References](#references)) as five enforcement checks applied in every session: drift, separate-doc-PR, auto-generation, proximity, and no-redundancy. The five checks are this repo's own operationalization, not a canonical list from the source.
+Purpose: keep documentation truthful and co-located with the code it describes, across the whole lifecycle — not only as an after-the-fact patch. Applies when reviewing diffs/commits/PRs, when creating any Documentation Artifact, and before/during non-trivial work (see § 0). Documentation must never lie; sections 1–6 operationalize the Living Documentation approach (Martraire, 2019 — see [References](#references)) as six enforcement checks applied in every session: drift, separate-doc-PR, auto-generation, proximity, no-redundancy, and intermediate-artifact isolation. The six checks are this repo's own operationalization, not a canonical list from the source.
 
 ## 0. Documentation Across the Lifecycle (named standards)
 
@@ -16,7 +16,7 @@ Apply recognized documentation-process practices at each phase, from both the so
 | Before work | Project mgmt. | PMBOK® Guide, 7th ed. (PMI, 2021) | project charter, project management plan, and project documents (requirements/risk/stakeholder registers) drafted before execution |
 | Before work | Project mgmt. | PRINCE2 (originated UK Cabinet Office; PeopleCert since 2021) | Project Initiation Documentation (PID) — business case, plan, quality/risk approach — baselined before a stage starts |
 | During work | Software eng. | Docs as Code / *Docs Like Code* (Gentle, 2017) | docs versioned, reviewed, and updated in the same change as code, using the same tooling |
-| During work | Software eng. | Living Documentation (Martraire, 2019) | docs stay truthful and co-located — operationalized as §§ 1–5 below |
+| During work | Software eng. | Living Documentation (Martraire, 2019) | docs stay truthful and co-located — operationalized as §§ 1–6 below |
 | During work (structure) | Software eng. | Diátaxis (Procida, 2020) | organizes documentation output into tutorial / how-to guide / reference / explanation |
 | During work | Project mgmt. | PRINCE2 management products | Highlight Reports / End Stage Reports track progress against the PID as work proceeds |
 | Lifecycle-wide | Software eng. | ISO/IEC/IEEE 15289:2019 | defines required content for life-cycle documentation items across the whole process |
@@ -63,6 +63,14 @@ When asked to create a Documentation Artifact:
 - Check whether the same information already exists elsewhere in the repo (another doc, a docstring, a spec file, a contract file).
 - If a duplicate exists: point to the existing source and decline to create the duplicate.
 - Offer to add a cross-reference link if the developer needs discoverability from the new location.
+
+## 6. Intermediate-Artifact Isolation
+
+When writing or updating a Documentation Artifact intended to ship as part of the final product (README, docstring, public spec, OpenAPI annotation, code comment):
+- Do not link to or cite Spec Kit process artifacts (`specs/NNN-*/spec.md`, `plan.md`, `tasks.md`, `research.md`, `quickstart.md`, `checklists/`) — these are internal planning artifacts, not part of the delivered contract, and their paths are not stable references for downstream readers.
+- If a reader of the final artifact needs the rationale behind a decision, capture it in an ADR (`docs/adr/`) and link that instead — ADRs are the permanent, citable record; Spec Kit artifacts are ephemeral working documents (see `adr` skill).
+- If a Spec Kit link is already present in a shipped artifact: flag it as a **Live Documentation violation (Intermediate-Artifact Leakage)** and replace it with either an ADR reference or plain prose, or remove it if no permanent record is warranted.
+- Do NOT flag: artifacts within `specs/` linking to each other (e.g., `tasks.md` → `plan.md` → `spec.md`), or Spec Kit's own generated files referencing their own inputs — this check governs only what ships to end users/consumers of the code, not the planning trail itself.
 
 ## Override Handling
 
