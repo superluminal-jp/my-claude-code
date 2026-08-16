@@ -34,9 +34,9 @@ Not applicable — no shared infrastructure blocks the user stories below. Every
 
 **Independent Test**: `test -f AGENTS.md` fails; `grep -rn "AGENTS\.md" --exclude-dir=.git --exclude-dir=specs --exclude-dir=docs .` returns no output.
 
-- [ ] T001 [US1] Confirm baseline: run `grep -rl "AGENTS.md" --exclude-dir=.git --exclude-dir=specs .` and record every referencing file (expected: `README.md`, `README.ja.md`, `tests/run-subagent-delegation.sh`, `tests/run-digital-agency-frontend-skill.sh`), per research.md R1.
-- [ ] T002 [US1] Delete `AGENTS.md` from the repository root.
-- [ ] T003 [US1] Verify: run `test -f AGENTS.md && echo FAIL || echo OK` and confirm `OK`.
+- [X] T001 [US1] Confirm baseline: run `grep -rl "AGENTS.md" --exclude-dir=.git --exclude-dir=specs .` and record every referencing file (expected: `README.md`, `README.ja.md`, `tests/run-subagent-delegation.sh`, `tests/run-digital-agency-frontend-skill.sh`), per research.md R1.
+- [X] T002 [US1] Delete `AGENTS.md` from the repository root.
+- [X] T003 [US1] Verify: run `test -f AGENTS.md && echo FAIL || echo OK` and confirm `OK`.
 
 **Checkpoint**: `AGENTS.md` is gone. The four referencing files are updated in US2/US3 below (this story's independent test for *dangling* references only passes once those land too — US1 alone only guarantees the file itself is deleted).
 
@@ -48,14 +48,14 @@ Not applicable — no shared infrastructure blocks the user stories below. Every
 
 **Independent Test**: `grep -ni codex README.md README.ja.md install.sh` returns no output.
 
-- [ ] T004 [P] [US2] Confirm baseline: run `grep -ni codex README.md` and record the full line list (expected: matches research.md R2's ten-location table).
-- [ ] T005 [US2] Edit `README.md` per research.md R2 — apply all ten edits: rewrite the lines-13-17 sentence to end after "preserving unrelated user files."; delete the `AGENTS.md` bullet (lines 44-46); delete the entire `## Codex CLI support` section (lines 48-192) leaving exactly one blank line before `## Install as user configuration`; rewrite the lines-208-211 sentence to end after "upserts MCP servers."; delete the "Nothing under `~/.codex`..." bullet (lines 222-225); delete the `AGENTS.md` file-tree row (line 241); delete the two `run-codex-*.sh` lines from the Verification block (lines 277-278); delete the `# specify init --here --force --integration codex` example line (line 369); reword the `.agents/skills/` example sentence to drop the `codex` case (line 381). Depends on T004 for the confirmed anchor set.
-- [ ] T006 [US2] Verify: run `grep -ni codex README.md` and confirm no output.
-- [ ] T007 [P] [US2] Confirm baseline: run `grep -ni codex README.ja.md` and record the full line list (expected: matches research.md R3's eight-location table).
-- [ ] T008 [US2] Edit `README.ja.md` per research.md R3 — apply all eight edits, mirroring T005 in Japanese: delete the standalone Codex paragraph (line 9); delete the "Codex 側には何も展開しません" sentence (line 40, keep the rest of the paragraph); delete the entire `## Codex CLI サポート` section (lines 59-146) leaving one blank line before `## 代替: \`CLAUDE.md\` から import`; delete the `AGENTS.md` file-tree row (line 163); delete the two `run-codex-*.sh` lines from the Verification block (lines 180-181); delete the `# specify init --here --force --integration codex` example line (line 243); reword the `--integration` example sentence to drop the `codex` case, keeping `cursor-agent` (lines 254-255). Depends on T007 for the confirmed anchor set.
-- [ ] T009 [US2] Verify: run `grep -ni codex README.ja.md` and confirm no output.
-- [ ] T010 [P] [US2] Edit `install.sh` per research.md R4 — delete lines 6-8 (the Codex/AGENTS.md/ADR-0004 disclaimer), leaving the header as: shebang, sync/MCP/plugins description (3 lines), blank, `# Requires: claude CLI, uvx. Optional: GOOGLE_DEV_KNOWLEDGE_API_KEY.`, then the existing Usage lines unchanged.
-- [ ] T011 [P] [US2] Verify: run `grep -ni codex install.sh` and confirm no output; run `bash -n install.sh` to confirm the file is still syntactically valid.
+- [X] T004 [P] [US2] Confirm baseline: run `grep -ni codex README.md` and record the full line list (expected: matches research.md R2's ten-location table).
+- [X] T005 [US2] Edit `README.md` per research.md R2 — apply all ten edits: rewrite the lines-13-17 sentence to end after "preserving unrelated user files."; delete the `AGENTS.md` bullet (lines 44-46); delete the entire `## Codex CLI support` section (lines 48-192) leaving exactly one blank line before `## Install as user configuration`; rewrite the lines-208-211 sentence to end after "upserts MCP servers."; delete the "Nothing under `~/.codex`..." bullet (lines 222-225); delete the `AGENTS.md` file-tree row (line 241); delete the two `run-codex-*.sh` lines from the Verification block (lines 277-278); delete the `# specify init --here --force --integration codex` example line (line 369); reword the `.agents/skills/` example sentence to drop the `codex` case (line 381). Depends on T004 for the confirmed anchor set.
+- [X] T006 [US2] Verify: run `grep -ni codex README.md` and confirm no output.
+- [X] T007 [P] [US2] Confirm baseline: run `grep -ni codex README.ja.md` and record the full line list (expected: matches research.md R3's eight-location table).
+- [X] T008 [US2] Edit `README.ja.md` per research.md R3 — apply all eight edits, mirroring T005 in Japanese: delete the standalone Codex paragraph (line 9); delete the "Codex 側には何も展開しません" sentence (line 40, keep the rest of the paragraph); delete the entire `## Codex CLI サポート` section (lines 59-146) leaving one blank line before `## 代替: \`CLAUDE.md\` から import`; delete the `AGENTS.md` file-tree row (line 163); delete the two `run-codex-*.sh` lines from the Verification block (lines 180-181); delete the `# specify init --here --force --integration codex` example line (line 243); reword the `--integration` example sentence to drop the `codex` case, keeping `cursor-agent` (lines 254-255). Depends on T007 for the confirmed anchor set.
+- [X] T009 [US2] Verify: run `grep -ni codex README.ja.md` and confirm no output.
+- [X] T010 [P] [US2] Edit `install.sh` per research.md R4 — delete lines 6-8 (the Codex/AGENTS.md/ADR-0004 disclaimer), leaving the header as: shebang, sync/MCP/plugins description (3 lines), blank, `# Requires: claude CLI, uvx. Optional: GOOGLE_DEV_KNOWLEDGE_API_KEY.`, then the existing Usage lines unchanged.
+- [X] T011 [P] [US2] Verify: run `grep -ni codex install.sh` and confirm no output; run `bash -n install.sh` to confirm the file is still syntactically valid.
 
 **Checkpoint**: `README.md`, `README.ja.md`, and `install.sh` are fully Codex-free and self-consistent (no dangling section links, no gap in the file-structure trees).
 
@@ -67,18 +67,18 @@ Not applicable — no shared infrastructure blocks the user stories below. Every
 
 **Independent Test**: `tests/run-codex-references.sh` and `tests/run-codex-drift.sh` do not exist; `grep -rli codex tests/` returns no output; `tests/run-subagent-delegation.sh`, `tests/run-digital-agency-frontend-skill.sh`, and `tests/run-mcp-startup.sh` run with no new failure versus research.md R12's baseline.
 
-- [ ] T012 [P] [US3] Confirm baseline (pre-change): run `bash tests/run-codex-drift.sh` and `bash tests/run-codex-references.sh`, record pass counts (expected: 6 passed / 9 passed, matching research.md R12).
-- [ ] T013 [P] [US3] Delete `tests/run-codex-references.sh` entirely, per research.md R5.
-- [ ] T014 [P] [US3] Delete `tests/run-codex-drift.sh` entirely, per research.md R5.
-- [ ] T015 [US3] Verify: `test -f tests/run-codex-references.sh && echo FAIL || echo OK` and `test -f tests/run-codex-drift.sh && echo FAIL || echo OK` both print `OK`.
-- [ ] T016 [P] [US3] Confirm baseline (pre-change): run `bash tests/run-subagent-delegation.sh`, confirm it fails only on the pre-existing `.claude/rules/subagent-delegation.md`-missing checks and currently also passes `"root AGENTS.md addresses delegation for Codex"`, per research.md R12/R6.
-- [ ] T017 [US3] Edit `tests/run-subagent-delegation.sh` per research.md R6 — delete the `AGENTS_MD="$REPO_ROOT/AGENTS.md"` variable declaration (line 19) and the entire R5 block (lines 131-141: the `--- R5: cross-agent parity ---` header, its four-line comment, the `check "root AGENTS.md addresses delegation for Codex"` line, and the trailing blank line). Depends on T016.
-- [ ] T018 [US3] Verify: run `grep -ni "codex\|AGENTS_MD\|AGENTS\.md" tests/run-subagent-delegation.sh` and confirm no output; run `bash tests/run-subagent-delegation.sh` and confirm the only failing checks are the pre-existing ones identified in T016 (no check mentioning Codex/AGENTS.md appears in the output at all, pass or fail).
-- [ ] T019 [P] [US3] Confirm baseline (pre-change): run `bash tests/run-digital-agency-frontend-skill.sh`, confirm 47 passed including `"SYNC-SKILL-06: Codex routing lists the skill"`, per research.md R12/R7.
-- [ ] T020 [US3] Edit `tests/run-digital-agency-frontend-skill.sh` per research.md R7 — delete the `SYNC-SKILL-06` `check_contains` line inside `run_sync_contract()`, and extend the function's leading comment so it states `06` has now also been retired (moved from "kept" to "retired" in the existing "01…04, 06, 07 and 10" list). Depends on T019.
-- [ ] T021 [US3] Verify: run `grep -ni "codex\|AGENTS\.md" tests/run-digital-agency-frontend-skill.sh` and confirm no output; run `bash tests/run-digital-agency-frontend-skill.sh` and confirm 46 passed, 0 failed (one fewer than baseline, with no failures).
-- [ ] T022 [P] [US3] Edit `tests/run-mcp-startup.sh` per research.md R8 — reword the comment at lines 4-6 to replace "catches packages that Codex would report as a failed MCP handshake." with "is exactly what a client would see as a failed MCP handshake."
-- [ ] T023 [P] [US3] Verify: run `grep -ni codex tests/run-mcp-startup.sh` and confirm no output; run `bash tests/run-mcp-startup.sh` and confirm the same pass count as research.md R12's baseline (3/3 packages).
+- [X] T012 [P] [US3] Confirm baseline (pre-change): run `bash tests/run-codex-drift.sh` and `bash tests/run-codex-references.sh`, record pass counts (expected: 6 passed / 9 passed, matching research.md R12).
+- [X] T013 [P] [US3] Delete `tests/run-codex-references.sh` entirely, per research.md R5.
+- [X] T014 [P] [US3] Delete `tests/run-codex-drift.sh` entirely, per research.md R5.
+- [X] T015 [US3] Verify: `test -f tests/run-codex-references.sh && echo FAIL || echo OK` and `test -f tests/run-codex-drift.sh && echo FAIL || echo OK` both print `OK`.
+- [X] T016 [P] [US3] Confirm baseline (pre-change): run `bash tests/run-subagent-delegation.sh`, confirm it fails only on the pre-existing `.claude/rules/subagent-delegation.md`-missing checks and currently also passes `"root AGENTS.md addresses delegation for Codex"`, per research.md R12/R6.
+- [X] T017 [US3] Edit `tests/run-subagent-delegation.sh` per research.md R6 — delete the `AGENTS_MD="$REPO_ROOT/AGENTS.md"` variable declaration (line 19) and the entire R5 block (lines 131-141: the `--- R5: cross-agent parity ---` header, its four-line comment, the `check "root AGENTS.md addresses delegation for Codex"` line, and the trailing blank line). Depends on T016.
+- [X] T018 [US3] Verify: run `grep -ni "codex\|AGENTS_MD\|AGENTS\.md" tests/run-subagent-delegation.sh` and confirm no output; run `bash tests/run-subagent-delegation.sh` and confirm the only failing checks are the pre-existing ones identified in T016 (no check mentioning Codex/AGENTS.md appears in the output at all, pass or fail).
+- [X] T019 [P] [US3] Confirm baseline (pre-change): run `bash tests/run-digital-agency-frontend-skill.sh`, confirm 47 passed including `"SYNC-SKILL-06: Codex routing lists the skill"`, per research.md R12/R7.
+- [X] T020 [US3] Edit `tests/run-digital-agency-frontend-skill.sh` per research.md R7 — delete the `SYNC-SKILL-06` `check_contains` line inside `run_sync_contract()`, and extend the function's leading comment so it states `06` has now also been retired (moved from "kept" to "retired" in the existing "01…04, 06, 07 and 10" list). Depends on T019.
+- [X] T021 [US3] Verify: run `grep -ni "codex\|AGENTS\.md" tests/run-digital-agency-frontend-skill.sh` and confirm no output; run `bash tests/run-digital-agency-frontend-skill.sh` and confirm 46 passed, 0 failed (one fewer than baseline, with no failures).
+- [X] T022 [P] [US3] Edit `tests/run-mcp-startup.sh` per research.md R8 — reword the comment at lines 4-6 to replace "catches packages that Codex would report as a failed MCP handshake." with "is exactly what a client would see as a failed MCP handshake."
+- [X] T023 [P] [US3] Verify: run `grep -ni codex tests/run-mcp-startup.sh` and confirm no output; run `bash tests/run-mcp-startup.sh` and confirm the same pass count as research.md R12's baseline (3/3 packages).
 
 **Checkpoint**: `tests/` directory has zero Codex references anywhere (`grep -rli codex tests/` returns nothing), and every suite this feature touches behaves exactly as predicted by the baseline in research.md R12.
 
@@ -90,11 +90,11 @@ Not applicable — no shared infrastructure blocks the user stories below. Every
 
 **Independent Test**: `docs/adr/0010-remove-codex-cli-support.md` exists with `status: Accepted`; `git diff main -- docs/adr/0002-*.md` is empty; `git diff main -- docs/adr/0004-*.md` shows only its `status:` line changed.
 
-- [ ] T024 [US4] Confirm baseline: run `head -5 docs/adr/0002-deploy-codex-configuration-at-user-scope.md docs/adr/0004-adopt-official-codex-import.md` and record their current `status:` lines (expected: `Superseded by 0004` and `Proposed`, per research.md R9).
-- [ ] T025 [US4] Change `docs/adr/0004-adopt-official-codex-import.md`'s frontmatter `status:` line only, from `Proposed` to `Superseded by 0010`. No other line in the file changes.
-- [ ] T026 [US4] Verify: run `git diff main -- docs/adr/0004-adopt-official-codex-import.md` and confirm exactly one changed line (the `status:` line); run `git diff main -- docs/adr/0002-deploy-codex-configuration-at-user-scope.md` and confirm no output.
-- [ ] T027 [US4] Author `docs/adr/0010-remove-codex-cli-support.md` in MADR format (matching the structure of ADR-0001/0004-0009: frontmatter `status: Accepted`, date 2026-08-16, deciders; `# 0010. Remove Codex CLI support`; Context and problem statement — summarizing ADR-0004's Proposed-but-implemented history, ADR-0002's existing Superseded status, and this feature's scope per spec.md; Decision drivers; Considered options; Decision outcome — drop Codex documentation/guidance entirely rather than continue documenting the user-driven `/import` path; Consequences; Confirmation — cite the quickstart.md validation sequence and the edited/deleted test suites; More information — "Supersedes ADR-0004", link to `specs/031-remove-codex-support/`).
-- [ ] T028 [US4] Verify: run `head -5 docs/adr/0010-remove-codex-cli-support.md` and confirm `status: Accepted`; confirm the file names ADR-0004 as superseded.
+- [X] T024 [US4] Confirm baseline: run `head -5 docs/adr/0002-deploy-codex-configuration-at-user-scope.md docs/adr/0004-adopt-official-codex-import.md` and record their current `status:` lines (expected: `Superseded by 0004` and `Proposed`, per research.md R9).
+- [X] T025 [US4] Change `docs/adr/0004-adopt-official-codex-import.md`'s frontmatter `status:` line only, from `Proposed` to `Superseded by 0010`. No other line in the file changes.
+- [X] T026 [US4] Verify: run `git diff main -- docs/adr/0004-adopt-official-codex-import.md` and confirm exactly one changed line (the `status:` line); run `git diff main -- docs/adr/0002-deploy-codex-configuration-at-user-scope.md` and confirm no output.
+- [X] T027 [US4] Author `docs/adr/0010-remove-codex-cli-support.md` in MADR format (matching the structure of ADR-0001/0004-0009: frontmatter `status: Accepted`, date 2026-08-16, deciders; `# 0010. Remove Codex CLI support`; Context and problem statement — summarizing ADR-0004's Proposed-but-implemented history, ADR-0002's existing Superseded status, and this feature's scope per spec.md; Decision drivers; Considered options; Decision outcome — drop Codex documentation/guidance entirely rather than continue documenting the user-driven `/import` path; Consequences; Confirmation — describe the quickstart.md validation sequence and the edited/deleted test suites in prose, without a markdown link to the `specs/` path (Live Documentation's Intermediate-Artifact Isolation rule — ADRs are a permanent shipped record and must not cite ephemeral Spec Kit process artifacts as a stable reference); More information — "Supersedes ADR-0004", relative-link to `docs/adr/0004-*.md` and `docs/adr/0002-*.md` only).
+- [X] T028 [US4] Verify: run `head -5 docs/adr/0010-remove-codex-cli-support.md` and confirm `status: Accepted`; confirm the file names ADR-0004 as superseded.
 
 **Checkpoint**: The ADR chain is complete and accurate (0002 → superseded by 0004 → superseded by 0010, Accepted).
 
@@ -104,12 +104,12 @@ Not applicable — no shared infrastructure blocks the user stories below. Every
 
 **Purpose**: `.gitignore` cleanup and full-repository verification per spec.md Success Criteria.
 
-- [ ] T029 [P] Edit `.gitignore` per research.md R10 — reword the comment at lines 76-78 to drop the word "Codex" while keeping both citations and both ignore lines (`.codex/`, `.agents/`) unchanged: "# These directories may be written locally by external CLI tooling this\n# repository does not generate, deploy, or manage — see\n# specs/021-codex-official-import/ and docs/adr/0004-*."
-- [ ] T030 [P] Verify: run `grep -ni codex .gitignore` and confirm exactly two hits, both bare `.codex/`/`.agents/` lines with no "Codex" word in surrounding prose (SC-001's documented exception).
-- [ ] T031 Run the full quickstart.md validation sequence (all 8 steps) and confirm every expected outcome holds, in `specs/031-remove-codex-support/quickstart.md`.
-- [ ] T032 [P] Run `grep -rli codex --exclude-dir=.git --exclude-dir=specs .` and confirm the result set matches exactly: `docs/adr/0002-*.md`, `docs/adr/0004-*.md`, `docs/adr/0010-*.md`, `.specify/integrations/codex.manifest.json`, `.specify/extensions/.registry`, `.gitignore` (SC-001).
-- [ ] T033 [P] Run `git status --porcelain specs/` and `git status --porcelain .specify/integrations/ .specify/extensions/.registry` and confirm both return no output (SC-005).
-- [ ] T034 [P] Run the full remaining behavior-suite set: `for t in tests/run-*.sh; do bash "$t" >/tmp/t.log 2>&1; echo "$t: exit $?"; done` and confirm every suite's exit code matches research.md R12's predicted post-change state (SC-003).
+- [X] T029 [P] Edit `.gitignore` per research.md R10 — reword the comment at lines 76-78 to drop the word "Codex" and both citations (both citation paths' own names contain "codex"), keeping both ignore lines (`.codex/`, `.agents/`) unchanged: "# May be written locally by external developer tooling this repository does\n# not generate, deploy, or manage."
+- [X] T030 [P] Verify: run `grep -ni codex .gitignore` and confirm exactly two hits, both bare `.codex/`/`.agents/` lines with no "Codex" word in surrounding prose (SC-001's documented exception).
+- [X] T031 Run the full quickstart.md validation sequence (all 8 steps) and confirm every expected outcome holds, in `specs/031-remove-codex-support/quickstart.md`.
+- [X] T032 [P] Run `grep -rli codex --exclude-dir=.git --exclude-dir=specs .` and confirm every result falls under `docs/adr/` (any ADR body, not just 0002/0004/0010 — several other Accepted ADRs cite Codex as historical rationale and are correctly untouched), `.specify/integrations/codex.manifest.json`, `.specify/extensions/.registry`, or `.gitignore` — no result outside those locations (SC-001).
+- [X] T033 [P] Run `git status --porcelain specs/ ':!specs/031-remove-codex-support'` and `git status --porcelain .specify/integrations/ .specify/extensions/.registry` and confirm both return no output (SC-005).
+- [X] T034 [P] Run the full remaining behavior-suite set: `for t in tests/run-*.sh; do bash "$t" >/tmp/t.log 2>&1; echo "$t: exit $?"; done` and confirm every suite's exit code matches research.md R12's predicted post-change state (SC-003).
 
 ---
 

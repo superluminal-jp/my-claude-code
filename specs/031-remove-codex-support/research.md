@@ -160,13 +160,12 @@ Current (lines 76-80):
 .agents/
 ```
 
-**Finding**: The ignore rules themselves (`.codex/`, `.agents/`) still serve a real purpose after this feature — a developer can still run `/import` or `migrate-to-codex` on their own initiative even though this repository no longer documents or supports that workflow, and those tools still write to `.codex/`/`.agents/` by their own external convention. The comment's citations (`specs/021-codex-official-import/`, `docs/adr/0004-*`) remain valid paths after this feature (specs/ is untouched per R-out-of-scope; ADR-0004 still exists, now Superseded rather than Proposed) — so nothing here is actually dangling. What changes is the word "Codex" itself: per spec.md's Edge Cases resolution, the prose explanation should describe the directories generically rather than naming a product this repository no longer discusses in its own documentation.
+**Finding**: The ignore rules themselves (`.codex/`, `.agents/`) still serve a real purpose after this feature — a developer can still run `/import` or `migrate-to-codex` on their own initiative even though this repository no longer documents or supports that workflow, and those tools still write to `.codex/`/`.agents/` by their own external convention. The comment's existing citations are `specs/021-codex-official-import/` and `docs/adr/0004-*` — but both path *names* themselves contain the substring "codex" (the external tool's own naming, same as the directories being ignored), so keeping either citation would leave "codex" inside the comment's prose, contradicting the "drop the word from prose" resolution in spec.md's Edge Cases. There is no way to cite a specific artifact explaining this decision without its name containing "codex."
 
-**Decision**: Keep both ignore lines unchanged. Reword the comment to drop "Codex" from the prose while keeping the citations (still valid) and the underlying rationale:
+**Decision**: Keep both ignore lines unchanged. Reword the comment to describe the directories generically and drop the citations entirely rather than cite an artifact whose own name defeats the purpose of the rewording:
 ```gitignore
-# These directories may be written locally by external CLI tooling this
-# repository does not generate, deploy, or manage — see
-# specs/021-codex-official-import/ and docs/adr/0004-*.
+# May be written locally by external developer tooling this repository does
+# not generate, deploy, or manage.
 .codex/
 .agents/
 ```

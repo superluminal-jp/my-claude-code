@@ -16,7 +16,6 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RULE="$REPO_ROOT/.claude/rules/subagent-delegation.md"
 CLAUDE_MD="$REPO_ROOT/.claude/CLAUDE.md"
-AGENTS_MD="$REPO_ROOT/AGENTS.md"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -127,17 +126,6 @@ check "rule does not restate CLAUDE.md's parallelism instruction" "$c"
 # SC-006: the guidance itself must not be copied into the always-loaded index.
 grep -qi 'large amounts of output' "$CLAUDE_MD" 2>/dev/null && c=0 || c=1
 check "CLAUDE.md carries a pointer, not a second copy of the guidance" "$c"
-
-# --- R5: cross-agent parity -------------------------------------------------
-
-# Feature 021 retired the deployment map (.codex/README.md) along with the rest
-# of the hand-maintained Codex port. The cross-agent question it answered —
-# "is the subagent-delegation rule ported to Codex?" — is now answered in the
-# root AGENTS.md, which is what Codex actually reads. ADR-0004 records why the
-# exclusion still stands: Codex custom agents set defaults rather than
-# isolating context from the parent turn.
-grep -Fq 'subagent' "$AGENTS_MD" 2>/dev/null && c=1 || c=0
-check "root AGENTS.md addresses delegation for Codex" "$c"
 
 # --- Always-loaded size discipline -----------------------------------------
 

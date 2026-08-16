@@ -3,7 +3,7 @@
 #
 # Closing stdin lets a healthy MCP server initialize and then exit cleanly on
 # EOF. Import-time dependency failures instead produce a non-zero exit, which
-# catches packages that Codex would report as a failed MCP handshake.
+# is exactly what a client would see as a failed MCP handshake.
 
 set -uo pipefail
 

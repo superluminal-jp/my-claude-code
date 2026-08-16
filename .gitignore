@@ -73,8 +73,7 @@ coverage/
 # Logs
 *.log
 
-# Codex configuration is generated locally by OpenAI's official tooling
-# (`/import`, or migrate-to-codex) and is never committed — see
-# specs/021-codex-official-import/ and docs/adr/0004-*.
+# May be written locally by external developer tooling this repository does
+# not generate, deploy, or manage.
 .codex/
 .agents/

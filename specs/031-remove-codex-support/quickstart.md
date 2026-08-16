@@ -25,18 +25,15 @@ Expected: both commands return no output.
 grep -rli "codex" --exclude-dir=.git --exclude-dir=specs .
 ```
 
-Expected output set is exactly:
+Expected output set (excluding `specs/`, already excluded by the command above): every file under `docs/adr/` that happens to mention "codex" (not just 0002/0004/0010 — several other Accepted ADRs, e.g. 0003, 0005, 0006, cite Codex as part of their own immutable historical rationale and are not edited by this feature), plus:
 ```
-docs/adr/0002-deploy-codex-configuration-at-user-scope.md
-docs/adr/0004-adopt-official-codex-import.md
-docs/adr/0010-remove-codex-cli-support.md
 .specify/integrations/codex.manifest.json
 .specify/extensions/.registry
 .gitignore
 ```
 (`.gitignore` matches only on its two literal `.codex/`/`.agents/` lines, not its comment — confirm with `grep -ni codex .gitignore` showing exactly two hits, both bare directory paths.)
 
-Any other file in this list is a defect.
+Any file outside `docs/adr/`, `.specify/integrations/`, `.specify/extensions/.registry`, and `.gitignore` appearing in this list is a defect.
 
 ## 4. Test suites this feature edits directly
 
@@ -87,8 +84,8 @@ Expected: `0002`'s `status:` line unchanged (`Superseded by 0004`) and its `git 
 ## 8. Untouched trees (SC-005)
 
 ```sh
-git status --porcelain specs/
+git status --porcelain specs/ ':!specs/031-remove-codex-support'
 git status --porcelain .specify/integrations/ .specify/extensions/.registry
 ```
 
-Expected: both commands return no output.
+Expected: both commands return no output (the first command excludes this feature's own spec directory, which is of course created and edited by this feature).
