@@ -94,16 +94,14 @@ run_dashboard_contract() {
 }
 
 run_sync_contract() {
-  # Feature 021 removed this repository's Codex port: the `.agents/skills/`
-  # symlinks, the installer's CUSTOM_SKILLS registration, `.codex/AGENTS.md`,
-  # `.codex/README.md`, and the codex-sync suite are gone, so SYNC-SKILL-01…04,
-  # 06, 07 and 10 no longer describe anything that exists. Codex now discovers
-  # this skill through `/import`, which generates `.agents/skills/` locally
-  # from `.claude/skills/` — the authored source below is what must stay true.
+  # Feature 021 removed this repository's former hand-maintained CLI port:
+  # the `.agents/skills/` symlinks, the installer's CUSTOM_SKILLS
+  # registration, and the generated sync suite are gone, so SYNC-SKILL-01…04,
+  # 06, 07 and 10 no longer describe anything that exists — the authored
+  # source below is what must stay true.
   check "SYNC-SKILL-02: authored skill exists at the source of truth" "$([ -e "$REPO_ROOT/.claude/skills/digital-agency-frontend/SKILL.md" ] && echo 1 || echo 0)"
   check_contains "SYNC-SKILL-05: Claude routing lists the skill" "$REPO_ROOT/.claude/CLAUDE.md" 'digital-agency-frontend'
   check_contains "SYNC-SKILL-05A: canonical Claude routing composes the skill" "$REPO_ROOT/.claude/rules/skill-routing.md" 'coder.*digital-agency-frontend|digital-agency-frontend.*coder'
-  check_contains "SYNC-SKILL-06: Codex routing lists the skill" "$REPO_ROOT/AGENTS.md" 'digital-agency-frontend'
   check_contains "SYNC-SKILL-08: English README lists the skill" "$REPO_ROOT/README.md" 'digital-agency-frontend'
   check_contains "SYNC-SKILL-09: Japanese README lists the skill" "$REPO_ROOT/README.ja.md" 'digital-agency-frontend'
 }

@@ -3,10 +3,6 @@
 # upsert the repository's MCP servers, and install its required Claude Code
 # plugins. Re-running is idempotent.
 #
-# Claude Code only. This installer deploys NO Codex CLI configuration and never
-# touches ~/.codex or ~/.agents — Codex configuration is produced by the
-# developer with OpenAI's official /import flow. See README.md § "Codex CLI
-# support" and docs/adr/0004-adopt-official-codex-import.md.
 # Requires: claude CLI, uvx. Optional: GOOGLE_DEV_KNOWLEDGE_API_KEY.
 #
 # Usage (from the cloned repo):

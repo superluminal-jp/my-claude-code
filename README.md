@@ -12,9 +12,7 @@ improvement history.
 
 `install.sh` synchronizes the repository-managed parts of `.claude/` to
 `~/.claude/`, making its settings, rules, skills, agents, and memory available
-across projects while preserving unrelated user files. It does not deploy
-Codex CLI configuration; see [Codex CLI support](#codex-cli-support) for the
-official import flow.
+across projects while preserving unrelated user files.
 
 ## What this provides
 
@@ -41,155 +39,6 @@ official import flow.
 - **`install.sh`** — Copies `.claude/` to `~/.claude/`, registers all MCP
   servers at user scope, and installs/enables this repository's Claude Code
   plugins (see [Plugins](#plugins))
-- **`AGENTS.md`** (repo root) — the always-on guidance Codex CLI reads natively,
-  flattened from `.claude/CLAUDE.md` and `.claude/rules/` because Codex does not
-  expand `@` imports. Not installed anywhere; Codex picks it up from the repo
-
-## Codex CLI support
-
-This repository **no longer ships a Codex port**. Codex configuration is
-produced on your machine by OpenAI's official import flow; `install.sh` does not
-deploy any Codex artifact. See
-[ADR-0004](docs/adr/0004-adopt-official-codex-import.md) for why; the
-measurements behind the claims below are re-derived live by
-`tests/run-codex-drift.sh` (see "Keeping this section true" below).
-
-> All behavioural statements in this section were **measured on Codex 0.147.0,
-> 2026-08-10**. They describe software that changes; re-run
-> `tests/run-codex-drift.sh` (below) if the version has moved, and treat any
-> third-party migration guide as secondary to a live measurement.
-
-### Instructions reach Codex without an import
-
-The repo-root [`AGENTS.md`](AGENTS.md) is read by Codex natively — it walks from
-the git root down to your working directory and concatenates what it finds. No
-installer, no import step.
-
-**Keep it flat.** Codex does **not** expand `@path` imports
-([openai/codex#17401](https://github.com/openai/codex/issues/17401) is open), so
-`AGENTS.md` cannot delegate to `.claude/rules/*.md` the way `CLAUDE.md` does.
-Every rule that should reach Codex is written there directly.
-
-### Setting up skills, MCP servers and hooks
-
-Use **`/import`** — the interactive command inside Codex CLI. There is no
-`codex import` subcommand, and it is unavailable during a running task, in a
-remote session, or while connected to a local app-server daemon.
-
-```bash
-codex          # start an interactive session
-# /import  →  choose Claude Code  →  choose what to import
-```
-
-It converts instruction files to `AGENTS.md`, `settings.json` to `config.toml`,
-and brings across skills, MCP servers, hooks, slash commands, subagents, project
-memories and recent chats. It writes into **both** `~/.codex` and the project
-tree (`.codex/`, `.agents/`) — both of which are git-ignored here, so an import
-never produces a commit-ready diff. Run `git status` afterwards to confirm.
-
-**Optional: inspect before you import.** The `migrate-to-codex` curated skill
-ships a non-interactive CLI (cached at
-`~/.codex/vendor_imports/skills/skills/.curated/migrate-to-codex/scripts/migrate-to-codex.py`)
-whose read-only modes show what a migration would do:
-
-```bash
-M=~/.codex/vendor_imports/skills/skills/.curated/migrate-to-codex/scripts/migrate-to-codex.py
-python3 "$M" --source ./.claude/ --scan-only
-python3 "$M" --source ./.claude/ --target ./.codex/ --doctor
-python3 "$M" --source ./.claude/ --target ./.codex/ --dry-run
-python3 "$M" --validate-target ./.codex/     # after importing
-```
-
-⚠️ **Do not run its write modes against this repository.** They symlink the root
-`AGENTS.md` to `CLAUDE.md` — destroying the instructions above — and replace
-every skill with a copy. If it happens, recover with `git checkout AGENTS.md`.
-`/import` does neither.
-
-### What Codex enforces, and what it does not
-
-Claude Code enforces nothing automatically here anymore, in any form:
-`.claude/hooks/` was removed in its entirety, and `.claude/settings.json`'s
-`permissions` allow/ask/deny block — briefly the last guardrail standing —
-was removed too, with no replacement mechanism for either. Codex, once
-imported and trusted, enforces guardrails Claude Code no longer does: after
-importing, run `/hooks` in the Codex TUI and **trust the
-imported entries** — non-managed hooks are skipped until their definition
-hash is trusted, and re-review is needed whenever a hook changes. There is no
-feature flag to set: `hooks` is stable and enabled by default.
-
-| Guardrail | Claude Code | Codex |
-|---|---|---|
-| Destructive command blocking | **no** (hooks removed) | **yes**, once trusted — verified end to end |
-| Prompt secret scanning | **no** (hooks removed) | **yes**, once trusted — the turn stops with no model response |
-| Edit protection (`.git/`, `main`/`master`) | **no** (hooks removed) | **no** |
-| Post-edit formatting / linting | **no** (hooks removed) | **no** |
-| Allow/prompt command policy | **no** (removed too — see [ADR-0006](docs/adr/0006-remove-permissions-config.md)) | **no** — Codex falls back to its own defaults, which ask rather than allow |
-| Spec Kit prompt expansion | **no** (hooks removed) | **no** — Codex has no equivalent event |
-
-The three "no" rows above the last share one structural cause: **Codex fires
-`PreToolUse`/`PostToolUse` for shell commands only.** Codex edits go through
-`apply_patch`, which those events never see, so an imported hook matching
-`Edit|Write|Delete` runs never. No configuration fixes this. Hosted tools (e.g.
-WebSearch) are likewise not covered.
-
-Two more things worth knowing:
-
-- **Hooks fire once per config layer.** Codex merges layers instead of
-  overriding them, so the same guard registered in `~/.codex/hooks.json`, in
-  `~/.codex/config.toml`, and in `.codex/hooks.json` runs three times per turn —
-  Codex warns `loading hooks from both … prefer a single representation for this
-  layer`. Keep one representation per layer.
-- **A hook script present in `.codex/hooks/` is not evidence it runs.** `/import`
-  copies scripts it never registers (e.g. `statusline.sh`); check
-  `.codex/hooks.json` for what is actually wired.
-
-**The Claude side is affected by all of this too, now completely.**
-`.claude/hooks/pre-edit.sh` no longer exists, and neither does
-`.claude/settings.json`'s `permissions` block — Claude Code enforces nothing
-automatically here at all anymore. `scripts/guardrails/*.sh` doesn't exist
-either now; there is no shared decision logic left for anything to call.
-
-### Other conversion gaps
-
-- **Skills arrive as copies, not symlinks.** `/import` adds only what is missing
-  and leaves existing skills alone, but edits to `.claude/skills/` afterwards do
-  not propagate until you import again — and nothing detects the gap.
-- **Generated subagents are not supported here.** `/import` writes
-  `.codex/agents/*.toml`; this repository does not rely on them, because Codex
-  custom agents set defaults rather than isolating context from the parent turn.
-- **`speckit-*` skills need no migration** — they are regenerated per project by
-  `specify init --integration codex` (see [ADR-0001](docs/adr/0001-remove-vendored-speckit-skills.md)).
-- Expect `readiness: low` and manual-review rows from `--doctor`: Claude-only
-  skill frontmatter (`when_to_use`, `metadata`, `argument-hint`, `context`)
-  becomes prose rather than behaviour.
-
-### If you installed an earlier version of this repository
-
-Previous releases deployed Codex files into your home directory. The current
-`install.sh` does **not** remove them, because it does not touch user-owned
-Codex configuration. Remove them by hand if you want a clean slate:
-
-- `~/.codex/hooks/*-adapter.sh`
-- `~/.codex/rules/guardrails.rules`
-- `~/.codex/prompts/verify-config.md`
-- `~/.agents/skills/` (8 symlinks)
-- the `# >>> my-claude-code managed hooks` and
-  `# >>> my-claude-code managed MCP servers` blocks in `~/.codex/config.toml`
-
-Leaving the managed hooks block in place is what causes the duplicate-firing
-warning described above.
-
-### Keeping this section true
-
-`tests/run-codex-drift.sh` re-derives the upstream facts this section depends on
-(`DRIFT-01`…`DRIFT-06`) and **skips** when `codex` is not installed. When it
-warns, manually re-verify in a fresh Codex session: run `/import`, trust the
-imported hooks via `/hooks`, and re-check the guardrail table above still
-matches observed behaviour; then update the measured-on stamp.
-
-Cursor is explicitly out of scope: this repository builds guardrails for
-Claude Code and Codex CLI only, and a future feature may extend Cursor
-coverage using the same tool-agnostic script pattern.
 
 ## Install as user configuration
 
@@ -205,10 +54,7 @@ bash path/to/my-claude-code/install.sh
 Requires the `claude` CLI and `uvx`. The Google Developer Knowledge MCP is
 registered only when `GOOGLE_DEV_KNOWLEDGE_API_KEY` is set.
 
-Re-running is safe: it re-syncs managed paths and upserts MCP servers. This
-repository no longer ships any hooks to import into Codex — see
-[Codex CLI support](#codex-cli-support) for what Codex enforces on its own,
-independent of anything here.
+Re-running is safe: it re-syncs managed paths and upserts MCP servers.
 
 **Important (overwrite/replace behavior):**
 
@@ -219,10 +65,6 @@ independent of anything here.
   those managed paths.
 - Unrelated paths in `~/.claude`, including `settings.local.json`, are
   preserved. Keep personal-only files outside the managed paths above.
-- **Nothing under `~/.codex` or `~/.agents` is touched.** Codex configuration is
-  yours to manage via `/import`; see [Codex CLI support](#codex-cli-support),
-  including how to clean up files an earlier version of this repository left
-  behind.
 
 ### Alternative: import via your own `CLAUDE.md`
 
@@ -238,7 +80,6 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
-├── AGENTS.md                       # Project-only Codex guidance for this repository
 ├── install.sh                      # Sync managed Claude paths + register MCP servers + install plugins
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
 └── .claude/                        # Source for installer-managed Claude paths
@@ -274,8 +115,6 @@ After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
 bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
 bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
-./tests/run-codex-references.sh
-./tests/run-codex-drift.sh
 ```
 
 `run-install.sh` uses an isolated home and stubbed external commands. All suites
@@ -366,7 +205,6 @@ sequence once per project:
 uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@vX.Y.Z
 specify self upgrade
 specify init --here --force --integration claude
-# specify init --here --force --integration codex
 # specify init --here --force --integration cursor-agent
 specify extension add git
 ```
@@ -378,7 +216,7 @@ specify extension add git
 - `specify init --here --force --integration <agent>` — generates
   `/speckit.*` slash commands as `speckit-*` skills under that project's own
   `.claude/skills/` (or the equivalent path for the chosen `--integration`,
-  e.g. `.agents/skills/` for `codex`, `.cursor/skills/` for `cursor-agent`)
+  e.g. `.cursor/skills/` for `cursor-agent`)
   — a project-local artifact, gitignored regardless of which agent
   directory it lands in (see `.gitignore`). Re-run with a different
   `--integration` value to target another agent in the same project; each
