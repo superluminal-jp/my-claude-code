@@ -85,7 +85,14 @@ my-claude-code/
 bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
 bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
+bash tests/run-removed-guardrails.sh
 ```
+
+`run-removed-guardrails.sh` は特定の変更に紐づかない、常設の回帰防止チェックです —
+`.claude/hooks/`・`scripts/`・`.claude/settings.json` の `permissions` ブロックが
+再導入されたら失敗します（[ADR-0005](docs/adr/0005-remove-claude-hooks.md)、
+[ADR-0006](docs/adr/0006-remove-permissions-config.md)、
+[ADR-0007](docs/adr/0007-remove-scripts.md) 参照）。
 
 `run-install.sh` は隔離した HOME と外部コマンドの stub を使います。
 `run-mcp-startup.sh` だけは設定済み MCP サーバーの起動コマンドを実行するため

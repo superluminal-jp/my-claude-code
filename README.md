@@ -115,7 +115,15 @@ After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
 bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
 bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
+bash tests/run-removed-guardrails.sh
 ```
+
+`run-removed-guardrails.sh` is a standing regression guard, not tied to any
+particular change — it fails if `.claude/hooks/`, `scripts/`, or
+`.claude/settings.json`'s `permissions` block are ever reintroduced (see
+[ADR-0005](docs/adr/0005-remove-claude-hooks.md),
+[ADR-0006](docs/adr/0006-remove-permissions-config.md),
+[ADR-0007](docs/adr/0007-remove-scripts.md)).
 
 `run-install.sh` uses an isolated home and stubbed external commands. All suites
 except `run-mcp-startup.sh` are local checks; the startup suite exercises the

@@ -41,6 +41,28 @@ cat >"$STUB_BIN/claude" <<'STUB'
 #!/usr/bin/env bash
 set -eu
 printf '%s\n' "$*" >>"$CLAUDE_LOG"
+
+# Stateful enough to exercise install.sh's own already-registered/
+# already-installed branches on a second run: report back only what an
+# earlier call in this same log has already logged. Builds the whole
+# response into one variable and writes it with a single printf — install.sh
+# pipes this into `grep -q`, which closes its end of the pipe as soon as it
+# finds a match; a loop of separate printfs risks SIGPIPE on a later line
+# once that happens, which (combined with install.sh's own `pipefail`) would
+# make an already-successful match look like a pipeline failure.
+if [ "${1:-}" = "plugin" ] && [ "${2:-}" = "marketplace" ] && [ "${3:-}" = "list" ]; then
+  grep -qx 'plugin marketplace add anthropics/claude-plugins-official' "$CLAUDE_LOG" &&
+    printf '%s\n' 'claude-plugins-official'
+elif [ "${1:-}" = "plugin" ] && [ "${2:-}" = "list" ]; then
+  out=""
+  for p in frontend-design code-review skill-creator github deploy-on-aws microsoft-docs; do
+    if grep -qx "plugin install ${p}@claude-plugins-official" "$CLAUDE_LOG"; then
+      out="${out}${p}@claude-plugins-official
+"
+    fi
+  done
+  printf '%s' "$out"
+fi
 STUB
 
 cat >"$STUB_BIN/uvx" <<'STUB'
@@ -50,20 +72,22 @@ STUB
 
 chmod +x "$STUB_BIN/claude" "$STUB_BIN/uvx"
 
-# Seed paths managed by current and earlier repository versions.
+# Seed paths managed by the current repository version. hooks/ and
+# scripts/guardrails/ are no longer managed paths (install.sh dropped their
+# uninstall-path cleanup once those directories had been gone from this
+# repository long enough — see commit 3be3ffa); a leftover copy from a much
+# older install is now ordinary user-owned territory, same as any other
+# untracked path under ~/.claude, so this test no longer seeds or asserts
+# against them.
 mkdir -p \
-  "$TARGET/hooks" \
   "$TARGET/rules" \
   "$TARGET/skills/stale-skill" \
   "$TARGET/agents" \
-  "$TARGET/commands" \
-  "$TARGET/scripts/guardrails"
-printf '%s\n' stale >"$TARGET/hooks/stale.sh"
+  "$TARGET/commands"
 printf '%s\n' stale >"$TARGET/rules/stale.md"
 printf '%s\n' stale >"$TARGET/skills/stale-skill/SKILL.md"
 printf '%s\n' stale >"$TARGET/agents/stale.md"
 printf '%s\n' stale >"$TARGET/commands/stale.md"
-printf '%s\n' stale >"$TARGET/scripts/guardrails/stale.sh"
 
 # These paths are user-owned because the installer does not declare them.
 printf '%s\n' preserve >"$TARGET/user-owned.txt"
@@ -101,10 +125,8 @@ diff -r "$expected_skills" "$TARGET/skills" >/dev/null ||
   fail "skills contain only repository-managed shared skills"
 pass "skills contain only repository-managed shared skills"
 
-assert_absent "$TARGET/hooks" "retired hooks are removed"
 assert_absent "$TARGET/agents" "absent managed agents are removed"
 assert_absent "$TARGET/commands" "retired commands are removed"
-assert_absent "$TARGET/scripts/guardrails" "retired guardrails are removed"
 
 grep -qx 'preserve' "$TARGET/user-owned.txt" || fail "unrelated user file is preserved"
 pass "unrelated user file is preserved"
@@ -146,5 +168,75 @@ if grep -qF '.specify/extensions/git/git-config.yml' "$REPO_ROOT/install.sh"; th
   fail "installer has no source-tree Spec Kit mutation"
 fi
 pass "installer has no source-tree Spec Kit mutation"
+
+[ -x "$TARGET/install.sh" ] || fail "installed install.sh is executable"
+pass "installed install.sh is executable"
+
+# --- Preflight: missing required commands -----------------------------------
+# An empty PATH means `command -v claude` / `command -v uvx` both fail, so
+# install.sh must exit 1 with its own diagnostic before touching anything —
+# this path was previously dead as far as this suite was concerned.
+EMPTY_BIN="$TEST_ROOT/empty-bin"
+mkdir -p "$EMPTY_BIN"
+# PATH reassignment applies to resolving the `bash` command word itself, not
+# just to what install.sh sees — symlink the real interpreter in so `bash` is
+# still found, while claude/uvx (elsewhere on the real PATH) are not.
+ln -s "$(command -v bash)" "$EMPTY_BIN/bash"
+preflight_output="$TEST_ROOT/preflight.out"
+if HOME="$TEST_ROOT/unused-home" PATH="$EMPTY_BIN" bash "$REPO_ROOT/install.sh" \
+  >"$preflight_output" 2>&1; then
+  fail "install.sh exits non-zero when claude/uvx are missing"
+fi
+grep -q 'Missing required command: claude' "$preflight_output" ||
+  fail "install.sh names the missing command in its preflight error"
+pass "install.sh fails fast with a clear message when claude/uvx are missing"
+
+# --- Idempotent re-run, and the GOOGLE_DEV_KNOWLEDGE_API_KEY-unset branch ---
+# Re-run against the SAME target, appending to the SAME $CLAUDE_LOG (the claude
+# stub's `plugin marketplace list` / `plugin list` branches look back through
+# that log's full history, so state only carries over if the log is
+# continuous — a fresh log for the second run would make every run look like
+# a first run). This exercises install.sh's "already present" branches for
+# real, not just its "fresh install" branches. `env -u` explicitly removes
+# GOOGLE_DEV_KNOWLEDGE_API_KEY rather than merely not re-setting it — an
+# ambient value already exported in the *outer* shell running this test would
+# otherwise silently leak through and defeat this branch entirely (a prefix
+# assignment overrides an inherited value, but the absence of one does not).
+lines_before_second_run="$(wc -l <"$CLAUDE_LOG")"
+second_output="$TEST_ROOT/install-second.out"
+if ! env -u GOOGLE_DEV_KNOWLEDGE_API_KEY \
+  HOME="$TEST_HOME" \
+  PATH="$STUB_BIN:/usr/bin:/bin:/usr/sbin:/sbin" \
+  CLAUDE_LOG="$CLAUDE_LOG" \
+  bash "$REPO_ROOT/install.sh" >"$second_output" 2>&1; then
+  sed 's/^/    /' "$second_output" >&2
+  fail "install.sh is idempotent on a second run"
+fi
+pass "install.sh is idempotent on a second run"
+
+diff -r "$REPO_ROOT/.claude/rules" "$TARGET/rules" >/dev/null ||
+  fail "rules directory still matches the repository after a second run"
+pass "rules directory still matches the repository after a second run"
+
+second_run_log="$TEST_ROOT/claude-second-run.log"
+tail -n "+$((lines_before_second_run + 1))" "$CLAUDE_LOG" >"$second_run_log"
+
+grep -qxF 'plugin marketplace update claude-plugins-official' "$second_run_log" ||
+  fail "second run updates rather than re-adds an already-registered marketplace"
+pass "second run updates rather than re-adds an already-registered marketplace"
+
+for official_plugin in frontend-design code-review skill-creator github deploy-on-aws microsoft-docs; do
+  grep -qxF "plugin install ${official_plugin}@claude-plugins-official" "$second_run_log" &&
+    fail "second run does not re-install already-installed plugin ${official_plugin}"
+done
+pass "second run does not re-install any already-installed plugin"
+
+grep -qxF 'mcp remove -s user google-developer-knowledge' "$second_run_log" ||
+  fail "google-developer-knowledge is removed when its API key is unset"
+pass "google-developer-knowledge is removed when its API key is unset"
+
+grep -qF 'mcp add -s user google-developer-knowledge' "$second_run_log" &&
+  fail "google-developer-knowledge is not re-added when its API key is unset"
+pass "google-developer-knowledge is not re-added when its API key is unset"
 
 printf '%s\n' 'All installer contract checks passed.'
