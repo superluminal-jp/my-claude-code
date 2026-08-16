@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Synchronize the managed .claude/ configuration into the user's ~/.claude/
-# and upsert the repository's MCP servers. Re-running is idempotent.
+# Synchronize the managed .claude/ configuration into the user's ~/.claude/,
+# upsert the repository's MCP servers, and install its required Claude Code
+# plugins. Re-running is idempotent.
 #
 # Claude Code only. This installer deploys NO Codex CLI configuration and never
 # touches ~/.codex or ~/.agents — Codex configuration is produced by the
@@ -111,5 +112,32 @@ fi
 upsert_user_mcp microsoft-learn \
   --transport http \
   https://learn.microsoft.com/api/mcp
+
+# 4. Install this repository's Claude Code plugins, all resolved from the
+# claude-plugins-official marketplace catalog: frontend-design (UI/UX
+# implementation guidance), code-review (multi-agent PR review, incl.
+# `/code-review ultra`), skill-creator (scaffold/evaluate skills), github
+# (GitHub's official issue/PR/repo MCP server), deploy-on-aws (AWS's
+# architecture-diagram + deploy skills — adopted in full per
+# docs/adr/0009-adopt-deploy-on-aws-plugin.md; its deploy/mutating-AWS-CLI
+# capability requires confirmation on every use per `rules/permissions.md`,
+# not a plugin-level gate), microsoft-docs (Microsoft's official docs MCP
+# server; bundles its own `microsoft-learn` MCP entry, duplicating this
+# repository's `.mcp.json` entry of the same name under a different source —
+# same redundant-not-conflicting pattern as deploy-on-aws's `awsknowledge`,
+# see README.md § Plugins). Mirrored in `.claude/settings.json`'s
+# `enabledPlugins` for project-scope discovery; this step performs the actual
+# user-scope install so it works across projects.
+if ! claude plugin marketplace list 2>/dev/null | grep -q "claude-plugins-official"; then
+  claude plugin marketplace add anthropics/claude-plugins-official
+else
+  claude plugin marketplace update claude-plugins-official >/dev/null 2>&1 || true
+fi
+for official_plugin in frontend-design code-review skill-creator github deploy-on-aws microsoft-docs; do
+  if ! claude plugin list 2>/dev/null | grep -q "${official_plugin}@claude-plugins-official"; then
+    claude plugin install "${official_plugin}@claude-plugins-official"
+  fi
+  claude plugin enable "${official_plugin}@claude-plugins-official" >/dev/null 2>&1 || true
+done
 
 echo "Done. ~/.claude and user-scope MCP are synced to this repository state."

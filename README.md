@@ -38,8 +38,9 @@ official import flow.
   `specify init` under whichever agent directory `--integration` targets
   (`.claude/skills/`, `.agents/skills/`, `.cursor/skills/`), all gitignored
   (see [Opt-in to spec-kit](#opt-in-to-spec-kit))
-- **`install.sh`** — Copies `.claude/` to `~/.claude/` and registers all MCP
-  servers at user scope
+- **`install.sh`** — Copies `.claude/` to `~/.claude/`, registers all MCP
+  servers at user scope, and installs/enables this repository's Claude Code
+  plugins (see [Plugins](#plugins))
 - **`AGENTS.md`** (repo root) — the always-on guidance Codex CLI reads natively,
   flattened from `.claude/CLAUDE.md` and `.claude/rules/` because Codex does not
   expand `@` imports. Not installed anywhere; Codex picks it up from the repo
@@ -193,8 +194,9 @@ coverage using the same tool-agnostic script pattern.
 ## Install as user configuration
 
 Run the bundled installer from the cloned repo. It synchronizes the declared
-managed paths from `.claude/` to `~/.claude/` and registers all MCP servers at
-user scope:
+managed paths from `.claude/` to `~/.claude/`, registers all MCP servers at
+user scope, and installs/enables this repository's Claude Code plugins (see
+[Plugins](#plugins)):
 
 ```sh
 bash path/to/my-claude-code/install.sh
@@ -237,7 +239,7 @@ my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
 ├── AGENTS.md                       # Project-only Codex guidance for this repository
-├── install.sh                      # Sync managed Claude paths + register MCP servers
+├── install.sh                      # Sync managed Claude paths + register MCP servers + install plugins
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
 └── .claude/                        # Source for installer-managed Claude paths
     ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
@@ -266,7 +268,7 @@ my-claude-code/
 ## Verification
 
 After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
-(MCP allowlist), or [`.claude/rules/mcp.md`](.claude/rules/mcp.md):
+(MCP allowlist, `enabledPlugins`), or [`.claude/rules/mcp.md`](.claude/rules/mcp.md):
 
 ```sh
 bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
@@ -302,6 +304,39 @@ claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.
 ```
 
 Or run `~/.claude/install.sh` (see [Install](#install-as-user-configuration)) — the installer performs these registrations.
+
+## Plugins
+
+This repository depends on six Claude Code plugins, all resolved from
+Anthropic's official `claude-plugins-official` marketplace
+(`anthropics/claude-plugins-official`, which also mirrors third-party plugins
+such as `github` and `microsoft-docs`):
+
+| Plugin | Author | Purpose |
+|---|---|---|
+| `frontend-design` | Anthropic | UI/UX implementation guidance |
+| `code-review` | Anthropic | Multi-agent PR review, incl. `/code-review ultra` |
+| `skill-creator` | Anthropic | Scaffold, update, and evaluate skills |
+| `github` | GitHub | Official GitHub MCP server (issues, PRs, repo search) |
+| `deploy-on-aws` | AWS | AWS architecture diagrams + deploy/IaC skills — adopted in full per [ADR-0009](docs/adr/0009-adopt-deploy-on-aws-plugin.md); its deploy/mutating-AWS-CLI capability requires confirmation on every use per [`.claude/rules/permissions.md`](.claude/rules/permissions.md), not a plugin-level gate |
+| `microsoft-docs` | Microsoft | Official Microsoft/Azure/.NET docs MCP server + skills. Bundles its own MCP entry named `microsoft-learn` pointing at the same `https://learn.microsoft.com/api/mcp` endpoint as this repository's own [`.mcp.json`](.mcp.json) `microsoft-learn` entry — redundant, not conflicting, left as-is (same pattern as `deploy-on-aws`'s `awsknowledge` duplication, [ADR-0009](docs/adr/0009-adopt-deploy-on-aws-plugin.md)) |
+
+Declared for project-scope discovery in `.claude/settings.json`'s
+`enabledPlugins`, so any session opened in this repository is prompted to
+install whichever of the six it doesn't already have. `install.sh` performs
+the actual install: it adds the marketplace if missing, then installs and
+enables each plugin at user scope so it works across all your projects, not
+only this one. Equivalent commands:
+
+```sh
+claude plugin marketplace add anthropics/claude-plugins-official
+claude plugin install frontend-design@claude-plugins-official
+claude plugin install code-review@claude-plugins-official
+claude plugin install skill-creator@claude-plugins-official
+claude plugin install github@claude-plugins-official
+claude plugin install deploy-on-aws@claude-plugins-official
+claude plugin install microsoft-docs@claude-plugins-official
+```
 
 ## Overriding per project
 
