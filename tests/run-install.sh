@@ -125,6 +125,18 @@ expected_mcps="$(jq -r '.mcpServers | keys[]' "$REPO_ROOT/.mcp.json" | sort)"
 }
 pass "all and only current MCP servers are upserted"
 
+grep -qxF 'plugin marketplace add anthropics/claude-plugins-official' "$CLAUDE_LOG" ||
+  fail "official plugin marketplace is added on a fresh environment"
+pass "official plugin marketplace is added on a fresh environment"
+
+for official_plugin in frontend-design code-review skill-creator github deploy-on-aws microsoft-docs; do
+  grep -qxF "plugin install ${official_plugin}@claude-plugins-official" "$CLAUDE_LOG" ||
+    fail "${official_plugin} is installed on a fresh environment"
+  grep -qxF "plugin enable ${official_plugin}@claude-plugins-official" "$CLAUDE_LOG" ||
+    fail "${official_plugin} is enabled on a fresh environment"
+done
+pass "official plugins (frontend-design, code-review, skill-creator, github, deploy-on-aws, microsoft-docs) are installed and enabled"
+
 if grep -qE '(^|[^[:alnum:]_])jq([^[:alnum:]_]|$)' "$REPO_ROOT/install.sh"; then
   fail "installer has no unused jq dependency"
 fi

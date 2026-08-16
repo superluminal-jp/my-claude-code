@@ -35,7 +35,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 bash path/to/my-claude-code/install.sh
 ```
 
-インストーラーは `~/.claude` を同期し、Claude Code のユーザースコープ MCP を登録/更新します。**Codex 側には何も展開しません** — `~/.codex` と `~/.agents` はユーザーの所有物として一切触れません。
+インストーラーは `~/.claude` を同期し、Claude Code のユーザースコープ MCP を登録/更新し、
+本リポジトリが依存する Claude Code プラグイン（後述「プラグイン」参照）をインストール/有効化します。
+**Codex 側には何も展開しません** — `~/.codex` と `~/.agents` はユーザーの所有物として一切触れません。
 
 実行には `claude` CLI と `uvx` が必要です。Google Developer Knowledge MCP は
 `GOOGLE_DEV_KNOWLEDGE_API_KEY` が設定されている場合だけ登録されます。
@@ -187,6 +189,29 @@ bash tests/run-digital-agency-frontend-skill.sh
 
 プロジェクトスコープ定義は `.mcp.json` にあります。  
 カタログ（transport / パッケージ更新方針等）は [`.claude/rules/mcp.md`](.claude/rules/mcp.md) を参照してください。
+
+## プラグイン
+
+このリポジトリは Anthropic 公式マーケットプレイス `claude-plugins-official`
+（`anthropics/claude-plugins-official`。`github` や `microsoft-docs` のような
+サードパーティ製プラグインも同じマーケットプレイスに収録）から解決される、
+6 つの Claude Code プラグインに依存します: `frontend-design`（UI/UX 実装ガイダンス、
+Anthropic）、`code-review`（マルチエージェント PR レビュー、`/code-review ultra` 含む、
+Anthropic）、`skill-creator`（skill の雛形作成・評価、Anthropic）、`github`
+（GitHub 公式 MCP サーバー、GitHub）、`deploy-on-aws`（AWS アーキテクチャ図 + デプロイ/IaC
+skill。[ADR-0009](docs/adr/0009-adopt-deploy-on-aws-plugin.md) に基づき全体採用。
+デプロイ/AWS CLI 変更系操作は plugin 側のゲートではなく
+[`.claude/rules/permissions.md`](.claude/rules/permissions.md) により毎回確認が必要、AWS)、
+`microsoft-docs`（Microsoft 公式ドキュメント MCP サーバー + skill。この plugin が同梱する
+MCP エントリ `microsoft-learn` は本リポジトリの `.mcp.json` にある同名エントリと同じ
+`https://learn.microsoft.com/api/mcp` を指す重複登録だが、競合ではないため許容
+— `deploy-on-aws` の `awsknowledge` 重複と同じパターン、Microsoft）。
+
+`.claude/settings.json` の `enabledPlugins` にプロジェクトスコープで宣言済みのため、
+このリポジトリでセッションを開くと未インストールのプラグインについてインストールを
+促されます。実際のインストールは `install.sh` が行います（マーケットプレイスが
+未登録なら追加し、各プラグインをユーザースコープでインストール/有効化するため、
+このリポジトリに限らず全プロジェクトで使えます）。
 
 ## プロジェクト単位の上書き
 
