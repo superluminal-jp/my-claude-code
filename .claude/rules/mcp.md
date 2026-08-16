@@ -1,6 +1,6 @@
 # MCP servers catalog
 
-Purpose: know which MCP server answers which cloud-docs question, and when calling one is mandatory. Applies when a request concerns AWS, GCP, or Azure. Every `.mcp.json` entry is expected to appear here as a matter of manual policy (the script that used to check this was removed — see `specs/027-remove-scripts/`).
+Purpose: know which MCP server answers which cloud-docs question, and when calling one is mandatory. Applies when a request concerns AWS, GCP, or Azure. Every `.mcp.json` entry is expected to appear here as a matter of manual policy (the script that used to check this was removed — see `docs/adr/0007-remove-scripts.md`).
 
 Runtime definitions are in `.mcp.json`. Optional user-scope defaults are installed by `~/.claude/install.sh` (Google MCP requires `GOOGLE_DEV_KNOWLEDGE_API_KEY`).
 

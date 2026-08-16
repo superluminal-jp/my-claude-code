@@ -1,6 +1,6 @@
 # Git Workflow Rules
 
-Purpose: make every commit, branch, and PR follow one observable, reviewable standard, so history reads as intent. Applies whenever Claude commits, branches, or opens a PR (including this session's own git operations). Grounded in Conventional Commits 1.0.0, the Tim Pope / Pro Git commit-message conventions (the 50/72 rule and imperative mood), and trunk-based development (see [References](#references)). Composes with `permissions.md` (destructive git operations require confirmation as policy, though no automated enforcement of it remains — see `specs/026-remove-permissions-config/`) and `live-documentation.md` (docs move with code).
+Purpose: make every commit, branch, and PR follow one observable, reviewable standard, so history reads as intent. Applies whenever Claude commits, branches, or opens a PR (including this session's own git operations). Grounded in Conventional Commits 1.0.0, the Tim Pope / Pro Git commit-message conventions (the 50/72 rule and imperative mood), and trunk-based development (see [References](#references)). Composes with `permissions.md` (destructive git operations require confirmation as policy, though no automated enforcement of it remains — see `docs/adr/0006-remove-permissions-config.md`) and `live-documentation.md` (docs move with code).
 
 ## Commit messages — Conventional Commits
 
