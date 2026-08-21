@@ -6,7 +6,7 @@
 - **Increment（何が完成したか）**：
 - **Product Goalへの寄与**：
 
-「Product Goalへの具体的な足がかり。使用可能でなければならない。」[SG20, p.11] 1つのSprintで複数のIncrementを作ることができる。Definition of Doneを満たした時点で、Product Backlog itemはIncrementとなる。[SG20, p.12]（Definition of Doneはプロダクト単位で定義する。product/definition-of-done.mdを参照）
+「Product Goalへの具体的な足がかり。使用可能でなければならない。」[SG20, p.11] 1つのSprintで複数のIncrementを作ることができる。Definition of Doneを満たした時点で、Product Backlog itemはIncrementとなる。[SG20, p.12]（Definition of Doneはプロダクト単位で定義する。Definition of Doneテンプレートを参照）
 
 ---
 
