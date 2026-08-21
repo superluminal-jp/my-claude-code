@@ -1,14 +1,18 @@
 # Sprint Review テンプレート
 
-出典：_The Scrum Guide_（Ken Schwaber and Jeff Sutherland、2020年11月）<https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf> — `[SG20, p.9-10, p.12]`。本テンプレートの構造はこの一次資料にのみ基づく。
+## タイムボックス
+
+1か月Sprintで最大4時間。
+
+## 検討内容
+
+- 成果の提示（Doneとなった／Doneとならなかった項目）：
+- Product Goalへの進捗：
+- 今後の適応：
 
 ## 目的
 
 > 「スプリントレビューの目的は、スプリントの成果を検査し、今後の適応を決定することである。」[SG20, p.9]
-
-## タイムボックス
-
-1か月Sprintで最大4時間。
 
 ## 位置づけ
 
@@ -16,8 +20,6 @@
 >
 > 「スプリントレビューのことを価値をリリースするための関門と見なすべきではない。」[SG20, p.12]
 
-## 検討内容
+---
 
-- 成果の提示（Doneとなった／Doneとならなかった項目）：
-- Product Goalへの進捗：
-- 今後の適応：
+出典：_The Scrum Guide_（Ken Schwaber and Jeff Sutherland、2020年11月）<https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf> — `[SG20, p.9-10, p.12]`。本テンプレートの構造はこの一次資料にのみ基づく。
