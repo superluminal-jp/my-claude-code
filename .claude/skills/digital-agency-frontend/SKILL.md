@@ -5,70 +5,112 @@ description: Build, modify, or review React and Tailwind CSS web frontends using
 
 # Digital Agency Frontend
 
-Create source-grounded React/Tailwind interfaces that help people complete public-service tasks or understand data. Treat official examples as adaptable starting points, not a component package or proof of accessibility.
+Build source-grounded React/Tailwind interfaces that help people complete
+public-service tasks or understand data. The official DADS material is an
+adaptable starting point — not a drop-in component library, and not by itself
+proof of accessibility.
 
-## Scope of this skill
+## Scope
 
-1. Use this skill for DADS-specific design, source, dashboard, and accessibility decisions.
-2. Preserve the target repository's architecture and instructions. Do not introduce React or Tailwind CSS solely to make this skill applicable.
-3. Resolve material ambiguity in users, task or decision, use context, content or data, constraints, and success criterion before implementation (step 1 below) rather than inventing intent.
-4. Treat implementation as test-first and boundary-safe: write or update a failing behavior or accessibility test before implementing, keep the change type-safe, validate external data at its boundary, and keep documentation synchronized with any changed contract in the same change (steps 4–6 below).
+- Use this skill for DADS design, sourcing, dashboard, and accessibility decisions.
+- Preserve the target repository's architecture and instructions. Do not introduce React or Tailwind CSS just to make this skill apply.
+- Web only. `.pbit`, Power BI themes, and Power BI editing are out of scope.
+- Resolve material ambiguity in users, task, use context, data, constraints, and completion criterion before implementing (step 1) rather than inventing intent.
+
+## Bundled sources
+
+`references/dads-docs/` is a verbatim copy of the Digital Agency's official
+Markdown export of the design system site — guidance, foundations, all component
+specifications, and accessibility policy. It is design guidance and contains
+almost no code. Grep it rather than guessing, and never edit it.
+
+Find the right page by Japanese name through the archive's own manifest:
+
+```sh
+DADS=.claude/skills/digital-agency-frontend/references/dads-docs
+grep -o '\[[^]]*ボタン[^]]*\]([^)]*)' "$DADS/MANIFEST.md"    # → components/button/index.md
+grep -m1 '^# ' "$DADS/index.md"                              # → current archive version
+```
+
+Each page's front matter carries a `source_url`. Open it when current detail
+matters; the archive is a dated snapshot, and the live official source always wins.
 
 ## Load references progressively
 
-- Read [references/dads-react-tailwind.md](references/dads-react-tailwind.md) for every matching task.
-- Read [references/dashboard-design.md](references/dashboard-design.md) only when the task creates, changes, or reviews a dashboard.
-- Do not follow a deeper reference chain. Open the official URLs named by the relevant reference when current detail affects the work.
+| Read | When |
+|---|---|
+| `references/sourcing-and-licensing.md` | Choosing which source to trust, refreshing the archive, or writing attribution |
+| `references/component-implementation.md` | Writing, porting, or reviewing DADS React/Tailwind code — token classes and component idioms |
+| `references/accessibility-gate.md` | Before reporting any interface work complete |
+| `references/dashboard-design.md` | The task creates, changes, or reviews a dashboard |
+| `references/dads-docs/<path>` | The specific foundation or component being built |
 
-## Execute the workflow
+Never quote a version number, token name, or package API from memory. Read it
+from the archive, the installed package, or the live source.
+
+## Workflow
 
 ### 1. Establish scope and evidence
 
-- Inspect `package.json`, lockfiles, React/Tailwind configuration, routing, state and data access, component conventions, tests, lint, formatting, and build commands.
-- Confirm a web-only React/Tailwind deliverable. Treat `.pbit`, Power BI themes, and Power BI editing as out of scope.
-- Capture the primary users, task or decision, use context, content/data, constraints, and a verifiable completion criterion.
-- For an existing interface, inspect the rendered behavior when a local browser/testing capability is available; do not infer the whole experience from source alone.
+Inspect `package.json`, lockfiles, Tailwind and TypeScript configuration,
+routing, state and data access, component conventions, and the test, lint,
+format, and build commands. Note whether `@digital-go-jp/*` packages are already
+installed — if so, they are authoritative for tokens and component APIs.
 
-### 2. Verify current official guidance
+Capture the primary users, the task or decision, use context, content or data,
+constraints, and a verifiable completion criterion. For an existing interface,
+inspect rendered behavior when browser or test tooling is available rather than
+inferring the whole experience from source.
 
-- Prefer live official Digital Agency sources over the dated bundled summary whenever network access is available.
-- Restrict source research to the Digital Agency sites and official `digital-go-jp` repositories listed in the references.
-- If live official content conflicts with a bundled reference, follow the current source, disclose the drift, and identify the local reference that needs an update.
-- If current sources cannot be reached, use the bundled reference as a dated fallback and state that freshness was not verified.
+### 2. Verify current guidance
 
-### 3. Design before implementation
+Prefer live official sources over the bundled archive whenever the network is
+reachable, and resolve package versions at task time. Restrict research to the
+Digital Agency sites and the official `digital-go-jp` organization. If live
+content conflicts with the archive, follow the live source, disclose the drift,
+and name the stale path. If nothing current is reachable, use the archive and
+state that freshness was not verified. Details: `sourcing-and-licensing.md`.
 
-- Map each user task to the smallest suitable DADS foundation, content pattern, and component set.
-- Keep native semantics and straightforward document structure. Add ARIA only when native HTML cannot express the required behavior.
-- Reuse the project's existing primitives when they already meet the DADS intent; record material visual or behavioral deviations and their reason.
-- For dashboards, complete the audience/decision/type/information hierarchy work in the dashboard reference before selecting charts.
+### 3. Design before implementing
+
+Map each user task to the smallest suitable foundation, content pattern, and
+component set. Keep native semantics and a straightforward document structure;
+add ARIA only where native HTML cannot express the behavior. Reuse the project's
+existing primitives when they already meet the DADS intent, and record material
+deviations with their reason. For dashboards, finish the audience, decision,
+type, and information-hierarchy work in `dashboard-design.md` before choosing
+charts.
 
 ### 4. Implement test-first and type-safe
 
-- Write or update a failing behavior or accessibility test before implementation where the repository can automate the contract.
-- Keep the change type-safe; do not weaken or bypass the project's type checker to make code compile.
-- Adapt only the needed official React example. Reconcile its React, Tailwind, and TypeScript assumptions with the active project instead of copying a directory wholesale or forcing a downgrade.
-- Use the official theme plugin only after checking current compatibility and installation guidance. Do not replace an established project token system without approval.
-- Validate external data at its boundary and render untrusted text through React's normal escaping; do not add unsafe HTML injection.
+Write or update a failing behavior or accessibility test before implementing,
+wherever the repository can automate the contract. Keep the change type-safe —
+do not weaken or bypass the type checker to make code compile.
 
-### 5. Apply the accessibility release gate
+Prefer depending on the official npm packages over copying source; copy only when
+the project must own and diverge from the code, and say so. Adapt what you take
+to the target project's React, Tailwind, and TypeScript versions instead of
+copying a directory wholesale or forcing a downgrade. Validate external data at
+its boundary and render untrusted text through React's normal escaping.
+Token classes and component idioms: `component-implementation.md`.
 
-- Verify semantics, headings, landmarks, labels, names/roles/values, keyboard operation, focus order and visibility, status/error communication, zoom and reflow, text/non-text contrast, non-color cues, target size, motion, and text alternatives.
-- Apply JIS X 8341-3:2016 level AA and WCAG 2.2 level AA. Test the integrated page; an official component or Storybook example alone does not establish conformance.
-- Run the project's automated accessibility checks when configured, then perform the applicable manual keyboard, screen-reader-oriented, responsive, forced-colors, and content-comprehension checks.
-- Do not report completion while a known level A or AA failure remains undisclosed. State any exception, user impact, owner, and follow-up.
+### 5. Apply the accessibility gate
 
-### 6. Close out with traceability
+Run `accessibility-gate.md` in full. Do not report completion while a known
+level A or AA failure stands undisclosed.
 
-- Run the project's test, type-check, lint, format, and build commands.
-- Update the documentation artifact (README, component/prop reference, story) for any changed public component contract in the same change.
-- Report the official sources checked and whether live freshness was verified.
-- Report DADS adaptations or deviations, dashboard decisions when applicable, automated and manual accessibility evidence, and unresolved risks.
-- Apply the attribution or license guidance in the DADS reference when official content or code is reused.
+### 6. Close out
+
+Run the project's test, type-check, lint, format, and build commands. Update the
+documentation artifact for any changed public component contract in the same
+change. Report: sources checked and whether freshness was verified; DADS
+adaptations and deviations; dashboard decisions where applicable; automated and
+manual accessibility evidence; and unresolved risks. Apply the attribution rules
+in `sourcing-and-licensing.md` when official content or code is reused.
 
 ## Guardrails
 
-- Do not claim that an interface is a Digital Agency product or endorsed by the Digital Agency.
-- Do not use color, hover, pointer precision, animation, or a visual chart as the sole carrier of essential meaning.
-- Do not invent official tokens, components, chart rules, or conformance claims. Label project-specific additions as such.
-- Do not vendor the DADS documentation archive, dashboard publication, Power BI templates, icons, or illustrations without a separately confirmed need and license review.
+- Never claim an interface is a Digital Agency product or is endorsed by the Digital Agency.
+- Never let color, hover, pointer precision, animation, or a chart alone carry essential meaning.
+- Never invent tokens, components, chart rules, version numbers, or conformance claims. Label project-specific additions as such.
+- Do not vendor the Figma data, Power BI templates, icons, or illustrations — they carry separate terms from the MIT-licensed code and the attribution-only documentation.
