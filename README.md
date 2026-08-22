@@ -82,6 +82,11 @@ my-claude-code/
 ├── README.md
 ├── install.sh                      # Sync managed Claude paths + register MCP servers + install plugins
 ├── .mcp.json                       # Project-scope MCP server definitions (reference)
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                  # Runs tests/run-*.sh on every push/PR to main (required check)
+│   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
+│   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
     ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
     ├── settings.json               # User-level Claude Code settings
@@ -128,6 +133,34 @@ particular change — it fails if `.claude/hooks/`, `scripts/`, or
 `run-install.sh` uses an isolated home and stubbed external commands. All suites
 except `run-mcp-startup.sh` are local checks; the startup suite exercises the
 configured MCP server commands and therefore requires network access.
+
+## Repository security automation
+
+The four scripts above also run automatically in CI (`.github/workflows/ci.yml`)
+on every push and pull request to `main`, and `main` is protected by a
+repository ruleset (`.github/rulesets/main-required-checks.json`) requiring
+that check to pass before anything merges.
+
+On top of that, GitHub's own vulnerability detection is wired to respond, not
+just alert:
+
+- **Dependabot**: security-fix pull requests for patch/minor version bumps
+  auto-merge once CI is green (`.github/workflows/dependabot-automerge.yml`).
+  Major-version bumps, and anything not authored by `dependabot[bot]`, are
+  never auto-merged — they wait for manual review. There is no
+  `.github/dependabot.yml`: security updates work from the dependency graph
+  without one, and adding an `updates:` entry would force a scheduled,
+  non-security update stream this design deliberately avoids (see
+  [ADR-0012](docs/adr/0012-dependabot-automerge-scope.md)).
+- **CodeQL**: default setup scans this repo's Python code. Findings are
+  surfaced as code-scanning alerts for manual triage — nothing is auto-fixed
+  or auto-merged.
+- **Secret scanning + push protection**: enabled repo-wide. New pushes
+  containing a recognized secret pattern are rejected before they reach any
+  branch, for the subset of secret types GitHub supports for push protection
+  specifically (detection-only for the rest — see GitHub's
+  [supported secret scanning patterns](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns)
+  for which is which).
 
 ## MCP Servers
 

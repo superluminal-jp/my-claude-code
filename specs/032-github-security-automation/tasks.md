@@ -101,9 +101,9 @@ This repository has no `src/`/application layer. All new files live under `.gith
 
 **Purpose**: Close the documentation and decision-record gates raised in plan.md's Constitution Check.
 
-- [ ] T014 [P] Add a "Security automation" section to `README.md` and `README.ja.md` describing what auto-merges, what doesn't, and where alerts are visible (Drift Detection gate, plan.md Constitution Check)
-- [ ] T015 Propose an ADR at `docs/adr/NNNN-dependabot-automerge-scope.md` (via the `adr` skill) capturing the auto-merge scope decision (patch/minor only, this repo only) and the rejected alternatives from research.md §2–§4 (ADR gate, plan.md Constitution Check)
-- [ ] T016 Run the full `quickstart.md` sequence (§1–§7) once more after all tasks land, as a final drift check against research.md's original findings
+- [X] T014 [P] Added "Repository security automation" to `README.md` and "リポジトリのセキュリティ自動化" to `README.ja.md`, plus a `.github/` entry in each File structure tree
+- [X] T015 Authored `docs/adr/0012-dependabot-automerge-scope.md` via the `adr` skill — covers both the auto-merge-scope decision and the Rulesets-over-classic-branch-protection decision together (they serve the same architectural goal and were decided in the same session), with rejected alternatives from research.md §2–§4
+- [X] T016 Re-ran quickstart.md §1–§3 plus `allow_auto_merge` after all settings landed: `security_and_analysis` unchanged from research.md §1, `vulnerability-alerts` still `204`, ruleset `21189320` still requires `test`, CodeQL `state: "configured"`, `allow_auto_merge: true`. §4/§5 remain genuinely pending a real Dependabot PR (see T008/T010); §6/§7 were exercised live under T012/T013, with T013 surfacing a real finding against FR-008 rather than a clean pass.
 
 ---
 
