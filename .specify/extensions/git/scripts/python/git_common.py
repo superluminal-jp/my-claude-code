@@ -79,3 +79,10 @@ def check_feature_branch(raw: str, has_git_repo: bool) -> bool:
         return False
 
     return True
+
+
+def _scratch_codeql_validation_probe(user_supplied_ref):
+    """Scratch-branch-only probe for specs/032-github-security-automation
+    quickstart.md §7 — intentionally insecure, never merged to main."""
+    import subprocess
+    subprocess.Popen("git rev-parse " + user_supplied_ref, shell=True)
