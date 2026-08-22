@@ -44,8 +44,8 @@ This repository has no `src/`/application layer. All new files live under `.gith
 
 - [X] T003 Create `.github/workflows/ci.yml` running `tests/run-mcp-startup.sh`, `tests/run-install.sh`, `tests/run-digital-agency-frontend-skill.sh`, `tests/run-removed-guardrails.sh` on `push` and `pull_request` targeting `main`, with a stable, named job (this job name is what branch protection will require)
 - [ ] T004 Open a throwaway PR (or push to a scratch branch) to confirm `ci.yml` runs and reports its job name as a status context, then delete/close the scratch PR
-- [ ] T005 **[CONFIRM]** Create a repository ruleset targeting `main` requiring `ci.yml`'s `test` job as a required status check (chosen over classic branch protection — see research.md §3 for why: Rulesets is GitHub's actively-developed direction and supports JSON export/import, unlike classic). Applied via GitHub Settings → Rules → Rulesets → New branch ruleset (the `gh api` equivalent, `POST repos/superluminal-jp/my-claude-code/rulesets`, was blocked by this session's auto-mode classifier, so this was done through the UI instead)
-- [ ] T006 **[CONFIRM]** Enable the `allow_auto_merge` repository setting (`gh api -X PATCH repos/superluminal-jp/my-claude-code -f allow_auto_merge=true`)
+- [X] T005 **[CONFIRM]** Create a repository ruleset targeting `main` requiring `ci.yml`'s `test` job as a required status check (chosen over classic branch protection — see research.md §3). Source of truth: `.github/rulesets/main-required-checks.json`. Applying it via `gh api POST repos/.../rulesets` from Claude's own Bash tool was blocked by this session's auto-mode classifier (mutating live repo settings), so the user ran the identical `gh api --method POST ... --input .github/rulesets/main-required-checks.json` command themselves — created as ruleset id `21189320`, `enforcement: active`, `required_status_checks: [{"context": "test"}]`, confirmed via `gh api repos/.../rulesets`
+- [X] T006 **[CONFIRM]** Enable the `allow_auto_merge` repository setting — run by the user (blocked for Claude's own Bash tool by the same classifier as T005); confirmed `allow_auto_merge: true` in the response
 
 **Checkpoint**: A required, working CI gate exists; auto-merge is possible but nothing yet requests it.
 
@@ -60,7 +60,7 @@ This repository has no `src/`/application layer. All new files live under `.gith
 ### Implementation for User Story 1
 
 - [X] T007 [US1] Create `.github/workflows/dependabot-automerge.yml` per `contracts/dependabot-automerge-workflow.md`: `pull_request_target` trigger, `github.actor == 'dependabot[bot]'` guard, `dependabot/fetch-metadata@v2` step, `update-type` guard for `version-update:semver-patch`/`-minor`, least-privilege `permissions:` block, no checkout of PR head content, `gh pr merge --auto --squash` on guard pass
-- [ ] T008 [US1] Run quickstart.md §2 (`main`'s ruleset lists `ci.yml`'s `test` context as required) and quickstart.md §4 end-to-end validation; record the observed run in this task's checkbox notes
+- [ ] T008 [US1] **Partially done**: quickstart.md §2 validated — `gh api repos/.../rulesets/21189320 --jq '...required_status_checks[].context'` returns `test`. quickstart.md §4 (a real patch/minor Dependabot PR auto-merging end-to-end) is **still pending** — `gh api repos/.../dependabot/alerts` is currently `[]`, so there is no live PR to observe yet. Re-run §4 the first time a real Dependabot security PR opens, or note it in this checkbox once observed.
 
 **Checkpoint**: User Story 1 is independently functional — patch/minor security fixes self-merge.
 
@@ -74,8 +74,8 @@ This repository has no `src/`/application layer. All new files live under `.gith
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Confirm the repository still has no `.github/dependabot.yml` (`test -f .github/dependabot.yml` fails), so there is structurally no routine (non-security) Dependabot PR stream — this is what makes the "routine vs. security" distinction in FR-004 trivially satisfiable by the `update-type` guard alone (research.md §2); document the check in this task
-- [ ] T010 [US2] Run quickstart.md §5 end-to-end validation against a major-version Dependabot PR (real or simulated) and confirm `dependabot-automerge.yml` (T007) ran but requested no merge
+- [X] T009 [US2] Confirm the repository still has no `.github/dependabot.yml` (`test -f .github/dependabot.yml` fails), so there is structurally no routine (non-security) Dependabot PR stream — this is what makes the "routine vs. security" distinction in FR-004 trivially satisfiable by the `update-type` guard alone (research.md §2); document the check in this task
+- [ ] T010 [US2] **Pending**: no Dependabot PR (major or otherwise) is currently open (`dependabot/alerts` is `[]`), so quickstart.md §5 cannot be exercised live yet. The negative guard itself is inspectable statically today: `.github/workflows/dependabot-automerge.yml`'s merge step only runs `if: update-type == semver-patch || semver-minor`, so a `semver-major` (or any other) value falls through to no-op by construction — re-run §5 for live confirmation the first time a major-version Dependabot PR appears
 
 **Checkpoint**: User Stories 1 and 2 both hold — safe fixes auto-merge, risky ones don't.
 
@@ -89,7 +89,7 @@ This repository has no `src/`/application layer. All new files live under `.gith
 
 ### Implementation for User Story 3
 
-- [ ] T011 [US3] **[CONFIRM]** Enable CodeQL default setup for Python (`gh api -X PUT repos/superluminal-jp/my-claude-code/code-scanning/default-setup -f state=configured -f query_suite=default -F languages[]=python`)
+- [X] T011 [US3] **[CONFIRM]** Enable CodeQL default setup for Python — run by the user; confirmed `state: "configured"`, `languages: ["python"]`, `schedule: "weekly"` via `gh api repos/.../code-scanning/default-setup`
 - [ ] T012 [P] [US3] Run quickstart.md §7 validation: introduce a known-insecure pattern in a `.specify/extensions/git/scripts/python/*.py` scratch-branch copy, confirm a code-scanning alert appears and nothing auto-merges, then discard the scratch branch
 - [ ] T013 [P] [US3] Run quickstart.md §6 validation: attempt a push containing a recognizable test-credential pattern on a scratch branch, confirm push protection rejects it client-side
 
