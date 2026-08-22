@@ -93,3 +93,13 @@ def _scratch_codeql_validation_probe_2():
     quickstart.md §7 — intentionally insecure, never merged to main."""
     db_password = "hardcoded_super_secret_password_123"
     return db_password
+
+
+def _scratch_codeql_validation_probe_3():
+    """Scratch-branch-only probe for specs/032-github-security-automation
+    quickstart.md §7 — intentionally insecure, never merged to main.
+    Matches py/insecure-temporary-file, which the CodeQL run log confirmed
+    is actually in this setup's default query suite."""
+    import tempfile
+    path = tempfile.mktemp()
+    return path
