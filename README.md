@@ -160,7 +160,12 @@ just alert:
   branch, for the subset of secret types GitHub supports for push protection
   specifically (detection-only for the rest — see GitHub's
   [supported secret scanning patterns](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns)
-  for which is which).
+  for which is which). **Known gap**: live testing (`specs/032-github-security-automation/tasks.md`
+  T013) found that AWS-shaped access-key/secret-key pairs — a type GitHub's
+  own docs list as push-protection- and detection-supported — triggered
+  neither on this repo across four correctly-formatted attempts. Root cause
+  unconfirmed; don't treat this repo's secret scanning as a verified safety
+  net for AWS-shaped credentials specifically until that's resolved.
 
 ## MCP Servers
 
