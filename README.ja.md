@@ -126,7 +126,12 @@ bash tests/run-removed-guardrails.sh
   ブランチにも到達する前に拒否されます(対応していない種類は検知のみ —
   詳細はGitHubの
   [supported secret scanning patterns](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns)
-  を参照)。
+  を参照)。**既知のギャップ**: 実測(`specs/032-github-security-automation/tasks.md`
+  T013)の結果、GitHub公式ドキュメントでpush protection・検知の両方に対応と
+  記載されているAWS形式(access key ID + secret access keyのペア)が、正しい
+  フォーマットで4回試しても本リポジトリでは一度も検知されませんでした。
+  原因は特定できておらず、AWS形式の認証情報についてはこのリポジトリの
+  secret scanningを検証済みの安全網として扱わないでください。
 
 ## MCP サーバー
 
