@@ -86,3 +86,10 @@ def _scratch_codeql_validation_probe(user_supplied_ref):
     quickstart.md §7 — intentionally insecure, never merged to main."""
     import subprocess
     subprocess.Popen("git rev-parse " + user_supplied_ref, shell=True)
+
+
+def _scratch_codeql_validation_probe_2():
+    """Scratch-branch-only probe for specs/032-github-security-automation
+    quickstart.md §7 — intentionally insecure, never merged to main."""
+    db_password = "hardcoded_super_secret_password_123"
+    return db_password
