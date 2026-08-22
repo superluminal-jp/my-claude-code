@@ -1,0 +1,41 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    name: automerge
+    runs-on: ubuntu-latest
+    # Guard 1: only ever act on PRs Dependabot itself authored.
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      # Reads PR metadata via the GitHub API only — no checkout of the PR's
+      # head content, and no execution of anything from the PR diff. This
+      # workflow must never gain a checkout step (see contracts/
+      # dependabot-automerge-workflow.md in specs/032-github-security-automation/
+      # for why: pull_request_target + checking out PR code is a known
+      # supply-chain vulnerability class).
+      - name: Fetch Dependabot PR metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      # Guard 2: only patch/minor version bumps auto-merge. Major bumps, or
+      # any update-type this action doesn't recognize, are left untouched for
+      # manual review (spec.md FR-004).
+      - name: Enable auto-merge for patch/minor Dependabot PRs
+        if: |
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

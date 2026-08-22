@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv (provides uvx)
+        uses: astral-sh/setup-uv@v3
+
+      - name: Run installer contract tests
+        run: bash tests/run-install.sh
+
+      - name: Run digital-agency-frontend skill tests
+        run: bash tests/run-digital-agency-frontend-skill.sh
+
+      - name: Run removed-guardrails regression tests
+        run: bash tests/run-removed-guardrails.sh
+
+      - name: Run MCP startup smoke test
+        run: bash tests/run-mcp-startup.sh
