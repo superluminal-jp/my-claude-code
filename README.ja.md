@@ -70,6 +70,11 @@ my-claude-code/
 ├── README.ja.md
 ├── install.sh
 ├── .mcp.json
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh を実行(必須チェック)
+│   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
+│   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── .claude/
     ├── CLAUDE.md
     ├── settings.json
@@ -97,6 +102,31 @@ bash tests/run-removed-guardrails.sh
 `run-install.sh` は隔離した HOME と外部コマンドの stub を使います。
 `run-mcp-startup.sh` だけは設定済み MCP サーバーの起動コマンドを実行するため
 ネットワーク接続が必要で、それ以外はローカル検証です。
+
+## リポジトリのセキュリティ自動化
+
+上記4本のスクリプトは `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+自動実行され、`main` はそのチェックを必須とする repository ruleset
+(`.github/rulesets/main-required-checks.json`)で保護されています。
+
+これに加えて、GitHub自身が検知する脆弱性への対応も自動化しています:
+
+- **Dependabot**: パッチ/マイナーバージョンのセキュリティ修正PRは、CIが通れば
+  自動マージされます(`.github/workflows/dependabot-automerge.yml`)。メジャー
+  バージョン更新や `dependabot[bot]` 以外が作成したPRは自動マージされず、手動
+  レビューに残ります。`.github/dependabot.yml` は作成していません —
+  security updatesはこのファイルなしでもDependency graphから自動的に動作し、
+  `updates:` エントリを追加するとスケジュール付きの(非セキュリティ)更新PRが
+  意図せず発生してしまうためです([ADR-0012](docs/adr/0012-dependabot-automerge-scope.md) 参照)。
+- **CodeQL**: Default setupでこのリポジトリのPythonコードをスキャンします。
+  検出結果はcode-scanningアラートとして手動トリアージ対象になり、自動修正・
+  自動マージは行いません。
+- **Secret scanning + push protection**: リポジトリ全体で有効化済みです。
+  push protectionが対応する種類のシークレットパターンを含むpushは、いずれの
+  ブランチにも到達する前に拒否されます(対応していない種類は検知のみ —
+  詳細はGitHubの
+  [supported secret scanning patterns](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns)
+  を参照)。
 
 ## MCP サーバー
 
