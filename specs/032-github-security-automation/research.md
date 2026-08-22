@@ -16,10 +16,11 @@ All items below were resolved by inspecting the live repository (`gh api`) rathe
 | `vulnerability-alerts` endpoint | `204` (enabled) |
 | `code-scanning/default-setup` | `state: "not-configured"`, but `languages: ["python"]` — GitHub has already identified Python as a scannable language via `gh api .../languages` (`Python: 35447` bytes, from `.specify/extensions/git/scripts/python/*.py`) |
 | `allow_auto_merge` | `false` |
-| `branches/main/protection` | `404` — no branch protection configured |
+| `branches/main/protection` (classic) | `404` — no classic branch protection configured |
+| `rulesets` (branch target) | `[]` — no repository ruleset configured either |
 | `dependabot/alerts` | `[]` — none open currently |
 
-**Decision**: Do not re-enable what is already on (FR-001, FR-007, FR-008 are satisfied today). Scope the implementation to the four real gaps: CI required check, branch protection, `allow_auto_merge`, CodeQL default setup, and the auto-merge workflow itself.
+**Decision**: Do not re-enable what is already on (FR-001, FR-007, FR-008 are satisfied today). Scope the implementation to the four real gaps: CI required check, a `main`-protecting ruleset, `allow_auto_merge`, CodeQL default setup, and the auto-merge workflow itself.
 
 **Alternatives considered**: Re-declaring all settings idempotently via a single setup script regardless of current state — rejected as unnecessary churn; a plan step that checks-then-sets is preferable and matches the "no redundant action" principle, and avoids accidentally toggling `secret_scanning_non_provider_patterns` / `validity_checks` (which were deliberately left off and are out of this feature's requested scope).
 
@@ -42,9 +43,13 @@ Net effect: with no `dependabot.yml` in the repo, there is no `updates:` entry f
 
 ## 3. How is "all required checks pass" enforced so auto-merge can't bypass an unconfigured gate?
 
-**Decision**: Sequence matters. Branch protection on `main` with `ci.yml`'s job listed as a **required status check** must be created *before* the auto-merge workflow is allowed to act, and native GitHub PR auto-merge (`gh pr merge --auto`, gated by the `allow_auto_merge` repo setting) is used instead of a workflow that polls check status itself. GitHub's own merge-queue logic — not custom workflow code — refuses to complete the merge until every required check reports success; this directly satisfies the Edge Case ("absence of a required check must not be treated as passed") because `--auto` merge with no required checks configured merges immediately, which is exactly why branch protection must be in place first.
+**Decision**: Sequence matters. A **repository ruleset** targeting `main`, with a `required_status_checks` rule listing `ci.yml`'s `test` job, must be created *before* the auto-merge workflow is allowed to act, and native GitHub PR auto-merge (`gh pr merge --auto`, gated by the `allow_auto_merge` repo setting) is used instead of a workflow that polls check status itself. GitHub's own merge-queue logic — not custom workflow code — refuses to complete the merge until every required check reports success; this directly satisfies the Edge Case ("absence of a required check must not be treated as passed") because `--auto` merge with no required checks configured merges immediately, which is exactly why the ruleset must be in place first.
 
-**Alternatives considered**: A custom workflow step that queries the Checks API in a loop and merges once green — rejected as reinventing what `gh pr merge --auto` + branch protection already does correctly and more safely (native auto-merge re-evaluates on every check update via GitHub's own event system, not a fixed poll/timeout).
+**Ruleset vs. classic branch protection**: GitHub now offers two mechanisms for this — the classic `branches/{branch}/protection` API/UI, and the newer repository **Rulesets** (`repos/{owner}/{repo}/rulesets`). Both were evaluated; Rulesets was chosen: it is GitHub's actively-developed direction (new protection capabilities land there, not in classic), it supports per-rule bypass lists scoped to specific actors/apps/teams rather than an all-or-nothing admin bypass, and — relevant to this repo's general preference for config-as-code (see prior discussion in this feature's conversation history) — a ruleset can be exported as JSON and re-imported, which classic branch protection cannot. This repo has neither configured yet (confirmed `rulesets` returns `[]`, in addition to the classic endpoint's `404`), so there is no migration cost either way.
+
+**Alternatives considered**:
+- *Classic branch protection*: rejected — no longer where GitHub adds capability, and has no export/import story, unlike Rulesets.
+- *A custom workflow step that queries the Checks API in a loop and merges once green*: rejected as reinventing what `gh pr merge --auto` + a required-status-check rule already does correctly and more safely (native auto-merge re-evaluates on every check update via GitHub's own event system, not a fixed poll/timeout).
 
 ## 4. How is the `pull_request_target` supply-chain risk mitigated?
 

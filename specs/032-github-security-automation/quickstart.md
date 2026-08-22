@@ -1,6 +1,6 @@
 # Quickstart: Validating GitHub Security Alert Auto-Response
 
-Prerequisites: `gh` CLI authenticated against `superluminal-jp/my-claude-code` with admin rights on the repo (needed to read/set branch protection and repo settings).
+Prerequisites: `gh` CLI authenticated against `superluminal-jp/my-claude-code` with admin rights on the repo (needed to read/set the branch ruleset and repo settings).
 
 ## 1. Confirm baseline settings (should already be true — see research.md § 1)
 
@@ -12,9 +12,11 @@ gh api repos/superluminal-jp/my-claude-code/vulnerability-alerts -i   # expect H
 ## 2. Confirm the new CI check exists and is required
 
 ```bash
-gh api repos/superluminal-jp/my-claude-code/branches/main/protection \
-  --jq '.required_status_checks.contexts'
-# expect the ci.yml job name to be listed
+gh api repos/superluminal-jp/my-claude-code/rulesets --jq '.[] | select(.target=="branch")'
+# note the id of the ruleset targeting main, then:
+gh api repos/superluminal-jp/my-claude-code/rulesets/<id> \
+  --jq '.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context'
+# expect "test" (the ci.yml job name) to be listed
 ```
 
 ## 3. Confirm CodeQL default setup is active

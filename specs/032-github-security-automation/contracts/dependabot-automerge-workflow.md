@@ -27,7 +27,7 @@ No `checkout` step runs against the PR's head ref anywhere in this workflow — 
 
 ## Effect
 
-- On guard pass: `gh pr review --approve` (if the repo's branch protection requires an approving review) followed by `gh pr merge --auto --squash`.
+- On guard pass: `gh pr merge --auto --squash` (this repo's ruleset does not require an approving review, so no `gh pr review --approve` step is needed — see research.md §3; add one if that ever changes).
 - Actual merge completion is deferred to GitHub's native auto-merge mechanism, which waits for `ci.yml`'s required status check to report success (see data-model.md, "State transitions").
 - On guard fail: no-op; workflow run shows as skipped/passed with no side effect.
 

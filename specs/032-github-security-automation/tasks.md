@@ -44,7 +44,7 @@ This repository has no `src/`/application layer. All new files live under `.gith
 
 - [X] T003 Create `.github/workflows/ci.yml` running `tests/run-mcp-startup.sh`, `tests/run-install.sh`, `tests/run-digital-agency-frontend-skill.sh`, `tests/run-removed-guardrails.sh` on `push` and `pull_request` targeting `main`, with a stable, named job (this job name is what branch protection will require)
 - [ ] T004 Open a throwaway PR (or push to a scratch branch) to confirm `ci.yml` runs and reports its job name as a status context, then delete/close the scratch PR
-- [ ] T005 **[CONFIRM]** Enable branch protection on `main` requiring `ci.yml`'s job as a required status check (`gh api -X PUT repos/superluminal-jp/my-claude-code/branches/main/protection ...`)
+- [ ] T005 **[CONFIRM]** Create a repository ruleset targeting `main` requiring `ci.yml`'s `test` job as a required status check (chosen over classic branch protection — see research.md §3 for why: Rulesets is GitHub's actively-developed direction and supports JSON export/import, unlike classic). Applied via GitHub Settings → Rules → Rulesets → New branch ruleset (the `gh api` equivalent, `POST repos/superluminal-jp/my-claude-code/rulesets`, was blocked by this session's auto-mode classifier, so this was done through the UI instead)
 - [ ] T006 **[CONFIRM]** Enable the `allow_auto_merge` repository setting (`gh api -X PATCH repos/superluminal-jp/my-claude-code -f allow_auto_merge=true`)
 
 **Checkpoint**: A required, working CI gate exists; auto-merge is possible but nothing yet requests it.
@@ -60,7 +60,7 @@ This repository has no `src/`/application layer. All new files live under `.gith
 ### Implementation for User Story 1
 
 - [X] T007 [US1] Create `.github/workflows/dependabot-automerge.yml` per `contracts/dependabot-automerge-workflow.md`: `pull_request_target` trigger, `github.actor == 'dependabot[bot]'` guard, `dependabot/fetch-metadata@v2` step, `update-type` guard for `version-update:semver-patch`/`-minor`, least-privilege `permissions:` block, no checkout of PR head content, `gh pr merge --auto --squash` on guard pass
-- [ ] T008 [US1] Run quickstart.md §2 (`branch protection lists ci.yml's context`) and quickstart.md §4 end-to-end validation; record the observed run in this task's checkbox notes
+- [ ] T008 [US1] Run quickstart.md §2 (`main`'s ruleset lists `ci.yml`'s `test` context as required) and quickstart.md §4 end-to-end validation; record the observed run in this task's checkbox notes
 
 **Checkpoint**: User Story 1 is independently functional — patch/minor security fixes self-merge.
 
