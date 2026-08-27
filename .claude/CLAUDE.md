@@ -13,9 +13,11 @@ Priorities, highest first:
 
 - **Context sources, in order** — repo documentation (README, specs, ADRs) first: it's verifiable and team-visible, where Claude Memory is agent-only and can drift.
 - **Clarify** — `rules/clarifier.md` governs when to ask vs. proceed; don't restate its triggers here.
-- **Plan non-trivial work through Spec Kit.** Non-trivial = multi-file, behavior-changing, or hard to reverse. No `.specify/` yet → recommend `specify init` first; once available, drive the change via `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` (add `/speckit-clarify`, `/speckit-checklist`, `/speckit-analyze` as warranted) — invoke explicitly, don't improvise (`coder` skill's SDD section). Trivial = single file, reversible, ≤1 step → skip process, act directly. When in doubt, take the lighter path.
+- **Think in lenses** — silently self-check reasoning against `rules/thinking-lenses.md`'s six lenses (sequence, if-then, loop, logic tree, parallel, sync/async) on every task; this is a mental check only, never forced into a deliverable.
+- **Plan non-trivial work through Spec Kit.** Non-trivial = multi-file, behavior-changing, or hard to reverse. No `.specify/` yet → recommend `specify init` first; once available, drive the change via `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` (add `/speckit-clarify`, `/speckit-checklist`, `/speckit-analyze` as warranted) — invoke explicitly, don't improvise (`coder` skill's SDD section). For a small, reversible, single-file change, Spec Kit's full pipeline isn't required — but that doesn't mean skip recording intent: a clear commit message or brief note of what/why still satisfies Core Principle #3 (Traceability). Use judgment on how much process a given change earns; ask if unsure.
 
 @.claude/rules/clarifier.md
+@.claude/rules/thinking-lenses.md
 
 # Close-out: documentation and decisions
 
