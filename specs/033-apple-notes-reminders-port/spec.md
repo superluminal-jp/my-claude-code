@@ -1,171 +1,171 @@
-# Feature Specification: Apple Notes and Reminders Automation Skills
+# 機能仕様書: Apple Notes / Reminders 自動操作スキル
 
-**Feature Branch**: `033-apple-notes-reminders-port`
+**機能ブランチ**: `033-apple-notes-reminders-port`
 
-**Created**: 2026-08-27
+**作成日**: 2026-08-27
 
-**Status**: Draft
+**ステータス**: ドラフト
 
-**Input**: User description: "Port apple-notes and apple-reminders Claude Code skills from the local repo /Users/taikiogihara/work/apple-task-manager into this repo as generic, safe, efficient macOS automation skills for Apple Notes and Apple Reminders — no Scrum-specific coupling. Generic-only extraction (no project registry, no scrum body block, no flow-metrics wiring); Reminders automation via a compiled Swift/EventKit CLI; every ported behavioral claim independently re-verified against current official Apple documentation before being encoded. Keep skill names apple-notes and apple-reminders."
+**入力**: ユーザー記述: 「/Users/taikiogihara/work/apple-task-manager のローカルリポジトリにある apple-notes / apple-reminders の Claude Code スキルを、本リポジトリへ汎用的・安全・効率的な macOS 自動操作スキルとして移植する — Scrum 固有の結合は持ち込まない。汎用機能のみを抽出する（プロジェクトレジストリ、scrum ブロック、フローメトリクス連携は対象外）。Reminders の自動操作はコンパイル済み Swift/EventKit CLI 経由とする。移植する挙動に関する主張はすべて、現行の Apple 公式ドキュメントに対して独立に再検証したうえで記述する。スキル名は apple-notes / apple-reminders のまま維持する。」
 
-## User Scenarios & Testing *(mandatory)*
+## ユーザーシナリオとテスト *(必須)*
 
-### User Story 1 - Prepare a destination and capture something (Priority: P1)
+### ユーザーストーリー1 - 保存先を用意し、何かを書き留める (優先度: P1)
 
-An operator needs somewhere stable to put a note or a reminder, then needs to actually write one there — a goal, a task, a piece of prose — without first hand-checking whether that folder or list already exists.
+操作者は、ノートやリマインダーを置くための安定した場所が必要であり、その場所がすでに存在するかを事前に手作業で確認することなく、そこへ実際に何か（目標、タスク、文章など）を書き込みたい。
 
-**Why this priority**: This is the minimum useful capability. Without a safe, idempotent way to get a destination and write into it, nothing else in this feature has anywhere to operate.
+**この優先度である理由**: これは最小限の有用な能力である。フォルダやリストを安全かつ冪等に用意し、そこへ書き込む手段がなければ、この機能の他の部分は動作する土台を持たない。
 
-**Independent Test**: Can be fully tested by requesting a folder (or list) by name twice in a row and confirming only one is ever created, then writing one note (or reminder) into it and confirming it appears with the expected content.
+**独立したテスト方法**: 同じ名前のフォルダ（またはリスト）を続けて2回要求し、作成されるのが常に1つだけであることを確認したうえで、そのフォルダにノート（またはリマインダー）を1件書き込み、期待した内容で存在することを確認することで、単独にテストできる。
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** no folder named "Test Folder" exists in Notes, **When** the operator asks to ensure it exists, **Then** exactly one folder with that name is created.
-2. **Given** a folder named "Test Folder" already exists, **When** the operator asks to ensure it again, **Then** no new folder is created and the existing one is reused.
-3. **Given** two folders already exist with the exact same requested name, **When** the operator asks to ensure that name, **Then** the request fails rather than silently picking one.
-4. **Given** a prepared folder or list, **When** the operator creates a note or reminder in it with a title/name and content, **Then** the item exists in that destination with the requested content, and reading it back returns what was written.
-
----
-
-### User Story 2 - Read back what's there (Priority: P2)
-
-An operator needs to find out what a folder or list currently contains, or fetch one specific item, without wading through unrelated bulk content.
-
-**Why this priority**: Read access is what makes the write side (Story 1) useful for real work — an operator needs to confirm state and retrieve content, not just fire writes blindly.
-
-**Independent Test**: Can be fully tested by listing a folder/list with known contents and confirming the returned items match, then fetching one item by its identifier and confirming its fields are complete and correctly typed.
-
-**Acceptance Scenarios**:
-
-1. **Given** a folder containing several notes, **When** the operator lists it without asking for full content, **Then** each note's identifying fields are returned but full body content is omitted.
-2. **Given** the same folder, **When** the operator lists it and explicitly asks for full content, **Then** each note's body is included.
-3. **Given** a known note or reminder identifier, **When** the operator fetches it directly, **Then** all of that item's fields are returned in one response.
-4. **Given** a list of reminders, **When** the operator asks to see only the open (incomplete) ones, **Then** completed reminders are excluded from the result.
+1. **Given** Notes に「Test Folder」という名前のフォルダが存在しない、**When** 操作者がそのフォルダの存在を保証するよう要求する、**Then** その名前のフォルダがちょうど1つ作成される。
+2. **Given** 「Test Folder」という名前のフォルダがすでに存在する、**When** 操作者が再度その存在を保証するよう要求する、**Then** 新しいフォルダは作成されず、既存のものが再利用される。
+3. **Given** 要求された名前と完全に一致するフォルダがすでに2つ存在する、**When** 操作者がその名前の存在を保証するよう要求する、**Then** どちらかを勝手に選ばず、要求は失敗する。
+4. **Given** 用意済みのフォルダまたはリスト、**When** 操作者がタイトル（または名前）と内容を指定してノートまたはリマインダーを作成する、**Then** 指定した内容でその保存先にアイテムが存在し、読み戻すと書き込んだ内容が返る。
 
 ---
 
-### User Story 3 - Update existing content without collateral damage (Priority: P3)
+### ユーザーストーリー2 - 中身を読み戻す (優先度: P2)
 
-An operator needs to add to a note, edit one specific machine-owned section of a note in place, or update/complete a reminder — without disturbing content that isn't part of the requested change, and without accidentally creating a duplicate when the target doesn't exist.
+操作者は、無関係な大量の内容をかき分けることなく、フォルダやリストの現在の内容を確認したり、特定の1件を取得したりしたい。
 
-**Why this priority**: Most real usage is incremental — appending a log line, updating a status field, checking something off — not wholesale recreation. This must be safe against clobbering unrelated content before any destructive capability (Story 4) is introduced.
+**この優先度である理由**: 読み取りアクセスがあってはじめて、書き込み側（ストーリー1）が実務で役立つ。操作者は状態を確認し内容を取得する必要があり、闇雲に書き込みを行うだけでは足りない。
 
-**Independent Test**: Can be fully tested by appending to a note with existing content and confirming the original content is intact; by replacing one named section and confirming only that section changed; and by updating and completing a reminder and confirming its other fields are unaffected.
+**独立したテスト方法**: 既知の内容を持つフォルダ／リストを一覧取得し、返却結果が一致することを確認したうえで、識別子を指定して1件を取得し、そのフィールドが完全かつ正しい型で返ることを確認することで、単独にテストできる。
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** a note with existing content, **When** the operator appends new content, **Then** the original content remains unchanged and the new content is added.
-2. **Given** a note containing one instance of a named, delimited section, **When** the operator replaces that section, **Then** only the content inside that section changes; content outside it is untouched.
-3. **Given** a note with no instance of a named section yet, **When** the operator replaces that section, **Then** the section is created (appended) rather than the request failing.
-4. **Given** a note containing two instances of the same named section, **When** the operator requests a replacement, **Then** the request fails rather than guessing which instance to change.
-5. **Given** an existing reminder, **When** the operator updates one of its fields, **Then** only that field changes.
-6. **Given** an identifier that does not resolve to any existing reminder, **When** the operator requests an update, **Then** the request fails rather than creating a new reminder.
-7. **Given** an open reminder, **When** the operator marks it complete, **Then** its completion timestamp is set by the system automatically, not supplied by the operator, and the reminder can subsequently be reopened.
+1. **Given** 複数のノートを含むフォルダ、**When** 操作者が全文を要求せずに一覧取得する、**Then** 各ノートの識別情報は返るが、本文全体は省略される。
+2. **Given** 同じフォルダ、**When** 操作者が全文を明示的に要求して一覧取得する、**Then** 各ノートの本文が含まれる。
+3. **Given** 既知のノートまたはリマインダーの識別子、**When** 操作者がそれを直接取得する、**Then** そのアイテムの全フィールドが1回の応答で返る。
+4. **Given** リマインダーの一覧、**When** 操作者が未完了のものだけを要求する、**Then** 完了済みのリマインダーは結果から除外される。
 
 ---
 
-### User Story 4 - Safely replace or remove a note's entire content (Priority: P4)
+### ユーザーストーリー3 - 既存内容を巻き添え被害なく更新する (優先度: P3)
 
-An operator occasionally needs to replace a note's whole content or delete it outright — a real, irreversible-feeling action against a human's own prose — and needs assurance that this can't silently clobber a note that changed since it was last read, and that it never happens without the operator's explicit, informed go-ahead.
+操作者は、ノートへの追記、ノート内の機械管理された特定区画のみのその場編集、あるいはリマインダーの更新・完了操作を行いたい。その際、要求外の内容を乱さないこと、また対象が存在しない場合に誤って重複作成しないことが求められる。
 
-**Why this priority**: This is the highest-risk capability in the feature. It depends on Stories 1–3 already working (a destination, a way to read current content, a way to write) and is deliberately last because its safety guarantees are what make it acceptable to ship at all.
+**この優先度である理由**: 実際の利用の大半は、丸ごとの作り直しではなく、ログ行の追記、ステータス項目の更新、チェック済みへの変更といった漸進的な操作である。破壊的な能力（ストーリー4）を導入する前に、要求外の内容を巻き込まない安全性が確立されていなければならない。
 
-**Independent Test**: Can be fully tested by reading a note's current content, computing its expected concurrency token, modifying the note out-of-band, then attempting the overwrite/delete with the stale token and confirming it is refused with zero change made; and separately, by performing a correctly-guarded overwrite/delete and confirming it succeeds only after the replacement content (or deletion target) has been presented for explicit confirmation.
+**独立したテスト方法**: 既存内容のあるノートに追記し、元の内容が変化しないことを確認する。名前付き区画を1つ置き換え、その区画だけが変化することを確認する。リマインダーを更新・完了させ、他のフィールドが影響を受けないことを確認する。これらにより単独にテストできる。
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** a note whose current content the operator has just read, **When** the operator requests a whole-content overwrite using a concurrency token computed from that read, **Then** the overwrite succeeds and the note's content matches the new content exactly.
-2. **Given** a note that has changed since the operator last read it, **When** the operator requests a whole-content overwrite using a token computed from the stale read, **Then** the request is refused, no content is changed, and the failure explains that the note changed since it was read.
-3. **Given** a note the operator intends to delete, **When** the delete is requested with a valid, current concurrency token, **Then** the note is removed from its folder and is recoverable through the operating system's own deleted-items mechanism, not permanently destroyed on the spot.
-4. **Given** any whole-content overwrite or delete request, **When** it is issued, **Then** the operator must have been shown the exact replacement content (or, for a delete, the identity of the note being removed) and given explicit approval before the underlying operation runs — this is a documented operator responsibility around every such call, not a check the system performs automatically at the call site.
-5. **Given** a request to delete a reminder, **When** it is received, **Then** it is declined, with guidance that reminder deletion is a manual action in the Reminders app.
-
----
-
-### User Story 5 - Link a note and a reminder together (Priority: P5)
-
-An operator wants to associate one note with one reminder (e.g., a task and its supporting notes) and later follow that association in either direction, without either app offering a native shareable link between the two.
-
-**Why this priority**: Useful, generically applicable connective tissue once the basic CRUD operations exist for both apps — but nothing else in the feature depends on it, so it is safe to build last.
-
-**Independent Test**: Can be fully tested by recording a link from a reminder to a note, then resolving it from the reminder side to the correct note, and separately recording and resolving the reverse direction from the note side.
-
-**Acceptance Scenarios**:
-
-1. **Given** an existing note and an existing reminder, **When** the operator records a link between them, **Then** each item's identifier for the other is discoverable from the item's own content.
-2. **Given** a reminder holding a link to a note, **When** the operator resolves that link, **Then** the correct note is returned.
-3. **Given** a note holding a link to a reminder, **When** the operator resolves that link, **Then** the correct reminder is returned.
-4. **Given** a link whose target has since been deleted, **When** the operator resolves it, **Then** the failure is reported clearly as an unresolved/stale link rather than a generic error.
+1. **Given** 既存内容を持つノート、**When** 操作者が新しい内容を追記する、**Then** 元の内容は変わらず、新しい内容が追加される。
+2. **Given** 名前付きの区切られた区画を1つだけ含むノート、**When** 操作者がその区画を置き換える、**Then** その区画内の内容だけが変化し、区画外の内容は変わらない。
+3. **Given** その名前付き区画がまだ存在しないノート、**When** 操作者がその区画を置き換えようとする、**Then** 要求は失敗せず、その区画が作成（追記）される。
+4. **Given** 同じ名前の区画を2つ含むノート、**When** 操作者が置き換えを要求する、**Then** どちらを変更するか推測せず、要求は失敗する。
+5. **Given** 既存のリマインダー、**When** 操作者がそのフィールドの1つを更新する、**Then** そのフィールドのみが変化する。
+6. **Given** 既存のいかなるリマインダーにも一致しない識別子、**When** 操作者が更新を要求する、**Then** 新規リマインダーを作成せず、要求は失敗する。
+7. **Given** 未完了のリマインダー、**When** 操作者がそれを完了にする、**Then** 完了日時はシステムが自動的に設定し（操作者が指定するのではない）、後で未完了へ戻すこともできる。
 
 ---
 
-### Edge Cases
+### ユーザーストーリー4 - ノートの全内容を安全に置き換える・削除する (優先度: P4)
 
-- What happens when the Automation (Notes) or Reminders privacy permission has not yet been granted, or was denied? The operator MUST be told which specific permission is missing and where to grant it, not shown a raw low-level error.
-- What happens when the Reminders command-line tool has never been built on this machine (missing Xcode Command Line Tools, or a stale/missing binary)? The operator MUST be told a build step is needed, not shown an opaque "not found" failure.
-- What happens on a non-interactive/headless run where a permission dialog would normally appear? The system MUST report that this cannot be granted non-interactively rather than retrying in a loop.
-- What happens when an "ensure folder/list" request matches more than one existing folder/list with that exact name? The request MUST fail before writing anything, rather than picking one arbitrarily.
-- How does the system handle a note-creation or overwrite request containing a formatting instruction that cannot be reliably produced (e.g., a checklist, a block quote, a highlight, a font-family change, a dashed list)? It MUST reject the request and name the specific unsupported format, before any content is written — never silently approximate it as something else.
-- How does the system handle a named-block replace request where the block's delimiters are malformed (e.g., an opening fence with no matching close)? It MUST refuse rather than guess where the block ends.
-- What happens when a whole-note overwrite or delete concurrency check fails (the note changed since it was last read)? Zero content changes MUST occur, and the failure MUST explain that the note changed underneath the caller.
-- What happens when a cross-app link is recorded using an identifier known to be locally unstable (e.g., an identifier that can change when an item moves between accounts or calendars)? The system MUST prefer the more stable identifier available for that purpose instead.
-- What happens when a caller requests deletion of a reminder? The system MUST decline and redirect to the manual deletion path in the Reminders app, since no safe, systemically-gated deletion path exists for reminders the way it does for notes.
+操作者は、まれにノートの全内容を置き換えたり、完全に削除したりする必要がある — これは人間自身が書いた文章に対する、実質的に取り返しのつかない操作であり、最後に読み込んだ後に変化していたノートを黙って上書きしてしまわないという保証、そして操作者の明示的かつ十分な情報に基づく了承なしには絶対に実行されないという保証が必要である。
 
-## Requirements *(mandatory)*
+**この優先度である理由**: これは本機能の中で最もリスクの高い能力である。ストーリー1〜3（保存先、現在内容の読み取り、書き込み手段）がすでに動作していることを前提とし、その安全性の担保があってはじめて出荷に値するため、意図的に最後に位置づけている。
 
-### Functional Requirements
+**独立したテスト方法**: ノートの現在内容を読み取り、そこから期待される整合性トークンを計算し、そのノートを別経路で変更したうえで、古いトークンのまま上書き／削除を試み、拒否され内容が一切変化しないことを確認する。別途、正しく整合性トークンを揃えた上書き／削除が、置き換え内容（または削除対象）の明示的な確認を経てはじめて成功することを確認する。これらにより単独にテストできる。
 
-- **FR-001**: System MUST allow an operator to ensure (create-if-absent, reuse-if-present) a Notes folder by exact name, optionally as a direct subfolder of another named folder.
-- **FR-002**: System MUST allow an operator to ensure (create-if-absent, reuse-if-present) a Reminders list by exact name.
-- **FR-003**: System MUST fail an ensure-folder or ensure-list request, without creating anything, when more than one existing folder or list already matches the requested exact name.
-- **FR-004**: System MUST allow creating a note in a specified destination folder from a defined, safe subset of Markdown-like formatting input, converting it to the note's native rich-content format.
-- **FR-005**: System MUST allow creating a reminder in a specified destination list with at minimum a name, and optionally a due date and free-text body.
-- **FR-006**: System MUST allow listing the contents of a folder or list as structured data, omitting each note's full body content by default and including it only when explicitly requested.
-- **FR-007**: System MUST allow fetching a single note or reminder in full by its identifier.
-- **FR-008**: System MUST allow appending content to an existing note without altering its prior content.
-- **FR-009**: System MUST support replacing exactly one named, delimited region within a note's content in place: creating the region if it does not yet exist, replacing it if exactly one instance exists, and refusing the request if the name matches more than once or the region's delimiters are malformed — leaving all content outside the targeted region untouched in every case.
-- **FR-010**: System MUST allow updating fields on an existing reminder, and MUST fail rather than create a new reminder when the given identifier does not resolve to an existing one.
-- **FR-011**: System MUST allow marking a reminder complete or reopening it, and MUST derive the completion timestamp from the system automatically rather than accepting an operator-supplied value.
-- **FR-012**: System MUST validate and fully convert all formatting input before performing any write, such that an invalid or unsupported formatting request cannot result in a partially-written note.
-- **FR-013**: System MUST reject, rather than visually approximate, a formatting request for a style that cannot be reliably produced through the supported automation interface, and MUST name the specific unsupported format in the resulting error.
-- **FR-014**: System MUST support a whole-content overwrite and a delete operation for notes, each guarded by a concurrency check against the content most recently read by the caller; the operation MUST be refused, with zero change made, if the note's current content does not match what the concurrency check expects.
-- **FR-015**: System MUST require, as a documented operator responsibility surrounding every whole-content overwrite or delete of a note, that the exact replacement content (or, for a delete, the identity of the note being removed) is presented to the human user for explicit approval before the call is made.
-- **FR-016**: System MUST NOT provide any operation that deletes a reminder; a request to delete a reminder MUST be declined with guidance to perform the deletion manually in the Reminders app.
-- **FR-017**: System MUST provide a generic, non-domain-specific convention for recording a link between one note and one reminder, resolvable in both directions by identifier lookup, with no coupling to any particular workflow's own data model.
-- **FR-018**: System MUST use, for cross-app link markers, whichever of an item's available identifiers is documented or established as the more stable one for that purpose, rather than one known to change across routine operations (e.g., an account or calendar move).
-- **FR-019**: System MUST detect, before the first automation call against each app in a session, whether that app's required OS-level permission has been granted, and MUST report which specific permission is missing and where to grant it when it has not, rather than retrying silently or failing with a raw system error alone.
-- **FR-020**: System MUST report, on failure of a Reminders automation call, which of the known preconditions (the command-line tool has not been built, the Reminders permission has not been granted, or the harness's own tool-invocation permission was denied) is the likely cause.
-- **FR-021**: System MUST NOT read, write, reference, or otherwise depend on the source skills' Scrum-specific artifacts — the multi-project registry, the Scrum body-block convention, or any flow-metrics integration — none of which are in scope for this feature.
-- **FR-022**: System MUST return only the specific fields or items a request asks for, rather than defaulting to full bulk content, wherever a narrower response is possible (see FR-006).
+**受け入れシナリオ**:
 
-### Key Entities
+1. **Given** 操作者が直前に現在内容を読み取ったノート、**When** その読み取りから計算した整合性トークンを用いて全内容の上書きを要求する、**Then** 上書きは成功し、ノートの内容は新しい内容と完全に一致する。
+2. **Given** 操作者が最後に読み取った後に変化したノート、**When** その古い読み取りから計算したトークンを用いて全内容の上書きを要求する、**Then** 要求は拒否され、内容は一切変化せず、失敗理由として「読み取り後にノートが変化した」ことが説明される。
+3. **Given** 操作者が削除しようとしているノート、**When** 有効かつ最新の整合性トークンとともに削除を要求する、**Then** ノートはそのフォルダから削除されるが、その場で完全に破棄されるのではなく、OS 自体の削除済みアイテムの仕組みを通じて復元可能な状態になる。
+4. **Given** 何らかの全内容上書き、または削除の要求、**When** それが発行される、**Then** 操作の実行前に、置き換え内容そのもの（削除の場合は削除対象ノートの識別情報）が人間に提示され、明示的な承認を得ていなければならない — これは呼び出し箇所でシステムが自動的に行うチェックではなく、そうした呼び出しすべてに付随する、文書化された操作者側の責務である。
+5. **Given** リマインダーの削除要求、**When** それを受け取る、**Then** その要求は拒否され、リマインダーの削除は Reminders アプリ内での手動操作であるという案内が返る。
 
-- **Note**: A Notes.app item. Holds an identifier, an HTML body (from which the displayed title is derived — the first line of the body, not a separately-set name field), a containing folder, and creation/modification timestamps.
-- **Notes Folder**: A named container for notes within a Notes account; may itself be nested inside a parent folder.
-- **Reminder**: A Reminders.app item. Holds two distinct identifiers with different stability guarantees (see FR-018), a name, an optional free-text body, a completion state with an automatically-derived completion timestamp, an optional due date, priority, and list membership.
-- **Reminders List**: A named collection of reminders within a Reminders account.
-- **Named Block**: A delimited, machine-owned region within a note's body, identified by a name, distinct from the surrounding free-form prose a human may also edit in that same note.
-- **Cross-App Link**: A recorded association between one note and one reminder, stored as each item's identifier for the other, resolvable independently from either side.
+---
 
-## Success Criteria *(mandatory)*
+### ユーザーストーリー5 - ノートとリマインダーを相互にリンクする (優先度: P5)
 
-### Measurable Outcomes
+操作者は、1件のノートと1件のリマインダーを紐付けたい（例: タスクとそれを裏付けるノート）場合があり、どちらのアプリもネイティブな共有リンク機能を提供していない中で、後からその紐付けをどちらの方向からでも辿りたい。
 
-- **SC-001**: Requesting the same-named folder or list ten times in a row results in exactly one folder/list existing, with zero duplicates created.
-- **SC-002**: 100% of note-write requests containing an unsupported formatting instruction are rejected, naming the specific unsupported format, before any content is written — never silently approximated as a different format.
-- **SC-003**: 100% of whole-note overwrite or delete attempts against a note that changed since it was last read are blocked with zero content change, across all tested concurrent-edit scenarios.
-- **SC-004**: An operator can resolve a note-to-reminder link, or the reverse, to its correct target in a single lookup call — no full-account search required in either app.
-- **SC-005**: When a required OS-level permission is missing, the operator learns which permission and where to grant it from the very first failed attempt, without needing a second attempt to discover this.
-- **SC-006**: Listing a folder or list returns without the caller needing to post-process or strip unwanted full-body content, in the default (no full-content) request shape.
-- **SC-007**: Zero requirements in this specification reference, depend on, or require configuring the source skills' Scrum-specific artifacts (project registry, Scrum body block, flow-metrics pipeline).
+**この優先度である理由**: 両アプリに対する基本的な CRUD 操作が揃ってはじめて汎用的に有用となる、繋ぎの機能である。本機能の他の部分はこれに依存しないため、最後に構築しても安全である。
 
-## Assumptions
+**独立したテスト方法**: リマインダーからノートへのリンクを記録し、リマインダー側からそのリンクを解決して正しいノートが返ることを確認する。同様に、逆方向（ノート側からの記録・解決）も確認する。これらにより単独にテストできる。
 
-- This feature operates only on macOS with Notes.app and Reminders.app present locally; there is no iOS/iPadOS or fully non-interactive/headless execution path, matching the constraint already established for the source skills this feature is derived from.
-- Minimum macOS version is macOS 14, since the Reminders permission model (full-access vs. write-only) that this feature relies on for its precondition-detection behavior (FR-019) was introduced there.
-- The two OS-level permission grants this feature depends on — Automation for Notes, and the Reminders privacy category for the EventKit-based tool — plus the harness's own tool-invocation permission, cannot be obtained non-interactively; a headless run is expected to report this rather than retry.
-- Reminders automation is implemented via a compiled EventKit-based command-line tool requiring a one-time local build step (Xcode Command Line Tools), per the decision made when scoping this feature, in preference to a simpler no-build AppleScript alternative that would not expose typed fields or the more stable cross-app identifier.
-- The Scrum-specific capabilities of the source skills — the multi-project registry, the `--- scrum ---` body-block convention, and the flow-metrics CSV pipeline — are intentionally excluded from this feature; this repository's separately-vendored Scrum facilitation skill is not integrated with this feature.
-- Deletion is available for notes (guarded per FR-014/FR-015) but deliberately not for reminders (FR-016): the source skills established this asymmetry deliberately — Notes has an operating-system-level "Recently Deleted" recovery path a guarded delete can rely on, while no equivalent recovery mechanism exists for a deleted reminder, so that action stays manual. This asymmetry is carried forward, not revisited, by this feature.
-- The exact length of time a deleted note remains recoverable in Notes' "Recently Deleted" folder is not stated consistently across Apple's own current sources (independent verification during specification found reports ranging from 30 to 40 days). This feature's shipped documentation MUST describe the note as recoverable there for a limited, undocumented-with-precision window — never assert a specific day count as guaranteed.
-- The exact property surface of the Notes AppleScript/JXA `note` and `folder` classes (id, name, body, creation date, modification date, container) is established by inspecting the live scripting dictionary in Script Editor on the operator's own machine, not by a citable Apple documentation page — Apple does not currently publish a browsable reference for this dictionary. Any documentation this feature ships MUST attribute this property list to on-device dictionary inspection, not to an external doc URL.
+**受け入れシナリオ**:
+
+1. **Given** 既存のノートと既存のリマインダー、**When** 操作者がそれらの間にリンクを記録する、**Then** それぞれのアイテムの内容から、相手の識別子を発見できる。
+2. **Given** ノートへのリンクを保持するリマインダー、**When** 操作者がそのリンクを解決する、**Then** 正しいノートが返る。
+3. **Given** リマインダーへのリンクを保持するノート、**When** 操作者がそのリンクを解決する、**Then** 正しいリマインダーが返る。
+4. **Given** リンク先がすでに削除されているリンク、**When** 操作者がそれを解決しようとする、**Then** 一般的なエラーではなく、「リンクが解決できない／失効している」ことが明確に報告される。
+
+---
+
+### エッジケース
+
+- Notes の Automation 権限、または Reminders のプライバシー権限がまだ許可されていない、あるいは拒否された場合はどうなるか？ 操作者には、どの権限が不足しているか、どこで許可すればよいかが伝えられなければならず、生の低レベルエラーをそのまま見せてはならない。
+- このマシンで Reminders 用コマンドラインツールが一度もビルドされていない場合（Xcode Command Line Tools 未導入、またはバイナリが古い／存在しない）はどうなるか？ 不透明な「見つかりません」エラーではなく、ビルドが必要であることを操作者に伝えなければならない。
+- 通常であれば許可ダイアログが表示されるはずの非対話的／ヘッドレス実行ではどうなるか？ ループで再試行するのではなく、非対話的には許可を得られない旨を報告しなければならない。
+- 「フォルダ／リストの存在を保証する」要求が、その完全一致名を持つ既存のフォルダ／リストに複数一致した場合はどうなるか？ 何も書き込む前に要求を失敗させなければならず、いずれかを恣意的に選んではならない。
+- 確実に再現できない書式指定（チェックリスト、引用ブロック、ハイライト、フォントファミリーの変更、ダッシュ付きリストなど）を含むノート作成／上書き要求はどう扱うか？ 何も書き込む前に要求を拒否し、対応していない具体的な書式名を示さなければならない — 別の形式として黙って近似してはならない。
+- 名前付き区画の置き換え要求で、区切り記号が不正な形式である場合（開始フェンスに対応する終了フェンスがないなど）はどうなるか？ 区画の終端を推測せず、拒否しなければならない。
+- ノート全体の上書き／削除に対する整合性チェックが失敗した場合（最後に読み取った後にノートが変化していた場合）はどうなるか？ 内容の変更は一切発生してはならず、失敗理由として「呼び出し元が読み取った後にノートが変化した」ことを説明しなければならない。
+- ローカルには不安定であることが判明している識別子（アカウントやカレンダーの移動で変化しうる識別子など）を用いてクロスアプリのリンクが記録されようとした場合はどうなるか？ その用途にはより安定した方の識別子を優先して用いなければならない。
+- リマインダーの削除が要求された場合はどうなるか？ ノートに対するような安全にゲートされた削除経路がリマインダーには存在しないため、要求を拒否し、Reminders アプリ内での手動削除経路へ案内しなければならない。
+
+## 要求事項 *(必須)*
+
+### 機能要求
+
+- **FR-001**: システムは、操作者が Notes のフォルダを完全一致名で「存在を保証」（存在しなければ作成、存在すれば再利用）できるようにしなければならない。任意で、別の名前付きフォルダの直下のサブフォルダとしても行えなければならない。
+- **FR-002**: システムは、操作者が Reminders のリストを完全一致名で「存在を保証」（存在しなければ作成、存在すれば再利用）できるようにしなければならない。
+- **FR-003**: システムは、要求された完全一致名にすでに複数の既存フォルダ／リストが一致する場合、何も作成せずに「存在を保証」要求を失敗させなければならない。
+- **FR-004**: システムは、安全に定義された Markdown ライクな書式入力のサブセットから、指定した保存先フォルダにノートを作成できるようにし、それをノートのネイティブなリッチコンテンツ形式へ変換しなければならない。
+- **FR-005**: システムは、指定した保存先リストにリマインダーを作成できるようにしなければならない。最低限、名前を必須とし、期日と自由記述の本文は任意とする。
+- **FR-006**: システムは、フォルダまたはリストの内容を構造化データとして一覧取得できるようにしなければならない。各ノートの本文全体は既定では省略し、明示的に要求された場合にのみ含めなければならない。
+- **FR-007**: システムは、識別子を指定して単一のノートまたはリマインダーを全項目取得できるようにしなければならない。
+- **FR-008**: システムは、既存のノートの以前の内容を変更することなく、内容を追記できるようにしなければならない。
+- **FR-009**: システムは、ノート内の名前付きで区切られた区画をちょうど1つ、その場で置き換えられるようにしなければならない: その区画がまだ存在しなければ作成し、ちょうど1つ存在すれば置き換え、その名前が複数一致するか区切り記号が不正な形式であれば要求を拒否しなければならない。いずれの場合も、対象区画の外側の内容は一切変更してはならない。
+- **FR-010**: システムは、既存のリマインダーのフィールドを更新できるようにしなければならない。指定した識別子が既存のいずれのリマインダーにも一致しない場合は、新規作成するのではなく失敗しなければならない。
+- **FR-011**: システムは、リマインダーを完了または未完了に戻せるようにしなければならず、完了日時は操作者が指定した値ではなく、システムが自動的に導出しなければならない。
+- **FR-012**: システムは、書き込みを実行する前にすべての書式入力を検証・完全変換しなければならない。これにより、無効または未対応の書式要求がノートの部分的な書き込みを引き起こすことがあってはならない。
+- **FR-013**: システムは、対応する自動操作インターフェースでは確実に再現できない書式要求を、視覚的に近似するのではなく拒否しなければならず、結果のエラーには対応していない具体的な書式名を含めなければならない。
+- **FR-014**: システムは、ノートの全内容上書きおよび削除操作を提供しなければならない。いずれも、呼び出し元が最後に読み取った内容に対する整合性チェックで保護されなければならず、ノートの現在の内容が整合性チェックの期待と一致しない場合は、内容を一切変更せずに操作を拒否しなければならない。
+- **FR-015**: システムは、ノートの全内容上書きまたは削除のすべての呼び出しの前に、置き換え内容そのもの（削除の場合は削除対象ノートの識別情報）が人間の利用者に提示され、明示的な承認を得ることを、文書化された操作者側の責務として要求しなければならない。
+- **FR-016**: システムは、リマインダーを削除するいかなる操作も提供してはならない。リマインダーの削除要求は、Reminders アプリ内での手動削除を案内したうえで拒否しなければならない。
+- **FR-017**: システムは、1件のノートと1件のリマインダーの間のリンクを記録するための、汎用的で特定領域に依存しない規約を提供しなければならない。このリンクは識別子による検索でどちらの方向からも解決可能でなければならず、特定のワークフロー固有のデータモデルに結合してはならない。
+- **FR-018**: システムは、クロスアプリのリンクマーカーには、各アイテムで利用可能な識別子のうち、より安定していると文書化または確認されている方を用いなければならない。通常の操作（アカウントやカレンダーの移動など）で変化しうると分かっている識別子を用いてはならない。
+- **FR-019**: システムは、セッション中に各アプリへの最初の自動操作呼び出しを行う前に、そのアプリに必要な OS レベルの権限が許可されているかを検出しなければならない。許可されていない場合は、黙って再試行したり生のシステムエラーのみを表示したりするのではなく、不足している具体的な権限とその許可場所を報告しなければならない。
+- **FR-020**: システムは、Reminders の自動操作呼び出しが失敗した場合、既知の前提条件（コマンドラインツールが未ビルドである、Reminders の権限が許可されていない、ハーネス自体のツール呼び出し権限が拒否された、のいずれか）のうち可能性の高いものを報告しなければならない。
+- **FR-021**: システムは、移植元スキルの Scrum 固有の成果物（マルチプロジェクトレジストリ、Scrum ボディブロック規約、フローメトリクス連携）を読み書き・参照・依存してはならない。これらはいずれも本機能の対象外である。
+- **FR-022**: システムは、より狭い応答が可能な場合は常に（FR-006参照）、要求外の一括コンテンツを既定で返すのではなく、要求が求める特定のフィールドまたはアイテムのみを返さなければならない。
+
+### 主要エンティティ
+
+- **ノート (Note)**: Notes.app 上のアイテム。識別子、HTML形式の本文（表示タイトルはこの本文の1行目から導出され、別途設定される name フィールドからは導出されない）、格納先フォルダ、作成日時・更新日時を保持する。
+- **Notes フォルダ**: Notes アカウント内でノートを格納する名前付きコンテナ。親フォルダの下にネストされることもある。
+- **リマインダー (Reminder)**: Reminders.app 上のアイテム。安定性の異なる2種類の識別子（FR-018参照）、名前、任意の自由記述本文、自動的に導出される完了日時を伴う完了状態、任意の期日、優先度、所属リストを保持する。
+- **Reminders リスト**: Reminders アカウント内のリマインダーの名前付きコレクション。
+- **名前付き区画 (Named Block)**: ノート本文内の、名前で識別される区切られた機械管理領域。同じノート内で人間が自由に編集しうる周囲の地の文とは区別される。
+- **クロスアプリリンク**: 1件のノートと1件のリマインダーの間で記録される対応関係。互いの識別子として保存され、どちらの側からも独立に解決できる。
+
+## 成功基準 *(必須)*
+
+### 測定可能な成果
+
+- **SC-001**: 同じ名前のフォルダまたはリストを10回連続で要求した結果、存在するのはちょうど1つのフォルダ／リストであり、重複は一切作成されない。
+- **SC-002**: 対応していない書式指定を含むノート書き込み要求は、100%、何も書き込まれる前に、対応していない具体的な書式名を示して拒否される — 別の形式として黙って近似されることは決してない。
+- **SC-003**: 最後に読み取られた後に変化したノートに対する全内容上書き／削除の試みは、テストしたすべての同時編集シナリオにおいて100%、内容の変更なしにブロックされる。
+- **SC-004**: 操作者は、ノートからリマインダーへのリンク、またはその逆を、1回の検索呼び出しで正しい対象に解決できる — どちらのアプリでも全件検索は不要である。
+- **SC-005**: 必要な OS レベルの権限が不足している場合、操作者は最初の失敗した試行の時点で、どの権限が不足しどこで許可すればよいかを把握できる — 2回目の試行を必要としない。
+- **SC-006**: フォルダまたはリストの一覧取得は、既定（全文を要求しない）の要求形式において、呼び出し元が不要な本文全体を後処理で取り除く必要なく返る。
+- **SC-007**: 本仕様書内のいかなる要求も、移植元スキルの Scrum 固有の成果物（プロジェクトレジストリ、Scrum ボディブロック、フローメトリクス連携）を参照・依存・設定要求しない。
+
+## 前提条件
+
+- 本機能は、Notes.app と Reminders.app がローカルに存在する macOS 上でのみ動作する。iOS/iPadOS 上での経路、および完全に非対話的（ヘッドレス）な実行経路は存在しない。これは、本機能の移植元であるソーススキルにすでに定められていた制約と同じである。
+- 対応する最小 macOS バージョンは macOS 14 とする。これは、本機能が前提条件検出（FR-019）で依拠している Reminders の権限モデル（フルアクセス／書き込み専用の区別）が macOS 14 で導入されたためである。
+- 本機能が依拠する2つの OS レベルの権限許可 — Notes 用の Automation 権限、EventKit ベースのツール用の Reminders プライバシー権限 — に加え、ハーネス自体のツール呼び出し許可は、いずれも非対話的には取得できない。ヘッドレス実行では、再試行するのではなくこれを報告することを期待する。
+- Reminders の自動操作は、コンパイル済みの EventKit ベースのコマンドラインツールとして実装し、一度限りのローカルビルド手順（Xcode Command Line Tools）を必要とする。これは、本機能のスコープ確定時になされた決定に基づくものであり、型付きフィールドやより安定したクロスアプリ識別子を得られないビルド不要の AppleScript 案よりも優先された。
+- 移植元スキルの Scrum 固有の能力 — マルチプロジェクトレジストリ、`--- scrum ---` ボディブロック規約、フローメトリクス CSV パイプライン — は、本機能から意図的に除外する。本リポジトリに別途ベンダリング済みの Scrum ファシリテーションスキルは、本機能とは統合しない。
+- 削除機能は（FR-014／FR-015のガードを伴って）ノートには提供するが、リマインダーには意図的に提供しない（FR-016）: 移植元スキルはこの非対称性を意図的に定めていた — Notes には、ガード付き削除が依拠できる OS レベルの「最近削除した項目」という復元経路があるが、削除されたリマインダーには同等の復元機構が存在しないため、その操作は手動のままとする。この非対称性は見直さず、そのまま引き継ぐ。
+- Notes の「最近削除した項目」フォルダで削除済みノートが復元可能な状態を保つ正確な期間は、Apple 自身の現行の情報源間でも一致していない（仕様策定中の独立検証では、30日から40日までの複数の報告が見つかった）。本機能が出荷するドキュメントは、その保持期間を「限定的だが正確には文書化されていない期間」として記述しなければならず、特定の日数を保証として断定してはならない。
+- Notes の AppleScript／JXA における `note` クラスおよび `folder` クラスの正確なプロパティ一覧（id、name、body、creation date、modification date、container）は、引用可能な Apple のドキュメントページではなく、操作者自身のマシン上で Script Editor を用いてライブのスクリプティング辞書を検査することで確定する — Apple は現在、この辞書のブラウズ可能なリファレンスページを公開していない。本機能が出荷するドキュメントは、このプロパティ一覧の出典を外部のドキュメント URL ではなく、実機での辞書検査によるものとして明記しなければならない。

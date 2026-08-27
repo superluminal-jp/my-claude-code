@@ -1,35 +1,35 @@
-# Specification Quality Checklist: Apple Notes and Reminders Automation Skills
+# 仕様品質チェックリスト: Apple Notes / Reminders 自動操作スキル
 
-**Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-08-27
-**Feature**: [spec.md](../spec.md)
+**目的**: 計画フェーズに進む前に、仕様の完全性と品質を検証する
+**作成日**: 2026-08-27
+**対象機能**: [spec.md](../spec.md)
 
-## Content Quality
+## コンテンツ品質
 
-- [x] No implementation details (languages, frameworks, APIs)
-- [x] Focused on user value and business needs
-- [x] Written for non-technical stakeholders
-- [x] All mandatory sections completed
+- [x] 実装の詳細（言語・フレームワーク・APIなど）が含まれていない
+- [x] ユーザー価値とビジネスニーズに焦点を当てている
+- [x] 非技術者のステークホルダーにも理解できる記述になっている
+- [x] 必須セクションがすべて記入されている
 
-## Requirement Completeness
+## 要求の完全性
 
-- [x] No [NEEDS CLARIFICATION] markers remain
-- [x] Requirements are testable and unambiguous
-- [x] Success criteria are measurable
-- [x] Success criteria are technology-agnostic (no implementation details)
-- [x] All acceptance scenarios are defined
-- [x] Edge cases are identified
-- [x] Scope is clearly bounded
-- [x] Dependencies and assumptions identified
+- [x] [NEEDS CLARIFICATION] マーカーが残っていない
+- [x] 要求はテスト可能かつ曖昧さがない
+- [x] 成功基準が測定可能である
+- [x] 成功基準が技術非依存である（実装詳細を含まない）
+- [x] すべての受け入れシナリオが定義されている
+- [x] エッジケースが洗い出されている
+- [x] スコープが明確に境界付けられている
+- [x] 依存関係と前提条件が明記されている
 
-## Feature Readiness
+## 機能の準備状況
 
-- [x] All functional requirements have clear acceptance criteria
-- [x] User scenarios cover primary flows
-- [x] Feature meets measurable outcomes defined in Success Criteria
-- [x] No implementation details leak into specification
+- [x] すべての機能要求に明確な受け入れ基準がある
+- [x] ユーザーシナリオが主要なフローを網羅している
+- [x] 成功基準で定義された測定可能な成果を満たしている
+- [x] 実装の詳細が仕様に漏れ出していない
 
-## Notes
+## 備考
 
-- All items pass on first validation pass. Scope was pre-clarified in-session (generic-only extraction, EventKit-based Reminders CLI, doc re-verification requirement) before drafting, so no [NEEDS CLARIFICATION] markers were needed.
-- One deliberate exception to "no implementation details": FR-016 and the Assumptions section describe *which automation route exists* (Notes has an OS-level "Recently Deleted" recovery path; Reminders does not) only insofar as it explains a user-facing capability boundary (delete is offered for notes, not for reminders) — this is a scope/safety decision visible to the operator, not an internal implementation choice.
+- 初回の検証ですべての項目が合格した。スコープ（汎用機能のみの抽出、EventKit ベースの Reminders CLI、ドキュメント再検証の要件）は仕様起草前にセッション内ですでに合意済みだったため、[NEEDS CLARIFICATION] マーカーは不要だった。
+- 「実装詳細を含まない」という原則に対する意図的な例外が一箇所ある: FR-016 および前提条件セクションで、どの自動操作経路が存在するか（Notes には OS レベルの「最近削除した項目」による復元経路があるが、Reminders にはない）に触れているのは、操作者に見える能力上の境界（削除機能はノートには提供するがリマインダーには提供しない）を説明するためであり、内部実装上の選択を述べているわけではない。
