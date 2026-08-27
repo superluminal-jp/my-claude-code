@@ -18,7 +18,7 @@ Notes.app と Reminders.app を macOS 上で安全かつ汎用的に自動操作
 
 **Storage**: N/A（本機能はデータを自ら保持・所有しない。Notes.app / Reminders.app 自身のオンデバイスストアに対して自動操作を行うのみ）
 
-**Testing**: 純粋ロジック部分（Markdown→Notes-HTML 変換・書式検証、SHA-256 ハッシュゲート計算、名前付き区画の分割・置換ロジック）は自動テスト対象とする — Python は標準ライブラリ `unittest`（パッケージマニフェストなし、`python3 -m unittest discover` で実行）、JS の純粋変換ロジックは `osascript -l JavaScript` で直接実行（Node.js 依存なし。Automation 権限を必要としない Apple Events 非呼び出しコードだけを対象とするため、権限なしでも実行できる）。各テストファイルは本リポジトリの既存慣習に倣い `tests/run-<name>.sh` ラッパーを持つ（例: `tests/run-mcp-startup.sh` 等）。フォルダ作成・ノート読み書き・ハッシュゲート付き上書き/削除・Reminders の CRUD といった実際の Apple Events / EventKit 呼び出しは自動テスト不可能（実機の Mac と両方の権限付与が必要）であるため、`quickstart.md` による手動検証で担保する — ソーススキル自身のテスト方針と同じ非対称性。
+**Testing**: 純粋ロジック部分（Markdown→Notes-HTML 変換・書式検証、SHA-256 ハッシュゲート計算、名前付き区画の分割・置換ロジック）は自動テスト対象とする — Python は標準ライブラリ `unittest`（パッケージマニフェストなし、`python3 -m unittest discover` で実行）。JS の純粋変換ロジックは **Node.js の `require()`** で `write_note.js` を直接読み込んで実行する（実装時に判明した訂正 — 当初 `osascript -l JavaScript` での直接実行を想定していたが、JXA は CommonJS の `require()`/`module.exports` を持たないため、`write_note.js` 内部の純粋関数を個別に呼び出すテストは書けないと判明した。ソーススキル自身も同じ理由で Node を使っており、`write_note.js` 冒頭の JXA 専用参照〔`ObjC.import(...)` 等〕は `global.ObjC = { import() {} }` という最小限のスタブで無害化した上で読み込む。Node はテスト実行時のみの開発ツールであり、出荷される本番の呼び出し経路は常に `osascript -l JavaScript write_note.js ...` のままで、Node には一切依存しない）。各テストファイルは本リポジトリの既存慣習に倣い `tests/run-<name>.sh` ラッパーを持つ（例: `tests/run-mcp-startup.sh` 等）。フォルダ作成・ノート読み書き・ハッシュゲート付き上書き/削除・Reminders の CRUD といった実際の Apple Events / EventKit 呼び出しは自動テスト不可能（実機の Mac と両方の権限付与が必要）であるため、`quickstart.md` による手動検証で担保する — ソーススキル自身のテスト方針と同じ非対称性。
 
 **Target Platform**: macOS 14 以降（Sonoma 以降）。Reminders の権限モデル（フルアクセス／書き込み専用の区別）に依拠するための最低バージョン。iOS/iPadOS やヘッドレス実行の経路はない。
 
