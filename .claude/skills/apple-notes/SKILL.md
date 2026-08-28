@@ -29,7 +29,7 @@ that does not exist.
 
 ## Before the first call
 
-Two separate permissions, failing differently. Neither can be granted
+Three separate requirements, failing differently. None can be satisfied
 non-interactively — on a headless run, say so rather than retrying.
 
 1. **Automation (TCC).** The first `osascript` call raises a dialog asking the
@@ -39,6 +39,21 @@ non-interactively — on a headless run, say so rather than retrying.
 2. **Claude Code permission.** The `Bash(osascript …)` call itself prompts.
    Nothing here is pre-approved on purpose — these scripts change the user's
    own notes.
+3. **An active GUI (Aqua) login session.** `osascript`/JXA can only launch
+   and control Notes.app when a user is logged into the Mac's graphical
+   session — it cannot over SSH, from a LaunchAgent/LaunchDaemon not bound to
+   that session, or at the login screen. Error `-600` ("Application isn't
+   running") means this, not a TCC denial: Notes could not even be launched
+   to ask for permission. Every script here launches Notes and waits up to 5
+   seconds for it to report itself running before doing anything else, so a
+   plain cold start (Notes simply hadn't been opened yet) resolves itself
+   automatically — a `-600` that still reaches the caller means the GUI
+   session itself is unavailable, a different machine's environment rather
+   than something retrying the same call will fix.
+
+Every script's own error output already names which of the three this is —
+`-600`, `-1743`, `-10004`, and `-10827` are translated into the sentences
+above rather than left as bare numbers.
 
 ## The property surface
 
@@ -198,8 +213,9 @@ convention.
 ## Reporting back
 
 Return the answer, not the transcript. A folder's worth of HTML bodies is not
-a result; the two lines the caller asked about are. When a script fails, give
-the error and which of the two permissions above is the likely cause.
+a result; the two lines the caller asked about are. When a script fails, pass
+along the error text — it already names the likely cause among the three
+requirements above when the failure matches a known Apple Event error code.
 
 ## Sources
 
@@ -212,3 +228,11 @@ prior source unchecked.
 - Notes text styles, font/color/size, highlighting, and alignment — [Format notes on Mac](https://support.apple.com/guide/notes/format-notes-apd1955d3b21/mac)
 - "Add Link" documented targets (Safari, Podcasts, other notes — no Reminders) — [Add links in Notes on Mac](https://support.apple.com/guide/notes/add-links-apde615d29c2/mac)
 - The `note`/`folder` property surface used above is from Script Editor's live scripting-dictionary viewer on this machine, not a published Apple reference page — [View an app's scripting dictionary in Script Editor](https://support.apple.com/guide/script-editor/view-an-apps-scripting-dictionary-scpedt1126/mac)
+
+The following two were independently verified via web search on 2026-08-28,
+when the "-600" troubleshooting item and the `.whose()`/`.byId()` avoidance in
+`list_notes.js`/`write_note.js` were added, in response to both symptoms
+being reported from another Mac:
+
+- `-600` means "Application isn't running" and is thrown when `osascript` cannot even launch the target app (no active GUI session, Automation blocked by a hardened runtime, etc.) — [Error Number: -600 Application isn't running – MacScripter](https://www.macscripter.net/t/error-number-600-application-isn-t-running/70925)
+- Notes.app's own AppleScript/JXA dictionary is widely reported as unreliable ("half-baked scripting support... a gazillion questions about weird behavior and errors"), independent of JXA's general `.whose()`/`.byId()` support — [Notes – JavaScript for Automation (JXA)](https://bru6.de/jxa/automating-applications/notes/)

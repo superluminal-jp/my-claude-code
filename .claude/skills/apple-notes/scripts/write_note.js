@@ -88,6 +88,7 @@ function run(argv) {
   const app = Application('Notes');
 
   try {
+    ensureRunning(app);
     const result = opts.delete
       ? deleteNote(app, opts)
       : opts.overwrite
@@ -99,8 +100,42 @@ function run(argv) {
       : create(app, opts);
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    return fail(error.message);
+    return fail(describeAppleEventError(error));
   }
+}
+
+// Duplicated verbatim from ensure_folder.js -- see that copy's comment for
+// why a cold Apple Event needs this before any Notes-specific dictionary
+// call, and "Sources" in SKILL.md.
+function ensureRunning(app) {
+  try {
+    if (app.running()) return;
+  } catch (error) {
+    // Fall through and try to launch anyway.
+  }
+  app.activate();
+  const deadlineMs = Date.now() + 5000;
+  while (Date.now() < deadlineMs) {
+    try {
+      if (app.running()) return;
+    } catch (error) {
+      // Keep waiting.
+    }
+    $.NSThread.sleepForTimeInterval(0.2);
+  }
+}
+
+// Duplicated verbatim from ensure_folder.js -- see that copy's comment.
+function describeAppleEventError(error) {
+  const code = error && typeof error.errorNumber === 'number' ? error.errorNumber : null;
+  const hints = {
+    '-600': 'Notes.app could not be launched -- this requires an active GUI (Aqua) login session; it cannot run over SSH or from a background/headless process.',
+    '-1743': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+    '-10004': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+    '-10827': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+  };
+  const hint = code !== null ? hints[String(code)] : null;
+  return hint ? error.message + ' -- ' + hint : error.message;
 }
 
 function parseArgs(argv) {
@@ -196,7 +231,10 @@ function create(app, opts) {
       fail('no folder with id: ' + opts.folderId);
     }
   } else {
-    const matches = app.folders.whose({ name: opts.folder });
+    // Fetch-and-filter, not `.whose({ name })` -- see findNoteById()'s comment
+    // below and "Sources" in SKILL.md for why Notes.app's scripting
+    // dictionary is not treated as reliable for either JXA convenience method.
+    const matches = app.folders().filter((folder) => folder.name() === opts.folder);
     if (matches.length === 0) fail('no such folder: ' + opts.folder);
     if (matches.length > 1) {
       fail(
@@ -231,13 +269,7 @@ function create(app, opts) {
 }
 
 function append(app, opts) {
-  let note;
-  try {
-    note = app.notes.byId(opts.id);
-    note.name(); // Resolve now: a bad id must fail here, not silently later.
-  } catch (error) {
-    fail('no note with id: ' + opts.id);
-  }
+  const note = findNoteById(app, opts.id);
   // JXA cannot resolve a note's documented `container` property. Resolve the
   // folder before mutating so a membership failure cannot turn a completed
   // append into an error that the caller might retry.
@@ -283,13 +315,7 @@ function findBlock(body, name) {
 }
 
 function replaceBlock(app, opts) {
-  let note;
-  try {
-    note = app.notes.byId(opts.id);
-    note.name(); // Resolve now: a bad id must fail here, not silently later.
-  } catch (error) {
-    fail('no note with id: ' + opts.id);
-  }
+  const note = findNoteById(app, opts.id);
   const folderName = folderNameForId(app, opts.id);
 
   const body = note.body() || '';
@@ -319,13 +345,7 @@ function overwrite(app, opts) {
   const convertedHtml = markdownToNotesHtml(overwriteText);
   const convertedName = firstVisibleLine(overwriteText);
 
-  let note;
-  try {
-    note = app.notes.byId(opts.id);
-    note.name(); // Resolve now: a bad id must fail here, not silently later.
-  } catch (error) {
-    fail('no note with id: ' + opts.id);
-  }
+  const note = findNoteById(app, opts.id);
   const folderName = folderNameForId(app, opts.id);
 
   const currentPlaintext = toPlainText(note.body() || '') || '';
@@ -345,13 +365,7 @@ function overwrite(app, opts) {
 // id/name/folder are captured before deleting -- once app.delete(note) runs,
 // the note object can no longer be queried.
 function deleteNote(app, opts) {
-  let note;
-  try {
-    note = app.notes.byId(opts.id);
-    note.name(); // Resolve now: a bad id must fail here, not silently later.
-  } catch (error) {
-    fail('no note with id: ' + opts.id);
-  }
+  const note = findNoteById(app, opts.id);
   const folderName = folderNameForId(app, opts.id);
   const snapshot = describe(note, folderName);
 
@@ -447,6 +461,25 @@ function folderNameForId(app, noteId) {
   }
   if (match === null) fail('could not resolve folder for note: ' + noteId);
   return match;
+}
+
+// Looks up a note by id via a bulk id fetch + positional specifier instead of
+// `app.notes.byId(id)`. Duplicated verbatim from list_notes.js -- see that
+// copy's comment and "Sources" in SKILL.md: Notes.app's scripting dictionary
+// has been reported unreliable for JXA's `.whose()`/`.byId()` convenience
+// methods, and this fetch-and-index approach needs only the positional
+// element specifiers every JXA app object model guarantees.
+function findNoteById(app, noteId) {
+  const ids = app.notes.id();
+  const index = ids.indexOf(noteId);
+  if (index === -1) fail('no note with id: ' + noteId);
+  try {
+    const note = app.notes[index];
+    note.name(); // Force the specifier to resolve now, not later.
+    return note;
+  } catch (error) {
+    fail('no note with id: ' + noteId);
+  }
 }
 
 function describe(note, folderName) {
