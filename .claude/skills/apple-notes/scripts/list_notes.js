@@ -24,6 +24,7 @@ function run(argv) {
   const app = Application('Notes');
 
   try {
+    ensureRunning(app);
     if (opts.folders) {
       return JSON.stringify(app.folders.name(), null, 2);
     }
@@ -35,8 +36,42 @@ function run(argv) {
     }
     return JSON.stringify(items, null, 2);
   } catch (error) {
-    return fail(error.message);
+    return fail(describeAppleEventError(error));
   }
+}
+
+// Duplicated verbatim from ensure_folder.js -- see that copy's comment for
+// why a cold Apple Event needs this before any Notes-specific dictionary
+// call, and "Sources" in SKILL.md.
+function ensureRunning(app) {
+  try {
+    if (app.running()) return;
+  } catch (error) {
+    // Fall through and try to launch anyway.
+  }
+  app.activate();
+  const deadlineMs = Date.now() + 5000;
+  while (Date.now() < deadlineMs) {
+    try {
+      if (app.running()) return;
+    } catch (error) {
+      // Keep waiting.
+    }
+    $.NSThread.sleepForTimeInterval(0.2);
+  }
+}
+
+// Duplicated verbatim from ensure_folder.js -- see that copy's comment.
+function describeAppleEventError(error) {
+  const code = error && typeof error.errorNumber === 'number' ? error.errorNumber : null;
+  const hints = {
+    '-600': 'Notes.app could not be launched -- this requires an active GUI (Aqua) login session; it cannot run over SSH or from a background/headless process.',
+    '-1743': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+    '-10004': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+    '-10827': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+  };
+  const hint = code !== null ? hints[String(code)] : null;
+  return hint ? error.message + ' -- ' + hint : error.message;
 }
 
 function parseArgs(argv) {
@@ -58,8 +93,18 @@ function parseArgs(argv) {
 }
 
 // Bulk property reads: one Apple Event per property for the whole folder.
+//
+// Folder lookup fetches the whole collection and filters in JavaScript
+// rather than using `.whose({ name })` -- Notes.app's scripting dictionary
+// has been reported unreliable for JXA's `.whose()` filter (it is not a
+// general JXA defect: single positive-condition `.whose()` clauses are
+// documented to work against better-behaved apps' dictionaries). Fetch-and-
+// filter is exactly the approach SKILL.md already documents ("There is no
+// query language. Filtering a folder means fetching it and filtering in the
+// caller.") and what ensure_folder.js already does for the same reason --
+// see "Sources" in SKILL.md.
 function fromFolder(app, opts) {
-  const folders = app.folders.whose({ name: opts.folder });
+  const folders = app.folders().filter((folder) => folder.name() === opts.folder);
   if (folders.length === 0) fail('no such folder: ' + opts.folder);
 
   const notes = folders[0].notes;
@@ -84,13 +129,7 @@ function fromFolder(app, opts) {
 }
 
 function byId(app, opts) {
-  let note;
-  try {
-    note = app.notes.byId(opts.id);
-    note.name(); // Force the specifier to resolve now, not later.
-  } catch (error) {
-    fail('no note with id: ' + opts.id);
-  }
+  const note = findNoteById(app, opts.id);
   const folderName = folderNameForId(app, opts.id);
 
   const item = {
@@ -103,6 +142,23 @@ function byId(app, opts) {
   if (opts.withBody) item.body = normalize(note.body());
   if (opts.plaintext) item.plaintext = toPlainText(item.body);
   return item;
+}
+
+// Looks up a note by id via a bulk id fetch + positional specifier instead of
+// `app.notes.byId(id)` -- the same Notes.app scripting-reliability reasoning
+// as fromFolder()'s filter above applies to `.byId()` too, and this is one
+// Apple Event, not per-folder iteration. See "Sources" in SKILL.md.
+function findNoteById(app, noteId) {
+  const ids = app.notes.id();
+  const index = ids.indexOf(noteId);
+  if (index === -1) fail('no note with id: ' + noteId);
+  try {
+    const note = app.notes[index];
+    note.name(); // Force the specifier to resolve now, not later.
+    return note;
+  } catch (error) {
+    fail('no note with id: ' + noteId);
+  }
 }
 
 // Notes documents a note's `container`, but JXA fails to resolve it for a

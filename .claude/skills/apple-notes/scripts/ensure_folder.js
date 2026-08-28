@@ -27,13 +27,62 @@ function run(argv) {
   const app = Application('Notes');
 
   try {
+    ensureRunning(app);
     if (opts.parentId) {
       return JSON.stringify(ensureInParent(app, opts), null, 2);
     }
     return JSON.stringify(ensureInAccount(app, opts), null, 2);
   } catch (error) {
-    return fail(error.message);
+    return fail(describeAppleEventError(error));
   }
+}
+
+// Launches Notes.app and waits briefly for it to report itself running
+// before any dictionary-specific call (folders/notes) is sent to it. A cold
+// Apple Event to an app that is not yet running can fail with -600
+// ("Application isn't running") even in a normal, non-headless session --
+// e.g. right after login, or when Notes has not been opened in a while (see
+// "Sources" in SKILL.md) -- rather than silently auto-launching the way a
+// warm one usually does. `running`/`activate` are Standard Suite features
+// every JXA Application object exposes, unlike the Notes-specific
+// `.whose()`/`.byId()` this skill avoids elsewhere, so they are safe to rely
+// on here. This cannot fix a genuinely headless environment (no GUI login
+// session) -- see describeAppleEventError() for that case -- only the
+// ordinary "app was not warmed up yet" case this skill's own retries cannot
+// distinguish from a permission denial.
+function ensureRunning(app) {
+  try {
+    if (app.running()) return;
+  } catch (error) {
+    // Fall through and try to launch anyway -- some states make `running`
+    // itself throw before the app has been asked to launch even once.
+  }
+  app.activate();
+  const deadlineMs = Date.now() + 5000;
+  while (Date.now() < deadlineMs) {
+    try {
+      if (app.running()) return;
+    } catch (error) {
+      // Keep waiting; see the comment above.
+    }
+    $.NSThread.sleepForTimeInterval(0.2);
+  }
+}
+
+// Apple Event errors carry a numeric `errorNumber` alongside `.message`.
+// Mapping the codes this skill's own "Before the first call" section in
+// SKILL.md already documents means a caller sees the fix, not just the raw
+// number, without cross-referencing the doc by hand.
+function describeAppleEventError(error) {
+  const code = error && typeof error.errorNumber === 'number' ? error.errorNumber : null;
+  const hints = {
+    '-600': 'Notes.app could not be launched -- this requires an active GUI (Aqua) login session; it cannot run over SSH or from a background/headless process.',
+    '-1743': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+    '-10004': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+    '-10827': 'Automation permission for Notes was denied -- see SKILL.md "Before the first call".',
+  };
+  const hint = code !== null ? hints[String(code)] : null;
+  return hint ? error.message + ' -- ' + hint : error.message;
 }
 
 function ensureInAccount(app, opts) {
