@@ -20,10 +20,10 @@ across projects while preserving unrelated user files.
   style, skill index, MCP import (thin; most detail lives in `rules/` and
   on-demand `skills/`)
 - **`.claude/settings.json`** — User-level Claude Code settings
-- **`.claude/rules/`** — Always-on universal rules: permissions/safety, tool
-  selection, clarification triggers, skill routing, subagent delegation
-  (when to isolate work in a subagent vs. keep it in the main conversation),
-  live-documentation enforcement, MCP catalog
+- **`.claude/rules/`** — Always-on universal rules: permissions/safety,
+  clarification triggers, skill routing, thinking lenses (six reasoning
+  self-checks), live-documentation enforcement (drift, proximity, granularity
+  layering), git workflow, MCP catalog
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
   (TDD, SDD, code quality, security, type safety, docs);
   `digital-agency-frontend` (DADS-based accessible React/Tailwind public-service
@@ -58,7 +58,7 @@ Re-running is safe: it re-syncs managed paths and upserts MCP servers.
 
 **Important (overwrite/replace behavior):**
 
-- Installer-managed paths are synchronized by replacement: `hooks/`, `rules/`,
+- Installer-managed paths are synchronized by replacement: `rules/`,
   `skills/`, `agents/`, `commands/`, `CLAUDE.md`, `settings.json`, and
   `install.sh`.
 - Files removed from this repository are also removed from `~/.claude` under
@@ -94,7 +94,8 @@ my-claude-code/
     │   ├── permissions.md          # Credential safety, destructive ops
     │   ├── clarifier.md            # When to ask; batch questions + template
     │   ├── skill-routing.md        # Which skill to load for a request
-    │   ├── live-documentation.md   # Doc drift enforcement (5 principles) + lifecycle standards
+    │   ├── thinking-lenses.md      # Six reasoning self-checks applied every task
+    │   ├── live-documentation.md   # Doc enforcement (7 checks) + lifecycle standards
     │   ├── git-workflow.md         # Commit/branch/PR conventions
     │   └── mcp.md                  # MCP server catalog + usage rule
     └── skills/                     # On-demand: body loaded when relevant

@@ -1,6 +1,6 @@
 # Live Documentation Rules
 
-Purpose: keep documentation truthful and co-located with the code it describes, across the whole lifecycle — not only as an after-the-fact patch. Applies when reviewing diffs/commits/PRs, when creating any Documentation Artifact, and before/during non-trivial work (see § 0). Documentation must never lie; sections 1–6 operationalize the Living Documentation approach (Martraire, 2019 — see [References](#references)) as six enforcement checks applied in every session: drift, separate-doc-PR, auto-generation, proximity, no-redundancy, and intermediate-artifact isolation. The six checks are this repo's own operationalization, not a canonical list from the source.
+Purpose: keep documentation truthful and co-located with the code it describes, across the whole lifecycle — not only as an after-the-fact patch. Applies when reviewing diffs/commits/PRs, when creating any Documentation Artifact, and before/during non-trivial work (see § 0). Documentation must never lie; sections 1–7 operationalize the Living Documentation approach (Martraire, 2019 — see [References](#references)) as seven enforcement checks applied in every session: drift, separate-doc-PR, auto-generation, proximity, no-redundancy, intermediate-artifact isolation, and granularity layering. The seven checks are this repo's own operationalization, not a canonical list from the source.
 
 ## 0. Documentation Across the Lifecycle (named standards)
 
@@ -31,6 +31,7 @@ When reviewing a code diff or commit:
 - If a contract changed but its Documentation Artifact did not: Claude MUST flag this as a **Live Documentation violation (Drift)**, name the stale artifact by path, and refuse to pass the review until either:
   - The artifact is updated in the same change, OR
   - The developer provides an Override with a stated reason (see Override Handling below).
+- A stale artifact is stale at whatever granularity layer it sits (§ 7). L2–L5 being recommended rather than required does not exempt an artifact that already exists from this check.
 - Do NOT flag pure internal changes (private method renames, formatting, implementation-only refactors with no contract change).
 
 ## 2. Separate Documentation PR Detection
@@ -56,6 +57,7 @@ When adding or placing any Documentation Artifact:
   - `README.md` in the **same directory** as the source files
   - A co-located spec or contract file adjacent to the source
 - If a developer proposes a remote or centralized location (top-level `docs/`, external wiki, separate repo): warn that this violates the Proximity principle and offer the nearest co-located alternative.
+- Which location counts as "closest" is settled by granularity layer, not by taste — see § 7.
 
 ## 5. No Redundancy
 
@@ -63,6 +65,7 @@ When asked to create a Documentation Artifact:
 - Check whether the same information already exists elsewhere in the repo (another doc, a docstring, a spec file, a contract file).
 - If a duplicate exists: point to the existing source and decline to create the duplicate.
 - Offer to add a cross-reference link if the developer needs discoverability from the new location.
+- **Compression exception**: a summary of a lower granularity layer, written at a higher one, is not a duplicate — it is compression, and § 7 requires it. Permitted when it (a) links to the canonical source, (b) does not contradict it, and (c) introduces no fact absent from it. Breaking (b) is also a Drift violation under § 1.
 
 ## 6. Intermediate-Artifact Isolation
 
@@ -71,6 +74,55 @@ When writing or updating a Documentation Artifact intended to ship as part of th
 - If a reader of the final artifact needs the rationale behind a decision, capture it in an ADR (`docs/adr/`) and link that instead — ADRs are the permanent, citable record; Spec Kit artifacts are ephemeral working documents (see `adr` skill).
 - If a Spec Kit link is already present in a shipped artifact: flag it as a **Live Documentation violation (Intermediate-Artifact Leakage)** and replace it with either an ADR reference or plain prose, or remove it if no permanent record is warranted.
 - Do NOT flag: artifacts within `specs/` linking to each other (e.g., `tasks.md` → `plan.md` → `spec.md`), or Spec Kit's own generated files referencing their own inputs — this check governs only what ships to end users/consumers of the code, not the planning trail itself.
+
+## 7. Granularity Layers and Reader Progression
+
+Documentation is written at five granularity layers. A fact's canonical source belongs at the **smallest** layer at which it is true; larger layers may compress it (§ 5, Compression exception).
+
+| Layer | Scope | Canonical artifact |
+|---|---|---|
+| L1 `repository` | the whole repository | root `README.md` |
+| L2 `subtree` | a subsystem spanning several directories — a subtree holding two or more subdirectories that outside code addresses through a single entry point | `README.md` at the subtree root |
+| L3 `directory` | the files directly inside one directory | `README.md` in that same directory |
+| L4 `file` | one file | leading docstring or module comment |
+| L5 `block` | a passage inside a function, a non-obvious branch or invariant | inline comment |
+
+This is § 4's Proximity ordering made discrete.
+
+### 7.1 How much is required
+
+- **L1 is MUST** — a repository has a root `README.md` satisfying § 7.2.
+- **L2–L5 are SHOULD** — their absence is not by itself a § 7 violation.
+- **Any artifact that exists MUST conform** — you need not write at these layers; if you do, the artifact takes the shape § 7.2 describes.
+
+Recommending rather than requiring L2–L5 does not weaken the guarantee: § 1 Drift Detection applies independently, so a changed public contract whose docstring or README went stale in the same diff is still a violation.
+
+### 7.2 Every artifact is a pyramid
+
+At every layer, a Documentation Artifact must:
+
+1. **Establish shared ground first** — open with what the reader already knows and what this artifact covers, defining its terms. Never open in undefined jargon.
+2. **Answer before supporting** — state what the thing is or does before the detail that supports it.
+3. **Keep siblings MECE** — items at one level neither overlap each other nor leave a gap at that level.
+4. **Commit each group to one logic** — a group either argues deductively (premise → premise → conclusion) or lists inductively (like kinds of fact). Never mix the two at one level.
+
+These are the Logic tree and Parallel lenses of `rules/thinking-lenses.md` applied to a written artifact, and Minto's pyramid (see [References](#references)) — no new criterion is introduced.
+
+### 7.3 Expertise rises by descending
+
+Reader level is not a label ("beginner", "advanced"). It is **how far down the layers a reader has gone**, which makes the progression checkable instead of a matter of opinion:
+
+- Each layer addresses a reader who has finished the layer above it. L1 assumes no prior knowledge.
+- Dependency runs one way only: an artifact may rely on terms introduced at a **higher** layer, never on terms defined only at a **lower** one. A README leaning on a term defined solely in a docstring is a violation.
+
+### 7.4 Violations
+
+- **Structure violation** — any of § 7.2's four conditions fails, or § 7.3's dependency direction is inverted.
+- **Compression violation** — a summary breaks one of § 5's three conditions. A summary that contradicts its canonical source is also a **Drift** violation under § 1: one fact stated twice, told two ways.
+
+Like §§ 1–6, § 7 is applied at review time and by the author at writing time; nothing enforces it mechanically. Override Handling below applies unchanged — § 7 has no exemption of its own.
+
+**Not retroactive** — § 7 governs artifacts created from now on, and existing artifacts whenever a diff touches them. It is not a mandate to restructure documentation already in the repository.
 
 ## Override Handling
 
@@ -86,6 +138,7 @@ A developer may explicitly accept a Live Documentation violation by stating a re
 - Generated files: migration files, build artifacts, lock files, compiled outputs.
 - New standalone ADRs, onboarding docs, or design documents not derived from existing code.
 - Test files that describe expected behavior — these are Executable Specifications; drift check applies only when the tested interface changes.
+- Documentation that predates § 7 and is untouched by the current diff — § 7 is not retroactive.
 
 ## References
 
@@ -96,6 +149,7 @@ A developer may explicitly accept a Live Documentation violation by stating a re
 - Michael Nygard, "Documenting Architecture Decisions," Cognitect, 2011; MADR 4.0.0 — see `adr` skill § References
 - Anne Gentle, *Docs Like Code*, 2017 (3rd ed. 2022) — <https://www.docslikecode.com/>
 - Daniele Procida, Diátaxis framework, 2020 — <https://diataxis.fr/>
+- Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987 (pyramid structure applied in § 7.2).
 - ISO/IEC/IEEE 15289:2019, *Systems and software engineering — Content of life-cycle information items (documentation)* — <https://www.iso.org/standard/74909.html>
 - ISO/IEC/IEEE 26514:2022, *Systems and software engineering — Design and development of information for users* — <https://www.iso.org/standard/77451.html>
 - ISO 21502:2020, *Project, programme and portfolio management — Guidance on project management* — <https://www.iso.org/standard/74947.html>

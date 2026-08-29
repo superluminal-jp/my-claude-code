@@ -12,7 +12,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 - **`.claude/CLAUDE.md`**: 常時メモリ（原則、応答スタイル、skill インデックス、MCP 参照）
 - **`.claude/settings.json`**: Claude Code のユーザーレベル設定
-- **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、サブエージェント委譲（独立コンテキストに切り出すか本体で進めるかの判断）、live-documentation、git ワークフロー、MCP カタログ）
+- **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、思考レンズ（6つの推論セルフチェック）、live-documentation（ドリフト・近接性・粒度階層）、git ワークフロー、MCP カタログ）
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
   - `digital-agency-frontend`: DADS とダッシュボードガイドブックに基づく、アクセシブルな React/Tailwind Web フロントエンド開発・レビュー
@@ -42,7 +42,6 @@ bash path/to/my-claude-code/install.sh
 ### 重要: 上書き置換（削除同期）について
 
 - 次の管理対象は **置換同期** されます:
-  - `hooks/`
   - `rules/`
   - `skills/`
   - `agents/`
