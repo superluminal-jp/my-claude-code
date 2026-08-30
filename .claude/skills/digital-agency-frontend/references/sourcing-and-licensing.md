@@ -14,32 +14,38 @@ accessibility policy — and essentially **no code**. For implementation, go to
 Read the version from the archive itself rather than from any prose:
 
 ```sh
-grep -m1 '^# ' .claude/skills/digital-agency-frontend/references/dads-docs/index.md
+grep -m1 '^# ' "${CLAUDE_SKILL_DIR}/references/dads-docs/index.md"
 ```
 
 ### Refreshing the archive
 
-The vendored dads-docs archive is kept unmodified so an update is a straight replace — nothing in
-this skill duplicates its wording, so refreshing it never requires editing the
-surrounding documents.
+The vendored dads-docs archive is kept unmodified so an update is a reviewed
+replacement. Nothing in this package duplicates its wording, so refreshing it
+does not require editing the surrounding documents unless their operational
+guidance changed.
 
 1. Download the current Markdown bundle from <https://design.digital.go.jp/dads/resources/> and unzip it.
-2. Replace the directory, keeping Markdown only:
+2. Build and validate a candidate directory outside the package, keeping Markdown only:
 
 ```sh
-SKILL=.claude/skills/digital-agency-frontend/references
-rm -rf "$SKILL/dads-docs" && mkdir -p "$SKILL/dads-docs"
-cd <unzipped-bundle> && find . -name '*.md' -print0 \
+DADS_REFRESH_ROOT="$(mktemp -d)"
+DADS_CANDIDATE="$DADS_REFRESH_ROOT/dads-docs"
+mkdir -p "$DADS_CANDIDATE"
+cd <unzipped-bundle> && find . -type f -name '*.md' -print0 \
   | tar --null -cf - --files-from=- \
-  | (cd "$OLDPWD/$SKILL/dads-docs" && tar -xf -)
+  | (cd "$DADS_CANDIDATE" && tar -xf -)
+test -f "$DADS_CANDIDATE/index.md"
+test -f "$DADS_CANDIDATE/MANIFEST.md"
 ```
 
-3. Confirm the new version stamp with the `grep` above and report the version change.
+3. Compare version, file count, and representative paths with the installed archive. After explicit authorization for the exact replacement, move the installed archive to a uniquely named backup and move the validated candidate into its place. Keep the backup until the diff and tests pass; never overwrite or recursively delete an unresolved target.
 4. Confirm nothing was silently dropped — the staged count must equal the count on disk:
 
 ```sh
-find "$SKILL/dads-docs" -name '*.md' | wc -l
-git add "$SKILL/dads-docs" && git diff --cached --name-only | grep -c dads-docs/
+DADS_ARCHIVE="${CLAUDE_SKILL_DIR}/references/dads-docs"
+find "$DADS_ARCHIVE" -type f -name '*.md' | wc -l
+git add "$DADS_ARCHIVE"
+git diff --cached --name-only -- "$DADS_ARCHIVE" | grep -c 'dads-docs/'
 ```
 
 A mismatch means an ignore rule swallowed part of the archive. The macOS global

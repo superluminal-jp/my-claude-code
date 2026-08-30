@@ -1,24 +1,31 @@
-# Clarification Rules
+# Requirements Certainty
 
-When a request is ambiguous, incomplete, or beyond reasonable inference, **stop and ask** — do not fabricate intent.
+Commit to an outcome only when the user's intent is defined well enough to choose and verify the right work. This guidance resolves uncertainty about the requested result; it neither grants authority to act nor determines whether an action is permitted.
 
-## When to ask
+## Material gaps
 
-Any of these, where the answer would change what you build:
+A gap is material when different reasonable answers would change at least one of:
 
-- **Intent** — the goal is unstated or has several plausible readings.
-- **Scope** — inputs, outputs, affected files or systems, or boundaries are undefined.
-- **Acceptance** — no verifiable success criterion; you could not write a test.
-- **Constraints** — performance, security, compatibility, or deadline limits are missing where they matter.
-- **Conflict** — contradicts an existing spec, a rule here, or a prior decision this session.
-- **Risk** — irreversible or destructive, or blast radius beyond the local workspace (`permissions.md`).
+- the intended outcome or affected parties;
+- the included inputs, outputs, systems, or boundaries;
+- the observable completion condition;
+- a binding compatibility, security, performance, quality, cost, or timing constraint;
+- the chosen approach's reversibility, effort, or blast radius;
+- which of two conflicting requirements or prior decisions prevails.
 
-Otherwise proceed. Where the gap is trivial and the default obvious — two-way door, local, reversible — **proceed and state the assumption explicitly** instead of asking.
+Ask before committing when a material gap cannot be resolved from applicable evidence. Do not invent intent, constraints, or acceptance criteria.
 
-## How to ask
+## Proportionate resolution
 
-Batch every blocking gap into one turn; never drip questions turn by turn. Per gap: a default, the cost of assuming it (reversibility, effort, blast radius), one decision per question. Tag inferred answers `high`/`medium`/`low` confidence. Never ask after the work is done, and never invent acceptance criteria the user did not agree to.
+- Resolve every blocking gap together when practical so the user can make one coherent decision.
+- State the available context, a recommended default, and how each alternative changes the result, effort, reversibility, or impact.
+- Ask one decision per question and make the observable consequence of each answer clear.
+- If the gap is immaterial and the default is obvious, local, reversible, and low risk, proceed with the assumption stated explicitly.
+- Mark inferred requirements by confidence and keep them distinguishable from requirements the user confirmed.
 
-## Related
+Definition is sufficient when the purpose, scope, material constraints, and observable completion condition support one bounded course of work. Resolve uncertainty before the affected work, never after presenting it as complete.
 
-The `clarifier` skill supplies the _how_: elicitation toolbox, ambiguity-pattern catalogue, quality gate. If you cannot write a failing test from a requirement, it is still ambiguous (`coder`). Where a `spec.md` exists, clarify against it with `/speckit-clarify` rather than inline Q&A. Destructive actions need confirmation regardless of clarification state (`permissions.md`).
+## References
+
+- ISO/IEC/IEEE 29148:2018, *Systems and software engineering — Life cycle processes — Requirements engineering* — the international standard for eliciting, analyzing, validating, and managing requirements that this rule's material-gap test operationalizes: <https://www.iso.org/standard/72089.html>
+- Barry W. Boehm, *Software Engineering Economics*, Prentice-Hall, 1981 — the empirical basis for resolving a material gap before committing rather than after: cost-to-fix escalates roughly an order of magnitude at each later lifecycle stage.

@@ -1,8 +1,8 @@
 # MCP サーバー — 背景と参照先
 
-このリポジトリの MCP 運用ルールは `.claude/rules/mcp.md` にある。そちらは Claude Code が判断に使う最小限の情報だけを持ち、本書がその背景（なぜその形なのか、情報がどこから来ているのか、サーバーを増やしたとき何を更新するのか）を持つ。
+このリポジトリの MCP 運用手順は `.claude/skills/cloud-platform-research/SKILL.md` にある。サーバー選択と AWS スキルレジストリ手順は、クラウド提供元の現行ドキュメントが要る条件付き調査であり全セッション共通のルールではないため、常時ロードではなく必要時にだけ読み込まれるスキルとして持つ（[ADR-0015](adr/0015-rule-layer-independence.md)）。そちらは Claude Code が判断に使う最小限の情報だけを持ち、本書がその背景（なぜその形なのか、情報がどこから来ているのか、サーバーを増やしたとき何を更新するのか）を持つ。
 
-本書は `.claude/rules/` の外にあるため自動ロードされない。読むのは人間で、Claude が読むのは必要になったときだけである。
+本書は `.claude/rules/` にも `.claude/skills/` にもないため自動ロードされない。読むのは人間で、Claude が読むのは必要になったときだけである。
 
 ## 1. `.mcp.json` に書けること、書けないこと
 
@@ -15,7 +15,7 @@
 | 認証 | `headers`、`headersHelper`、`oauth`、`env` |
 | 挙動 | `timeout`、`alwaysLoad` |
 
-つまり **「このサーバーをいつ呼ぶべきか」を設定ファイルから渡す手段はない**。スキルが `description` / `when_to_use` フロントマターで自分の起動条件を宣言できるのとは対照的で、この非対称性が `.claude/rules/mcp.md` が存在する理由である。
+つまり **「このサーバーをいつ呼ぶべきか」を `.mcp.json` から渡す手段はない**。個々の MCP サーバー定義はスキルの `description` / `when_to_use` フロントマターに相当するものを持てないためで、この非対称性が、サーバー選択の判断を `cloud-platform-research` skill 自身の `description` に集約している理由である。
 
 ## 2. Claude Code が実際に受け取るもの
 
@@ -28,13 +28,13 @@
 
 `instructions` は MCP 仕様で `InitializeResult` の任意フィールドとして定義されている [2]。**サーバー作者が書くもので、利用者が手元で補うことはできない。**
 
-さらに tool search が既定で有効なため、ツール**名**はコンテキストにあるが、説明とスキーマは入っていない。必要になった時点で ToolSearch が取得する [1]。ルール側の「ToolSearch してから『機能がない』と判断せよ」はこの挙動に対応している。
+さらに tool search が既定で有効なため、ツール**名**はコンテキストにあるが、説明とスキーマは入っていない。必要になった時点で ToolSearch が取得する [1]。`cloud-platform-research/SKILL.md` の「利用可能なツール発見の仕組みを使ってから、提供元のドキュメントが手に入らないと判断せよ」はこの挙動に対応している。
 
 `alwaysLoad: true` を設定すると、そのサーバーだけ遅延読み込みから除外され、初回ターンから完全なスキーマが載る [1]。設定側から「把握の度合い」を上げられる唯一のレバーだが、内容そのものを足すことはできない。
 
 ## 3. 各サーバーのベンダー公式リファレンス
 
-`.claude/rules/mcp.md` の表にある `Covers` と `Self-describes` は、セッションに注入された各サーバーの `instructions` とツール名の観測から起こしている。以下はその裏取り先。
+`cloud-platform-research/SKILL.md` の「Subject / Preferred official capability」表は、セッションに注入された各サーバーの `instructions` とツール名の観測から起こしている。以下はその裏取り先。
 
 | サーバー | ベンダー公式リファレンス |
 |---|---|
@@ -49,12 +49,12 @@ stdio の 3 件（`aws-documentation` / `bedrock-agentcore` / `strands-agents`�
 
 ## 4. サーバーを追加・削除したとき
 
-`.mcp.json` を変更したら `.claude/rules/mcp.md` の表と本書の表を同時に更新する。自動チェックは存在しない（`docs/adr/0007-remove-scripts.md` で整合性チェックスクリプトを撤去済み）。README の検証セクションにも同じ手動チェックリストがある。
+`.mcp.json` を変更したら `.claude/skills/cloud-platform-research/SKILL.md` の表と本書の表を同時に更新する。自動チェックは存在しない（`docs/adr/0007-remove-scripts.md` で整合性チェックスクリプトを撤去済み）。README の検証セクションにも同じ手動チェックリストがある。
 
 新しいサーバーについて記入するのは 3 点:
 
-1. **Covers** — 何を扱うか。注入された `instructions` があればそこから、なければツール名から。
-2. **Self-describes** — `instructions` を提供しているか。`/mcp` パネルまたはセッションの "MCP Server Instructions" ブロックの有無で判断する。
+1. **主題（Subject）** — 何を扱うか。注入された `instructions` があればそこから、なければツール名から。`cloud-platform-research/SKILL.md` の表に1行追加する。
+2. **自己記述の有無** — `instructions` を提供しているか。`/mcp` パネルまたはセッションの "MCP Server Instructions" ブロックの有無で判断する。自己記述しないサーバーは、そのぶん本書とスキル側の記述の正確さに依存する。
 3. **ベンダー公式リファレンス** — 本書の表に追加。stdio なら PyPI メタデータ、HTTP ならベンダーの公式ページ。推測で URL を書かない。
 
 ## References

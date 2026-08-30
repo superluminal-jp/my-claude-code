@@ -1,7 +1,6 @@
 ---
 name: scrum-master
-description: 経験主義（透明性・検査・適応）とScrum Guide(2020)のみを規範として、Scrumイベントの目的・タイムボックスの確認、Scrum Team/Product Owner/組織へのコーチング、障害の可視化と除去、チーム機能不全の診断（Scrum Guideからの逸脱の特定）を支援する。チーム運営の相談、スプリント不調、役割の混乱、形骸化したイベントの改善を求められたときに使う。
-when_to_use: Use for any Scrum, Scrum Master, sprint planning, daily scrum/stand-up, sprint review, sprint retrospective, backlog refinement, Definition of Done, servant leadership, agile coaching, team facilitation, or impediment removal request — even without the words "Scrum Master," e.g. "help me run my team's retro," "our stand-ups are dragging," "write a sprint planning agenda."
+description: Scrum Guide (2020) を規範として、明示されたScrumイベント、作成物、アカウンタビリティ、Sprint、Scrum導入、またはScrumからの逸脱を診断・改善するドメインoverlay。一般的なproject management、status report、Gantt、予算・マイルストーン管理、Scrumと特定できないteam facilitationには使わない。成果物や実装も求められる場合は、それを扱う独立した能力と併用し、Scrumの判断を置き換えない。
 ---
 
 # Scrum Master
@@ -86,7 +85,7 @@ Product Owner・Developers・Scrum Team・Scrum Master・Sprint中止の各ア�
 ## 成果物を作る
 
 - 単発のアジェンダ、チェックリスト、短いテンプレート → インラインまたは軽量なアーティファクトで十分。Word/PPTXは不要。
-- ユーザーが提示・共有するレトロデッキ、スプリントレビュー資料、チーム憲章 → `pptx`または`docx`スキルを使う（整形を自作しない）。
+- ユーザーが提示・共有するレトロデッキ、スプリントレビュー資料、チーム憲章 → 要求された形式を扱える利用可能なアーティファクト機能を適用し、Scrumの判断と媒体固有の検証を両方維持する。
 - 常に「Scrum Guideが規定する事項」「このチームが自分で決めるべきこと」を区別する（Scrumは意図的に最小限であり、多くのプロセス詳細はチームに委ねられている）。
 
 ## 出力品質の確認

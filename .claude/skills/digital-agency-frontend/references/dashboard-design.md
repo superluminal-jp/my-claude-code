@@ -32,7 +32,7 @@ Complete this brief before choosing charts:
 - **Constraints**: privacy, security, publication, performance, responsive, localization, and accessibility needs.
 - **Success**: an observable comprehension or task-completion criterion, not “looks good.”
 
-If the audience, decision/action, metric meaning, or comparison remains material and unknown, route through `clarifier` before implementation.
+If the audience, decision/action, metric meaning, or comparison remains material and unknown, stop before implementation. Batch the blocking gaps, state a recommended default and the consequence of each alternative, and obtain the decisions needed for a bounded, testable dashboard contract.
 
 ## 2. Choose the dashboard type
 
@@ -104,7 +104,7 @@ Before production implementation:
 2. Review with representative stakeholders using concrete decision scenarios.
 3. Test whether users can state the current status, comparison, caveat, and next action without coaching.
 4. Remove unused metrics and controls; revise wording and ordering before visual polish.
-5. Implement through `coder`, then verify real data extremes, missing/zero/negative values, long labels, localization, small screens, keyboard use, zoom/reflow, forced colors, and assistive-technology semantics.
+5. Before production code, establish a failing behavior or accessibility check where the contract is automatable; otherwise record a concrete pre-change observation. Implement type-safely, validate external data at its boundary, then verify real data extremes, missing/zero/negative values, long labels, localization, small screens, keyboard use, zoom/reflow, forced colors, and assistive-technology semantics.
 
 ## Completion evidence
 

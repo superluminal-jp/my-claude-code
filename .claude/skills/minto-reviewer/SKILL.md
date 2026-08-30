@@ -1,6 +1,6 @@
 ---
 name: minto-reviewer
-description: Analyze an existing document, outline, slide storyline, or argument structure for coherence, hierarchy, grouping, ordering, and completeness using Barbara Minto's Pyramid Principle. Use when the user asks for structural diagnosis, critique, evaluation, or an explanation of what is wrong. Return analysis and recommendations, not a silently rewritten final document.
+description: Analyze an existing document, outline, slide storyline, or argument structure for coherence, hierarchy, grouping, ordering, and completeness. Use when the requested outcome is structural diagnosis, critique, evaluation, or an explanation of what is wrong. When a compound request asks for both diagnosis and a later rewritten or transformed deliverable, own the diagnosis phase and provide findings and target-state requirements for the later phase. Do not use when the primary outcome is finished prose, collaborative creation from incomplete material, proofreading, or fact-checking without structural review.
 metadata:
   short-description: Diagnose the structure of an existing document
 ---
@@ -43,6 +43,10 @@ Do not use this skill when the user primarily asks to:
 - create a document collaboratively from incomplete thinking
 - brainstorm a topic without an existing artifact
 - fact-check claims without reviewing structure
+
+## Compound requests
+
+When the user requests both diagnosis and a later finished deliverable, complete the diagnosis phase first. Its boundary is the evidence-backed findings and target-state requirements needed by the later phase; it does not silently continue into final prose. Independently applicable domain or artifact constraints remain in force without being restated or centrally routed here.
 
 ## Input assumptions
 

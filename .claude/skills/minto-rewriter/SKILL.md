@@ -1,6 +1,6 @@
 ---
 name: minto-rewriter
-description: Transform an existing document or substantial draft into a complete audience-ready document by silently applying rigorous opening, hierarchy, grouping, ordering, and completeness principles. Use when the user asks to rewrite, restructure, improve, polish, or produce a final version. Return the finished document without framework terminology, diagnostic analysis, node IDs, or review tables unless explicitly requested.
+description: Transform an existing substantive document or substantial draft into a complete audience-ready final version by silently applying rigorous opening, hierarchy, grouping, ordering, and completeness principles. Use for rewriting, restructuring, improving, polishing, or finalizing substantive material, including a document update requested alongside implementation or another independently matching operation. In a compound request, own the final document-transformation phase after its prerequisite source-changing or diagnostic work. Do not use for purely mechanical one-line contract synchronization, diagnosis-only requests, proofreading alone, or collaborative creation from incomplete source material.
 metadata:
   short-description: Rewrite an existing draft into a complete final document
 ---
@@ -47,6 +47,11 @@ Do not use this skill when the user primarily asks to:
 - receive a score or evaluation
 - collaboratively discover the argument through dialogue
 - create a document from only a topic and no substantive material
+- make a purely mechanical one-line contract synchronization that directly mirrors another changed artifact
+
+## Compound requests
+
+When a substantive document update accompanies independently matching work, this skill still owns the final document-transformation phase. Use the outputs of prerequisite diagnosis or source-changing work as inputs, preserve any independently applicable domain constraints, and return the finished document at the point where its factual contract is stable. A mechanical one-line synchronization that requires no substantive restructuring remains outside this scope.
 
 ## Output contract
 

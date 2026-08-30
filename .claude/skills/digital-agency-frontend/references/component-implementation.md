@@ -56,7 +56,7 @@ authority — when the plugin is installed, `node_modules/@digital-go-jp/tailwin
 wins. Regenerate this section from source with:
 
 ```sh
-curl -s https://raw.githubusercontent.com/digital-go-jp/tailwind-theme-plugin/develop/scripts/generate-theme.ts
+curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/tailwind-theme-plugin/develop/scripts/generate-theme.ts
 ```
 
 The plugin extends only these theme keys: `colors`, `fontSize`, `fontFamily`,
@@ -166,7 +166,7 @@ relative after:absolute after:inset-x-0 after:-inset-y-full after:m-auto after:h
 hatch via `Slot`, `forwardRef`, and the `aria-disabled` handler.
 
 ```sh
-curl -s https://raw.githubusercontent.com/digital-go-jp/design-system-example-components-react/main/src/components/Button/Button.tsx
+curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/design-system-example-components-react/main/src/components/Button/Button.tsx
 ```
 
 ## Toolchain
@@ -181,7 +181,7 @@ Match the **target** project's versions instead of importing upstream's. Verify
 current dependencies before relying on any of this:
 
 ```sh
-curl -s https://raw.githubusercontent.com/digital-go-jp/design-system-example-components-react/main/package.json
+curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/design-system-example-components-react/main/package.json
 ```
 
 Upstream's own completion gate is `npm run lint`, `npm run lint:markup`,
