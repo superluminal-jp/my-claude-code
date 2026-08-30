@@ -27,6 +27,19 @@ and there is no fully non-interactive (headless) execution path — see
 CI, the note side of it cannot; say so rather than designing around a path
 that does not exist.
 
+Every script addresses the app by bundle identifier —
+`Application('com.apple.Notes')`, not `Application('Notes')`. Apple's own
+JXA release notes document the bundle-ID form as an equally valid argument
+to `Application()` (see "Sources"), and it is the only form immune to
+display-name collisions: `lsregister -dump` on a real machine can show more
+than one bundle registered under the display name "Notes" (the real
+`com.apple.Notes` and, observed here, a `com.apple.mobilenotes` on-demand
+placeholder bundle) — a documented general mechanism by which name-based
+resolution is not guaranteed unique, independent of whether any single
+observed misbinding involved that specific pair. If a write ever lands
+somewhere unexpected, confirm which bundle answered with
+`Application('com.apple.Notes').id()` before assuming the script is wrong.
+
 ## Before the first call
 
 Three separate requirements, failing differently. None can be satisfied
@@ -236,3 +249,10 @@ being reported from another Mac:
 
 - `-600` means "Application isn't running" and is thrown when `osascript` cannot even launch the target app (no active GUI session, Automation blocked by a hardened runtime, etc.) — [Error Number: -600 Application isn't running – MacScripter](https://www.macscripter.net/t/error-number-600-application-isn-t-running/70925)
 - Notes.app's own AppleScript/JXA dictionary is widely reported as unreliable ("half-baked scripting support... a gazillion questions about weird behavior and errors"), independent of JXA's general `.whose()`/`.byId()` support — [Notes – JavaScript for Automation (JXA)](https://bru6.de/jxa/automating-applications/notes/)
+
+The following was added on 2026-08-30, in response to a reported concern
+that name-based `Application('Notes')` resolution could bind to the wrong
+bundle (a widget extension was named as the suspected target):
+
+- `Application()` officially accepts a bundle identifier as an alternative to a display name (`Application('com.apple.mail')` is Apple's own example) — [JavaScript for Automation Release Notes – OS X 10.10](https://developer.apple.com/library/archive/releasenotes/InterapplicationCommunication/RN-JavaScriptForAutomation/Articles/OSX10-10.html)
+- On this machine, `Application('Notes').id()` and `id of application "Notes"` both correctly resolved to `com.apple.Notes` — the specific widget-extension misbinding could not be reproduced. What `lsregister -dump` (`/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -dump`) did show is a second, unrelated bundle also registered under the display name "Notes" (`com.apple.mobilenotes`, an on-demand placeholder under `~/Library/Daemon Containers/.../Placeholders-v6.noindex/`) — confirming display-name collisions are a real, general Launch Services condition on this class of app, even though this specific pair was not observed to cause a wrong bind. Scripts here now address Notes by bundle ID regardless, since that is the only form immune to the whole collision class rather than just the one pair checked.
