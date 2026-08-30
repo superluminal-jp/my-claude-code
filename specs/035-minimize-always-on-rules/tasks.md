@@ -106,8 +106,16 @@
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T021 **未実施（新規セッション必須）** 新規セッションで quickstart.md § 3b / § 3c / § 3d を実行する — `.env` の読み取りが（`cat` 経由でも）拒否されること、`.claude/keybindings.json` 等が拒否**されない**こと、`.env.example` が読めなくなり `.env` の作成も拒否されること（意図した副作用）
-- [ ] T022 **未実施（新規セッション必須）** 新規セッションで quickstart.md § 8 を実行する — `/context` の **Memory files** にルール 7 件と `CLAUDE.md` が現れ、`docs/live-documentation-standards.md` が現れないことを確認する。**`@import` 削除後もルール 7 件が読み込まれることが FR-011 の前提の実証**であり、1 件でも欠ければ import を戻す
+- [X] T021 quickstart.md § 3b / § 3c / § 3d を `claude -p` の新規プロセスで実行済み（2026-08-30、`install.sh` 同期後）。5 項目すべて ADR-0014 の Confirmation 節の記述と一致した:
+  1. `.env` を Read → **拒否**
+  2. `cat .env` → **拒否**。`-p` モードで Bash が権限不足で止まる可能性を排除するため `--allowedTools "Bash(cat *)"` で明示許可したうえで拒否されたので、原因は権限不足ではなく deny 規則と切り分けられる
+  3. `keybindings.json` / `notes.txt` を Read → **成功**（中身が実際に出力された）。過剰阻害なし
+  4. `.env.example` を Read → **拒否**。`**/.env.*` に一致する既知の副作用が実在することを確認
+  5. `.env` と `.env.new2` の作成 → **拒否**。モデルの申告ではなくファイルシステムで裏を取った（`.env.new2` は存在せず、`.env` の内容も不変）。`Read` deny が Write/Edit を覆うという記述どおり
+- [X] T022 quickstart.md § 8 を実行済み（2026-08-30）。`/context` の目視ではなく **`InstructionsLoaded` フック**で実際にロードされたファイルを記録し、モデルの自己申告に依存しない証跡を取った。中立ディレクトリから実行してユーザースコープのみを分離。結果は **8 件 = ルール 7 件 + `CLAUDE.md`**:
+  `CLAUDE.md`, `live-documentation.md`, `permissions.md`, `mcp.md`, `clarifier.md`, `git-workflow.md`, `skill-routing.md`, `thinking-lenses.md`
+  - **FR-011 の前提が実証された**: `@import` を削除した 5 件（`skill-routing` / `clarifier` / `thinking-lenses` / `live-documentation` / `mcp`）が import なしですべてロードされている。import を戻す必要はない
+  - **`docs/` は 1 件もロードされていない**（`claude-config-design.md` / `mcp-servers.md` / `live-documentation-standards.md` のいずれも不在）。説明文の分離が意図どおり機能している
 - [X] T023 変更全体に対して `live-documentation.md` の 7 チェックを自己適用する — 特に § 1 Drift（公開契約が変わったファイルの説明文書が同一変更で更新されているか）、§ 5 No Redundancy（退避先とルールが矛盾していないか）、§ 6 Intermediate-Artifact Isolation、§ 7 Granularity Layering（新規 `docs/live-documentation-standards.md` がピラミッド構造を満たすか）
 - [X] T024 最終計測を記録する — 削減率（36,165 B からの差）、ファイル別内訳、および `.claude/CLAUDE.md` の変化量
 
@@ -176,5 +184,5 @@ Phase 3（US2）まで完了すれば、**最も深刻度の高い保護が散�
 ## Notes
 
 - **順序の逆転が唯一の不可逆リスク**: Phase 2 の移設を飛ばして Phase 4 の削減を実行すると内容が失われる。Git 履歴から復元は可能だが、それは「traceability があるから壊してよい」理由にはならない
-- **T021 / T022 は新規セッションを要する**: 設定変更とコンテキストロードの効果は、実行中のセッションには反映されない
+- **T021 / T022 は新規セッションを要した**: 設定変更とコンテキストロードの効果は実行中のセッションに反映されないため、`claude -p` で別プロセスを起動して検証した（2026-08-30 実施済み）
 - **コミットは明示依頼時のみ**（`git-workflow.md`）。本タスク群にコミット操作は含まれない
