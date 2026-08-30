@@ -85,7 +85,7 @@ ObjC.import('Foundation');
 
 function run(argv) {
   const opts = parseArgs(argv);
-  const app = Application('Notes');
+  const app = Application('com.apple.Notes');
 
   try {
     ensureRunning(app);
