@@ -4,7 +4,7 @@ Two tiers, and the difference binds: **configuration is enforced by the client; 
 
 ## Enforced by configuration
 
-`.claude/settings.json` → `permissions.deny` blocks reads of credential paths (`.env`, `.env.*`, `secrets/`, `credentials/`, `.ssh/`, `.aws/`, `*.pem`, `*.p12`, `*.pfx`). That file is the canonical list — not restated here. Rationale and accepted side effects: `docs/adr/0014-restore-credential-deny-rules.md`.
+`.claude/settings.json` → `permissions.deny` blocks reads of credential paths (`.env`, `.env.*`, `secrets/`, `credentials/`, `.ssh/`, `.aws/`, `*.pem`, `*.p12`, `*.pfx`). That file is the canonical list — not restated here.
 
 Boundary — never imply more than this:
 
@@ -18,3 +18,7 @@ Boundary — never imply more than this:
 - **Installs are project-scoped only**, never global: no `pip install --user` or under `sudo`, no `uv pip install --system`, no `npm`/`pnpm`/`yarn` global install, no `gem install` without `--user-install`, no `cargo install` without `--path`. Governs Claude's own calls only.
 - **Credential filenames matched by substring** (`secret`, `credential`, `token`, `key`) — never read, display, log, or commit.
 - **Network defaults to deny**: no `curl | bash` or `wget | sh`, no executing scripts fetched from external URLs, no non-HTTPS endpoints except `localhost` / `127.0.0.1`.
+
+## References
+
+- Jerome H. Saltzer & Michael D. Schroeder, "The Protection of Information in Computer Systems," _Proceedings of the IEEE_ 63(9), 1975 — least privilege, fail-safe defaults: <https://www.cs.virginia.edu/~evans/cs551/saltzer/>

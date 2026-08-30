@@ -44,6 +44,19 @@ across projects while preserving unrelated user files.
   servers at user scope, and installs/enables this repository's Claude Code
   plugins (see [Plugins](#plugins))
 
+## Supplementary documentation
+
+`docs/` is written for the maintainer, not for Claude. It is **not** synced to
+`~/.claude/` by `install.sh`, so nothing in `.claude/` links into it — the rules
+and skills carry their own sources inline instead.
+
+| Document | Covers |
+|---|---|
+| [`docs/claude-config-design.md`](docs/claude-config-design.md) | The test each always-on instruction must pass, and what each file deliberately omits |
+| [`docs/live-documentation-standards.md`](docs/live-documentation-standards.md) | The lifecycle standards behind `rules/live-documentation.md`, and why § 7 is shaped as it is |
+| [`docs/mcp-servers.md`](docs/mcp-servers.md) | What `.mcp.json` can and cannot carry, each server's vendor reference, and how to update the tables |
+| [`docs/adr/`](docs/adr/) | Architecture decision records — immutable once Accepted, only superseded |
+
 ## Install as user configuration
 
 Run the bundled installer from the cloned repo. It synchronizes the declared

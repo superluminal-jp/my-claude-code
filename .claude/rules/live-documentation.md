@@ -2,8 +2,6 @@
 
 Purpose: documentation must never lie, and must sit close to what it describes. Applies to every diff/commit/PR reviewed and every Documentation Artifact created (docstring, README, spec, OpenAPI annotation).
 
-Rationale, the lifecycle standards these operationalize, and citations: `docs/live-documentation-standards.md` (not auto-loaded — read it for the *why*).
-
 ## 1. Drift Detection
 
 For every changed file with a public contract (exported function, public method, API endpoint, CLI argument, schema field), check whether an artifact covering that contract changed in the **same** diff. If not: flag a **violation (Drift)**, name the stale artifact by path, and do not pass the review until it is updated in that change or an Override is stated.
@@ -48,10 +46,10 @@ L1 is MUST. L2–L5 are SHOULD; their absence is not itself a violation. **Any a
 
 ### 7.1 Every artifact is a pyramid
 
-1. **Shared ground first** — open with what the reader already knows and what this covers, defining its terms. Never open in undefined jargon.
+1. **Shared ground first** — open with what the reader already knows and what this covers. Never open in undefined jargon.
 2. **Answer before support** — state what the thing is or does before the detail behind it.
-3. **Siblings MECE** — items at one level neither overlap nor leave a gap at that level.
-4. **One logic per group** — a group either argues deductively (premise → premise → conclusion) or lists inductively (like kinds of fact). Never both at one level.
+3. **Siblings MECE** — items at one level neither overlap nor leave a gap.
+4. **One logic per group** — argue deductively or list inductively, never both at one level.
 
 Failing any of the four is a **structure violation**.
 
@@ -70,3 +68,8 @@ Accept an Override **only if** a reason is stated inline ("Override: emergency h
 ## Out of Scope
 
 Internal refactors with no contract change; generated files (migrations, build artifacts, lock files); new standalone ADRs, onboarding docs, or design documents not derived from existing code; test files describing expected behavior (§ 1 applies only when the tested interface changes); documentation predating § 7 and untouched by the current diff.
+
+## References
+
+- Cyrille Martraire, _Living Documentation_, Addison-Wesley, 2019 — §§ 1–6 operationalize this.
+- Barbara Minto, _The Minto Pyramid Principle_, 1987 — § 7.1's four conditions.
