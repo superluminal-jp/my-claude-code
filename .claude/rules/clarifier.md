@@ -1,63 +1,24 @@
 # Clarification Rules
 
-Purpose: this is the single canonical clarification gate — decide whether to ask or proceed, and how to ask well. Applies before acting on any request; other files (`.claude/CLAUDE.md` preflight, the `clarifier` skill) point here rather than restating it. Grounded in requirements-quality standards: ISO/IEC/IEEE 29148:2018 (requirements MUST be unambiguous, verifiable, feasible), with INVEST (story quality), Gherkin Given/When/Then (testable scenarios), and SMART (measurable goals). See [References](#references).
+When a request is ambiguous, incomplete, or beyond reasonable inference, **stop and ask** — do not fabricate intent.
 
-When a request is ambiguous, incomplete, or cannot be completed by reasonable inference, **stop and ask** — do not fabricate intent.
+## When to ask
 
-## When to clarify (triggers)
+Any of these, where the answer would change what you build:
 
-Ask before acting if any of the following hold:
+- **Intent** — the goal is unstated or has several plausible readings.
+- **Scope** — inputs, outputs, affected files or systems, or boundaries are undefined.
+- **Acceptance** — no verifiable success criterion; you could not write a test.
+- **Constraints** — performance, security, compatibility, or deadline limits are missing where they matter.
+- **Conflict** — contradicts an existing spec, a rule here, or a prior decision this session.
+- **Risk** — irreversible or destructive, or blast radius beyond the local workspace (`permissions.md`).
 
-- **Intent gap**: the goal ("why") is unstated or has multiple plausible readings.
-- **Scope gap**: inputs, outputs, affected files/systems, or boundaries are undefined.
-- **Acceptance gap**: no verifiable success criterion exists (cannot write a test).
-- **Constraint gap**: non-functional limits (performance, security, compatibility, deadline) are missing where they matter.
-- **Conflict**: new request contradicts an existing spec, `CLAUDE.md` rule, or prior decision in the session.
-- **Risk**: action is irreversible, destructive, or has blast radius beyond the local workspace (see `permissions.md`).
-
-If the gap is trivial and the default is obvious (two-way door, local, reversible), proceed and state the assumption explicitly. Otherwise, ask.
-
-## Minimal quality checks
-
-- Outcome is testable.
-- Scope is bounded.
-- Constraints are explicit when they matter.
-- Request does not conflict with existing instructions.
-- Assumptions are stated if proceeding without asking.
-
-## Ambiguity patterns to flag
-
-- **Vague quantifiers**: "fast", "a lot", "many", "soon", "robust", "scalable", "user-friendly" -> demand a number + unit.
-- **Undefined pronouns / scope**: "it", "the system", "everything" -> name the target.
-- **Hidden compound**: statements with "and/or" that bundle multiple requirements -> split.
-- **Implicit actor / trigger**: "when needed", "automatically" -> specify actor, event, precondition.
-- **Implementation leakage in a requirement**: solution dictated before problem agreed -> separate *what* from *how*.
-- **Negation without positive**: "should not be slow" -> restate as measurable positive ("p95 < 200ms").
+Otherwise proceed. Where the gap is trivial and the default obvious — two-way door, local, reversible — **proceed and state the assumption explicitly** instead of asking.
 
 ## How to ask
 
-Batch blocking gaps into one turn — never drip questions turn-by-turn. Each gap: state a default, the cost of assuming it (reversibility, effort, blast radius), and one decision per question. Tag any inferred answer's confidence (`high`/`medium`/`low`). Template and formal elicitation toolbox (5W2H, INVEST, Gherkin, MoSCoW, FURPS+): `clarifier` skill.
+Batch every blocking gap into one turn; never drip questions turn by turn. Per gap: a default, the cost of assuming it (reversibility, effort, blast radius), one decision per question. Tag inferred answers `high`/`medium`/`low` confidence. Never ask after the work is done, and never invent acceptance criteria the user did not agree to.
 
-## Anti-patterns
+## Related
 
-- Silently picking one interpretation when multiple are plausible.
-- Asking after the work is done ("I built X, is that what you wanted?").
-- Stacking clarifications turn-by-turn instead of batching.
-- Treating "make it better" as actionable — always require a fit criterion.
-- Inventing acceptance criteria the user never agreed to.
-
-## Interaction with other rules and skills
-
-- **`permissions.md`** — destructive actions always require confirmation, independent of clarification state.
-- **`coder` skill** — a clarified requirement must be testable (TDD) and match its spec (SDD); if you cannot write a failing test from the request, it is still ambiguous.
-- **spec-kit projects** — if a `spec.md` exists, clarify against it; run `/speckit.clarify` for spec-level gaps rather than inline Q&A.
-- **`clarifier` skill** — use for formal elicitation frameworks (ISO/IEEE/BABOK/INVEST/Gherkin/MoSCoW) and detailed requirement quality checks.
-
-## References
-
-- ISO/IEC/IEEE 29148:2018, *Systems and software engineering — Life cycle processes — Requirements engineering* (2nd ed.) — <https://www.iso.org/standard/72089.html>
-- Bill Wake, "INVEST in Good Stories, and SMART Tasks," 2003 (origin of INVEST) — <https://xp123.com/invest-in-good-stories-and-smart-tasks/>
-- George T. Doran, "There's a S.M.A.R.T. Way to Write Management's Goals and Objectives," *Management Review* 70(11): 35–36, 1981 (origin of SMART).
-- Cucumber, Gherkin reference (Given/When/Then) — <https://cucumber.io/docs/gherkin/>
-- Dai Clegg & Richard Barker, *Case Method Fast-Track: A RAD Approach*, Addison-Wesley, 1994 (origin of MoSCoW); stewarded by the DSDM / Agile Business Consortium.
-- IIBA, *A Guide to the Business Analysis Body of Knowledge (BABOK Guide)*, v3, 2015 — <https://www.iiba.org/>
+The `clarifier` skill supplies the _how_: elicitation toolbox, ambiguity-pattern catalogue, quality gate. If you cannot write a failing test from a requirement, it is still ambiguous (`coder`). Where a `spec.md` exists, clarify against it with `/speckit-clarify` rather than inline Q&A. Destructive actions need confirmation regardless of clarification state (`permissions.md`).

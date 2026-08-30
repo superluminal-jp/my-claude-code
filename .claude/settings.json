@@ -14,6 +14,21 @@
     "deploy-on-aws@claude-plugins-official": true,
     "microsoft-docs@claude-plugins-official": true
   },
+  "permissions": {
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/secrets/**)",
+      "Read(**/credentials/**)",
+      "Read(**/.ssh/**)",
+      "Read(**/.aws/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {

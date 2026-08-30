@@ -10,9 +10,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 ## このリポジトリで提供するもの
 
-- **`.claude/CLAUDE.md`**: 常時メモリ（原則、応答スタイル、skill インデックス、MCP 参照）
+- **`.claude/CLAUDE.md`**: 常時メモリ（原則、事前チェック、クローズアウト、ルーティングと MCP への参照）。動作に必要な内容のみで、設計根拠は [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
 - **`.claude/settings.json`**: Claude Code のユーザーレベル設定
-- **`.claude/rules/`**: 常時読み込まれる共通ルール（権限/安全性、確認ルール、skill ルーティング、サブエージェント委譲（独立コンテキストに切り出すか本体で進めるかの判断）、live-documentation、git ワークフロー、MCP カタログ）
+- **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置く（権限（強制される deny は `settings.json`）、確認ルール、skill ルーティング、思考レンズ（6つの推論セルフチェック）、live-documentation（7つのチェック）、git ワークフロー、MCP サーバー選択）。各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
   - `digital-agency-frontend`: DADS とダッシュボードガイドブックに基づく、アクセシブルな React/Tailwind Web フロントエンド開発・レビュー
@@ -42,7 +42,6 @@ bash path/to/my-claude-code/install.sh
 ### 重要: 上書き置換（削除同期）について
 
 - 次の管理対象は **置換同期** されます:
-  - `hooks/`
   - `rules/`
   - `skills/`
   - `agents/`
@@ -94,10 +93,15 @@ bash tests/run-removed-guardrails.sh
 ```
 
 `run-removed-guardrails.sh` は特定の変更に紐づかない、常設の回帰防止チェックです —
-`.claude/hooks/`・`scripts/`・`.claude/settings.json` の `permissions` ブロックが
-再導入されたら失敗します（[ADR-0005](docs/adr/0005-remove-claude-hooks.md)、
-[ADR-0006](docs/adr/0006-remove-permissions-config.md)、
-[ADR-0007](docs/adr/0007-remove-scripts.md) 参照）。
+`.claude/hooks/`・`scripts/` が再導入されたら失敗し
+（[ADR-0005](docs/adr/0005-remove-claude-hooks.md)、
+[ADR-0007](docs/adr/0007-remove-scripts.md)）、
+[ADR-0006](docs/adr/0006-remove-permissions-config.md) の上に
+[ADR-0014](docs/adr/0014-restore-credential-deny-rules.md) が復元した
+`permissions` ブロックを制約します — 許されるのは `deny` のみで、`allow` や
+`ask` のティアがあれば失敗します。また `deny` の各項目は `~/` または `**/` で
+アンカーされた `Read` ルールでなければなりません。単一の先頭スラッシュは
+`install.sh` がユーザースコープへ複製した時点で別のパスに解決されるためです。
 
 `run-install.sh` は隔離した HOME と外部コマンドの stub を使います。
 `run-mcp-startup.sh` だけは設定済み MCP サーバーの起動コマンドを実行するため
@@ -135,8 +139,12 @@ bash tests/run-removed-guardrails.sh
 
 ## MCP サーバー
 
-プロジェクトスコープ定義は `.mcp.json` にあります。  
-カタログ（transport / パッケージ更新方針等）は [`.claude/rules/mcp.md`](.claude/rules/mcp.md) を参照してください。
+プロジェクトスコープ定義は [`.mcp.json`](.mcp.json) にあります。transport /
+パッケージ / エンドポイントのカタログはこのファイルが正本です。  
+どのサーバーを選ぶか、および AWS スキルレジストリの手順 — Claude Code が動作に
+必要とする部分 — は [`.claude/rules/mcp.md`](.claude/rules/mcp.md) にあります。
+保守者向けの背景（各サーバーのベンダー公式リファレンス、サーバー追加時の更新
+手順、出典）は [`docs/mcp-servers.md`](docs/mcp-servers.md) にあります。
 
 ## プラグイン
 

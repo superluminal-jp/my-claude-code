@@ -1,36 +1,20 @@
-# MCP servers catalog
+# MCP servers
 
-Purpose: know which MCP server answers which cloud-docs question, and when calling one is mandatory. Applies when a request concerns AWS, GCP, or Azure. Every `.mcp.json` entry is expected to appear here as a matter of manual policy (the script that used to check this was removed — see `docs/adr/0007-remove-scripts.md`).
+Tool search is on: MCP tool **names** are in context, their descriptions and schemas are not. ToolSearch before concluding a capability is missing.
 
-Runtime definitions are in `.mcp.json`. Optional user-scope defaults are installed by `~/.claude/install.sh` (Google MCP requires `GOOGLE_DEV_KNOWLEDGE_API_KEY`).
+| Server | Covers | Self-describes |
+|---|---|---|
+| `aws-documentation` | AWS docs: search, read, recommend | yes |
+| `aws-knowledge` | AWS docs, regional availability, skill registry | no |
+| `bedrock-agentcore` | Bedrock AgentCore: runtime, memory, gateway, browser, code interpreter | yes |
+| `strands-agents` | Strands Agents framework docs | no |
+| `google-developer-knowledge` | Google developer docs: search, answer | no |
+| `microsoft-learn` | Microsoft Learn / Azure docs and code samples | yes |
 
-## Catalog
+**yes** → the server's own instructions are already in context; follow them. **no** → ToolSearch its tools first; nothing but the names is loaded.
 
-| Server | Transport | Endpoint / package | Key use cases |
-|---|---|---|---|
-| `aws-knowledge` | HTTP | `https://knowledge-mcp.global.api.aws` | AWS knowledge base; also the only server here exposing AWS's official guided-skill registry (see below) |
-| `aws-documentation` | stdio | `awslabs.aws-documentation-mcp-server@latest` | AWS official documentation search/fetch |
-| `bedrock-agentcore` | stdio | `awslabs.amazon-bedrock-agentcore-mcp-server@latest` | Amazon Bedrock AgentCore docs |
-| `strands-agents` | stdio | `strands-agents-mcp-server@latest` | Strands Agents framework docs |
-| `google-developer-knowledge` | HTTP | `https://developerknowledge.googleapis.com/mcp` | Google developer knowledge base |
-| `microsoft-learn` | HTTP | `https://learn.microsoft.com/api/mcp` | Microsoft Learn / Azure docs |
+## AWS skill registry
 
-## Usage rule
+Before giving freehand AWS advice, check for an official skill: `aws___search_documentation` with `topics: ["agent_skills"]`, then `aws___retrieve_skill` with the **exact** `skill_name` returned — never invent one — for its `SKILL.md` (referenced files via `file`). GCP has no equivalent. Azure is unverified: `microsoft-learn` needs OAuth authorization before its tool set can be checked.
 
-When a question directly concerns AWS, GCP, or Azure services, features, or documentation, you MUST invoke the matching MCP server before answering:
-
-- AWS question → `aws-knowledge` or `aws-documentation`
-- GCP question → `google-developer-knowledge`
-- Azure question → `microsoft-learn`
-
-If the MCP server is unreachable, warn the user that live documentation is unavailable, then answer from training knowledge.
-
-Incidental mentions of AWS/GCP/Azure in otherwise generic questions (e.g., "I'm deployed on AWS but my question is about Python loops") do not require an MCP call.
-
-## Official provider skill registries
-
-Beyond plain docs lookup, prefer a provider's own guided skill over ad-hoc guidance when one exists for the task:
-
-- **AWS**: `aws-knowledge` exposes AWS's official skill registry. Call `aws___search_documentation` with `topics: ["agent_skills"]` to find a matching skill, then `aws___retrieve_skill` with the exact `skill_name` returned (never invent or guess one) to fetch its `SKILL.md` (and any referenced file via the `file` param). Use this for AWS workflows/patterns it covers, in place of freehand advice.
-- **GCP**: no equivalent found. `google-developer-knowledge`'s tools (`search_documents`, `answer_query`, `get_documents`) are docs search/answer only — no skill-retrieval tool exists in its schema.
-- **Azure**: unverified. `microsoft-learn` requires OAuth authorization; until it's authorized, its tool set — and whether it offers an equivalent — cannot be checked. Re-check once authorized rather than assuming either way.
+Background, vendor references, and citations: `docs/mcp-servers.md`.

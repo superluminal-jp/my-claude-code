@@ -6,9 +6,9 @@ official specifications and best practices from https://code.claude.com/docs/.
 日本語版: [README.ja.md](README.ja.md)
 
 Building your own config? See
-[`docs/claude-code-config-tips.md`](docs/claude-code-config-tips.md) (Japanese)
-for structural and instruction-writing lessons distilled from this repo's
-improvement history.
+[`docs/claude-config-design.md`](docs/claude-config-design.md) (Japanese) for the
+test each always-on instruction has to pass, and what this repo deliberately
+leaves out of it.
 
 `install.sh` synchronizes the repository-managed parts of `.claude/` to
 `~/.claude/`, making its settings, rules, skills, agents, and memory available
@@ -16,14 +16,18 @@ across projects while preserving unrelated user files.
 
 ## What this provides
 
-- **`.claude/CLAUDE.md`** — Persistent user memory: core principles, response
-  style, skill index, MCP import (thin; most detail lives in `rules/` and
-  on-demand `skills/`)
+- **`.claude/CLAUDE.md`** — Persistent user memory: core principles, the
+  preflight and close-out checks, and pointers to routing and MCP. Operational
+  content only — the design rationale is in
+  [`docs/claude-config-design.md`](docs/claude-config-design.md)
 - **`.claude/settings.json`** — User-level Claude Code settings
-- **`.claude/rules/`** — Always-on universal rules: permissions/safety, tool
-  selection, clarification triggers, skill routing, subagent delegation
-  (when to isolate work in a subagent vs. keep it in the main conversation),
-  live-documentation enforcement, MCP catalog
+- **`.claude/rules/`** — Always-on universal rules, each kept to what changes
+  Claude's decisions and nothing else: permissions (the enforced deny list
+  lives in `settings.json`), clarification triggers, skill routing, thinking
+  lenses (six reasoning self-checks), live-documentation enforcement (seven
+  checks), git workflow, MCP server selection. What each file deliberately
+  omits, and where that content went, is recorded in
+  [`docs/claude-config-design.md`](docs/claude-config-design.md)
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
   (TDD, SDD, code quality, security, type safety, docs);
   `digital-agency-frontend` (DADS-based accessible React/Tailwind public-service
@@ -58,7 +62,7 @@ Re-running is safe: it re-syncs managed paths and upserts MCP servers.
 
 **Important (overwrite/replace behavior):**
 
-- Installer-managed paths are synchronized by replacement: `hooks/`, `rules/`,
+- Installer-managed paths are synchronized by replacement: `rules/`,
   `skills/`, `agents/`, `commands/`, `CLAUDE.md`, `settings.json`, and
   `install.sh`.
 - Files removed from this repository are also removed from `~/.claude` under
@@ -88,15 +92,16 @@ my-claude-code/
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
-    ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
+    ├── CLAUDE.md                   # Principles, preflight, close-out; rationale → docs/
     ├── settings.json               # User-level Claude Code settings
     ├── rules/                      # Always-on: loaded every session
-    │   ├── permissions.md          # Credential safety, destructive ops
-    │   ├── clarifier.md            # When to ask; batch questions + template
-    │   ├── skill-routing.md        # Which skill to load for a request
-    │   ├── live-documentation.md   # Doc drift enforcement (5 principles) + lifecycle standards
-    │   ├── git-workflow.md         # Commit/branch/PR conventions
-    │   └── mcp.md                  # MCP server catalog + usage rule
+    │   ├── permissions.md          # Self-applied rules; enforced deny → settings.json
+    │   ├── clarifier.md            # When to ask vs proceed
+    │   ├── skill-routing.md        # How skills combine, stop, and break ties
+    │   ├── thinking-lenses.md      # Six reasoning self-checks applied every task
+    │   ├── live-documentation.md   # Doc enforcement (7 checks); rationale → docs/
+    │   ├── git-workflow.md         # Repo-specific commit/branch/PR conventions
+    │   └── mcp.md                  # Server picker + AWS skill registry; background → docs/
     └── skills/                     # On-demand: body loaded when relevant
         ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
         ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references
@@ -124,11 +129,16 @@ bash tests/run-removed-guardrails.sh
 ```
 
 `run-removed-guardrails.sh` is a standing regression guard, not tied to any
-particular change — it fails if `.claude/hooks/`, `scripts/`, or
-`.claude/settings.json`'s `permissions` block are ever reintroduced (see
-[ADR-0005](docs/adr/0005-remove-claude-hooks.md),
-[ADR-0006](docs/adr/0006-remove-permissions-config.md),
-[ADR-0007](docs/adr/0007-remove-scripts.md)).
+particular change — it fails if `.claude/hooks/` or `scripts/` are ever
+reintroduced ([ADR-0005](docs/adr/0005-remove-claude-hooks.md),
+[ADR-0007](docs/adr/0007-remove-scripts.md)), and it constrains the
+`permissions` block that
+[ADR-0014](docs/adr/0014-restore-credential-deny-rules.md) restored on top of
+[ADR-0006](docs/adr/0006-remove-permissions-config.md): only a `deny` list is
+allowed — an `allow` or `ask` tier fails — and every `deny` entry must be a
+`Read` rule anchored with `~/` or `**/`, never a single leading slash, which
+would resolve to a different path once `install.sh` copies the file to user
+scope.
 
 `run-install.sh` uses an isolated home and stubbed external commands. All suites
 except `run-mcp-startup.sh` are local checks; the startup suite exercises the
@@ -169,8 +179,13 @@ just alert:
 
 ## MCP Servers
 
-MCP servers are defined in `.mcp.json` for project-scope use. Full catalog
-(transport, package release policy, prerequisites): [`.claude/rules/mcp.md`](.claude/rules/mcp.md).
+MCP servers are defined in [`.mcp.json`](.mcp.json) for project-scope use —
+that file is the canonical catalog of transports, packages, and endpoints.
+Which server to pick and the AWS skill-registry protocol — the operational part
+Claude Code needs — are in [`.claude/rules/mcp.md`](.claude/rules/mcp.md). The
+background a maintainer needs, including each server's vendor reference and how
+to update the tables when a server is added, is in
+[`docs/mcp-servers.md`](docs/mcp-servers.md).
 
 User-scope MCP servers are registered via the CLI (stored separately; not
 installed by copying `.claude/` alone). Equivalent commands:
