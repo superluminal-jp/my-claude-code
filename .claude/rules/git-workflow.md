@@ -1,11 +1,9 @@
 # Git Workflow Rules
 
-Purpose: repository-specific git conventions. What the model and harness already do — Conventional Commits grammar, imperative mood, trailer placement, committing only when asked — is not restated here.
-
 ## Commits
 
 - **Conventional Commits 1.0.0**: `<type>(<scope>)?: <subject>`, imperative, ≤50 chars (hard cap 72), no trailing period. Types beyond `feat`/`fix` follow the Angular set.
-- **One logical change per commit.** Code plus its doc or test is *one* logical change and belongs in one commit (Live Documentation).
+- **One logical change per commit.** Code plus its doc or test is _one_ logical change and belongs in one commit.
 
 ## Branches
 
@@ -16,7 +14,7 @@ Purpose: repository-specific git conventions. What the model and harness already
 ## Pull requests
 
 - **Title**: same grammar as a commit subject.
-- **Body**: *What / Why / How verified* — link the spec or issue, state how the change was tested. Scannable: BLUF, lists.
+- **Body**: _What / Why / How verified_ — link the spec or issue, state how the change was tested. Scannable: BLUF, lists.
 
 ## Mechanics
 

@@ -10,9 +10,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 ## このリポジトリで提供するもの
 
-- **`.claude/CLAUDE.md`**: 常時メモリ（原則、応答スタイル、skill インデックス、MCP 参照）
+- **`.claude/CLAUDE.md`**: 常時メモリ（原則、事前チェック、クローズアウト、ルーティングと MCP への参照）。動作に必要な内容のみで、設計根拠は [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
 - **`.claude/settings.json`**: Claude Code のユーザーレベル設定
-- **`.claude/rules/`**: 常時読み込まれる共通ルール。モデルのネイティブ挙動でもハーネスの自動注入でもないものだけを置く（権限（強制される deny は `settings.json`）、確認ルール、skill ルーティング、思考レンズ（6つの推論セルフチェック）、live-documentation（7つのチェック）、git ワークフロー、MCP ルーティング）
+- **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置く（権限（強制される deny は `settings.json`）、確認ルール、skill ルーティング、思考レンズ（6つの推論セルフチェック）、live-documentation（7つのチェック）、git ワークフロー、MCP サーバー選択）。各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
   - `digital-agency-frontend`: DADS とダッシュボードガイドブックに基づく、アクセシブルな React/Tailwind Web フロントエンド開発・レビュー
@@ -141,8 +141,10 @@ bash tests/run-removed-guardrails.sh
 
 プロジェクトスコープ定義は [`.mcp.json`](.mcp.json) にあります。transport /
 パッケージ / エンドポイントのカタログはこのファイルが正本です。  
-どの質問でどのサーバーを呼ぶか、および AWS スキルレジストリの手順は
-[`.claude/rules/mcp.md`](.claude/rules/mcp.md) を参照してください。
+どのサーバーを選ぶか、および AWS スキルレジストリの手順 — Claude Code が動作に
+必要とする部分 — は [`.claude/rules/mcp.md`](.claude/rules/mcp.md) にあります。
+保守者向けの背景（各サーバーのベンダー公式リファレンス、サーバー追加時の更新
+手順、出典）は [`docs/mcp-servers.md`](docs/mcp-servers.md) にあります。
 
 ## プラグイン
 

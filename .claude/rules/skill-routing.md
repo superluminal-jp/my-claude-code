@@ -1,7 +1,5 @@
 # Skill Routing
 
-Purpose: what the skill descriptions cannot tell you — how skills combine, where they stop, how to break a tie. Names, descriptions and trigger phrases are already in context; no list is kept here.
-
 ## Resolve compound work first
 
 A request spanning two categories routes to both, in order — never collapse it to one:
@@ -13,7 +11,7 @@ A request spanning two categories routes to both, in order — never collapse it
 ## Boundaries
 
 - **Document skills**: diagnosis then rewrite → reviewer first, rewriter second. An early draft with no settled conclusion → `minto-builder`, not the rewriter.
-- **`scrum-master` is not general project management.** Schedules, Gantt charts, status reports, resource plans, PMBOK/PRINCE2 deliverables, budget and milestone tracking do not route here. Ask whether the request is *about* Scrum practice, not whether Scrum could be relevant to it.
+- **`scrum-master` is not general project management.** Schedules, Gantt charts, status reports, resource plans, PMBOK/PRINCE2 deliverables, budget and milestone tracking do not route here. Ask whether the request is _about_ Scrum practice, not whether Scrum could be relevant to it.
 
 ## Tie-breaks
 

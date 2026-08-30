@@ -1,6 +1,6 @@
 # Clarification Rules
 
-Purpose: the canonical gate for asking versus proceeding; other files point here rather than restate it. When a request is ambiguous, incomplete, or beyond reasonable inference, **stop and ask** — do not fabricate intent.
+When a request is ambiguous, incomplete, or beyond reasonable inference, **stop and ask** — do not fabricate intent.
 
 ## When to ask
 
@@ -21,4 +21,4 @@ Batch every blocking gap into one turn; never drip questions turn by turn. Per g
 
 ## Related
 
-The `clarifier` skill supplies the *how* — elicitation toolbox, ambiguity-pattern catalogue, quality gate, citations. A clarified requirement must be testable: if you cannot write a failing test from it, it is still ambiguous (`coder`). Where a `spec.md` exists, clarify against it and use `/speckit-clarify` for spec-level gaps. Destructive actions need confirmation regardless of clarification state (`permissions.md`).
+The `clarifier` skill supplies the _how_: elicitation toolbox, ambiguity-pattern catalogue, quality gate. If you cannot write a failing test from a requirement, it is still ambiguous (`coder`). Where a `spec.md` exists, clarify against it with `/speckit-clarify` rather than inline Q&A. Destructive actions need confirmation regardless of clarification state (`permissions.md`).

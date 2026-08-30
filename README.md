@@ -6,9 +6,9 @@ official specifications and best practices from https://code.claude.com/docs/.
 日本語版: [README.ja.md](README.ja.md)
 
 Building your own config? See
-[`docs/claude-code-config-tips.md`](docs/claude-code-config-tips.md) (Japanese)
-for structural and instruction-writing lessons distilled from this repo's
-improvement history.
+[`docs/claude-config-design.md`](docs/claude-config-design.md) (Japanese) for the
+test each always-on instruction has to pass, and what this repo deliberately
+leaves out of it.
 
 `install.sh` synchronizes the repository-managed parts of `.claude/` to
 `~/.claude/`, making its settings, rules, skills, agents, and memory available
@@ -16,15 +16,18 @@ across projects while preserving unrelated user files.
 
 ## What this provides
 
-- **`.claude/CLAUDE.md`** — Persistent user memory: core principles, response
-  style, skill index, MCP import (thin; most detail lives in `rules/` and
-  on-demand `skills/`)
+- **`.claude/CLAUDE.md`** — Persistent user memory: core principles, the
+  preflight and close-out checks, and pointers to routing and MCP. Operational
+  content only — the design rationale is in
+  [`docs/claude-config-design.md`](docs/claude-config-design.md)
 - **`.claude/settings.json`** — User-level Claude Code settings
-- **`.claude/rules/`** — Always-on universal rules, kept to what is neither
-  native model behaviour nor already injected by the harness: permissions
-  (the enforced deny list lives in `settings.json`), clarification triggers,
-  skill routing, thinking lenses (six reasoning self-checks),
-  live-documentation enforcement (seven checks), git workflow, MCP routing
+- **`.claude/rules/`** — Always-on universal rules, each kept to what changes
+  Claude's decisions and nothing else: permissions (the enforced deny list
+  lives in `settings.json`), clarification triggers, skill routing, thinking
+  lenses (six reasoning self-checks), live-documentation enforcement (seven
+  checks), git workflow, MCP server selection. What each file deliberately
+  omits, and where that content went, is recorded in
+  [`docs/claude-config-design.md`](docs/claude-config-design.md)
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
   (TDD, SDD, code quality, security, type safety, docs);
   `digital-agency-frontend` (DADS-based accessible React/Tailwind public-service
@@ -89,7 +92,7 @@ my-claude-code/
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
-    ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
+    ├── CLAUDE.md                   # Principles, preflight, close-out; rationale → docs/
     ├── settings.json               # User-level Claude Code settings
     ├── rules/                      # Always-on: loaded every session
     │   ├── permissions.md          # Self-applied rules; enforced deny → settings.json
@@ -98,7 +101,7 @@ my-claude-code/
     │   ├── thinking-lenses.md      # Six reasoning self-checks applied every task
     │   ├── live-documentation.md   # Doc enforcement (7 checks); rationale → docs/
     │   ├── git-workflow.md         # Repo-specific commit/branch/PR conventions
-    │   └── mcp.md                  # Provider routing + AWS skill registry
+    │   └── mcp.md                  # Server picker + AWS skill registry; background → docs/
     └── skills/                     # On-demand: body loaded when relevant
         ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
         ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references
@@ -178,8 +181,11 @@ just alert:
 
 MCP servers are defined in [`.mcp.json`](.mcp.json) for project-scope use —
 that file is the canonical catalog of transports, packages, and endpoints.
-Which server to call for which question, and the AWS skill-registry protocol:
-[`.claude/rules/mcp.md`](.claude/rules/mcp.md).
+Which server to pick and the AWS skill-registry protocol — the operational part
+Claude Code needs — are in [`.claude/rules/mcp.md`](.claude/rules/mcp.md). The
+background a maintainer needs, including each server's vendor reference and how
+to update the tables when a server is added, is in
+[`docs/mcp-servers.md`](docs/mcp-servers.md).
 
 User-scope MCP servers are registered via the CLI (stored separately; not
 installed by copying `.claude/` alone). Equivalent commands:
