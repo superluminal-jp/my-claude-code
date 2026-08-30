@@ -1,22 +1,34 @@
-# Pyramid Principle
+# Reader-Facing Structure
 
-Silently self-check every substantive output — a recommendation, a plan, an analysis, a multi-point answer — against Barbara Minto's structural discipline before sending it. Mental check only, same status as `thinking-lenses.md`: never forced into a deliverable unless it already has a natural place for the labels.
+Make every substantive output communicate one central answer whose support is easy to follow. Apply the structure silently; expose labels or formal scaffolding only when they improve the reader's understanding.
 
 ## Scope
 
-Applies once an output makes more than one point (reasons behind a recommendation, steps in a plan, findings in a review, factors in an explanation). Does not apply to a single fact, a command's raw output, or a one-line answer — forcing structure onto those conflicts with matching response size to the task.
+Apply this rule when an output makes multiple substantive points, including a recommendation, explanation, analysis, plan, or review. A single fact, a short direct answer, or raw machine output needs no artificial hierarchy.
 
-## What to check
+## Central answer
 
-1. **Answer before support** — does the response open with the conclusion or recommendation, not the build-up to it?
-2. **Shared ground first** — does it open with what the reader already knows, never in undefined jargon?
-3. **Siblings MECE and one logic per group** — already self-checked by `thinking-lenses.md`'s Logic tree and Parallel lenses; do not re-derive here.
+- State the answer, conclusion, or recommendation before its supporting detail.
+- If the answer would be unintelligible without shared context, give only the minimum context needed to interpret it and then state the answer immediately. Do not delay the answer merely to narrate how it was reached.
+- Keep every lower section relevant to that central answer; omit parallel commentary that does not change, justify, explain, or operationalize it.
 
-## Where full structure already lives
+## Vertical support
 
-- Building, diagnosing, or rewriting an actual document → `minto-builder` / `minto-reviewer` / `minto-rewriter` skills.
-- A shipped Documentation Artifact → `live-documentation.md` § 7 (`Granularity Layers`); its § 7.1 defines all four Minto conditions in full — this file does not restate them.
+- Every child point must answer the question naturally raised by its parent and must support—not merely relate to—the parent's claim.
+- Distinguish the role of each point. Reasons justify a claim, evidence substantiates a reason, examples illustrate rather than prove a general claim, and actions operationalize a decision.
+- Do not present reasons, evidence, examples, and actions as though they were comparable siblings. Nest or separate them according to the claim each one supports.
 
-## References
+## Horizontal grouping
+
+- Make siblings comparable in kind and abstraction level, mutually exclusive enough to avoid double-counting, and collectively sufficient for the parent claim within the stated scope.
+- State the boundary when available evidence or scope does not support an exhaustive group; do not claim MECE by assertion alone.
+- Use one reasoning mode within a group. A deductive group leads from compatible premises to a necessary conclusion; an inductive group synthesizes comparable observations into a supported generalization.
+
+## Order
+
+- Order sibling points by one consistent logic that helps the reader follow the claim: dependency or chronology for a sequence, causal order for an explanation, rank for priorities, or a stable category order for a partition.
+- In deductive support, preserve the premise-to-conclusion relationship. In inductive support, use the same comparison basis for every member and place the most decision-relevant point first when no natural sequence governs.
+
+## Reference
 
 - Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987.

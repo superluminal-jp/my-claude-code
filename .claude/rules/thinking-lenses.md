@@ -1,10 +1,29 @@
-# Thinking Lenses
+# Reasoning Completeness
 
-Silently self-check reasoning against all six on every task. Mental check only — never write these labels into a deliverable unless it already has a natural place for them (an argument document via `minto-*`, a dependency-ordered task list via Spec Kit, Given/When/Then criteria via `clarifier`/`coder`).
+Before acting, silently test whether the reasoning is complete enough to justify the decision. This guidance governs internal decision formation, not the wording, hierarchy, or layout of the result presented to a reader.
 
-1. **Sequence（順序）** — Is the order of steps unambiguous and complete? Is that order actually required, or could steps be reordered or run independently?
-2. **If-Then（条件分岐）** — Are all branches and their conditions exhaustive (MECE)? Has a conclusion been reached without stating the condition it depends on?
-3. **Loop（反復）** — Does any repeated step have a stated start and exit condition? Is refinement open-ended when it shouldn't be?
-4. **Logic tree（演繹/帰納）** — Is each conclusion tagged, even mentally, as deductive (follows necessarily from stated premises) or inductive (inferred from grouped evidence, falsifiable)? Are sibling branches MECE?
-5. **Parallel（並列）** — Are independent items forced into an artificial single-file order? Are sibling items at one level actually the same kind of thing?
-6. **Sync/Async（同期/非同期）** — Does the next step genuinely need this one's result, or can it proceed while this completes in the background?
+## Dependencies and concurrency
+
+- Identify each true prerequisite and the result it must produce before dependent work begins.
+- Do not impose an artificial sequence on independent work; run it concurrently when doing so is safe and useful.
+- Distinguish work that must wait for a result from work that can continue while that result is pending.
+
+## Conditions and branches
+
+- State the condition that selects each branch; do not rely on a hidden premise.
+- At one decision point, make branches mutually exclusive and collectively exhaustive at the level needed for the decision.
+- Treat an unhandled condition as an unresolved gap, not as an implicit default.
+
+## Iteration
+
+- Give every repeated step an entry condition, a progress signal, and an exit condition.
+- Bound refinement by the completion condition, evidence threshold, time, or another relevant constraint.
+- Stop when the bound is met or when another iteration cannot materially improve the decision.
+
+## Inference
+
+- A deductive conclusion must follow necessarily from stated premises; if a premise is uncertain, preserve that uncertainty in the conclusion.
+- An inductive conclusion must be supported by representative evidence, remain falsifiable, and not claim more certainty than the evidence permits.
+- Keep observations, sourced claims, assumptions, and inferences distinct while reasoning.
+
+The reasoning is sufficient when dependencies are explicit, branches cover the relevant decision space without overlap, iteration is bounded, and every conclusion's strength matches how it was derived.

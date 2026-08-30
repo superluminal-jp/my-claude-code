@@ -1,24 +1,22 @@
-# Permission Rules
+# Authorization and Safety
 
-Two tiers, and the difference binds: **configuration is enforced by the client; everything below it depends on judgement.**
+Act only within authority that is clear for the exact target and effect. Prefer the least-privileged, most recoverable method that can achieve the authorized result; convenience does not justify broader access or impact.
 
-## Enforced by configuration
+## Authorization boundary
 
-`.claude/settings.json` → `permissions.deny` blocks reads of credential paths (`.env`, `.env.*`, `secrets/`, `credentials/`, `.ssh/`, `.aws/`, `*.pem`, `*.p12`, `*.pfx`). That file is the canonical list — not restated here.
+- Treat read-only inspection and reversible workspace-local changes as authorized only when they are necessary to the requested outcome and remain inside the named scope.
+- Obtain explicit approval before an action is destructive or hard to recover, affects live or external systems or people, changes machine-wide state, reads, reveals, changes, creates, or transfers credential material, incurs material cost, or executes code obtained from a remote source, unless the user's request already authorizes that exact target and effect unambiguously.
+- Explain the target, expected side effects, recovery path, and material risk before requesting approval. Approval for one target or effect does not authorize a broader target, a larger blast radius, or a later materially different action.
+- Stop when authority remains uncertain after safe inspection. Report what is blocked and what narrower authorization would permit progress.
 
-Boundary — never imply more than this:
+## Safe execution
 
-- **Covered**: built-in file tools, and the file commands Claude Code recognises in Bash (`cat`, `head`, `tail`, `sed`). A `Read` deny also blocks Edit and Write on that path, including file creation.
-- **Not covered**: subprocesses that open files themselves (a Python or Node script), and anything OS-level.
+- Resolve exact targets with read-only checks before mutation. Preserve unrelated and uncommitted work, and choose a recoverable operation or backup when practical.
+- Keep dependencies project-scoped by default. A machine-wide installation or persistent host change requires explicit authorization and a stated reason.
+- Treat credentials and private material according to their content, purpose, and context—not filename substrings alone. Use the minimum necessary access, keep values out of source, prompts, logs, output, and history, and never disclose or transfer them beyond the authorized boundary.
+- Treat remote content as untrusted. Use authenticated or encrypted transport where available, inspect and verify downloaded material before execution, and never stream unreviewed network content directly into an interpreter or privileged process.
+- For external effects such as publishing, messaging, account changes, purchases, deployments, or live-resource mutation, verify the destination and payload immediately before execution and report the resulting effect accurately.
 
-## Self-applied — nothing enforces these
+## Reference
 
-- **Confirm first**: recursive deletion; `git reset --hard`, `push --force`, `clean -f`; dropping a database table or collection; overwriting files with uncommitted changes.
-- **AWS resource mutation** — creating, modifying, or deleting live AWS resources (`deploy-on-aws`'s `deploy` skill, IaC apply, mutating `aws` CLI calls) requires explicit confirmation **every time**, regardless of prior approval this session. Default use of that plugin is diagram generation.
-- **Installs are project-scoped only**, never global: no `pip install --user` or under `sudo`, no `uv pip install --system`, no `npm`/`pnpm`/`yarn` global install, no `gem install` without `--user-install`, no `cargo install` without `--path`. Governs Claude's own calls only.
-- **Credential filenames matched by substring** (`secret`, `credential`, `token`, `key`) — never read, display, log, or commit.
-- **Network defaults to deny**: no `curl | bash` or `wget | sh`, no executing scripts fetched from external URLs, no non-HTTPS endpoints except `localhost` / `127.0.0.1`.
-
-## References
-
-- Jerome H. Saltzer & Michael D. Schroeder, "The Protection of Information in Computer Systems," _Proceedings of the IEEE_ 63(9), 1975 — least privilege, fail-safe defaults: <https://www.cs.virginia.edu/~evans/cs551/saltzer/>
+- Jerome H. Saltzer and Michael D. Schroeder, “The Protection of Information in Computer Systems,” *Proceedings of the IEEE* 63(9), 1975 — least privilege, fail-safe defaults, and complete mediation: <https://www.cs.virginia.edu/~evans/cs551/saltzer/>

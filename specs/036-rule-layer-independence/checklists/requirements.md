@@ -1,36 +1,43 @@
-# Specification Quality Checklist: CLAUDE.md as Pyramid Apex — Rules Layer Independence
+# Specification Quality Checklist: Independent Configuration Pyramid
 
-**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Purpose**: Validate that the feature specification is complete, unambiguous, testable, and ready for planning.
+
 **Created**: 2026-08-30
+
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
 
-- [x] No implementation details (languages, frameworks, APIs)
-- [x] Focused on user value and business needs
-- [x] Written for non-technical stakeholders
-- [x] All mandatory sections completed
+- [x] CQ-001 Requirements describe observable outcomes rather than implementation commands.
+- [x] CQ-002 The specification is understandable without opening current configuration files.
+- [x] CQ-003 Mandatory user scenarios, requirements, entities, assumptions, exclusions, and success criteria are present.
+- [x] CQ-004 Terms that materially affect scope—configuration reference, semantic support edge, owned resource, lifecycle operation, domain overlay—are defined.
 
 ## Requirement Completeness
 
-- [x] No [NEEDS CLARIFICATION] markers remain
-- [x] Requirements are testable and unambiguous
-- [x] Success criteria are measurable
-- [x] Success criteria are technology-agnostic (no implementation details)
-- [x] All acceptance scenarios are defined
-- [x] Edge cases are identified
-- [x] Scope is clearly bounded
-- [x] Dependencies and assumptions identified
+- [x] RC-001 Apex, rule, skill, documentation, ADR, regression-test, and migration behavior are covered. [Spec §Requirements FR-001–FR-018]
+- [x] RC-002 The old downward-reference allowance is explicitly replaced by a configuration-node reference ban. [Spec §Scope and Definitions; FR-002; FR-006; FR-010]
+- [x] RC-003 The behavior-preservation obligation covers the removed Git, MCP, and routing rules. [Spec FR-007; FR-008; FR-012]
+- [x] RC-004 Third-party archives, utility skills, Spec Kit workflows, ADR acceptance, and remote publication have explicit boundaries. [Spec §Scope and Definitions; §Out of Scope]
+- [x] RC-005 Every user story has an independent test and Given/When/Then acceptance scenarios. [Spec §User Scenarios & Testing]
 
-## Feature Readiness
+## Clarity and Testability
 
-- [x] All functional requirements have clear acceptance criteria
-- [x] User scenarios cover primary flows
-- [x] Feature meets measurable outcomes defined in Success Criteria
-- [x] No implementation details leak into specification
+- [x] CT-001 “Independent” is testable as absence of configuration-node references plus a self-contained purpose, trigger, exclusion, and procedure. [Spec §Scope and Definitions; FR-009; FR-010]
+- [x] CT-002 “MECE” uses a named classification principle at each sibling group instead of asserting generic non-overlap. [Spec §Scope and Definitions; FR-001; SC-003]
+- [x] CT-003 The owned-resource exception is narrow enough to distinguish package encapsulation from lateral configuration dependencies. [Spec §Scope and Definitions; FR-010; FR-011]
+- [x] CT-004 Success criteria specify observable zero counts, resolved links, routing fixtures, byte reduction, and passing suites. [Spec SC-001–SC-010]
+- [x] CT-005 No unresolved `[NEEDS CLARIFICATION]`, placeholder, or contradictory requirement remains.
+
+## Scenario and Edge Coverage
+
+- [x] SE-001 Compound requests are covered without forcing mutually exclusive classification across operation and domain axes. [Spec US3; FR-003; SC-006]
+- [x] SE-002 A task-specific rule leaving the unconditional layer preserves its useful behavior in a conditional mechanism. [Spec US2 scenario 4; FR-007]
+- [x] SE-003 Portable package-owned references and hard-coded install paths are covered. [Spec US3 scenario 3; FR-011; SC-005]
+- [x] SE-004 Semantic MECE is not falsely delegated to grep alone. [Spec §Out of Scope; SC-003]
+- [x] SE-005 Implementation order and a failing pre-change contract are explicit. [Spec FR-016]
 
 ## Notes
 
-- All [NEEDS CLARIFICATION] gaps were resolved in a prior interactive `/clarifier` pass (dependency direction, definition of "dependency," skill scope, documentation location) before this spec was written — see the Input line for the resolved decisions.
-- Every functional requirement (FR-001–FR-012) and edge case names specific files, line references, or a concrete verification method (grep, direct read), so each is directly testable without further interpretation.
-- This spec is written for the configuration's own maintainer/self-check audience, not an end-user product; "user value" here is session context quality and future rule-authoring correctness, consistent with the style of prior specs in this repository (e.g. 028, 035) that also target `.claude/` configuration itself.
+- Completed after the user's later instruction superseded the original feature-036 allowance for downward references.
+- No clarification question remains blocking: the user's request explicitly selects top-down application, subagent review, Spec Kit, broad best-practice research, and implementation.

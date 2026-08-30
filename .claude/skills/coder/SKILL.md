@@ -1,21 +1,21 @@
 ---
 name: coder
-description: Implement and modify code safely with strict TDD (red → green → refactor), spec-driven development, README/docs sync, and OWASP-aware secure coding. Use for any change to source code or observable behavior — adding features, fixing bugs, refactoring, writing or updating tests, changing public APIs/CLI flags/config, or updating docs that must move in lockstep with code. Enforces a failing test before implementation, spec as the single source of truth for *what* and *why*, doc updates in the same change as the code, validation at system boundaries, and no drive-by refactors outside the agreed task.
-when_to_use: implement feature, add functionality, fix bug, debug failing behavior, refactor code, restructure module, rename interface, write tests, add unit/integration/e2e tests, update API endpoint or signature, change CLI flag or env var, change default behavior, update README/docs to match code, address code review feedback, TDD, SDD, spec-driven, /speckit workflow
+description: Implement and modify code, configuration, tests, scripts, interfaces, or observable behavior safely through spec-driven development, automatable red → green → refactor, boundary validation, secure coding, and factual contract synchronization. Use for every such change, including features, fixes, refactors, review feedback, and documentation that must change with a public contract. Do not use for standalone prose creation, structural review, or research that changes no code, configuration, test, interface, or observable behavior. When another capability independently matches the same request, apply both; this capability retains ownership of implementation, verification, and changed-contract documentation.
 ---
 
-Purpose: change code safely — a failing test first, the spec as the single source of truth, docs updated in the same change, and secure-by-default boundaries. Applies to any change to source code or observable behavior. Security is grounded in OWASP Top 10 / OWASP ASVS and CWE-aware defect handling.
+Purpose: change code, configuration, tests, scripts, interfaces, and observable behavior safely. Define what and why before implementation, establish a failing automated check for an automatable contract or a concrete pre-change observation otherwise, synchronize factual contract documentation, and keep system boundaries secure. These obligations remain when another independently applicable capability supplies domain or artifact-specific guidance. Security is grounded in OWASP Top 10 / OWASP ASVS and CWE-aware defect handling.
 
 # Test-Driven Development (TDD)
 
-Red → Green → Refactor, strict. No implementation code without a failing test first.
+Use Red → Green → Refactor whenever the changed contract can be checked automatically. Before implementation, add or identify a deterministic check and run it to observe the expected failure. For a non-automatable change, record the concrete current behavior or structure and define how the intended change will be verified before editing.
 
-- Tests define the contract; implementation satisfies it. Not complete until all tests pass.
+- Tests define automatable contracts; implementation satisfies them. Not complete until relevant checks pass.
 - Hard-to-write test ⇒ design signal; fix the interface, not the test.
 - Test names describe behavior (`user_cannot_login_with_invalid_password`), not implementation.
 - One assertion per test where practical; multiple only for one logical outcome.
 - Deterministic only — mock randomness and time.
 - Never delete or disable failing tests to pass the suite; fix the root cause.
+- For prose, policy, or structure that cannot be asserted meaningfully, compare the result with the recorded pre-change observation and perform the stated review; do not create a brittle token-presence test merely to claim TDD.
 
 # Spec-Driven Development (SDD)
 
@@ -29,15 +29,15 @@ Specs are the single source of truth for *what* a feature does and *why*. Code s
 
 SDD and TDD compose: the spec names the behavior; the test enforces it; the implementation satisfies both.
 
-For projects using [github/spec-kit](https://github.com/github/spec-kit) (files under `.specify/` or `specs/{N}-{name}/`), `specify init` installs slash commands that carry their own playbooks: `/speckit.constitution`, `/speckit.specify`, `/speckit.clarify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement`, `/speckit.analyze`. Invoke them explicitly — do not improvise the workflow.
+When a project already uses [github/spec-kit](https://github.com/github/spec-kit), follow its installed specification, planning, task, consistency-analysis, and implementation lifecycle explicitly rather than improvising an abbreviated substitute.
 
 # Documentation Sync
 
-README and `docs/` must reflect current code. Update docs in the **same change** that alters public interface, behavior, configuration, or usage.
+Identify the canonical explanation of each changed public interface, behavior, configuration field, schema, or usage contract and update it in the **same change**.
 
 - Describe what the code does **now**, not plans or history. Examples must run against the current codebase.
 - No TODO comments as substitutes for doc updates.
-- Before reporting done, verify README and `docs/` are consistent. If a stale doc is out of scope, flag it explicitly — do not leave it silently wrong.
+- Before reporting done, verify affected contract documentation is factually consistent. If a stale artifact cannot be updated within the authorized scope, flag it explicitly — do not leave it silently wrong.
 
 ## Triggers
 
@@ -77,18 +77,13 @@ Applies to implementation work in the repo. Composes with TDD/SDD/docs above.
 Aim for **secure and safe** outcomes in both **code** and how the **environment** is used. Prefer **established** secure-coding practice and, where it applies, **recognised international and industry baselines** (e.g. OWASP guides and ASVS-style controls, **CWE**-aware handling of common defect classes, and language or platform **security advisories**). Favour current recommendations over deprecated patterns.
 
 - **In code**: never introduce command injection, XSS, SQL injection, or other **OWASP Top 10**–class flaws; apply least privilege for secrets and capabilities; use vetted crypto and dependency hygiene when touching those layers; validate and encode at **system boundaries** (user input, external APIs) and avoid leaking stack traces or internal detail to end users. If insecure or unsafe code is written, **fix it before** claiming done.
-- **In the dev environment** (shell, repo, tool use): follow **`permissions.md` in `rules/`** — no credential exposure, no destructive command surprises, and no unsafe download-and-execute; use official installs and **HTTPS**; keep secrets in designated stores, not the codebase or ad-hoc copy-paste. When suggesting commands or integrations to the user, default to the **safer** option and call out **risky** ones.
+- **In the dev environment** (shell, repository, tool use): do not expose credentials, surprise the user with destructive actions, or execute unreviewed remote content; use official sources and **HTTPS**, keep secrets in designated stores, and obtain explicit authorization for destructive, machine-wide, credential-bearing, or externally consequential effects whose authority is not already clear. When suggesting commands or integrations, default to the safer option and call out material risk.
 - When standards or the project’s own **security** docs conflict with a shortcut, follow the stricter or project-mandated rule. If a requirement is **unclear** (e.g. data classification, crypto choice), **ask** before implementing.
 
 # Language and stack conventions
 
 This is the single coding skill; it is language-agnostic. For the active language and stack, follow the repository's configured linter, formatter, type-checker, and test runner, and run them before reporting done. Match existing repo conventions rather than importing external defaults.
 
-# Related rules
-
-Load when the task reaches these stages:
-
-- **Committing / branching / opening a PR** → `rules/git-workflow.md` (Conventional Commits, branch naming, PR body).
 # References
 
 - Kent Beck, *Test-Driven Development: By Example*, Addison-Wesley, 2002 (TDD).
