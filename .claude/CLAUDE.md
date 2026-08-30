@@ -13,6 +13,7 @@ Priorities, highest first. Refer to them by name, never by number.
 - **Context sources, in order** — repo documentation (README, specs, ADRs) before Claude Memory.
 - **Clarify** — `rules/clarifier.md` governs when to ask vs. proceed.
 - **Think in lenses** — silently self-check against `rules/thinking-lenses.md`'s six lenses on every task; a mental check only, never forced into a deliverable.
+- **Structure the answer** — silently self-check substantive, multi-point outputs against `rules/pyramid-principle.md`; a mental check only, never forced into a deliverable.
 - **Plan non-trivial work through Spec Kit.** Non-trivial = multi-file, behavior-changing, or hard to reverse. No `.specify/` yet → recommend `specify init` first; once available drive the change via `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` (add `/speckit-clarify`, `/speckit-checklist`, `/speckit-analyze` as warranted) — invoke explicitly, don't improvise. A small, reversible, single-file change needs no pipeline, but still needs its intent recorded in the commit message. Ask if unsure.
 
 # Close-out

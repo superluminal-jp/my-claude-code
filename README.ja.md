@@ -12,7 +12,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 - **`.claude/CLAUDE.md`**: 常時メモリ（原則、事前チェック、クローズアウト、ルーティングと MCP への参照）。動作に必要な内容のみで、設計根拠は [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
 - **`.claude/settings.json`**: Claude Code のユーザーレベル設定
-- **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置く（権限（強制される deny は `settings.json`）、確認ルール、skill ルーティング、思考レンズ（6つの推論セルフチェック）、live-documentation（7つのチェック）、git ワークフロー、MCP サーバー選択）。各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
+- **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置く（権限（強制される deny は `settings.json`）、確認ルール、skill ルーティング、思考レンズ（6つの推論セルフチェック）、Pyramid Principle（複数論点を持つ出力の構造セルフチェック）、live-documentation（7つのチェック）、git ワークフロー、MCP サーバー選択）。各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック
   - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
   - `digital-agency-frontend`: DADS とダッシュボードガイドブックに基づく、アクセシブルな React/Tailwind Web フロントエンド開発・レビュー

@@ -24,8 +24,9 @@ across projects while preserving unrelated user files.
 - **`.claude/rules/`** — Always-on universal rules, each kept to what changes
   Claude's decisions and nothing else: permissions (the enforced deny list
   lives in `settings.json`), clarification triggers, skill routing, thinking
-  lenses (six reasoning self-checks), live-documentation enforcement (seven
-  checks), git workflow, MCP server selection. What each file deliberately
+  lenses (six reasoning self-checks), the Pyramid Principle self-check for
+  substantive outputs, live-documentation enforcement (seven checks), git
+  workflow, MCP server selection. What each file deliberately
   omits, and where that content went, is recorded in
   [`docs/claude-config-design.md`](docs/claude-config-design.md)
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
