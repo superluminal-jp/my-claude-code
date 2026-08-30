@@ -27,3 +27,10 @@ Before acting, silently test whether the reasoning is complete enough to justify
 - Keep observations, sourced claims, assumptions, and inferences distinct while reasoning.
 
 The reasoning is sufficient when dependencies are explicit, branches cover the relevant decision space without overlap, iteration is bounded, and every conclusion's strength matches how it was derived.
+
+## References
+
+- C. Böhm and G. Jacopini, "Flow diagrams, Turing machines and languages with only two formation rules," *Communications of the ACM* 9(5), 1966 — proves sequence, selection, and iteration are the complete, sufficient set of control structures (Dependencies and concurrency; Conditions and branches; Iteration).
+- J. E. Kelley Jr. and M. R. Walker, "Critical-Path Planning and Scheduling," *Proceedings of the Eastern Joint Computer Conference*, 1959 — the origin of distinguishing a true prerequisite from independently schedulable work (Dependencies and concurrency).
+- Barbara Minto, *The Minto Pyramid Principle*, 1987 — MECE branch partitioning and the deductive/inductive distinction in argument structure (Conditions and branches; Inference).
+- Karl Popper, *The Logic of Scientific Discovery*, 1959 — falsifiability as the standard an inductive conclusion must meet rather than overclaiming certainty (Inference).
