@@ -15,9 +15,8 @@ Reminders has EventKit — Apple's official framework, and the route that
 returns reminders as typed, queryable objects instead of Apple Event records
 to be parsed back out of `osascript` output. Notes has no equivalent
 framework, so the sibling `apple-notes` skill uses JXA instead. This is a
-deliberate, recorded decision — see
-[ADR 0013](../../../docs/adr/0013-eventkit-for-reminders-automation.md) for
-the full rationale and the rejected AppleScript alternative.
+deliberate decision: EventKit was chosen over the AppleScript route because
+only it returns typed objects instead of text to re-parse.
 
 The price of EventKit is a build step and a different permission category.
 Both are handled below, and neither is optional.

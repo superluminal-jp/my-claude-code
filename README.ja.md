@@ -25,6 +25,19 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
     プロジェクトローカルな成果物で、すべて gitignore 対象（後述「spec-kit のオプトイン」参照）
 
+## 補足ドキュメント
+
+`docs/` は保守者向けで、Claude 向けではありません。`install.sh` は `~/.claude/`
+へ同期しないため、`.claude/` 配下からここへリンクしていません（ルールとスキルは
+参照元を自分の中に持っています）。
+
+| ドキュメント | 内容 |
+|---|---|
+| [`docs/claude-config-design.md`](docs/claude-config-design.md) | 常時ロードの指示が通すべき判断基準と、各ファイルが意図的に置いていないもの |
+| [`docs/live-documentation-standards.md`](docs/live-documentation-standards.md) | `rules/live-documentation.md` の背後にあるライフサイクル標準と § 7 の設計論拠 |
+| [`docs/mcp-servers.md`](docs/mcp-servers.md) | `.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、表の更新手順 |
+| [`docs/adr/`](docs/adr/) | アーキテクチャ決定記録 — Accepted 後は不変で、supersede のみ |
+
 ## ユーザー設定としてインストール
 
 以下を実行してください:

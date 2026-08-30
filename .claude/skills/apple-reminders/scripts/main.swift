@@ -5,8 +5,7 @@
 // records that have to be parsed back out of osascript's output.
 //
 // Notes has no equivalent framework, so the sibling apple-notes skill stays
-// on AppleScript/JXA instead. See docs/adr/0013-eventkit-for-reminders-automation.md
-// for why each app gets a different automation route.
+// on AppleScript/JXA instead — which is why each app gets a different route.
 //
 // Build (see build.sh — the Info.plist section is not optional):
 //   swiftc main.swift -o remind-cli \

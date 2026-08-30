@@ -17,4 +17,7 @@ Tool search is on: MCP tool **names** are in context, their descriptions and sch
 
 Before giving freehand AWS advice, check for an official skill: `aws___search_documentation` with `topics: ["agent_skills"]`, then `aws___retrieve_skill` with the **exact** `skill_name` returned — never invent one — for its `SKILL.md` (referenced files via `file`). GCP has no equivalent. Azure is unverified: `microsoft-learn` needs OAuth authorization before its tool set can be checked.
 
-Background, vendor references, and citations: `docs/mcp-servers.md`.
+## References
+
+- Claude Code — MCP (tool search, `.mcp.json` fields): <https://code.claude.com/docs/en/mcp>
+- MCP specification — Lifecycle, `InitializeResult.instructions`: <https://modelcontextprotocol.io/specification/2025-06-18/basic/lifecycle>
