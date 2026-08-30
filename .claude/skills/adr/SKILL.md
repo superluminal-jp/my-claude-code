@@ -1,23 +1,24 @@
 ---
 name: adr
-description: Record architecturally significant, hard-to-reverse decisions as immutable Architecture Decision Records. Use when a session settles a one-way-door choice (datastore, framework, bounded-context boundary, API/protocol, auth model, deploy topology) and a reasonable alternative was rejected — capturing Context, Decision, Consequences, and Alternatives so rationale outlives the decision-makers. Generates docs/adr/NNNN-<title>.md in MADR format, assigns the next sequential number (never reused), and supersedes rather than rewrites prior records. Grounded in Nygard's ADRs, the MADR 4.0.0 template, and ISO/IEC/IEEE 42010:2022 rationale requirements.
-when_to_use: record architecture decision, write ADR, document why we chose, capture decision rationale, ADR for datastore/framework/protocol choice, bounded context boundary decision, supersede a previous decision, decision log entry, one-way door decision
+description: Record architecturally significant, hard-to-reverse decisions with a rejected reasonable alternative as immutable Architecture Decision Records containing context, decision, consequences, and alternatives. Use to create or supersede a record only when the user explicitly requests that action; when a qualifying decision emerges without that authorization, propose a record and wait. Do not use for reversible, local, obvious, or day-to-day implementation choices. When another capability independently matches, keep it active and place the record or proposal at the point where the consequential decision is settled.
 ---
 
 # Skill: adr
 
-Purpose: author and maintain Architecture Decision Records — policy and playbook in one place. An ADR captures a decision's context, choice, consequences, and rejected alternatives, distinct from a feature's day-to-day *what/why*. Template follows Nygard's original structure extended with the MADR 4.0.0 optional sections; rationale content follows ISO/IEC/IEEE 42010:2022 (see [References](#references)).
+Purpose: author and maintain Architecture Decision Records. An ADR captures a decision's context, choice, consequences, and rejected alternatives, distinct from a feature's day-to-day *what/why*. The template follows Nygard's original structure extended with MADR 4.0.0 optional sections; rationale content follows ISO/IEC/IEEE 42010:2022 (see [References](#references)).
 
 ## When to record
 
-Record when **all** hold: architecturally significant (affects structure, cross-cutting concerns, or external contracts), hard to reverse (a one-way door), and a reasonable alternative was rejected. Skip for reversible, local, or obvious choices — prefer a code comment there.
+Record when **all** hold: architecturally significant (affects structure, cross-cutting concerns, or external contracts), hard to reverse (a one-way door), and a reasonable alternative was rejected. Skip reversible, local, obvious, and ordinary implementation choices; a nearby explanation is sufficient when one is needed.
 
-Propose recording one as soon as a session settles such a decision (framework/datastore choice, bounded-context boundary, API/protocol, auth model, build/deploy topology) — never author it silently; always surface the proposal first.
+Creating or changing a record requires an explicit user request for that action. A general request to implement the underlying decision is not sufficient authorization. If a session settles a qualifying choice such as a framework, datastore, bounded-context boundary, API or protocol, authorization model, or build/deploy topology without an explicit record request, propose the record and wait; never author it silently.
+
+This procedure remains applicable when another capability independently matches. Continue that work and place the proposal before the decision becomes costly to reverse, or create the authorized record once the decision and rejected alternative are stable.
 
 ## Procedure
 
-1. **Confirm it warrants an ADR** — per *When to record* above. If not, suggest a code comment instead and stop.
-2. **Find the next number** — scan `docs/adr/` for the highest `NNNN`; use `NNNN+1`, zero-padded to 4 digits. **Never reuse a number**, even if an earlier ADR was rejected or superseded. Create `docs/adr/` if absent — it's the conventional home and is explicitly out of scope for `rules/live-documentation.md`'s drift checks (a standalone decision record, not code-derivative).
+1. **Confirm authority and significance** — verify the user explicitly requested creation or supersession and that the decision meets every criterion above. Without creation authority, make only the proposal. If the decision is not significant enough, recommend a nearby explanation when useful and stop.
+2. **Find the next number** — scan `docs/adr/` for the highest `NNNN`; use `NNNN+1`, zero-padded to 4 digits. **Never reuse a number**, even if an earlier ADR was rejected or superseded. Create `docs/adr/` if absent; a standalone rationale record is not generated contract documentation.
 3. **Draft** from the template below. Fill the mandatory core; add the optional MADR sections only when the decision's complexity warrants them (a large ADR goes unread — Nygard). Be concrete in Consequences — name the negative trade-offs, not just benefits; where relevant, note the impact on quality attributes (ISO/IEC/IEEE 42010).
 4. **State how it will be confirmed** — when applicable, record how compliance with the decision will be verified (a test, review gate, fitness function, or lint rule) in *Confirmation*.
 5. **Set Status** — `Proposed` until the user accepts, then `Accepted`. Use `Deprecated` when a decision is no longer relevant with no replacement; `Superseded by NNNN` when a later ADR replaces it. Never edit an Accepted record's substance, and **keep** superseded/deprecated records — do not delete them.

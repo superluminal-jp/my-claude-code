@@ -1,6 +1,6 @@
 # references/
 
-`scrum-master`スキルの規範層。すべての内容はScrum Guide（2020年版）にのみ基づく（[SKILL.md](../SKILL.md)「必ず守る原則」参照）。
+Scrum判断の根拠を必要時に読み込むための規範資料。すべての定義と規範的主張はScrum Guide（2020年版）にのみ基づく。
 
 | ファイル | 内容 |
 | --- | --- |
@@ -9,5 +9,3 @@
 | [scrum-master-role.md](scrum-master-role.md) | Scrum Masterのアカウンタビリティと境界 |
 | [templates/](templates/) | 作成物・イベントの記入用テンプレート（[README](templates/README.md)参照） |
 | `2020-Scrum-Guide-US.pdf` / `2020-Scrum-Guide-Japanese.pdf` | Scrum Guide原文（英語版・日本語版） |
-
-どのファイルを読むべきかの状況別ガイドは[SKILL.md](../SKILL.md)の「参照ファイル」表を参照。

@@ -1,75 +1,39 @@
-# Live Documentation Rules
+# Documentation Integrity
 
-Purpose: documentation must never lie, and must sit close to what it describes. Applies to every diff/commit/PR reviewed and every Documentation Artifact created (docstring, README, spec, OpenAPI annotation).
+Documentation is part of the public contract. Keep it accurate, canonical, close to the scope where it is true, and synchronized with the behavior it explains.
 
-## 1. Drift Detection
+## Contract synchronization
 
-For every changed file with a public contract (exported function, public method, API endpoint, CLI argument, schema field), check whether an artifact covering that contract changed in the **same** diff. If not: flag a **violation (Drift)**, name the stale artifact by path, and do not pass the review until it is updated in that change or an Override is stated.
+- For every changed public interface—exported API, command option, configuration field, schema, or user-visible behavior—identify the existing artifact that explains it and update that artifact in the same change.
+- Flag a drift violation when a changed contract leaves an existing explanation stale. Name the stale artifact and do not report the change complete until it is synchronized or a reasoned override is recorded.
+- Do not require documentation churn for formatting, private renames, or internal refactors that leave the public contract unchanged.
+- A standalone decision record, onboarding guide, or design document is not contract drift merely because it is created separately from code.
 
-An artifact is stale at whatever layer it sits (§ 7); L2–L5 being recommended never exempts one that already exists. Do NOT flag internal-only changes — private renames, formatting, implementation refactors.
+## Canonical source by scope
 
-## 2. Separate Documentation PR Detection
+Place a fact at the smallest stable scope for which it is true:
 
-On a docs-only diff, ask whether it describes code already shipped. If yes, flag it and recommend amending the original commit. Accept an Override for deliberate separation. Do NOT flag standalone ADRs or onboarding guides that are not code-derivative.
+1. repository-wide facts in the repository introduction;
+2. subsystem or directory facts at that boundary;
+3. one file's public contract in its leading documentation;
+4. a non-obvious local invariant next to the relevant block.
 
-## 3. Auto-generation Recommendation
+Use a more distant artifact when its audience or cross-cutting scope genuinely requires it, and state what makes that location canonical. A higher-level summary may compress a lower-level source when it identifies that source, preserves its meaning, and does not create a competing definition.
 
-Before hand-writing an API reference, parameter list, schema description, or type docs, determine whether it can be generated from the code (signatures, annotations, docstrings, OpenAPI decorators). If so, name the tool and decline to hand-write. Otherwise hand-write and apply § 4.
+## Generation and duplication
 
-## 4. Proximity Enforcement
+- Prefer generation from code, schemas, annotations, or other authoritative data when the result remains readable, reviewable, and sufficient for its audience. Do not claim generation is preferable when it would omit necessary intent or usage guidance.
+- Maintain one canonical definition of a fact. Replace competing copies with a summary or a link; update every unavoidable projection in the same change.
+- Treat generated outputs as derived artifacts, not a second source of truth.
 
-Place each artifact closest to what it describes: inline docstring where the language allows, else a `README.md` in the **same** directory, else a co-located spec or contract file. Warn when a remote location is proposed (top-level `docs/`, a wiki, another repo) and offer the nearest co-located alternative. "Closest" is settled by § 7, not taste.
+## Process-artifact isolation
 
-## 5. No Redundancy
+Shipped documentation must not depend on temporary planning notes, task lists, research scratchpads, or checklists whose paths and wording are expected to change. Move durable rationale to a stable decision or design artifact and state user-facing behavior directly. Process artifacts may cite one another inside their own bounded workspace.
 
-If the information already exists in the repo, point at it and decline the duplicate; offer a cross-reference instead.
+## Overrides
 
-**Compression exception**: a summary of a lower layer written at a higher one is not a duplicate — § 7 requires it. Permitted when it (a) links to the canonical source, (b) does not contradict it, and (c) adds no fact absent from it. Breaking (b) is also a Drift violation.
-
-## 6. Intermediate-Artifact Isolation
-
-Shipped artifacts (README, docstring, public spec, OpenAPI annotation, code comment) must not cite Spec Kit process artifacts — `specs/NNN-*/spec.md`, `plan.md`, `tasks.md`, `research.md`, `quickstart.md`, `checklists/`. Those are ephemeral and their paths are not stable references. Put rationale in an ADR (`docs/adr/`) and link that, or state it in prose. An existing such link is a **violation (Intermediate-Artifact Leakage)** — replace or remove it. Artifacts inside `specs/` may link to each other; this check governs only what ships.
-
-## 7. Granularity Layers
-
-A fact's canonical source belongs at the **smallest** layer at which it is true; larger layers may compress it (§ 5). This is § 4 made discrete.
-
-| Layer | Canonical artifact |
-|---|---|
-| L1 `repository` — the whole repository | root `README.md` |
-| L2 `subtree` — a subsystem spanning several directories, addressed from outside through one entry point | `README.md` at the subtree root |
-| L3 `directory` — the files directly inside one directory | `README.md` in that directory |
-| L4 `file` — one file | leading docstring or module comment |
-| L5 `block` — a passage inside a function; a non-obvious branch or invariant | inline comment |
-
-L1 is MUST. L2–L5 are SHOULD; their absence is not itself a violation. **Any artifact that exists MUST conform to § 7.1–7.2.** § 1 applies independently, so a changed contract whose existing docstring or README went stale is still a violation.
-
-### 7.1 Every artifact is a pyramid
-
-1. **Shared ground first** — open with what the reader already knows and what this covers. Never open in undefined jargon.
-2. **Answer before support** — state what the thing is or does before the detail behind it.
-3. **Siblings MECE** — items at one level neither overlap nor leave a gap.
-4. **One logic per group** — argue deductively or list inductively, never both at one level.
-
-Failing any of the four is a **structure violation**.
-
-### 7.2 Expertise rises by descending
-
-Each layer addresses a reader who finished the layer above; L1 assumes no prior knowledge. Dependency runs one way: an artifact may rely on terms introduced at a **higher** layer, never on terms defined only at a **lower** one. A README leaning on a term defined solely in a docstring is a violation, as is any inversion of this direction.
-
-A summary breaking one of § 5's three conditions is a **compression violation**; one that contradicts its canonical source is also Drift — one fact, told two ways.
-
-**Not retroactive** — § 7 governs artifacts created from now on, and existing ones whenever a diff touches them. It is not a mandate to restructure what is already here.
-
-## Override Handling
-
-Accept an Override **only if** a reason is stated inline ("Override: emergency hotfix, docs follow in #123"), and record it — respond "Override accepted: [reason]" before proceeding. Reject silent overrides ("just skip the doc check") with: "Please state a reason for this override so it is on record."
-
-## Out of Scope
-
-Internal refactors with no contract change; generated files (migrations, build artifacts, lock files); new standalone ADRs, onboarding docs, or design documents not derived from existing code; test files describing expected behavior (§ 1 applies only when the tested interface changes); documentation predating § 7 and untouched by the current diff.
+Accept an exception only when its reason, affected artifact, owner, and follow-up condition are recorded. Reject a silent request to skip synchronization; an exception without a durable reason is indistinguishable from drift.
 
 ## References
 
-- Cyrille Martraire, _Living Documentation_, Addison-Wesley, 2019 — §§ 1–6 operationalize this.
-- Barbara Minto, _The Minto Pyramid Principle_, 1987 — § 7.1's four conditions.
+- Cyrille Martraire, *Living Documentation*, Addison-Wesley, 2019.

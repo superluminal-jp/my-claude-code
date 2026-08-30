@@ -1,12 +1,11 @@
 ---
 name: clarifier
-description: Turn ambiguous requests into testable, bounded, decision-ready requirements with verifiable acceptance criteria. Use when scope, constraints, success conditions, or non-functional requirements are unclear, when user stories need INVEST/Gherkin shape, when scope needs MoSCoW prioritization, or when NFR coverage (FURPS+) is missing — i.e. before estimation, planning, or implementation can safely start. Surfaces blocking gaps in batch with defaults and alternatives, converts the agreed answer into Given/When/Then or measurable SC-### criteria, and labels assumptions with confidence so the team can test, estimate, and commit.
-when_to_use: clarify requirements, define acceptance criteria, ambiguous request, vague request, missing success criteria, scope unclear, draft user story, INVEST check, write Given/When/Then scenarios, prioritize backlog, MoSCoW, define non-functional requirements, FURPS+, elicit constraints, formal requirement quality check, spec quality review, before estimation, before implementation kickoff
+description: Formalize material ambiguity into testable, bounded, decision-ready requirements. Use when unresolved scope, constraints, success conditions, non-functional requirements, prioritization, or acceptance criteria prevent safe commitment, or when the user explicitly requests formal requirement elicitation, user stories, Given/When/Then scenarios, INVEST, MoSCoW, or FURPS+ coverage. Do not use merely because a request is brief when it clearly names a recognizable artifact or workflow and provides enough information to start, nor for ordinary context gathering within that work. When another capability independently matches, apply this first only to resolve blocking requirements, then continue with the independently matched work.
 ---
 
-# Requirements Skill
+# Formal Requirements
 
-Purpose: the formal-elicitation extension of the clarification gate. `rules/clarifier.md` is the canonical source for *when* to ask vs proceed; this skill supplies the *how* — structured toolboxes for turning ambiguity into testable, bounded requirements. Applies when clarification needs formal structure (user stories, acceptance criteria, NFR coverage). Grounded in ISO/IEC/IEEE 29148:2018, INVEST, Gherkin, MoSCoW, FURPS+, and SMART (see [References](#references)).
+Purpose: turn material ambiguity into testable, bounded requirements through structured elicitation. Apply formal techniques only when an unresolved choice prevents safe commitment or the user requests a requirements artifact. A short request that clearly names a recognizable artifact or workflow is not ambiguous by brevity alone. Grounded in ISO/IEC/IEEE 29148:2018, INVEST, Gherkin, MoSCoW, FURPS+, and SMART (see [References](#references)).
 
 ## Primary objective
 
@@ -15,10 +14,12 @@ Turn ambiguous requests into testable, bounded, and decision-ready requirements.
 ## Core process
 
 1. Capture intent, scope, and constraints.
-2. Surface ambiguity patterns and blocking gaps.
+2. Separate material blocking gaps from details that can be resolved during the requested work.
 3. Propose defaults with alternatives.
 4. Convert to acceptance criteria the team can test.
 5. Confirm assumptions and unresolved risks.
+
+When another capability independently matches, complete only the blocking requirements work first, then continue with that work. Do not replace its operation-specific context gathering or deliverable procedure.
 
 ## Ambiguity patterns to flag
 
@@ -53,7 +54,8 @@ Before moving to implementation, each requirement should be:
 - Silently picking one interpretation when multiple are plausible.
 - Asking after the work is done ("I built X, is that what you wanted?").
 - Stacking clarifications turn-by-turn instead of batching.
-- Treating "make it better" as actionable — always require a fit criterion.
+- Treating a materially ambiguous request such as "make it better" as actionable without an agreed fit criterion.
+- Redirecting a sufficiently defined artifact request into a generic requirements interview.
 - Inventing acceptance criteria the user never agreed to.
 
 ## Clarification template

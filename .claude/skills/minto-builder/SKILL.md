@@ -1,6 +1,6 @@
 ---
 name: minto-builder
-description: Build a document collaboratively through dialogue when the user's thinking, argument, or source material is incomplete. Use plain-language questions to clarify the audience, purpose, central point, supporting logic, evidence, risks, and actions; maintain a concise evolving synthesis; then produce the finished document without exposing framework terminology unless explicitly requested.
+description: Build a document or artifact collaboratively through dialogue when the user's thinking, argument, or source material is incomplete or starts from scratch. Use plain-language questions to develop the audience, purpose, central point, support, evidence, risks, and actions; ordinary missing audience or purpose is resolved inside this dialogue, and request brevity alone is not a reason to divert to generic ambiguity handling. In a compound request, own the document-development phase while every independently matching operation or domain capability retains its own phase. Do not use when a substantive existing document primarily needs direct final transformation, structural diagnosis, proofreading, or fact research.
 metadata:
   short-description: Develop thinking and write the document through dialogue
 ---
@@ -27,6 +27,8 @@ Use this skill when the user:
 - wants to develop a proposal, memo, report, paper, presentation, or executive summary through conversation
 - explicitly asks to organize their thinking before writing
 
+A short request to create a document is sufficient when the intended artifact is recognizable and the source material is incomplete. Missing audience, purpose, format, or emphasis is ordinary document-development work: resolve it through the dialogue below rather than treating brevity alone as a separate requirements problem.
+
 The user may provide:
 
 - no source material
@@ -44,6 +46,10 @@ Do not use this skill when the user already has a substantive document and prima
 - a direct final rewrite
 - proofreading
 - factual research without document construction
+
+## Compound requests
+
+When the request also contains independently matching work, own only the collaborative document-development phase. Perform it at the dependency point where its output becomes useful, incorporate established inputs from earlier phases, and leave unrelated operations or domain constraints to their own procedures. Do not turn document dialogue into a central routing step for the rest of the request.
 
 ## Interaction contract
 

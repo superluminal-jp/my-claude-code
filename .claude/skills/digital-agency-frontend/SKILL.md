@@ -1,6 +1,6 @@
 ---
 name: digital-agency-frontend
-description: Build, modify, or review React and Tailwind CSS web frontends using the Digital Agency Design System (DADS) and dashboard guidebook. Use for DADS component implementation, Japanese government or public-service interfaces, public-interest accessibility remediation, and presentation or exploration dashboard design; covers requirements, design, implementation, testing, JIS/WCAG verification, and source attribution. Do not use for Power BI artifacts or projects outside React/Tailwind CSS.
+description: Apply the Digital Agency Design System (DADS), dashboard guidance, and public-interest accessibility as a domain overlay for React and Tailwind CSS frontend work. Use for DADS components, Japanese government or public-service interfaces, accessibility remediation, and presentation or exploration dashboards. Do not use for Power BI artifacts or projects outside React/Tailwind CSS. Apply alongside every independently matching requirements, implementation, review, or document operation; domain guidance supplements rather than replaces that operation.
 ---
 
 # Digital Agency Frontend
@@ -27,7 +27,7 @@ almost no code. Grep it rather than guessing, and never edit it.
 Find the right page by Japanese name through the archive's own manifest:
 
 ```sh
-DADS=.claude/skills/digital-agency-frontend/references/dads-docs
+DADS="${CLAUDE_SKILL_DIR}/references/dads-docs"
 grep -o '\[[^]]*ボタン[^]]*\]([^)]*)' "$DADS/MANIFEST.md"    # → components/button/index.md
 grep -m1 '^# ' "$DADS/index.md"                              # → current archive version
 ```
@@ -69,7 +69,7 @@ reachable, and resolve package versions at task time. Restrict research to the
 Digital Agency sites and the official `digital-go-jp` organization. If live
 content conflicts with the archive, follow the live source, disclose the drift,
 and name the stale path. If nothing current is reachable, use the archive and
-state that freshness was not verified. Details: `sourcing-and-licensing.md`.
+state that freshness was not verified. Details: `references/sourcing-and-licensing.md`.
 
 ### 3. Design before implementing
 
@@ -79,7 +79,7 @@ add ARIA only where native HTML cannot express the behavior. Reuse the project's
 existing primitives when they already meet the DADS intent, and record material
 deviations with their reason. For dashboards, finish the audience, decision,
 type, and information-hierarchy work in `dashboard-design.md` before choosing
-charts.
+charts. Use `references/dashboard-design.md` for the full decision sequence.
 
 ### 4. Implement test-first and type-safe
 
@@ -92,11 +92,11 @@ the project must own and diverge from the code, and say so. Adapt what you take
 to the target project's React, Tailwind, and TypeScript versions instead of
 copying a directory wholesale or forcing a downgrade. Validate external data at
 its boundary and render untrusted text through React's normal escaping.
-Token classes and component idioms: `component-implementation.md`.
+Token classes and component idioms: `references/component-implementation.md`.
 
 ### 5. Apply the accessibility gate
 
-Run `accessibility-gate.md` in full. Do not report completion while a known
+Run `references/accessibility-gate.md` in full. Do not report completion while a known
 level A or AA failure stands undisclosed.
 
 ### 6. Close out
@@ -106,7 +106,7 @@ documentation artifact for any changed public component contract in the same
 change. Report: sources checked and whether freshness was verified; DADS
 adaptations and deviations; dashboard decisions where applicable; automated and
 manual accessibility evidence; and unresolved risks. Apply the attribution rules
-in `sourcing-and-licensing.md` when official content or code is reused.
+in `references/sourcing-and-licensing.md` when official content or code is reused.
 
 ## Guardrails
 
