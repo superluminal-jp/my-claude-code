@@ -107,15 +107,15 @@
 
 **Independent Test**: No current documentation/test references a deleted runtime rule; design guide and ADR independently explain the final model; targeted suites pass.
 
-- [ ] T038 [P] [US4] Replace the runtime configuration tree and metadata-driven multi-match explanation in `README.md`
-- [ ] T039 [P] [US4] Apply the equivalent user-facing architecture and MCP verification updates in `README.ja.md`
-- [ ] T040 [P] [US4] Rewrite the configuration taxonomy, relation table, authoring decisions, and validation procedure in `docs/claude-config-design.md`
-- [ ] T041 [P] [US4] Rewrite MCP operational ownership from unconditional rule to conditional skill/tool discovery in `docs/mcp-servers.md`
-- [ ] T042 [P] [US4] Synchronize affected Japanese Minto skill documentation in `docs/minto-builder.ja.md`, `docs/minto-reviewer.ja.md`, and `docs/minto-rewriter.ja.md`
-- [ ] T043 [US4] Rewrite Proposed ADR-0015 with the finalized semantic hierarchy, mechanism separation, reference boundary, alternatives, and consequences in `docs/adr/0015-rule-layer-independence.md`
-- [ ] T044 [US4] Replace central-router assertions with description/package-independence contracts in `tests/run-digital-agency-frontend-skill.sh`
-- [ ] T045 [US4] Update any affected installer, routing, or MCP tests without weakening their observable behavior contracts
-- [ ] T046 [US4] Run targeted suites from `specs/036-rule-layer-independence/quickstart.md` §6
+- [X] T038 [P] [US4] Replace the runtime configuration tree and metadata-driven multi-match explanation in `README.md`
+- [X] T039 [P] [US4] Apply the equivalent user-facing architecture and MCP verification updates in `README.ja.md`
+- [X] T040 [P] [US4] Rewrite the configuration taxonomy, relation table, authoring decisions, and validation procedure in `docs/claude-config-design.md`
+- [X] T041 [P] [US4] Rewrite MCP operational ownership from unconditional rule to conditional skill/tool discovery in `docs/mcp-servers.md`
+- [X] T042 [P] [US4] Synchronize affected Japanese Minto skill documentation in `docs/minto-builder.ja.md`, `docs/minto-reviewer.ja.md`, and `docs/minto-rewriter.ja.md`
+- [X] T043 [US4] Rewrite Proposed ADR-0015 with the finalized semantic hierarchy, mechanism separation, reference boundary, alternatives, and consequences in `docs/adr/0015-rule-layer-independence.md`
+- [X] T044 [US4] Replace central-router assertions with description/package-independence contracts in `tests/run-digital-agency-frontend-skill.sh`
+- [X] T045 [US4] Update any affected installer, routing, or MCP tests without weakening their observable behavior contracts
+- [X] T046 [US4] Run targeted suites from `specs/036-rule-layer-independence/quickstart.md` §6
 
 **Checkpoint**: Runtime, documentation, ADR, and compatibility tests tell one story.
 
@@ -125,9 +125,9 @@
 
 **Purpose**: Detect cross-artifact contradictions, remediate under the user's existing implementation authorization, and prove completion.
 
-- [ ] T047 Run every `tests/run-*.sh` suite and isolate any environment-only failure with exact evidence
-- [ ] T048 Run frontmatter, package-link, archive-diff, byte-budget, prohibited-reference, and `git diff --check` validation from `specs/036-rule-layer-independence/quickstart.md`
-- [ ] T049 Validate FR-001–FR-018 and SC-001–SC-010 against concrete evidence; mark all completed tasks and leave ADR-0015 Proposed
+- [X] T047 Run every `tests/run-*.sh` suite and isolate any environment-only failure with exact evidence
+- [X] T048 Run frontmatter, package-link, archive-diff, byte-budget, prohibited-reference, and `git diff --check` validation from `specs/036-rule-layer-independence/quickstart.md`
+- [X] T049 Validate FR-001–FR-018 and SC-001–SC-010 against concrete evidence; mark all completed tasks and leave ADR-0015 Proposed
 
 ---
 

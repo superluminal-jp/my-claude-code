@@ -144,14 +144,16 @@ run_sync_contract() {
   # 06, 07 and 10 no longer describe anything that exists — the authored
   # source below is what must stay true.
   check "SYNC-SKILL-02: authored skill exists at the source of truth" "$([ -e "$REPO_ROOT/.claude/skills/digital-agency-frontend/SKILL.md" ] && echo 1 || echo 0)"
-  # Feature 035 dropped the hand-maintained skill list from .claude/CLAUDE.md:
-  # the harness already injects every skill's name, description and trigger
-  # phrases, and the list had drifted (7 named vs 10 present). SYNC-SKILL-05
-  # therefore no longer asserts an enumeration — it asserts that CLAUDE.md
-  # still points at the rule that does the routing. 05A remains the real
-  # check: the composition order that no skill description can express.
-  check_contains "SYNC-SKILL-05: Claude routing delegates to the routing rule" "$REPO_ROOT/.claude/CLAUDE.md" 'skill-routing'
-  check_contains "SYNC-SKILL-05A: canonical Claude routing composes the skill" "$REPO_ROOT/.claude/rules/skill-routing.md" 'coder.*digital-agency-frontend|digital-agency-frontend.*coder'
+  # Feature 036 removed the central .claude/rules/skill-routing.md table:
+  # a second routing state duplicated skill descriptions and drifted when
+  # skill boundaries changed. Routing is now self-describing — the apex
+  # carries one generic multi-match invariant and names no skill, while
+  # each skill's own description states its compound behavior. SYNC-SKILL-05
+  # asserts the apex side (generic, no downward name); 05A asserts the
+  # package side (this skill states its own composition without a rule).
+  check_contains "SYNC-SKILL-05: apex states generic multi-match, not a routing table" "$REPO_ROOT/.claude/CLAUDE.md" 'independently matching'
+  check "SYNC-SKILL-05B: apex names no skill (including this one)" "$([ -f "$REPO_ROOT/.claude/CLAUDE.md" ] && ! grep -Eiq 'digital-agency-frontend' "$REPO_ROOT/.claude/CLAUDE.md" && echo 1 || echo 0)"
+  check_contains "SYNC-SKILL-05A: skill's own description states compound behavior" "$SKILL_FILE" '^description:.*(alongside|supplements|composes)'
   check_contains "SYNC-SKILL-08: English README lists the skill" "$REPO_ROOT/README.md" 'digital-agency-frontend'
   check_contains "SYNC-SKILL-09: Japanese README lists the skill" "$REPO_ROOT/README.ja.md" 'digital-agency-frontend'
 }

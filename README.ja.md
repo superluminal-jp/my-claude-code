@@ -10,16 +10,29 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 ## このリポジトリで提供するもの
 
-- **`.claude/CLAUDE.md`**: 常時メモリ（原則、事前チェック、クローズアウト、ルーティングと MCP への参照）。動作に必要な内容のみで、設計根拠は [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
+- **`.claude/CLAUDE.md`**: 常時メモリ。1つの達成目標と、その3つのライフサイクル分岐
+  （定義・実行・引き渡し）、および独立に一致するすべての能力を適用する汎用マルチマッチ
+  アルゴリズムだけを持つ。ルール・スキル・サーバーの名前は一切含まない — 設計根拠は
+  [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
 - **`.claude/settings.json`**: Claude Code のユーザーレベル設定
-- **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置く（権限（強制される deny は `settings.json`）、確認ルール、skill ルーティング、思考レンズ（6つの推論セルフチェック）、Pyramid Principle（複数論点を持つ出力の構造セルフチェック）、live-documentation（7つのチェック）、git ワークフロー、MCP サーバー選択）。各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
-- **`.claude/skills/`**: 必要時に読み込まれるプレイブック
-  - `coder`: 実装作業（TDD/SDD、品質、安全、型安全性、ドキュメント同期）
-  - `digital-agency-frontend`: DADS とダッシュボードガイドブックに基づく、アクセシブルな React/Tailwind Web フロントエンド開発・レビュー
-  - Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`（最終版への書き直し）、`minto-builder`（対話による構築）
-  - `clarifier`: 要件定義・受け入れ条件の明確化（INVEST/Gherkin）
-  - `adr`: アーキテクチャ決定記録（MADR形式）
-  - `scrum-master`: Scrumイベントの設計・ファシリテーション、障害除去、フロー指標
+- **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
+  各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
+  推論の完全性（6つの推論セルフチェック: 依存・分岐・反復・推論）、権限と安全性
+  （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック）、
+  ドキュメント完全性（7つのチェック））。他のルール・スキル・設定パスへの言及は持たない。
+  各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
+- **`.claude/skills/`**: 必要時に読み込まれるプレイブック。中央ルーティング表なしに
+  自己記述だけで選択できるよう、2つの独立した軸で分類する
+  - ライフサイクル操作: `coder`（TDD/SDD、品質、安全、型安全性、ドキュメント同期）、
+    Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`
+    （最終版への書き直し）、`minto-builder`（対話による構築） — `clarifier`
+    （要件定義・受け入れ条件の明確化、INVEST/Gherkin）、`adr`（アーキテクチャ決定記録、
+    MADR形式）、`git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
+    `cloud-platform-research`（AWS/GCP/Azure 公式ドキュメントの最新調査）
+  - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
+    `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
+    React/Tailwind Web フロントエンド開発・レビュー）、`scrum-master`（Scrumイベントの
+    設計・ファシリテーション、障害除去、フロー指標）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
@@ -96,7 +109,8 @@ my-claude-code/
 
 ## 検証
 
-`.mcp.json` / `install.sh` / `.claude/settings.json` / `.claude/rules/mcp.md` を変更したら:
+`.mcp.json` / `install.sh` / `.claude/settings.json` /
+`.claude/skills/cloud-platform-research/SKILL.md` を変更したら:
 
 ```sh
 bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
@@ -155,7 +169,9 @@ bash tests/run-removed-guardrails.sh
 プロジェクトスコープ定義は [`.mcp.json`](.mcp.json) にあります。transport /
 パッケージ / エンドポイントのカタログはこのファイルが正本です。  
 どのサーバーを選ぶか、および AWS スキルレジストリの手順 — Claude Code が動作に
-必要とする部分 — は [`.claude/rules/mcp.md`](.claude/rules/mcp.md) にあります。
+必要とする部分 — は
+[`.claude/skills/cloud-platform-research/SKILL.md`](.claude/skills/cloud-platform-research/SKILL.md)
+にあり、常時ロードではなく必要時にのみ読み込まれます。
 保守者向けの背景（各サーバーのベンダー公式リファレンス、サーバー追加時の更新
 手順、出典）は [`docs/mcp-servers.md`](docs/mcp-servers.md) にあります。
 
