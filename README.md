@@ -20,10 +20,11 @@ across projects while preserving unrelated user files.
   style, skill index, MCP import (thin; most detail lives in `rules/` and
   on-demand `skills/`)
 - **`.claude/settings.json`** — User-level Claude Code settings
-- **`.claude/rules/`** — Always-on universal rules: permissions/safety,
-  clarification triggers, skill routing, thinking lenses (six reasoning
-  self-checks), live-documentation enforcement (drift, proximity, granularity
-  layering), git workflow, MCP catalog
+- **`.claude/rules/`** — Always-on universal rules, kept to what is neither
+  native model behaviour nor already injected by the harness: permissions
+  (the enforced deny list lives in `settings.json`), clarification triggers,
+  skill routing, thinking lenses (six reasoning self-checks),
+  live-documentation enforcement (seven checks), git workflow, MCP routing
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance: `coder`
   (TDD, SDD, code quality, security, type safety, docs);
   `digital-agency-frontend` (DADS-based accessible React/Tailwind public-service
@@ -91,13 +92,13 @@ my-claude-code/
     ├── CLAUDE.md                   # Main user memory (principles, style, skill index, MCP)
     ├── settings.json               # User-level Claude Code settings
     ├── rules/                      # Always-on: loaded every session
-    │   ├── permissions.md          # Credential safety, destructive ops
-    │   ├── clarifier.md            # When to ask; batch questions + template
-    │   ├── skill-routing.md        # Which skill to load for a request
+    │   ├── permissions.md          # Self-applied rules; enforced deny → settings.json
+    │   ├── clarifier.md            # When to ask vs proceed
+    │   ├── skill-routing.md        # How skills combine, stop, and break ties
     │   ├── thinking-lenses.md      # Six reasoning self-checks applied every task
-    │   ├── live-documentation.md   # Doc enforcement (7 checks) + lifecycle standards
-    │   ├── git-workflow.md         # Commit/branch/PR conventions
-    │   └── mcp.md                  # MCP server catalog + usage rule
+    │   ├── live-documentation.md   # Doc enforcement (7 checks); rationale → docs/
+    │   ├── git-workflow.md         # Repo-specific commit/branch/PR conventions
+    │   └── mcp.md                  # Provider routing + AWS skill registry
     └── skills/                     # On-demand: body loaded when relevant
         ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
         ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references
@@ -125,11 +126,16 @@ bash tests/run-removed-guardrails.sh
 ```
 
 `run-removed-guardrails.sh` is a standing regression guard, not tied to any
-particular change — it fails if `.claude/hooks/`, `scripts/`, or
-`.claude/settings.json`'s `permissions` block are ever reintroduced (see
-[ADR-0005](docs/adr/0005-remove-claude-hooks.md),
-[ADR-0006](docs/adr/0006-remove-permissions-config.md),
-[ADR-0007](docs/adr/0007-remove-scripts.md)).
+particular change — it fails if `.claude/hooks/` or `scripts/` are ever
+reintroduced ([ADR-0005](docs/adr/0005-remove-claude-hooks.md),
+[ADR-0007](docs/adr/0007-remove-scripts.md)), and it constrains the
+`permissions` block that
+[ADR-0014](docs/adr/0014-restore-credential-deny-rules.md) restored on top of
+[ADR-0006](docs/adr/0006-remove-permissions-config.md): only a `deny` list is
+allowed — an `allow` or `ask` tier fails — and every `deny` entry must be a
+`Read` rule anchored with `~/` or `**/`, never a single leading slash, which
+would resolve to a different path once `install.sh` copies the file to user
+scope.
 
 `run-install.sh` uses an isolated home and stubbed external commands. All suites
 except `run-mcp-startup.sh` are local checks; the startup suite exercises the
@@ -170,8 +176,10 @@ just alert:
 
 ## MCP Servers
 
-MCP servers are defined in `.mcp.json` for project-scope use. Full catalog
-(transport, package release policy, prerequisites): [`.claude/rules/mcp.md`](.claude/rules/mcp.md).
+MCP servers are defined in [`.mcp.json`](.mcp.json) for project-scope use —
+that file is the canonical catalog of transports, packages, and endpoints.
+Which server to call for which question, and the AWS skill-registry protocol:
+[`.claude/rules/mcp.md`](.claude/rules/mcp.md).
 
 User-scope MCP servers are registered via the CLI (stored separately; not
 installed by copying `.claude/` alone). Equivalent commands:
