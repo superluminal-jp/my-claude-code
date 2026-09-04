@@ -37,7 +37,9 @@ across projects while preserving unrelated user files.
   operations — `coder` (TDD, SDD, code quality, security, type safety, docs),
   the Minto document suite (`minto-reviewer` diagnosis, `minto-rewriter`
   rewrite, `minto-builder` build via dialogue), `clarifier` (requirement
-  elicitation, INVEST/Gherkin), `adr` (architecture decision records),
+  elicitation, INVEST/Gherkin), `product-strategy` (vision, target users,
+  value proposition, success metrics, and MoSCoW-prioritized scope, framed
+  before development work begins), `adr` (architecture decision records),
   `git-workflow` (branch/commit/push/PR conventions), `cloud-platform-research`
   (current AWS/GCP/Azure documentation lookup) — and domain overlays —
   `digital-agency-frontend` (DADS-based accessible React/Tailwind
@@ -127,6 +129,7 @@ my-claude-code/
         ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
         ├── minto-builder/SKILL.md  # Build a document through dialogue
         ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
+        ├── product-strategy/SKILL.md # Vision/users/value-prop/metrics before development begins
         ├── adr/SKILL.md            # Architecture decision records (MADR)
         ├── git-workflow/SKILL.md   # Branch/commit/push/PR conventions
         ├── cloud-platform-research/SKILL.md # Current AWS/GCP/Azure doc lookup

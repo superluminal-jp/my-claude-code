@@ -26,7 +26,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - ライフサイクル操作: `coder`（TDD/SDD、品質、安全、型安全性、ドキュメント同期）、
     Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`
     （最終版への書き直し）、`minto-builder`（対話による構築） — `clarifier`
-    （要件定義・受け入れ条件の明確化、INVEST/Gherkin）、`adr`（アーキテクチャ決定記録、
+    （要件定義・受け入れ条件の明確化、INVEST/Gherkin）、`product-strategy`
+    （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
+    開発着手前に整理）、`adr`（アーキテクチャ決定記録、
     MADR形式）、`git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
     `cloud-platform-research`（AWS/GCP/Azure 公式ドキュメントの最新調査）
   - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
