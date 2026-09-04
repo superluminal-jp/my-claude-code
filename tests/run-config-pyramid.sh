@@ -53,6 +53,7 @@ authored_skills=(
   minto-builder
   minto-reviewer
   minto-rewriter
+  problem-definition
   product-strategy
   scrum-master
 )
@@ -83,7 +84,7 @@ thinking-lenses.md"
   check_absent_pattern "RULE-02: no config path or slash-command dependency" \
     '(\.claude/|rules/|skills/|SKILL\.md|settings(\.local)?\.json|\.mcp\.json|/speckit-[[:alnum:]-]+)' "$RULE_DIR"
   check_absent_pattern "RULE-03: no named authored-skill routing" \
-    '(`|/)(adr|clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|minto-builder|minto-reviewer|minto-rewriter|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
+    '(`|/)(adr|clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|minto-builder|minto-reviewer|minto-rewriter|problem-definition|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
 
   local source target target_name failed=0
   for source in "$RULE_DIR"/*.md; do
@@ -149,10 +150,11 @@ run_skill_contract() {
   check "SKILL-05: authored packages do not name siblings" "$([ "$failed" -eq 0 ] && echo 1 || echo 0)"
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(adr|clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|minto-builder|minto-reviewer|minto-rewriter|product-strategy|scrum-master)' \
+    '\.claude/skills/(adr|clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|minto-builder|minto-reviewer|minto-rewriter|problem-definition|product-strategy|scrum-master)' \
     "$SKILL_DIR/adr" "$SKILL_DIR/clarifier" "$SKILL_DIR/cloud-platform-research" "$SKILL_DIR/coder" \
     "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" "$SKILL_DIR/minto-builder" \
-    "$SKILL_DIR/minto-reviewer" "$SKILL_DIR/minto-rewriter" "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master"
+    "$SKILL_DIR/minto-reviewer" "$SKILL_DIR/minto-rewriter" "$SKILL_DIR/problem-definition" \
+    "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master"
 }
 
 run_routing_fixtures() {
@@ -165,6 +167,7 @@ run_routing_fixtures() {
   check_contains "ROUTE-07: Scrum artifacts retain domain judgement" "$SKILL_DIR/scrum-master/SKILL.md" '^description:.*(artifact|成果物|資料).*(independent|別|併用|適用)'
   check_contains "ROUTE-08: generic PM status and Gantt work is not Scrum" "$SKILL_DIR/scrum-master/SKILL.md" '^description:.*(Gantt|status|project management).*(not|対象外|使わない)'
   check_contains "ROUTE-09: product strategy precedes development, distinct from scope/facilitation/generic docs" "$SKILL_DIR/product-strategy/SKILL.md" '^description:.*(戦略|strategy).*(対象外|使わない|out of scope|not for)'
+  check_contains "ROUTE-10: problem definition stays gap-framing, distinct from cause analysis/solutions/scope clarification" "$SKILL_DIR/problem-definition/SKILL.md" '^description:.*(problem|問題).*(out of scope|not for|対象外|使わない)'
 }
 
 run_owned_link_contract() {
