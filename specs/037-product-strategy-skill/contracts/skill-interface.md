@@ -10,15 +10,15 @@
 
 `product-strategy` を `tests/run-config-pyramid.sh` の `authored_skills` 配列に加える以上、以下すべてを満たさなければならない（research.md D2、data-model.md エンティティ「スキル」）。
 
-| 契約ID | 要件 | 検証手段 |
-|---|---|---|
-| SKILL-01 | `.claude/skills/product-strategy/SKILL.md` が存在する | `run_skill_contract()` のファイル存在チェック |
-| SKILL-02 | フロントマターに `when_to_use:` フィールドを持たない | 正規表現 `^when_to_use:` の不在チェック |
-| SKILL-03 | `description:` が除外境界を示す語（`Do not use`/`does not apply`/`exclude`/`not for`/`out of scope`/`対象外`/`使わない` のいずれか）を含む | 正規表現マッチ |
-| SKILL-04 | 本文が `.claude/CLAUDE.md`・`.claude/rules/`・`.claude/skills/`・`.agents/skills` などの設定パスに依存しない | 正規表現の不在チェック |
-| SKILL-05 | 本文が `clarifier`・`scrum-master`・`minto-builder` 等の兄弟スキル名を埋め込まない | 全兄弟スキル名に対する正規表現の不在チェック |
-| SKILL-06 | 本文が自分自身の配置パス（`.claude/skills/product-strategy`）をハードコードしない | 正規表現の不在チェック |
-| ROUTE-09（新規） | `description:` が本スキル固有のトリガー・境界語（例: 「戦略/strategy」と「before/prerequisite/開発着手前」、および `clarifier`/`scrum-master`/`minto-builder` との違いを示す語）を含む | `run_routing_fixtures()` への新規アサーション（FR-005 の実装先） |
+| 契約ID | 要件 | 検証手段 | 対応する spec.md FR |
+|---|---|---|---|
+| SKILL-01 | `.claude/skills/product-strategy/SKILL.md` が存在する | `run_skill_contract()` のファイル存在チェック | FR-001 |
+| SKILL-02 | フロントマターに `when_to_use:` フィールドを持たない | 正規表現 `^when_to_use:` の不在チェック | FR-002 |
+| SKILL-03 | `description:` が除外境界を示す語（`Do not use`/`does not apply`/`exclude`/`not for`/`out of scope`/`対象外`/`使わない` のいずれか）を含む | 正規表現マッチ | FR-002、FR-005 |
+| SKILL-04 | 本文が `.claude/CLAUDE.md`・`.claude/rules/`・`.claude/skills/`・`.agents/skills` などの設定パスに依存しない | 正規表現の不在チェック | FR-011（他ツール/他設定への依存を持たない） |
+| SKILL-05 | 本文が `clarifier`・`scrum-master`・`minto-builder` 等の兄弟スキル名を埋め込まない | 全兄弟スキル名に対する正規表現の不在チェック | FR-017 |
+| SKILL-06 | 本文が自分自身の配置パス（`.claude/skills/product-strategy`）をハードコードしない | 正規表現の不在チェック | FR-018 |
+| ROUTE-09（新規） | `description:` が本スキル固有のトリガー・境界語（例: 「戦略/strategy」と「before/prerequisite/開発着手前」、および `clarifier`/`scrum-master`/`minto-builder` との違いを示す語）を含む | `run_routing_fixtures()` への新規アサーション（FR-005 の実装先） | FR-005 |
 
 **書式の指針**（規範ではなく実装上の目安）:
 
