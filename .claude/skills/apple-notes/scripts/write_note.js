@@ -810,6 +810,23 @@ function paragraphToHtml(line) {
   return '<' + tag + style + '>' + rendered + '</' + tag + '>';
 }
 
+// Notes.app does not keep '#'..'###' as real h1-h3 elements: writing one and
+// reading the body back shows it flattened to a plain <div><b><span
+// style="font-size: N"> -- a styled span, not a block with margin. Inline
+// margin/padding on that div and using <p> instead of <div> are both
+// silently stripped on the same round trip, and a side-by-side note in the
+// app confirms only one thing actually opens visible space: a blank
+// paragraph, the same <div><br></div> a manual double-Return produces.
+// (Verified in a scratch note on 2026-09-01 -- see conversation history
+// rather than re-deriving this from the HTML boundary each time.) Hence:
+// synthesize that blank paragraph after every heading whose next line isn't
+// already blank, rather than reaching for a style attribute that Notes will
+// discard.
+function isHeadingLine(line) {
+  const content = line.replace(/^\{align=(?:left|center|right|justify)\}/, '');
+  return /^#{1,3}\s+/.test(content);
+}
+
 function markdownToNotesHtml(text) {
   const source = String(text);
   validateNotesMarkdown(source);
@@ -837,6 +854,9 @@ function markdownToNotesHtml(text) {
     }
 
     html += paragraphToHtml(lines[i]);
+    if (isHeadingLine(lines[i]) && i + 1 < lines.length && lines[i + 1].length !== 0) {
+      html += '<div><br></div>';
+    }
     i++;
   }
   return html;

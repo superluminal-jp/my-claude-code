@@ -91,8 +91,20 @@ test('firstVisibleLine removes supported block and inline markers', () => {
 test('markdownToNotesHtml renders Notes paragraph styles', () => {
   assert.equal(
     markdownToNotesHtml('# Title\n## Heading\n### Subheading\nBody'),
-    '<h1>Title</h1><h2>Heading</h2><h3>Subheading</h3><div>Body</div>'
+    '<h1>Title</h1><div><br></div><h2>Heading</h2><div><br></div>' +
+      '<h3>Subheading</h3><div><br></div><div>Body</div>'
   );
+});
+
+test('markdownToNotesHtml does not double a spacer already in the source', () => {
+  assert.equal(
+    markdownToNotesHtml('# Title\n\nBody'),
+    '<h1>Title</h1><div><br></div><div>Body</div>'
+  );
+});
+
+test('markdownToNotesHtml adds no trailing spacer when a heading ends the input', () => {
+  assert.equal(markdownToNotesHtml('Body\n# Title'), '<div>Body</div><h1>Title</h1>');
 });
 
 test('markdownToNotesHtml renders fenced blocks as Monostyled', () => {
