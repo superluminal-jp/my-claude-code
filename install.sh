@@ -3,7 +3,7 @@
 # upsert the repository's MCP servers, and install its required Claude Code
 # plugins. Re-running is idempotent.
 #
-# Requires: claude CLI, uvx. Optional: GOOGLE_DEV_KNOWLEDGE_API_KEY.
+# Requires: claude CLI, uvx, jq. Optional: GOOGLE_DEV_KNOWLEDGE_API_KEY.
 #
 # Usage (from the cloned repo):
 #   bash path/to/my-claude-code/install.sh
@@ -41,8 +41,30 @@ sync_path() {
   fi
 }
 
+sync_settings_json() {
+  local src="$SOURCE_DIR/settings.json"
+  local dst="$TARGET_DIR/settings.json"
+
+  if [ ! -f "$dst" ]; then
+    cp "$src" "$dst"
+    return
+  fi
+
+  # Merge instead of replace: a key this repo declares (model, permissions,
+  # hooks, ...) always takes the repo's value, recursing into shared objects
+  # so e.g. permissions.deny stays enforced (docs/adr/0014) while a sibling
+  # key under the same object survives. A top-level key the repo does not
+  # declare - env, enabledPlugins, agentPushNotifEnabled, and anything else
+  # a user or the CLI itself added - is left untouched. `jq`'s `*` merges
+  # objects recursively and takes the right operand on any non-object
+  # conflict, so the repo file goes second.
+  local merged
+  merged="$(jq -s '.[0] * .[1]' "$dst" "$src")"
+  printf '%s\n' "$merged" >"$dst"
+}
+
 # 0. Preflight checks
-for cmd in claude uvx; do
+for cmd in claude uvx jq; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "Missing required command: $cmd" >&2
     exit 1
@@ -55,15 +77,16 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   # Declared paths are replaced exactly. Missing sources are intentional
   # cleanup paths for artifacts managed by earlier repository versions;
   # everything else already under ~/.claude remains user-owned and untouched.
+  # settings.json is handled separately below: it is merged, not replaced.
   for managed_path in \
     rules \
     skills \
     agents \
     commands \
-    CLAUDE.md \
-    settings.json; do
+    CLAUDE.md; do
     sync_path "$managed_path"
   done
+  sync_settings_json
 
   # speckit-* skills are generated locally per-project by `specify init`
   # (gitignored, never committed — see docs/adr/0001-remove-vendored-speckit-skills.md).
