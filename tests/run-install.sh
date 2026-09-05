@@ -159,11 +159,6 @@ for official_plugin in frontend-design code-review skill-creator github deploy-o
 done
 pass "official plugins (frontend-design, code-review, skill-creator, github, deploy-on-aws, microsoft-docs) are installed and enabled"
 
-if grep -qE '(^|[^[:alnum:]_])jq([^[:alnum:]_]|$)' "$REPO_ROOT/install.sh"; then
-  fail "installer has no unused jq dependency"
-fi
-pass "installer has no unused jq dependency"
-
 if grep -qF '.specify/extensions/git/git-config.yml' "$REPO_ROOT/install.sh"; then
   fail "installer has no source-tree Spec Kit mutation"
 fi
@@ -173,23 +168,58 @@ pass "installer has no source-tree Spec Kit mutation"
 pass "installed install.sh is executable"
 
 # --- Preflight: missing required commands -----------------------------------
-# An empty PATH means `command -v claude` / `command -v uvx` both fail, so
-# install.sh must exit 1 with its own diagnostic before touching anything —
-# this path was previously dead as far as this suite was concerned.
+# An empty PATH means `command -v claude` / `command -v uvx` / `command -v jq`
+# all fail, so install.sh must exit 1 with its own diagnostic before touching
+# anything — this path was previously dead as far as this suite was concerned.
 EMPTY_BIN="$TEST_ROOT/empty-bin"
 mkdir -p "$EMPTY_BIN"
 # PATH reassignment applies to resolving the `bash` command word itself, not
 # just to what install.sh sees — symlink the real interpreter in so `bash` is
-# still found, while claude/uvx (elsewhere on the real PATH) are not.
+# still found, while claude/uvx/jq (elsewhere on the real PATH) are not.
 ln -s "$(command -v bash)" "$EMPTY_BIN/bash"
 preflight_output="$TEST_ROOT/preflight.out"
 if HOME="$TEST_ROOT/unused-home" PATH="$EMPTY_BIN" bash "$REPO_ROOT/install.sh" \
   >"$preflight_output" 2>&1; then
-  fail "install.sh exits non-zero when claude/uvx are missing"
+  fail "install.sh exits non-zero when claude/uvx/jq are missing"
 fi
 grep -q 'Missing required command: claude' "$preflight_output" ||
   fail "install.sh names the missing command in its preflight error"
-pass "install.sh fails fast with a clear message when claude/uvx are missing"
+pass "install.sh fails fast with a clear message when claude/uvx/jq are missing"
+
+# jq specifically: put claude and uvx on PATH but not jq, so the preflight
+# loop reaches its third command and reports that one by name.
+JQLESS_BIN="$TEST_ROOT/jqless-bin"
+mkdir -p "$JQLESS_BIN"
+ln -s "$(command -v bash)" "$JQLESS_BIN/bash"
+ln -s "$STUB_BIN/claude" "$JQLESS_BIN/claude"
+ln -s "$STUB_BIN/uvx" "$JQLESS_BIN/uvx"
+jq_preflight_output="$TEST_ROOT/preflight-jq.out"
+if HOME="$TEST_ROOT/unused-home-jq" PATH="$JQLESS_BIN" bash "$REPO_ROOT/install.sh" \
+  >"$jq_preflight_output" 2>&1; then
+  fail "install.sh exits non-zero when jq is missing"
+fi
+grep -q 'Missing required command: jq' "$jq_preflight_output" ||
+  fail "install.sh names jq specifically when it is the missing command"
+pass "install.sh fails fast with a clear message when jq is missing"
+
+# --- settings.json merge: a user's own keys survive a reinstall ------------
+# Simulate what /setup-bedrock (and `claude plugin enable`) write into the
+# user settings file, plus an unrelated key nested inside a repo-declared
+# object, then confirm the second run's merge preserves all of it while
+# still enforcing the repo's own value for a key it does declare (`model`).
+jq '. + {
+      "model": "sonnet",
+      "env": {
+        "CLAUDE_CODE_USE_BEDROCK": "1",
+        "AWS_REGION": "us-east-1",
+        "AWS_PROFILE": "myprofile",
+        "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-6"
+      },
+      "enabledPlugins": {"frontend-design@claude-plugins-official": true},
+      "agentPushNotifEnabled": true
+    } | .permissions.unrelatedUserKey = true' \
+  "$TARGET/settings.json" >"$TARGET/settings.json.tmp"
+mv "$TARGET/settings.json.tmp" "$TARGET/settings.json"
 
 # --- Idempotent re-run, and the GOOGLE_DEV_KNOWLEDGE_API_KEY-unset branch ---
 # Re-run against the SAME target, appending to the SAME $CLAUDE_LOG (the claude
@@ -217,6 +247,30 @@ pass "install.sh is idempotent on a second run"
 diff -r "$REPO_ROOT/.claude/rules" "$TARGET/rules" >/dev/null ||
   fail "rules directory still matches the repository after a second run"
 pass "rules directory still matches the repository after a second run"
+
+repo_model="$(jq -r '.model' "$REPO_ROOT/.claude/settings.json")"
+[ "$(jq -r '.model' "$TARGET/settings.json")" = "$repo_model" ] ||
+  fail "settings.json merge: repo-declared model wins over a prior user value"
+pass "settings.json merge: repo-declared model wins over a prior user value"
+
+[ "$(jq -r '.env.CLAUDE_CODE_USE_BEDROCK' "$TARGET/settings.json")" = "1" ] &&
+  [ "$(jq -r '.env.AWS_REGION' "$TARGET/settings.json")" = "us-east-1" ] &&
+  [ "$(jq -r '.env.AWS_PROFILE' "$TARGET/settings.json")" = "myprofile" ] ||
+  fail "settings.json merge: a user's undeclared env block survives a reinstall"
+pass "settings.json merge: a user's undeclared env block survives a reinstall"
+
+[ "$(jq -r '.enabledPlugins["frontend-design@claude-plugins-official"]' "$TARGET/settings.json")" = "true" ] ||
+  fail "settings.json merge: a user's undeclared enabledPlugins key survives a reinstall"
+pass "settings.json merge: a user's undeclared enabledPlugins key survives a reinstall"
+
+[ "$(jq -r '.permissions.unrelatedUserKey' "$TARGET/settings.json")" = "true" ] ||
+  fail "settings.json merge: an undeclared key nested in a shared object survives (recursive merge)"
+pass "settings.json merge: an undeclared key nested in a shared object survives (recursive merge)"
+
+diff <(jq -S '.permissions.deny' "$REPO_ROOT/.claude/settings.json") \
+     <(jq -S '.permissions.deny' "$TARGET/settings.json") >/dev/null ||
+  fail "settings.json merge: repo-declared permissions.deny still matches the repository"
+pass "settings.json merge: repo-declared permissions.deny still matches the repository"
 
 second_run_log="$TEST_ROOT/claude-second-run.log"
 tail -n "+$((lines_before_second_run + 1))" "$CLAUDE_LOG" >"$second_run_log"

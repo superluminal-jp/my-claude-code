@@ -66,7 +66,7 @@ bash path/to/my-claude-code/install.sh
 インストーラーは `~/.claude` を同期し、Claude Code のユーザースコープ MCP を登録/更新し、
 本リポジトリが依存する Claude Code プラグイン（後述「プラグイン」参照）をインストール/有効化します。
 
-実行には `claude` CLI と `uvx` が必要です。Google Developer Knowledge MCP は
+実行には `claude` CLI と `uvx`、`jq` が必要です。Google Developer Knowledge MCP は
 `GOOGLE_DEV_KNOWLEDGE_API_KEY` が設定されている場合だけ登録されます。
 
 ### 重要: 上書き置換（削除同期）について
@@ -77,9 +77,17 @@ bash path/to/my-claude-code/install.sh
   - `agents/`
   - `commands/`
   - `CLAUDE.md`
-  - `settings.json`
   - `install.sh`
-- このリポジトリ側で削除されたファイルは、`~/.claude` 側でも削除されます。
+- `settings.json` は置換ではなく **マージ同期** されます: このリポジトリが宣言する
+  キー（`model`、`permissions`、`hooks` など）は常にリポジトリ側の値が優先されます
+  （`permissions` のような共有オブジェクトの内部まで再帰的にマージするため、例えば
+  `permissions.deny` は強制されたまま保たれ、同じオブジェクト内の他のキーは影響を
+  受けません）。一方、このリポジトリが宣言していないトップレベルのキー——
+  `/setup-bedrock` が書き込む `env` や、`enabledPlugins`、
+  `agentPushNotifEnabled`、その他ユーザーやCLI自身が追加したキー——はそのまま
+  保持されます。
+- このリポジトリ側で削除されたファイルは、`~/.claude` 側の置換対象パスでも
+  削除されます。
 - `settings.local.json` を含む `~/.claude` の管理対象外パスは保持されます。個人用ファイルは上記の管理対象外に置いてください。
 
 ## 代替: `CLAUDE.md` から import

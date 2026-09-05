@@ -80,18 +80,24 @@ user scope, and installs/enables this repository's Claude Code plugins (see
 bash path/to/my-claude-code/install.sh
 ```
 
-Requires the `claude` CLI and `uvx`. The Google Developer Knowledge MCP is
-registered only when `GOOGLE_DEV_KNOWLEDGE_API_KEY` is set.
+Requires the `claude` CLI, `uvx`, and `jq`. The Google Developer Knowledge MCP
+is registered only when `GOOGLE_DEV_KNOWLEDGE_API_KEY` is set.
 
 Re-running is safe: it re-syncs managed paths and upserts MCP servers.
 
 **Important (overwrite/replace behavior):**
 
 - Installer-managed paths are synchronized by replacement: `rules/`,
-  `skills/`, `agents/`, `commands/`, `CLAUDE.md`, `settings.json`, and
-  `install.sh`.
+  `skills/`, `agents/`, `commands/`, `CLAUDE.md`, and `install.sh`.
+- `settings.json` is synchronized by **merge**, not replacement: for any key
+  this repo declares (`model`, `permissions`, `hooks`, ...), the repository's
+  value wins — recursing into shared objects, so e.g. `permissions.deny`
+  stays enforced even if a sibling key under `permissions` is your own. A
+  top-level key the repo does not declare — `env` (as written by
+  `/setup-bedrock`, say), `enabledPlugins`, `agentPushNotifEnabled`, or
+  anything else you or the CLI added — is left untouched.
 - Files removed from this repository are also removed from `~/.claude` under
-  those managed paths.
+  the replaced managed paths.
 - Unrelated paths in `~/.claude`, including `settings.local.json`, are
   preserved. Keep personal-only files outside the managed paths above.
 
