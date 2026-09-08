@@ -273,7 +273,7 @@ AIが提示する判断基準を、その場の思いつきではなく、名前
 
   | 枠組み | 出典 | 生成する基準 |
   |---|---|---|
-  | 推論のはしご | Argyris | データ→選択→意味づけ→前提→結論のどの段で分岐したかを特定する |
+  | 推論のはしご | Argyris (1990) が起源、7段の流通形は Ross in Senge et al. (1994) | データ→選択→意味づけ→前提→結論のどの段で分岐したかを特定する |
   | 主張と探求のバランス | Argyris; Senge (1990) | 自説の提示と相手への問いを釣り合わせる |
   | Toulmin の論証モデル | Toulmin (1958) | 暗黙の論拠（warrant）を露出させる |
   | プレモーテム | Klein (2007) | 失敗を仮定して未言語化の前提を炙り出す |
@@ -319,7 +319,9 @@ AIが提示する判断基準を、その場の思いつきではなく、名前
 ### 機能要件 — 移行
 
 - **FR-022**: `.claude/skills/clarifier/SKILL.md` の `name` フィールドは `clarifier` のまま維持しなければならない。
-- **FR-023**: `.claude/skills/clarifier/SKILL.md` の `description` は、意図の共通認識形成と形式的要件化の双方を反映し、かつ `problem-definition`・`product-strategy`・`minto-builder` との境界を明示しなければならない。
+- **FR-023**: `.claude/skills/clarifier/SKILL.md` の `description` は、意図の共通認識形成と形式的要件化の双方を反映し、かつ隣接する能力——問題定義、製品戦略、対話による文書構築——との境界を明示しなければならない。
+
+  **境界は能力の記述で指し、隣接スキルの名前を書いてはならない。** テストハーネスがパッケージ配下の全 `*.md` から兄弟スキル名の出現を検出して失敗させるため、名指しは実装不能である。例: 「現状とあるべき姿のギャップを特定する別の能力」と書き、そのスキル名は書かない。
 - **FR-024**: `.claude-ja/skills/clarifier/SKILL.md` を英語版と同じ構成に同期しなければならない。
 - **FR-025**: `.claude/rules/clarifier.md` を変更してはならない。
 - **FR-026**: `.specify/extensions.yml` の `before_specify` フックの `prompt` と `description` を拡張後の目的に更新しなければならない。`command: clarifier` と `optional: true` は変更しない。
@@ -384,8 +386,8 @@ AIが提示する判断基準を、その場の思いつきではなく、名前
 | # | 前提 | 確信度 | 根拠 / 未確認点 |
 |---|---|---|---|
 | A1 | 恒久的ユーザーモデルの保存先を `docs/shared-understanding/user-profile.md` とし、プロジェクトごとに1つ持つ（Session 2026-09-08 で解消済み） | — | ユーザーが確定。前提から決定へ昇格。 |
-| A2 | 共通認識メモのファイル名を `shared-understanding.md` とする | 中 | 兄弟スキルの `problem.md` / `strategy.md` 規約に整合するが、名称そのものは未確認。**Session 2026-09-08 の決定により重要度が上昇**——FR-011 の同一性判定が保存先パスに依存するため、ファイル名の規則がそのまま同一性の規則になる。 |
-| A3 | `.claude-ja` ミラーの更新を本機能のスコープに含める | 中 | `.claude-ja/skills/` には `problem-definition` と `product-strategy` が存在せず、ミラーが新規スキルについて追随していない実態がある。既存の `clarifier` については英日双方が存在するため同期対象と判断した。 |
+| A2 | 共通認識メモのファイル名を `shared-understanding.md` とする（Phase 0 D6 で解消済み） | — | 兄弟スキル2件の一貫した先例で確定。FR-011 の同一性判定が保存先パスに依存するため、規約からの逸脱は同一性判定を不安定化させる。 |
+| A3 | `.claude-ja` ミラーの更新を本機能のスコープに含める（Phase 0 D7 で解消済み） | — | `SKILL.md` のみ同期し、`references/` の日本語版は作成しない。ミラーが現に SKILL.md 単位でしか維持されていない実態に合わせる。 |
 | A4 | 在庫の境界を FR-039 の2除外条件のみとし、種類数に上限を設けない（決定11で解消済み） | — | ユーザーが「使えるものは全て入れる」と明示的に決定。前提から決定へ昇格。 |
 | A5 | 適用在庫と設計根拠層の分割線を、群A〜D／群E〜G の位置に引く（Session 2026-09-08 で解消済み） | — | ユーザーが確定。分割線は維持しつつ、群Fに FR-044 の例外（AI自身の振る舞いの理由としてのみ名指し可）を設けた。群E・群G の扱いは変更なし。 |
 
@@ -396,7 +398,7 @@ AIが提示する判断基準を、その場の思いつきではなく、名前
 - **R3**: 常時ルール `.claude/rules/clarifier.md`（Requirements Certainty）とスキルの責務が、名前が同じまま内容だけ乖離する。決定5とルール層独立原則（spec 036）の帰結として受容するが、`docs/claude-config-design.md` の対応表でこの乖離を明示的に記述する必要がある。
 - **R4（枠組み劇場）**: 名前のある標準を引くという要件は、判断に権威を与えるために名前だけを借りる失敗——実際にはその標準がその判断を支持していない——を誘発する。FR-035 と FR-036 で禁じるが、実行時のAI自身の判定に依存するため、R2 と同じ自己参照的な限界を持つ。緩和策として FR-036 は「枠組みが無い」と述べる経路を正規の出力として用意し、名前を借りないことが失敗ではない状態にする。
 - **R5（枠組みの押し付け）**: 決定11により在庫が20種を超えたため、このリスクは spec 初版より**悪化している**。表に載っている枠組みへギャップを押し込む誘因が、選択肢の数だけ増える。緩和は3層。(1) FR-036 が「枠組みが無い」と述べる経路を正規の出力として用意する、(2) FR-040 が群単位の選択を強制し、平坦な一覧からの選択を禁じる、(3) FR-041 が一回の提示での名指しを2つに制限する。それでも実行時のAI自身の判定に依存する点は R2・R4 と同じ限界。
-- **R6（在庫の保守）**: 27種の在庫と出典を SKILL.md 内に保持すると、ファイルが肥大し R1（単一スキルへの二関心事の同居）を悪化させる。実装時に、在庫を SKILL.md 本体に置くか参照ファイルへ分離するかの判断が必要。この spec では決めない。
+- **R6（在庫の保守）**: 34種の在庫（適用在庫24 ＋ 設計根拠層10）と出典を SKILL.md 内に保持すると、ファイルが肥大し R1（単一スキルへの二関心事の同居）を悪化させる。実装時に、在庫を SKILL.md 本体に置くか参照ファイルへ分離するかの判断が必要。この spec では決めない。
 
 ---
 
@@ -407,44 +409,45 @@ AIが提示する判断基準を、その場の思いつきではなく、名前
 **共通基盤とグラウンディング**
 
 - Herbert H. Clark, *Using Language*, Cambridge University Press, 1996 — 共通基盤、グラウンディング、貢献モデル、グラウンディング規準。
-- Herbert H. Clark & Susan E. Brennan, "Grounding in Communication," in *Perspectives on Socially Shared Cognition*, APA, 1991 — グラウンディングコストの分類と媒体制約。FR-039 の除外条件2の根拠。
-- Herbert H. Clark & Deanna Wilkes-Gibbs, "Referring as a collaborative process," *Cognition* 22(1), 1986 — 反復参照による記述の短縮。共有語彙が反復使用から創発することの実験的裏付け。
+- Herbert H. Clark & Susan E. Brennan, "Grounding in Communication," in L. B. Resnick, J. M. Levine & S. D. Teasley (Eds.), *Perspectives on Socially Shared Cognition*, APA, 1991, Ch. 7, pp. 127–149 — グラウンディングコストの分類と媒体制約。FR-039 の除外条件2の根拠。
+- Herbert H. Clark & Deanna Wilkes-Gibbs, "Referring as a collaborative process," *Cognition* 22(1): 1–39, 1986 — 反復参照による記述の短縮。共有語彙が反復使用から創発することの実験的裏付け。
 
 **意図の伝達と復唱**
 
-- US Army, *ADP 6-0: Mission Command*, 2019 — Commander's Intent。手順ではなく目的と終末状態を渡す。
-- Amy J. Starmer et al., "Changes in Medical Errors after Implementation of a Handoff Program," *NEJM* 371, 2014 — I-PASS 導入による医療エラー23%減。構造化引き継ぎの実証。
+- US Army, *ADP 6-0: Mission Command — Command and Control of Army Forces*, 2019年7月 — Commander's Intent。手順ではなく目的と終末状態を渡す。
+- Amy J. Starmer et al., "Changes in Medical Errors after Implementation of a Handoff Program," *NEJM* 371, 2014 — I-PASS 導入により医療エラー率が23%減（24.5 → 18.8 / 100入院）、予防可能有害事象が30%減（4.7 → 3.3）。構造化引き継ぎの実証。
 - AHRQ, *Health Literacy Universal Precautions Toolkit*, 2nd ed. — ティーチバック法。
-- ICAO, *Doc 9432, Manual of Radiotelephony* — リードバック・ヒアバック手順。
+- ICAO, *Doc 9432, Manual of Radiotelephony*, 4th ed., 2007 — 「Issue of clearance and read-back requirements」の節。
 
 **ルールと例の分離**
 
 - Gojko Adzic, *Specification by Example*, Manning, 2011 — 具体例による共通理解の構築。
-- Matt Wynne, "Introducing Example Mapping," Cucumber, 2015 — ルール・例・質問の構造的分離。FR-029 / FR-031 / FR-032 に対応する既存実践。
+- Matt Wynne, "Introducing Example Mapping," Cucumber, 2015年12月8日 — ルール・例・質問の構造的分離。FR-029 / FR-031 / FR-032 に対応する既存実践。
 - Eric Evans, *Domain-Driven Design*, Addison-Wesley, 2003 — ユビキタス言語。
 
 **分岐点の特定**
 
-- Chris Argyris, *Overcoming Organizational Defenses*, Allyn & Bacon, 1990 — 推論のはしご、主張と探求のバランス。
+- Chris Argyris, *Overcoming Organizational Defenses: Facilitating Organizational Learning*, Allyn & Bacon, 1990 — 推論のはしごの起源（p. 88）、主張と探求のバランス。
+- Rick Ross, "The Ladder of Inference," in Peter M. Senge et al., *The Fifth Discipline Fieldbook*, Doubleday, 1994, pp. 242–246 — 本 spec が記述する7段の形（データ→選択→意味づけ→前提→結論→信念→行動）はこちらであり、Argyris の原版とは段数が異なる。**Phase 0 リサーチ D1 で帰属誤りを検出し修正した**——起源のみを引いて流通形を記述するのは、FR-035 が禁じ R4 が名指しする「枠組み劇場」に該当するため。
 - Stephen E. Toulmin, *The Uses of Argument*, Cambridge University Press, 1958 — 論拠（warrant）。
-- Gary Klein, "Performing a Project Premortem," *Harvard Business Review*, September 2007。
+- Gary Klein, "Performing a Project Premortem," *Harvard Business Review* 85(9): 18–19, September 2007。
 
 **要件記述（追加分）**
 
-- Alistair Mavin et al., "Easy Approach to Requirements Syntax (EARS)," *RE'09*, IEEE, 2009。
-- Suzanne Robertson & James Robertson, *Mastering the Requirements Process*, 3rd ed., Addison-Wesley, 2012 — Volere の fit criterion。既存 `clarifier` の anti-pattern が出典なしに参照していた概念。
+- Alistair Mavin, Philip Wilkinson, Adrian Harwood & Mark Novak, "Easy Approach to Requirements Syntax (EARS)," *RE'09*, IEEE, 2009, pp. 317–322 — Rolls-Royce にて航空機エンジン制御系の要件抽出中に開発。
+- Suzanne Robertson & James Robertson, *Mastering the Requirements Process*, Addison-Wesley — Volere の fit criterion。既存 `clarifier` の anti-pattern が出典なしに参照していた概念。（版・刊行年は Phase 0 リサーチ D1 で一次情報を確認できず、版表記を保留した。）
 - Tom Gilb, *Competitive Engineering*, Butterworth-Heinemann, 2005 — Planguage。
 
 **設計根拠層（ユーザーに名指ししない）**
 
-- Allan Collins, John Seely Brown & Susan E. Newman, "Cognitive Apprenticeship," in *Knowing, Learning, and Instruction*, Erlbaum, 1989 — モデリングによる学習。FR-034 の根拠。
-- John Sweller & Graham A. Cooper, "The Use of Worked Examples as a Substitute for Problem Solving," *Cognition and Instruction* 2(1), 1985。
-- David Wood, Jerome S. Bruner & Gail Ross, "The Role of Tutoring in Problem Solving," *Journal of Child Psychology and Psychiatry* 17(2), 1976 — スキャフォールディングとフェーディング。エッジケース「名指しを省かない」判断と衝突する点に注意。
+- Allan Collins, John Seely Brown & Susan E. Newman, "Cognitive Apprenticeship: Teaching the Crafts of Reading, Writing, and Mathematics," in L. B. Resnick (Ed.), *Knowing, Learning, and Instruction: Essays in Honor of Robert Glaser*, Erlbaum, 1989, pp. 453–494 — モデリングによる学習。FR-034 の根拠。
+- John Sweller & Graham A. Cooper, "The Use of Worked Examples as a Substitute for Problem Solving in Learning Algebra," *Cognition and Instruction* 2(1): 59–89, 1985。
+- David Wood, Jerome S. Bruner & Gail Ross, "The Role of Tutoring in Problem Solving," *Journal of Child Psychology and Psychiatry* 17(2): 89–100, 1976 — スキャフォールディングとフェーディング。エッジケース「名指しを省かない」判断と衝突する点に注意。
 - Jean Lave & Etienne Wenger, *Situated Learning: Legitimate Peripheral Participation*, Cambridge University Press, 1991。
-- Colin Camerer, George Loewenstein & Martin Weber, "The Curse of Knowledge in Economic Settings," *Journal of Political Economy* 97(5), 1989。
-- Elizabeth Newton, *The Rocky Road from Actions to Intentions*, Stanford University doctoral dissertation, 1990 — タッパー実験。予測約50%に対し実測2.5%。
-- Thomas Gilovich, Kenneth Savitsky & Victoria H. Medvec, "The Illusion of Transparency," *Journal of Personality and Social Psychology* 75(2), 1998。
-- Lee Ross, David Greene & Pamela House, "The False Consensus Effect," *Journal of Experimental Social Psychology* 13(3), 1977。
+- Colin Camerer, George Loewenstein & Martin Weber, "The Curse of Knowledge in Economic Settings: An Experimental Analysis," *Journal of Political Economy* 97(5): 1232–1254, 1989。
+- Elizabeth Newton, *The Rocky Road from Actions to Intentions*, Stanford University doctoral dissertation, 1990 — タッパー実験。予測約50%に対し実測 3/120 = 2.5%。
+- Thomas Gilovich, Kenneth Savitsky & Victoria H. Medvec, "The Illusion of Transparency: Biased Assessments of Others' Ability to Read One's Emotional States," *JPSP* 75(2): 332–346, 1998。
+- Lee Ross, David Greene & Pamela House, "The 'False Consensus Effect': An Egocentric Bias in Social Perception and Attribution Processes," *JESP* 13(3): 279–301, 1977。
 - H. Paul Grice, "Logic and Conversation," in *Syntax and Semantics 3: Speech Acts*, Academic Press, 1975。
 - Terry Winograd & Fernando Flores, *Understanding Computers and Cognition*, Ablex, 1986 — Conversation for Action。
 
@@ -452,6 +455,6 @@ AIが提示する判断基準を、その場の思いつきではなく、名前
 
 ## 次のステップ
 
-このドラフトは要件のみを定義しており、実装（SKILL.md の書き換えを含む生きた成果物への変更）は行っていない。実装へ進む前に、前提 A2・A3 の確認が必要（A1・A4・A5 は解消済み）。
+このドラフトは要件のみを定義しており、実装（SKILL.md の書き換えを含む生きた成果物への変更）は行っていない。前提 A1〜A5 はすべて解消済み（A1・A4・A5 は Session 2026-09-08、A2・A3 は Phase 0 リサーチ D6・D7）。
 
 確定後の想定フロー: `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`。
