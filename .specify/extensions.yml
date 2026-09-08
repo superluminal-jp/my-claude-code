@@ -8,9 +8,10 @@ hooks:
     command: clarifier
     enabled: true
     optional: true
-    prompt: Run clarifier before specifying to sharpen requirements?
-    description: Elicit intent, scope, constraints, and acceptance criteria before
-      generating the spec
+    prompt: Agree on intent before specifying, then formalize it into requirements?
+    description: Establish a shared understanding of the user's intent — the AI states
+      its reading, assumptions with confidence, scope, and open points — then convert
+      that agreement into testable acceptance criteria before generating the spec
     condition: null
   - extension: git
     command: speckit.git.feature
