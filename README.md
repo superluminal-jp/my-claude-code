@@ -36,8 +36,9 @@ across projects while preserving unrelated user files.
   on two independent axes so no central router is needed: lifecycle
   operations — `coder` (TDD, SDD, code quality, security, type safety, docs),
   the Minto document suite (`minto-reviewer` diagnosis, `minto-rewriter`
-  rewrite, `minto-builder` build via dialogue), `clarifier` (requirement
-  elicitation, INVEST/Gherkin), `problem-definition` (turning a vague
+  rewrite, `minto-builder` build via dialogue), `clarifier` (agree on intent
+  first — the AI states its reading, assumptions, and scope for the user to
+  reject — then formalize it: INVEST/Gherkin), `problem-definition` (turning a vague
   complaint into a verifiable problem statement — the gap between current
   and ideal state), `product-strategy` (vision, target users,
   value proposition, success metrics, and MoSCoW-prioritized scope, framed
@@ -136,7 +137,9 @@ my-claude-code/
         ├── minto-reviewer/SKILL.md # Diagnose document structure
         ├── minto-rewriter/SKILL.md # Rewrite a draft into a final document
         ├── minto-builder/SKILL.md  # Build a document through dialogue
-        ├── clarifier/SKILL.md      # Requirement elicitation, INVEST/Gherkin
+        ├── clarifier/              # Shared understanding of intent, then formal requirements
+        │   ├── SKILL.md            #   two-stage playbook
+        │   └── references/         #   framework inventory (named to the user) + design basis (not named)
         ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
         ├── product-strategy/SKILL.md # Vision/users/value-prop/metrics before development begins
         ├── adr/SKILL.md            # Architecture decision records (MADR)

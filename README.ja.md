@@ -26,7 +26,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - ライフサイクル操作: `coder`（TDD/SDD、品質、安全、型安全性、ドキュメント同期）、
     Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`
     （最終版への書き直し）、`minto-builder`（対話による構築） — `clarifier`
-    （要件定義・受け入れ条件の明確化、INVEST/Gherkin）、`problem-definition`
+    （まず意図の共通認識を形成し——AIが自分の理解・前提・スコープを述べ、
+    ユーザーが却下できる形にする——その後、形式的要件へ変換。INVEST/Gherkin）、`problem-definition`
     （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、

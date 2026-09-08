@@ -41,11 +41,22 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `permissions.md` | 資格情報パスの列挙 | `settings.json` の `permissions.deny` が正本 |
 | `permissions.md` | 部分一致をグロブ化しない理由 | [ADR-0014](adr/0014-restore-credential-deny-rules.md) |
 | `live-documentation.md` | ライフサイクル標準規格表、§7 の論拠、参考文献 | [live-documentation-standards.md](live-documentation-standards.md) |
-| `clarifier.md` | 曖昧性パターン目録、品質ゲート、出典 | `.claude/skills/clarifier/SKILL.md` |
+| `clarifier.md` | 意図の共通認識を形成する手順、判断基準の接地先となる枠組みの在庫、曖昧性パターン目録、品質ゲート、出典 | `.claude/skills/clarifier/SKILL.md` と同パッケージの `references/` |
 | `pyramid-principle.md` | Minto の4条件の詳述そのもの | `live-documentation.md` §7.1（ドキュメント成果物向け）と各 Minto skill（対話・診断・書き直し向け）が、それぞれの対象で個別に持つ |
 | `thinking-lenses.md` | 6レンズを出力へ強制する書式 | 自然な置き場がある成果物（`clarifier`/`coder` の Given/When/Then、Spec Kit の依存順タスクリストなど）にだけ表出させる |
 
 残っているのは、いずれの分類にも当たらないもの — **非自明で、判断を変え、他のどこにも存在しない**記述だけである。
+
+#### 補足 — `clarifier.md` とスキル `clarifier` は名前を共有するが責務が異なる
+
+ルール `clarifier.md`（Requirements Certainty）が定めるのは、**いつコミットしてよいか**の判定基準である
+——重大な結果ギャップが残るなら着手前に解消せよ、という常時適用の不変条件。一方スキル `clarifier` が持つのは、
+**その解消をどう実行するか**の手順である——AIが理解を言語化して突き合わせ、名前のある枠組みから判断基準を引き、
+合意を共通認識メモに残し、その後で形式的要件へ変換する二段構成。
+
+名前が同じままこの乖離が生じたのは、[ADR-0015](adr/0015-rule-layer-independence.md) のルール層独立原則により、
+ルールがスキルを名指しできず、スキル側の拡張に追随して改名する経路も持たないためである。乖離は受容するが、
+読み手が「同名だから同じもの」と読まないよう、ここに明示する。ルールは判定、スキルは手順である。
 
 ### 3.2 常時ロードから条件付きスキルへ移した3ファイル
 
