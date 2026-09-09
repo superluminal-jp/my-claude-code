@@ -42,7 +42,10 @@ across projects while preserving unrelated user files.
   complaint into a verifiable problem statement — the gap between current
   and ideal state), `product-strategy` (vision, target users,
   value proposition, success metrics, and MoSCoW-prioritized scope, framed
-  before development work begins), `adr` (architecture decision records),
+  before development work begins), `meta-spec` (slicing one large
+  initiative into independently specifiable features and recording them as a
+  single meta-spec the spec-driven flow then consumes one slice at a time),
+  `adr` (architecture decision records),
   `git-workflow` (branch/commit/push/PR conventions), `cloud-platform-research`
   (current AWS/GCP/Azure documentation lookup) — and domain overlays —
   `digital-agency-frontend` (DADS-based accessible React/Tailwind
@@ -142,6 +145,7 @@ my-claude-code/
         │   └── references/         #   framework inventory (named to the user) + design basis (not named)
         ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
         ├── product-strategy/SKILL.md # Vision/users/value-prop/metrics before development begins
+        ├── meta-spec/SKILL.md      # One initiative -> meta-spec of independently specifiable slices
         ├── adr/SKILL.md            # Architecture decision records (MADR)
         ├── git-workflow/SKILL.md   # Branch/commit/push/PR conventions
         ├── cloud-platform-research/SKILL.md # Current AWS/GCP/Azure doc lookup
