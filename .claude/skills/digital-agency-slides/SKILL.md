@@ -121,7 +121,9 @@ cannot tell you a slide is unreadable.
 ```
 
 The command refuses to convert a deck with errors unless `--allow-findings` is
-given, and reports how many shapes were emitted natively versus rasterized. A
+given, and reports how many shapes were emitted natively versus rasterized.
+Add `--wrap reflow` when the recipient will edit the file rather than only
+present it: text then wraps inside its box instead of running off the slide. A
 deck that is mostly rasterized has lost the point: find out why and fix the
 markup. Open the `.pptx` and confirm text is selectable, the table is a real
 table, and the speaker notes arrived. `references/pptx-conversion.md` covers
@@ -141,6 +143,10 @@ attribution rules in `references/asset-sourcing.md`.
   metrics; PowerPoint re-lays the same text with its own. Install the deck's
   font on the machine that opens the file, or remap it with `--font` at
   conversion time, and say which was done.
+- **The converted file does not reflow.** Absolute geometry is what makes it
+  faithful, and it is also why nothing moves down when something above it grows.
+  Layout changes belong in the HTML, followed by another conversion — not in
+  PowerPoint.
 - **Never rasterize a whole slide** to dodge a conversion problem. A picture of
   a slide cannot be edited, searched, translated, or read aloud. Rasterize the
   smallest element that genuinely needs it, and give it a text alternative.

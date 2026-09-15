@@ -376,31 +376,48 @@ def _slack_rect(rect: dict[str, float], align: str, slack: float) -> tuple[float
 
 
 def _add_text_shape(
-    slide, shape_ir: dict[str, Any], font_map: dict[str, str], lang: str, slack: float = 0.0
+    slide,
+    shape_ir: dict[str, Any],
+    font_map: dict[str, str],
+    lang: str,
+    slack: float = 0.0,
+    wrap_policy: str = "preserve",
 ) -> None:
     from pptx.util import Emu
 
     rect = shape_ir["rect"]
-    wrap = shape_ir.get("wrap", True)
+    wrap = True if wrap_policy == "reflow" else shape_ir.get("wrap", True)
     align = shape_ir["paragraphs"][0]["align"] if shape_ir["paragraphs"] else "left"
     x, w = _slack_rect(rect, align, slack if wrap else 0.0)
     box = slide.shapes.add_textbox(
         Emu(px_to_emu(x)), Emu(px_to_emu(rect["y"])), Emu(px_to_emu(w)), Emu(px_to_emu(rect["h"]))
     )
-    _fill_text_frame(box, shape_ir, font_map, lang, slack)
+    _fill_text_frame(box, shape_ir, font_map, lang, slack, wrap_policy)
 
 
 def _fill_text_frame(
-    box, shape_ir: dict[str, Any], font_map: dict[str, str], lang: str, slack: float = 0.0
+    box,
+    shape_ir: dict[str, Any],
+    font_map: dict[str, str],
+    lang: str,
+    slack: float = 0.0,
+    wrap_policy: str = "preserve",
 ) -> None:
     """Place and fill an existing shape. Used for ordinary text boxes and for
-    the title placeholder, so a promoted heading is formatted identically."""
+    the title placeholder, so a promoted heading is formatted identically.
+
+    `wrap_policy` is the delivery-versus-editing trade. "preserve" keeps the
+    browser's line breaking, so a label the browser fit on one line cannot be
+    re-wrapped by PowerPoint's own font metrics — right when the file is only
+    presented. "reflow" lets every box wrap, so text edited in PowerPoint stays
+    inside its box instead of running off the slide — right when somebody will
+    retype the content there."""
     from pptx.dml.color import RGBColor
     from pptx.enum.text import MSO_AUTO_SIZE
     from pptx.util import Emu, Pt
 
     rect = shape_ir["rect"]
-    wrap = shape_ir.get("wrap", True)
+    wrap = True if wrap_policy == "reflow" else shape_ir.get("wrap", True)
     align = shape_ir["paragraphs"][0]["align"] if shape_ir["paragraphs"] else "left"
     x, w = _slack_rect(rect, align, slack if wrap else 0.0)
     box.left, box.top = Emu(px_to_emu(x)), Emu(px_to_emu(rect["y"]))
@@ -674,6 +691,7 @@ def _apply_slide_title(
     font_map: dict[str, str],
     lang: str,
     slack_px: float,
+    wrap_policy: str = "preserve",
 ) -> None:
     from pptx.util import Emu
 
@@ -681,7 +699,7 @@ def _apply_slide_title(
     if placeholder is None:
         return
     if promoted is not None:
-        _fill_text_frame(placeholder, promoted, font_map, lang, slack_px)
+        _fill_text_frame(placeholder, promoted, font_map, lang, slack_px, wrap_policy)
         return
     # The heading is split across shapes, or absent. Keep the slide navigable
     # with a title parked outside the canvas rather than leaving it untitled.
@@ -700,6 +718,7 @@ def build_pptx(
     out_path: Path,
     font_map: dict[str, str],
     slack_px: float = 0.0,
+    wrap_policy: str = "preserve",
 ) -> list[str]:
     from pptx import Presentation
     from pptx.dml.color import RGBColor
@@ -729,14 +748,14 @@ def build_pptx(
 
         heading = (slide_ir.get("title") or "").strip()
         promoted = _find_heading_shape(slide_ir["shapes"], heading)
-        _apply_slide_title(slide, slide_ir, heading, promoted, font_map, lang, slack_px)
+        _apply_slide_title(slide, slide_ir, heading, promoted, font_map, lang, slack_px, wrap_policy)
 
         for shape_ir in slide_ir["shapes"]:
             if shape_ir is promoted:
                 continue
             kind = shape_ir["kind"]
             if kind == "text":
-                _add_text_shape(slide, shape_ir, font_map, lang, slack_px)
+                _add_text_shape(slide, shape_ir, font_map, lang, slack_px, wrap_policy)
             elif kind == "shape":
                 _add_decoration(slide, shape_ir)
             elif kind == "table":
@@ -931,6 +950,16 @@ def main(argv: list[str] | None = None) -> int:
         default=6.0,
         help="extra px given to wrapping text boxes to absorb font-metric differences",
     )
+    parser.add_argument(
+        "--wrap",
+        choices=["preserve", "reflow"],
+        default="preserve",
+        help=(
+            "preserve: keep the browser's line breaking, so the delivered file looks exactly like the "
+            "preview (default). reflow: let every text box wrap, so text edited in PowerPoint stays "
+            "inside its box"
+        ),
+    )
     parser.add_argument("--allow-findings", action="store_true", help="convert even when the deck has errors")
     args = parser.parse_args(argv)
 
@@ -978,7 +1007,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     out_path = args.out or args.deck.with_suffix(".pptx")
-    warnings = build_pptx(extraction, args.deck, out_path, _font_map(args.font), args.slack)
+    warnings = build_pptx(extraction, args.deck, out_path, _font_map(args.font), args.slack, args.wrap)
     for warning in warnings:
         print(warning, file=sys.stderr)
     shapes = sum(len(slide["shapes"]) for slide in extraction.slides)

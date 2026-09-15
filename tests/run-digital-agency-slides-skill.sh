@@ -195,6 +195,8 @@ PY
   check "TOOL-09: shell scripts parse" \
     "$(bash -n "$FETCH_SCRIPT" >/dev/null 2>&1 && bash -n "$SETUP_SCRIPT" >/dev/null 2>&1 && echo 1 || echo 0)"
   check_contains "TOOL-10: CLI exposes lint, preview, pptx and ir" "$DECK_CLI" '"lint", "preview", "pptx", "ir"'
+  check_contains "TOOL-22: CLI offers a wrap policy for decks that will be edited" "$DECK_CLI" '"preserve", "reflow"'
+  check_contains "CNV-08: reference explains how editable the delivered file is" "$CONVERSION_REFERENCE" 'How editable the delivered file is'
   check_contains "TOOL-11: CLI refuses to convert a deck with errors by default" "$DECK_CLI" 'Refusing to convert a deck with errors'
   check_contains "TOOL-12: extractor emits findings for clipped text" "$EXTRACTOR" "'clipped'"
   check_contains "TOOL-13: extractor checks contrast" "$EXTRACTOR" 'contrastRatio'

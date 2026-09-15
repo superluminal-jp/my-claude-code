@@ -64,6 +64,7 @@ deck.py ir      deck.html -o ir.json         # dump the IR, for debugging a bad 
 | `--text-contrast` | 4.5 | Minimum ratio for text, at every size |
 | `--nontext-contrast` | 3 | Minimum ratio for a border or rule |
 | `--slack` | 6 px | Extra width for wrapping text boxes, to absorb font-metric differences |
+| `--wrap` | `preserve` | `preserve` keeps the browser's line breaking; `reflow` lets every box wrap. See below |
 | `--chromium PATH` | Playwright's own | A preinstalled browser (also `DECK_CHROMIUM`) |
 | `--allow-findings` | off | Convert despite errors. Say so in the hand-off when used. |
 
@@ -95,6 +96,37 @@ inside a rasterized SVG, which no other check can see once it becomes a
 picture.
 
 Errors block conversion. Warnings do not, but each one should be a decision.
+
+## How editable the delivered file is
+
+Every element is a real PowerPoint object: text boxes you can retype, autoshapes
+you can restyle, a native table, and a theme whose colour picker offers the
+deck's own palette. What does *not* survive is the layout relationship. The
+converter reads a laid-out document and writes absolute geometry, so nothing in
+the file knows that the takeaway band sits below the list — each is a shape at
+its own measured position.
+
+That makes three kinds of edit behave differently:
+
+| Edit | What happens |
+|---|---|
+| Retyping a value in place | Fine. The box does not grow, so a much longer value eventually overflows it |
+| Adding a list item | Fine while there is room. The band below does not move down |
+| Lengthening a line | Under `--wrap preserve`, the text runs off the slide instead of wrapping |
+
+The default exists for delivery. `preserve` keeps the line breaks the browser
+chose, so PowerPoint's own font metrics cannot re-wrap a label and shift a
+layout that was correct in the preview. The cost is that a line edited to be
+longer has nowhere to go.
+
+**Convert with `--wrap reflow` when somebody will edit the file.** Every box
+then wraps, so edited text stays inside it. The trade goes the other way: a
+label that fitted on one line in the browser may wrap in PowerPoint if the deck
+font is missing.
+
+Neither mode makes the deck reflow as a whole. If the content changes enough to
+move things, change it in the HTML and convert again — that is where the layout
+actually lives.
 
 ## Fidelity: what is exact, what is close, what differs
 
