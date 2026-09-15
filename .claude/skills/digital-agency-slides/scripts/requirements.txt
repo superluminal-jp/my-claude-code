@@ -1,0 +1,4 @@
+# Deck tooling dependencies. Versions resolve at install time: pin them in the
+# consuming project's own lockfile if that project requires reproducible builds.
+python-pptx
+playwright

@@ -39,7 +39,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `cloud-platform-research`（AWS/GCP/Azure 公式ドキュメントの最新調査）
   - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
-    React/Tailwind Web フロントエンド開発・レビュー）、`scrum-master`（Scrumイベントの
+    React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
+    （DADS 公式資材で 16:9 スライドを HTML として作成し、同梱ツールで編集可能な
+    PowerPoint に変換）、`scrum-master`（Scrumイベントの
     設計・ファシリテーション、障害除去、フロー指標）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
@@ -132,8 +134,15 @@ my-claude-code/
 bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
 bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
+bash tests/run-digital-agency-slides-skill.sh
 bash tests/run-removed-guardrails.sh
 ```
+
+`run-digital-agency-slides-skill.sh` の末尾は、公式 DADS スタイルシートを取得して
+同梱のデッキテンプレートを変換する end-to-end セクションです。ネットワーク接続と、
+`python-pptx` および `playwright` を備えた Python 環境が必要です — `DECK_PYTHON` で
+その環境を指定してください。指定がない場合、このセクションは失敗ではなく
+スキップとして報告されます。
 
 `run-removed-guardrails.sh` は特定の変更に紐づかない、常設の回帰防止チェックです —
 `.claude/hooks/`・`scripts/` が再導入されたら失敗し
