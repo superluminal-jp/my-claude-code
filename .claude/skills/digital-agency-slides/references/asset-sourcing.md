@@ -85,11 +85,32 @@ If the content is edited or adapted, say so separately and in addition:
 
 > デジタル庁デザインシステムウェブサイト https://design.digital.go.jp/dads/ のコンテンツを加工して作成
 
-### Illustrations, icons and Figma data
+### Figma data
 
-Governed by their own terms, not by the above. Do not copy them into a deck
-merely because a component example displays one. The bundled fonts, polyfills
-and search libraries the site redistributes likewise carry their own licences.
+CC BY 4.0 through Figma Community, with its own attribution string naming the
+Digital Agency's Figma Community profile alongside the design system site, and
+with the bundled Material Symbols icons under Apache 2.0. This is a third
+regime, not a variant of the two above. This skill copies no Figma data; check
+the live terms if a task introduces it.
+
+### Illustrations and icons
+
+Governed by their own separate terms of use, not by any of the above. Do not
+copy them into a deck merely because a component example displays one. The
+bundled fonts, polyfills and search libraries the site redistributes likewise
+carry their own licences.
+
+## Which deliverable owes a notice
+
+| Deliverable | Owes a notice |
+|---|---|
+| The deck workspace, which contains the fetched stylesheets verbatim | Yes — the code notice above, which the fetch script writes into `dads/SOURCE.md` |
+| The generated `.pptx` | No stylesheet is redistributed: the file contains measured geometry and the deck's own text. No code notice is owed for the code |
+| Any DADS wording, specification text or figure reproduced *inside* the deck | Yes — the documentation notice, on the slide that reproduces it |
+
+State which of these applies in the hand-off rather than leaving it to the
+reader. When a deck is published under an organisation's name, put the notice on
+a closing slide or in the deck's own source line, not only in the workspace.
 
 ## Standing limits
 

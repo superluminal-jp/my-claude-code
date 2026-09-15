@@ -1,6 +1,6 @@
 ---
 name: digital-agency-slides
-description: Build 16:9 presentation slides from the Digital Agency Design System's official HTML and React reference assets, and convert them into an editable PowerPoint file through the bundled deck tooling. Use for slide decks, briefing material, and presentation documents that must follow DADS and be delivered as .pptx. Do not use for web pages, application interfaces, or dashboards that stay in a browser, and do not use to edit an existing .pptx that was not authored in this deck format. Apply alongside every independently matching requirements, document-structure, implementation, or review operation; this capability owns the slide authoring surface and the HTML-to-PowerPoint conversion.
+description: Build 16:9 presentation slides from the Digital Agency Design System's official HTML and CSS reference assets, and convert them into an editable PowerPoint file through the bundled deck tooling. Use for slide decks, briefing material, and presentation documents that must follow DADS and be delivered as .pptx. Do not use for web pages, application interfaces, or dashboards that stay in a browser, and do not use to edit an existing .pptx that was not authored in this deck format. Apply alongside every independently matching requirements, document-structure, implementation, or review operation; this capability owns the slide authoring surface and the HTML-to-PowerPoint conversion.
 ---
 
 # Digital Agency Slides

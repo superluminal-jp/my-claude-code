@@ -25,14 +25,20 @@ no scaling at any stage, which is why the pipeline has none.
 
 | In the deck | In the .pptx |
 |---|---|
-| Text block | A text box with per-run size, weight, colour, underline, font and letter spacing, and per-paragraph alignment, line spacing and space before/after |
+| The slide's governing message | The slide's **title placeholder** — the shape is promoted, not duplicated, so PowerPoint's outline, the reading-order pane and every screen reader can see it |
+| Text block | A text box with per-run size, weight, colour, underline, strikethrough, font and letter spacing, and per-paragraph alignment, line spacing and space before/after |
 | `<ul>` / `<ol>` | One text box with real PowerPoint bullets or auto-numbering, hanging indent taken from the measured marker strip |
-| Background, border, radius | A rectangle or rounded rectangle; a one-sided border becomes its own filled bar |
-| `<table>` | A native table: merged cells, column widths, row heights, per-cell fill, borders and padding |
-| `<img>` | An embedded picture with the `alt` text as its description |
+| Background, border, radius | A rectangle or rounded rectangle, marked decorative; a one-sided border becomes its own filled bar. A translucent CSS colour keeps its transparency |
+| `<table>` | A native table with `firstRow` set when the markup declares `<th>`: merged cells, column widths, row heights, per-cell fill, borders and padding |
+| `<img>` | An embedded picture with the `alt` text as its description. `alt=""` marks it decorative rather than letting the filename be announced |
 | `data-pptx="raster"` | A picture captured at 2x from the rendered element, with its text alternative as the description |
 | Speaker notes | The notes pane |
-| DADS colour and font tokens | The deck theme's colour and font scheme |
+| The document's `lang` | Every run's `lang`, plus the master, layouts and presentation defaults, so text typed later is tagged too |
+| The deck's design tokens | The theme's colour and font scheme, named for what it is — a theme derived from the tokens, not the design system itself |
+
+Nothing about the palette is written into the converter. Every theme colour is
+read from the deck at conversion time; if a token does not resolve, the theme is
+left at PowerPoint's default and the run says which token was missing.
 
 Shapes are emitted in document order, which is the order PowerPoint uses for
 the accessibility reading order and for tab order.
@@ -53,7 +59,10 @@ deck.py ir      deck.html -o ir.json         # dump the IR, for debugging a bad 
 | `--safe-area` | 32 px | Tighter or looser edge band |
 | `--min-font` / `--body-font` | 14 / 18 px | The legibility floor and the body-copy warning |
 | `--secondary-selector` | footers, captions, labels | What is exempt from the body-copy warning |
-| `--max-list-items` | 7 | Density warning threshold |
+| `--max-list-items` | 5 | Items in any one list |
+| `--max-slide-items` | 10 | List items on a slide, pooled |
+| `--text-contrast` | 4.5 | Minimum ratio for text, at every size |
+| `--nontext-contrast` | 3 | Minimum ratio for a border or rule |
 | `--slack` | 6 px | Extra width for wrapping text boxes, to absorb font-metric differences |
 | `--chromium PATH` | Playwright's own | A preinstalled browser (also `DECK_CHROMIUM`) |
 | `--allow-findings` | off | Convert despite errors. Say so in the hand-off when used. |
@@ -66,15 +75,24 @@ deck.py ir      deck.html -o ir.json         # dump the IR, for debugging a bad 
 | `clipped` | error | Text does not fit its box; the overflow is lost |
 | `contrast` | error | Below 4.5:1, or 3:1 for large text |
 | `font-too-small` | error | Below the 14 px floor |
-| `no-alt` | error / warn | Image without `alt`; rasterized element without a text alternative |
+| `no-alt` | error | An image with no `alt`, or rasterized content with no text alternative |
+| `no-message` | error | The slide states no governing message, so the converted slide has no title |
+| `table-no-header` | error | A table with no `<th>`, so no header row can be marked |
+| `color-unreadable` | error | A text colour the browser reported in a form the converter cannot resolve |
+| `slide-transformed` | error | A `transform` or `zoom` scales geometry but not type, voiding the px/pt invariant |
 | `size-mismatch` | error | A slide is not the same size as slide 1 |
 | `no-slides` | error | The selector matched nothing |
 | `safe-area` | warn | Content inside the edge band |
 | `font-small` | warn | Body copy below the comfortable projected size |
+| `nontext-contrast` | warn | A border or rule below 3:1 against its background |
+| `contrast-unknown` | warn | Text on a gradient or image, where contrast has no single answer |
 | `pseudo-decoration` | warn | `::before`/`::after` paints something the converter cannot reach |
-| `dense` | warn | More list items on one slide than the threshold |
-| `no-message` | warn | The slide states no governing message |
+| `dense` | warn | More list items than the per-list or per-slide threshold |
 | `dropped` | warn | An element produced no convertible content |
+
+Text is checked everywhere it appears — in text blocks, in table cells, and
+inside a rasterized SVG, which no other check can see once it becomes a
+picture.
 
 Errors block conversion. Warnings do not, but each one should be a decision.
 
@@ -112,6 +130,8 @@ wrapping text gets a few pixels of slack.
 | A rule, badge or flourish is missing | Drawn in `::before`/`::after` | Make it a real element; check the `pseudo-decoration` warnings |
 | Text is cut off in the file | It was already clipped in the browser | Fix the `clipped` error; do not enlarge the box in PowerPoint |
 | Bullets sit on top of their text | The list's left padding was reset away | Leave a list's `padding-left` alone — it is the marker strip the converter measures |
+| A pale tile came through solid | Fixed: a translucent fill now converts to real DrawingML transparency | Re-run the conversion |
+| Centred text sits too far right | Fixed: the paragraph margin is the box offset, not the glyph offset | Re-run the conversion |
 | A table came through as a picture | It is inside a `data-pptx="raster"` subtree | Move the override down to the element that needs it |
 | Chromium will not launch | Playwright's browser build does not match | `--chromium PATH`, or re-run `scripts/setup.sh` |
 

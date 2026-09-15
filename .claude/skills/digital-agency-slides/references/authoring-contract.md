@@ -63,7 +63,8 @@ The walk is automatic; `data-pptx` only overrides it.
 | `<img>` | A picture, positioned at its measured rectangle |
 | `<table>` | A native PowerPoint table — real rows, cells, fills and borders |
 | `<svg>`, `<canvas>`, `<video>` | A picture, captured at 2x from the rendered element |
-| A block whose subtree is only text | One text box, one paragraph per text-leaf block |
+| A block whose subtree is only text | One text box, one paragraph per text-leaf block — including bare text sitting beside block children |
+| An absolutely positioned or floated child | Its own shape at its own measured rectangle; out-of-flow boxes are never folded into a parent's paragraph flow |
 | A block with a background, border or radius | A rectangle, emitted before its contents |
 | Anything else | Recursed into |
 
@@ -106,6 +107,10 @@ PowerPoint, and it needs its own text alternative.
   it as an error.
 - **Interactive behaviour.** Hover, focus, and JavaScript state have no meaning
   in a slide. Render the state you want to show.
+- **A `transform` or `zoom` on a slide.** It scales the measured geometry but
+  not the type size, which silently breaks the px-to-point mapping the whole
+  pipeline rests on. The linter reports it as an error; author at 1:1 and scale
+  the browser window instead.
 
 ## Working with official DADS components
 
@@ -125,7 +130,13 @@ and keep its classes and `data-*` attributes intact:
 
 Components built for a page rather than a slide — navigation, drawers, modals,
 form controls, anything whose point is interaction — do not belong on a slide.
-Take the type, colour, table, list and divider foundations; leave the rest.
+
+Some static components are re-implemented as `sld-*` rather than used as
+published, and the reason is always slide geometry rather than taste: a card
+here has to be a fixed-height grid cell, a step has to sit on a shared axis, a
+callout has to anchor to the foot of the body. Where a DADS component does fit
+unchanged — the table, lists, dividers, the type and colour foundations — use
+it. If you re-implement one, say so in the deck and keep the tokens.
 
 ## Text that must not re-wrap
 
@@ -140,7 +151,11 @@ installed where the file is opened.
 
 - [ ] Every slide states one assertion in an `h1`/`h2` or `.sld-message`.
 - [ ] Nothing crosses the safe area; nothing is clipped.
-- [ ] Every image has `alt`; every SVG has a `<title>` or `aria-label`.
+- [ ] Every image has `alt`; every SVG has a `<title>` or `aria-label`. A
+      decorative image takes `alt=""`, which marks it decorative in the file
+      rather than letting its filename be read aloud.
+- [ ] Every table has `<th>` cells, so the converted table can carry a header
+      row. Without it a screen reader reads a value and never names its column.
 - [ ] No meaning is carried by colour or position alone.
 - [ ] Decorative flourishes are real elements, not pseudo-elements.
 - [ ] `data-pptx="raster"` appears only where it is genuinely needed.

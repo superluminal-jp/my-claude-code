@@ -18,18 +18,52 @@
 
   const isTransparent = (color) => !color || TRANSPARENT.test(color.replace(/\s+/g, ' '));
 
+  /* HTML elements report an upper-case tagName; SVG elements report their
+     qualified name verbatim ('svg', 'text', 'rect'). Compare through this. */
+  const tagOf = (el) => (el.tagName || '').toUpperCase();
+
+  /* SVG's className is an SVGAnimatedString, which stringifies to
+     "[object SVGAnimatedString]" in a finding. */
+  const classOf = (el) =>
+    typeof el.className === 'string' ? el.className : el.getAttribute('class') || '';
+
+  const SENTINEL = '#1b2c3d';
+  let swatch = null;
+
+  const toHex = (rgb) =>
+    rgb
+      .map((c) => Math.round(Math.max(0, Math.min(255, c))).toString(16).padStart(2, '0'))
+      .join('')
+      .toUpperCase();
+
+  /*
+   * rgb()/rgba() is the fast path. Anything else — oklch(), color-mix(),
+   * color(srgb …) — is handed to the canvas, which converts whatever CSS the
+   * browser accepted. Returning null for an unreadable colour matters: the
+   * caller must report it rather than substitute a value nobody wrote.
+   */
   function parseColor(value) {
     if (isTransparent(value)) return null;
-    const m = value.match(/rgba?\(([^)]+)\)/);
-    if (!m) return null;
-    const parts = m[1].split(',').map((p) => parseFloat(p));
-    const [r, g, b] = parts;
-    const a = parts.length > 3 ? parts[3] : 1;
-    if (a === 0) return null;
-    const hex = [r, g, b]
-      .map((c) => Math.round(Math.max(0, Math.min(255, c))).toString(16).padStart(2, '0'))
-      .join('');
-    return { hex: hex.toUpperCase(), alpha: a, rgb: [r, g, b] };
+    const m = String(value).match(/rgba?\(([^)]+)\)/);
+    if (m) {
+      const parts = m[1].split(/[,\s/]+/).filter(Boolean).map(parseFloat);
+      const a = parts.length > 3 ? parts[3] : 1;
+      if (a === 0) return null;
+      const rgb = parts.slice(0, 3);
+      return { hex: toHex(rgb), alpha: a, rgb };
+    }
+    if (!swatch) {
+      swatch = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    }
+    swatch.fillStyle = SENTINEL;
+    swatch.fillStyle = value;
+    if (swatch.fillStyle === SENTINEL && String(value).trim().toLowerCase() !== SENTINEL) return null;
+    swatch.globalCompositeOperation = 'copy';
+    swatch.fillRect(0, 0, 1, 1);
+    const [r, g, b, a255] = swatch.getImageData(0, 0, 1, 1).data;
+    const alpha = a255 / 255;
+    if (alpha === 0) return null;
+    return { hex: toHex([r, g, b]), alpha, rgb: [r, g, b] };
   }
 
   const relativeLuminance = ([r, g, b]) => {
@@ -45,15 +79,33 @@
     return (l1 + 0.05) / (l2 + 0.05);
   };
 
+  const composite = (fg, bg, alpha) => fg.map((c, i) => c * alpha + bg[i] * (1 - alpha));
+
+  /*
+   * Resolve what a pixel of background actually is. A translucent layer has to
+   * be composited, not skipped — skipping one reports the colour behind it and
+   * silently passes text that is unreadable. Under a gradient or an image there
+   * is no single answer, so return null and let the caller report that.
+   */
   function effectiveBackground(el) {
+    const stack = [];
     let node = el;
     while (node && node.nodeType === 1) {
-      const color = parseColor(getComputedStyle(node).backgroundColor);
-      if (color && color.alpha >= 0.95) return color.rgb;
+      const cs = getComputedStyle(node);
+      if (cs.backgroundImage && cs.backgroundImage !== 'none') return null;
+      const color = parseColor(cs.backgroundColor);
+      if (color) {
+        if (color.alpha >= 0.999) {
+          return stack.reduceRight((bg, layer) => composite(layer.rgb, bg, layer.alpha), color.rgb);
+        }
+        stack.push(color);
+      }
       node = node.parentElement;
     }
-    return [255, 255, 255];
+    return stack.reduceRight((bg, layer) => composite(layer.rgb, bg, layer.alpha), [255, 255, 255]);
   }
+
+  const hexToRgb = (hex) => [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
 
   const rectOf = (el, origin) => {
     const r = el.getBoundingClientRect();
@@ -93,7 +145,7 @@
   }
 
   const isListContainer = (el) =>
-    (el.tagName === 'UL' || el.tagName === 'OL') && el.querySelector(':scope > li') !== null;
+    ['UL', 'OL'].includes(tagOf(el)) && el.querySelector(':scope > li') !== null;
 
   const isRendered = (el) => {
     const cs = getComputedStyle(el);
@@ -111,7 +163,7 @@
     return Array.from(el.children).filter((kid) => {
       if (!isRendered(kid)) return false;
       const d = getComputedStyle(kid).display;
-      return !d.startsWith('inline') || d === 'inline-block';
+      return !d.startsWith('inline') || ['inline-block', 'inline-flex', 'inline-grid', 'inline-table'].includes(d);
     });
   }
 
@@ -122,20 +174,38 @@
     color: parseColor(cs[`border${side}Color`]),
   }));
 
+  /* A percentage radius resolves against the box, and only reading one corner
+     rounds all four when the author rounded one. */
+  function cornerRadius(cs, el) {
+    const raw = cs.borderTopLeftRadius || '0px';
+    const rect = el.getBoundingClientRect();
+    const basis = Math.min(rect.width, rect.height);
+    const corners = ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomRightRadius', 'borderBottomLeftRadius']
+      .map((key) => cs[key] || '0px');
+    const uniform = corners.every((value) => value === raw);
+    const value = raw.includes('%') ? (parseFloat(raw) / 100) * basis : parseFloat(raw) || 0;
+    return { radius: value, uniform };
+  }
+
   function decoration(el) {
     const cs = getComputedStyle(el);
     const fill = parseColor(cs.backgroundColor);
     const borders = borderSides(cs).filter((b) => b.width > 0 && b.style !== 'none' && b.color);
     if (!fill && borders.length === 0) return null;
+    const corner = cornerRadius(cs, el);
     return {
       fill: fill ? fill.hex : null,
+      /* Carried through so the converter can emit real DrawingML transparency
+         instead of painting a 5% wash as a solid block. */
+      fill_alpha: fill ? fill.alpha : 1,
       borders,
-      radius: parseFloat(cs.borderTopLeftRadius) || 0,
+      radius: corner.radius,
+      radius_uniform: corner.uniform,
     };
   }
 
   const hasMedia = (el) =>
-    MEDIA_TAGS.has(el.tagName) || el.querySelector('img, svg, canvas, video, iframe, object, table') !== null;
+    MEDIA_TAGS.has(tagOf(el)) || el.querySelector('img, svg, canvas, video, iframe, object, table') !== null;
 
   const hasOverrideInside = (el) => el.querySelector('[data-pptx]') !== null;
 
@@ -144,9 +214,30 @@
    * inside one text frame. Such a container is decomposed into one frame per
    * child, each placed at its measured rectangle, instead of being grouped.
    */
+  const outOfFlow = (el) => {
+    const cs = getComputedStyle(el);
+    return cs.position === 'absolute' || cs.position === 'fixed' || cs.float !== 'none';
+  };
+
+  /* Children that sit beside each other are not a stack of paragraphs. Their
+     horizontal positions have no paragraph equivalent, so grouping them would
+     both stack them vertically and leak the offset into the left margin. */
+  function stacked(kids) {
+    for (let i = 1; i < kids.length; i += 1) {
+      const a = kids[i - 1].getBoundingClientRect();
+      const b = kids[i].getBoundingClientRect();
+      const overlap = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (overlap > Math.min(a.height, b.height) * 0.5) return false;
+    }
+    return true;
+  }
+
   function groupable(el) {
     const cs = getComputedStyle(el);
-    if (/flex|grid/.test(cs.display) && blockKids(el).length > 1) return false;
+    const kids = blockKids(el);
+    if (/flex|grid/.test(cs.display) && kids.length > 1) return false;
+    if (kids.some(outOfFlow)) return false;
+    if (kids.length > 1 && !stacked(kids)) return false;
     return true;
   }
 
@@ -158,6 +249,30 @@
     return kids.every((kid) => !decoration(kid) && canBeOneTextFrame(kid));
   }
 
+  function runFromStyle(text, cs) {
+    const color = parseColor(cs.color);
+    return {
+      text,
+      size_px: parseFloat(cs.fontSize),
+      bold: parseInt(cs.fontWeight, 10) >= 700,
+      italic: cs.fontStyle === 'italic',
+      underline: cs.textDecorationLine.includes('underline'),
+      strike: cs.textDecorationLine.includes('line-through'),
+      /* null, never a substitute: an invented colour would be checked for
+         contrast and written into the file as though the author chose it. */
+      color: color ? color.hex : null,
+      font: cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(),
+      letter_spacing_px: cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0,
+    };
+  }
+
+  /* One bare text node, styled by the element it sits in. */
+  function runsOfNode(node, parent) {
+    const text = node.nodeValue.replace(/\s+/g, ' ');
+    if (!text.trim()) return [];
+    return [runFromStyle(text, getComputedStyle(parent))];
+  }
+
   /* Inline runs, each carrying the character formatting actually applied. */
   function runsOf(el) {
     const runs = [];
@@ -166,20 +281,7 @@
     while (node) {
       const text = node.nodeValue.replace(/\s+/g, ' ');
       if (text.trim().length > 0) {
-        const parent = node.parentElement;
-        const cs = getComputedStyle(parent);
-        const color = parseColor(cs.color);
-        runs.push({
-          text,
-          size_px: parseFloat(cs.fontSize),
-          bold: parseInt(cs.fontWeight, 10) >= 600,
-          italic: cs.fontStyle === 'italic',
-          underline: cs.textDecorationLine.includes('underline'),
-          strike: cs.textDecorationLine.includes('line-through'),
-          color: color ? color.hex : '000000',
-          font: cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(),
-          letter_spacing_px: cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0,
-        });
+        runs.push(runFromStyle(text, getComputedStyle(node.parentElement)));
       }
       node = walker.nextNode();
     }
@@ -196,6 +298,19 @@
       return acc;
     }, []);
   }
+
+  const stopsMarginCollapse = (el) => {
+    const cs = getComputedStyle(el);
+    return (
+      (parseFloat(cs.paddingTop) || 0) > 0 ||
+      (parseFloat(cs.borderTopWidth) || 0) > 0 ||
+      cs.overflow !== 'visible' ||
+      /flex|grid|flow-root|table/.test(cs.display) ||
+      cs.position === 'absolute' ||
+      cs.position === 'fixed' ||
+      cs.float !== 'none'
+    );
+  };
 
   function lineCount(el, cs) {
     const line = lineHeightPx(cs);
@@ -229,7 +344,7 @@
   function markerOf(el) {
     const parent = el.parentElement;
     if (!parent) return null;
-    const tag = parent.tagName;
+    const tag = tagOf(parent);
     if (tag !== 'UL' && tag !== 'OL') return null;
     if (tag === 'OL') return { kind: 'number' };
     const style = getComputedStyle(parent).listStyleType;
@@ -264,12 +379,46 @@
       ];
     }
     const out = [];
-    kids.forEach((kid, i) => {
-      const cs = getComputedStyle(kid);
-      const nested = paragraphsOf(kid, frameLeft);
+    let carriedMarginBottom = 0;
+    const parentStyle = getComputedStyle(el);
+    Array.from(el.childNodes).forEach((node) => {
+      /* A text node sitting beside block children is real content. Walking only
+         element children dropped it with no finding. */
+      if (node.nodeType === 3) {
+        if (!node.nodeValue.trim()) return;
+        const runs = runsOfNode(node, el);
+        if (runs.length === 0) return;
+        out.push({
+          runs,
+          align: parentStyle.textAlign,
+          line_px: lineHeightPx(parentStyle),
+          space_before_px: 0,
+          space_after_px: 0,
+          lines: 1,
+          marker: null,
+          indent_px: 0,
+          box_left_px: 0,
+        });
+        carriedMarginBottom = 0;
+        return;
+      }
+      if (node.nodeType !== 1 || !kids.includes(node)) return;
+      const cs = getComputedStyle(node);
+      const nested = paragraphsOf(node, frameLeft);
       if (nested.length === 0) return;
-      nested[0].space_before_px += i === 0 ? 0 : parseFloat(cs.marginTop) || 0;
-      nested[nested.length - 1].space_after_px += parseFloat(cs.marginBottom) || 0;
+      const marginTop = parseFloat(cs.marginTop) || 0;
+      const marginBottom = parseFloat(cs.marginBottom) || 0;
+      if (out.length > 0) {
+        /* CSS collapses adjacent sibling margins to the larger of the two;
+           DrawingML adds spcAft and spcBef, so only the excess applies. */
+        nested[0].space_before_px += Math.max(0, marginTop - carriedMarginBottom);
+      } else if (stopsMarginCollapse(el)) {
+        /* Padding, a border or a new formatting context keeps the first
+           child's top margin inside the frame instead of collapsing it out. */
+        nested[0].space_before_px += marginTop;
+      }
+      nested[nested.length - 1].space_after_px += marginBottom;
+      carriedMarginBottom = marginBottom;
       out.push(...nested);
     });
     return out;
@@ -288,7 +437,7 @@
     const rows = Array.from(el.querySelectorAll('tr')).filter(isRendered);
     if (rows.length === 0) return null;
     const grid = rows.map((tr) => {
-      const cells = Array.from(tr.children).filter((c) => /^(TD|TH)$/.test(c.tagName));
+      const cells = Array.from(tr.children).filter((c) => /^(TD|TH)$/.test(tagOf(c)));
       return cells.map((cell) => {
         const cs = getComputedStyle(cell);
         const fill = parseColor(cs.backgroundColor);
@@ -297,7 +446,7 @@
           text: (cell.textContent || '').trim(),
           runs: runsOf(cell),
           lines: lineCount(cell, cs),
-          header: cell.tagName === 'TH',
+          header: tagOf(cell) === 'TH',
           colspan: cell.colSpan || 1,
           rowspan: cell.rowSpan || 1,
           align: cs.textAlign,
@@ -331,7 +480,7 @@
   }
 
   function altTextOf(el) {
-    if (el.tagName === 'IMG') return el.getAttribute('alt');
+    if (tagOf(el) === 'IMG') return el.getAttribute('alt');
     const labelled = el.getAttribute('aria-label');
     if (labelled) return labelled;
     const by = el.getAttribute('aria-labelledby');
@@ -359,7 +508,7 @@
         level,
         code,
         message,
-        element: el ? `${el.tagName.toLowerCase()}${el.className ? `.${String(el.className).trim().split(/\s+/).join('.')}` : ''}` : null,
+        element: el ? `${tagOf(el).toLowerCase()}${classOf(el) ? `.${classOf(el).trim().split(/\s+/).join('.')}` : ''}` : null,
         text: el ? (el.textContent || '').trim().slice(0, 60) : null,
       });
     };
@@ -378,33 +527,114 @@
       }
     };
 
-    const checkText = (el, paragraphs) => {
-      if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) {
-        report('error', 'clipped', 'Text does not fit its box and is clipped.', el);
-      }
+    /*
+     * The Digital Agency's colour foundation removes WCAG's large-text
+     * relaxation: every piece of text clears 4.5:1 against its background
+     * whatever its size. Applying WCAG's 3:1 allowance would let a 32px
+     * headline at 3.2:1 pass a design system that forbids it.
+     */
+    const checkRuns = (el, runs) => {
       const bg = effectiveBackground(el);
       /* Secondary content — footers, captions, eyebrows, tile labels — is
          allowed the dense type scale. Body copy is not. */
       const secondary = el.closest(options.secondary_selector) !== null;
-      paragraphs.forEach((p) => {
-        p.runs.forEach((run) => {
-          if (run.size_px < options.min_font_px) {
-            report('error', 'font-too-small', `${run.size_px}px is below the ${options.min_font_px}px floor.`, el);
-          } else if (!secondary && run.size_px < options.body_font_px) {
-            report('warn', 'font-small', `${run.size_px}px is hard to read when projected.`, el);
-          }
-          const fg = [
-            parseInt(run.color.slice(0, 2), 16),
-            parseInt(run.color.slice(2, 4), 16),
-            parseInt(run.color.slice(4, 6), 16),
-          ];
-          const large = run.size_px >= 24 || (run.size_px >= 18.66 && run.bold);
-          const required = large ? 3 : 4.5;
-          const ratio = contrastRatio(fg, bg);
-          if (ratio < required) {
-            report('error', 'contrast', `Contrast ${ratio.toFixed(2)}:1 is below the required ${required}:1.`, el);
+      if (bg === null) {
+        report('warn', 'contrast-unknown', 'Text sits on a gradient or image; contrast cannot be computed.', el);
+      }
+      runs.forEach((run) => {
+        if (run.color === null) {
+          report('error', 'color-unreadable', 'Text colour could not be resolved, so it cannot be converted or checked.', el);
+        }
+        if (run.size_px < options.min_font_px) {
+          report('error', 'font-too-small', `${run.size_px}px is below the ${options.min_font_px}px floor.`, el);
+        } else if (!secondary && run.size_px < options.body_font_px) {
+          report('warn', 'font-small', `${run.size_px}px is hard to read when projected.`, el);
+        }
+        if (bg === null || run.color === null) return;
+        const ratio = contrastRatio(hexToRgb(run.color), bg);
+        if (ratio < options.text_contrast) {
+          report('error', 'contrast', `Contrast ${ratio.toFixed(2)}:1 is below the required ${options.text_contrast}:1.`, el);
+        }
+      });
+    };
+
+    const checkText = (el, paragraphs) => {
+      /* Only an element that actually clips can clip. A padded inline highlight
+         legitimately overflows its line box, and reporting that as an error
+         blocked conversion of a perfectly correct deck. */
+      const cs = getComputedStyle(el);
+      const clips = cs.overflow !== 'visible' || cs.overflowX !== 'visible' || cs.overflowY !== 'visible';
+      if (clips && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1)) {
+        report('error', 'clipped', 'Text does not fit its box and is clipped.', el);
+      }
+      paragraphs.forEach((p) => checkRuns(el, p.runs));
+    };
+
+    /*
+     * A border or rule that separates content is a user-interface component
+     * under WCAG 1.4.11 and needs 3:1 against what surrounds it. A table's own
+     * grid is the official component's business, so it is left alone.
+     */
+    const checkNonTextContrast = (el, deco) => {
+      if (el.closest('table')) return;
+      const bg = effectiveBackground(el.parentElement || el);
+      if (bg === null) return;
+      deco.borders.forEach((border) => {
+        const ratio = contrastRatio(border.color.rgb, bg);
+        if (ratio < options.nontext_contrast) {
+          report(
+            'warn',
+            'nontext-contrast',
+            `${border.side} border is ${ratio.toFixed(2)}:1 against its background, below ${options.nontext_contrast}:1.`,
+            el,
+          );
+        }
+      });
+    };
+
+    /*
+     * Text inside a rasterized SVG is invisible to every other check — it
+     * becomes a flat picture that nobody can select, zoom or re-contrast. So
+     * check it here, at the size and against the fill it actually renders on.
+     */
+    const checkRasterText = (root) => {
+      if (tagOf(root) !== 'SVG') return;
+      const box = root.getBoundingClientRect();
+      const view = root.viewBox && root.viewBox.baseVal;
+      const scale = view && view.width > 0 ? box.width / view.width : 1;
+      const painted = Array.from(root.querySelectorAll('rect, circle, ellipse, path, polygon'));
+      Array.from(root.querySelectorAll('text, tspan')).forEach((node) => {
+        const text = (node.textContent || '').trim();
+        if (!text) return;
+        const cs = getComputedStyle(node);
+        const size = (parseFloat(cs.fontSize) || 0) * scale;
+        if (size > 0 && size < options.min_font_px) {
+          report('error', 'font-too-small', `${size.toFixed(1)}px of rasterized text is below the ${options.min_font_px}px floor.`, root);
+        }
+        const fg = parseColor(cs.fill);
+        if (!fg) return;
+        const rect = node.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        /* The topmost painted shape under the label is its background. */
+        let behind = null;
+        painted.forEach((shape) => {
+          const r = shape.getBoundingClientRect();
+          if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+            const fill = parseColor(getComputedStyle(shape).fill);
+            if (fill && fill.alpha >= 0.999) behind = fill.rgb;
           }
         });
+        const bg = behind || effectiveBackground(root) || [255, 255, 255];
+        const ratio = contrastRatio(fg.rgb, bg);
+        if (ratio < options.text_contrast) {
+          report(
+            'error',
+            'contrast',
+            `Rasterized label "${text.slice(0, 14)}" is ${ratio.toFixed(2)}:1, below ${options.text_contrast}:1.`,
+            root,
+          );
+        }
       });
     };
 
@@ -432,8 +662,9 @@
       const rect = rectOf(el, origin);
       const alt = altTextOf(el);
       if (!alt) {
-        report('warn', 'no-alt', 'Rasterized content has no text alternative (alt, aria-label or <title>).', el);
+        report('error', 'no-alt', 'Rasterized content has no text alternative (alt, aria-label or <title>).', el);
       }
+      checkRasterText(el);
       checkBounds(el, rect);
       shapes.push({ kind: 'raster', id, rect, alt: alt || '' });
     };
@@ -445,12 +676,12 @@
         if (mode === 'ignore' || mode === 'notes') return;
         if (!isRendered(kid)) return;
 
-        if (mode === 'raster' || (!mode && (kid.tagName === 'SVG' || kid.tagName === 'CANVAS' || kid.tagName === 'VIDEO'))) {
+        if (mode === 'raster' || (!mode && ['SVG', 'CANVAS', 'VIDEO'].includes(tagOf(kid)))) {
           emitRaster(kid);
           return;
         }
 
-        if (mode === 'image' || (!mode && kid.tagName === 'IMG')) {
+        if (mode === 'image' || (!mode && tagOf(kid) === 'IMG')) {
           const rect = rectOf(kid, origin);
           const alt = altTextOf(kid);
           if (alt === null || alt === undefined) {
@@ -461,10 +692,16 @@
           return;
         }
 
-        if (mode === 'table' || (!mode && kid.tagName === 'TABLE')) {
+        if (mode === 'table' || (!mode && tagOf(kid) === 'TABLE')) {
           const table = tableOf(kid, origin);
           if (table) {
             checkBounds(kid, table.rect);
+            if (!kid.querySelector('th')) {
+              report('error', 'table-no-header', 'Table has no <th>, so the .pptx cannot mark a header row.', kid);
+            }
+            Array.from(kid.querySelectorAll('th, td'))
+              .filter(isRendered)
+              .forEach((cell) => checkRuns(cell, runsOf(cell)));
             shapes.push({ kind: 'table', ...table });
           }
           return;
@@ -476,6 +713,7 @@
         if (deco) {
           const rect = rectOf(kid, origin);
           checkBounds(kid, rect);
+          checkNonTextContrast(kid, deco);
           shapes.push({ kind: 'shape', rect, ...deco });
         }
 
@@ -509,12 +747,20 @@
 
     const messageEl = slideEl.querySelector('[data-role="message"], .sld-message, h1, h2');
     if (!messageEl || !hasText(messageEl)) {
-      report('warn', 'no-message', 'Slide states no governing message (.sld-message, h1 or h2).', slideEl);
+      report('error', 'no-message', 'Slide states no governing message, so the .pptx slide has no title.', slideEl);
     }
 
+    /* Two groups of five can be compared; one list of ten cannot. So the
+       per-list limit and the pooled per-slide limit are separate checks. */
+    slideEl.querySelectorAll('ul, ol').forEach((list) => {
+      const own = Array.from(list.children).filter((kid) => tagOf(kid) === 'LI').length;
+      if (own > options.max_list_items) {
+        report('warn', 'dense', `${own} items in one list exceeds the ${options.max_list_items}-item limit.`, list);
+      }
+    });
     const listItems = slideEl.querySelectorAll('li').length;
-    if (listItems > options.max_list_items) {
-      report('warn', 'dense', `${listItems} list items exceeds the ${options.max_list_items}-item limit for one slide.`, slideEl);
+    if (listItems > options.max_slide_items) {
+      report('warn', 'dense', `${listItems} list items on one slide exceeds the ${options.max_slide_items}-item limit.`, slideEl);
     }
 
     const slideBg = parseColor(getComputedStyle(slideEl).backgroundColor);
@@ -534,7 +780,10 @@
         safe_area_px: 32,
         min_font_px: 14,
         body_font_px: 18,
-        max_list_items: 7,
+        max_list_items: 5,
+        max_slide_items: 10,
+        text_contrast: 4.5,
+        nontext_contrast: 3,
         slide_selector: '.sld-slide, [data-slide]',
         secondary_selector:
           'footer, figcaption, caption, small, [data-role="meta"], .sld-eyebrow, .sld-card__label, .sld-kpi__label, .sld-steps__index',
@@ -548,6 +797,19 @@
     }
     const first = slideEls[0].getBoundingClientRect();
     slideEls.forEach((el, i) => {
+      /* A transform scales geometry but not font size, so the px/pt/EMU
+         invariant the whole pipeline rests on quietly stops holding. */
+      const cs = getComputedStyle(el);
+      if (cs.transform !== 'none' || (cs.zoom && cs.zoom !== '1' && cs.zoom !== 'normal')) {
+        findings.push({
+          slide: i + 1,
+          level: 'error',
+          code: 'slide-transformed',
+          message: 'A transform or zoom scales geometry but not font size. Author the deck at 1:1.',
+          element: null,
+          text: null,
+        });
+      }
       const r = el.getBoundingClientRect();
       if (Math.abs(r.width - first.width) > 1 || Math.abs(r.height - first.height) > 1) {
         findings.push({

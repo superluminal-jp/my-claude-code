@@ -20,6 +20,9 @@ DECK_CLI="$SKILL_DIR/scripts/deck.py"
 EXTRACTOR="$SKILL_DIR/scripts/extract_slides.js"
 FETCH_SCRIPT="$SKILL_DIR/scripts/fetch-dads-assets.sh"
 SETUP_SCRIPT="$SKILL_DIR/scripts/setup.sh"
+FIXTURE="$REPO_ROOT/tests/fixtures/classification.html"
+CLASSIFICATION_ASSERTS="$REPO_ROOT/tests/assert_classification.py"
+UNIT_ASSERTS="$REPO_ROOT/tests/assert_deck_units.py"
 SELECTOR="${1:-all}"
 
 GREEN='\033[0;32m'
@@ -94,6 +97,10 @@ run_skill_contract() {
   check_contains "DSN-04: reference records the DADS type scale classes" "$DESIGN_REFERENCE" 'dads-u-std-32B-150'
   check_contains "DSN-05: reference records the DADS colour tokens" "$DESIGN_REFERENCE" '--color-key-900'
   check_contains "DSN-06: reference records the contrast thresholds" "$DESIGN_REFERENCE" '4\.5:1'
+  check_contains "DSN-09: reference states the design system removes WCAG's large-text relaxation" "$DESIGN_REFERENCE" 'removes that relaxation'
+  check_contains "DSN-10: reference records the non-text contrast rule" "$DESIGN_REFERENCE" '1\.4\.11'
+  check_contains "DSN-11: reference branches on delivery mode" "$DESIGN_REFERENCE" 'Projected, distributed, or both'
+  check_contains "DSN-12: reference gives a procedure for the argument, not just its vocabulary" "$DESIGN_REFERENCE" 'Write the question each slide answers'
   check_contains "DSN-07: reference records the layout catalogue" "$DESIGN_REFERENCE" 'layout catalogue'
   check_contains "DSN-08: reference states reading order is document order" "$DESIGN_REFERENCE" '[Rr]eading order is DOM order'
 
@@ -192,22 +199,88 @@ PY
   check_contains "TOOL-12: extractor emits findings for clipped text" "$EXTRACTOR" "'clipped'"
   check_contains "TOOL-13: extractor checks contrast" "$EXTRACTOR" 'contrastRatio'
   check_contains "TOOL-14: extractor flags unreachable pseudo-element decoration" "$EXTRACTOR" 'pseudo-decoration'
+  check_contains "TOOL-17: extractor compares tags case-insensitively (SVG reports lower case)" "$EXTRACTOR" 'const tagOf'
+  check_contains "TOOL-18: converter marks decoration decorative for assistive technology" "$DECK_CLI" '_mark_decorative'
+  check_contains "TOOL-19: converter tags every run with the deck language" "$DECK_CLI" '_apply_lang'
+  check_contains "TOOL-20: converter promotes the governing message to the slide title" "$DECK_CLI" 'slide_layouts\[5\]'
+  check "TOOL-21: no design-system colour value is written into the converter" \
+    "$([ -f "$DECK_CLI" ] && ! grep -Eq '"[0-9A-F]{6}"' "$DECK_CLI" && echo 1 || echo 0)"
   check_contains "TOOL-15: fetch script records upstream provenance" "$FETCH_SCRIPT" 'Commit'
   check "TOOL-16: repository root scripts/ stays removed (ADR-0007)" "$([ ! -e "$REPO_ROOT/scripts" ] && echo 1 || echo 0)"
+}
+
+# ---------------------------------------------------------------- behaviour --
+
+# Everything above greps files. These two run the converter and assert against
+# what it actually produces — the IR from a static fixture, and deck.py's own
+# functions — because a string in a document proves nothing about behaviour.
+
+find_python() {
+  local candidate
+  if [ -n "${DECK_PYTHON:-}" ]; then
+    printf '%s' "$DECK_PYTHON"
+    return
+  fi
+  for candidate in "$REPO_ROOT/.venv/bin/python" "$(command -v python3 || true)"; do
+    if [ -n "$candidate" ] && "$candidate" -c 'import pptx, playwright' >/dev/null 2>&1; then
+      printf '%s' "$candidate"
+      return
+    fi
+  done
+  printf ''
+}
+
+run_unit_contract() {
+  local python_bin
+  python_bin="$(find_python)"
+  if [ -z "$python_bin" ]; then
+    skip "UNIT-*: python-pptx and playwright not installed (run scripts/setup.sh, then set DECK_PYTHON)"
+    return
+  fi
+  check "UNIT-00: unit assertions exist" "$([ -f "$UNIT_ASSERTS" ] && echo 1 || echo 0)"
+  if "$python_bin" "$UNIT_ASSERTS" "$DECK_CLI" >"$REPO_ROOT/.unit.log" 2>&1; then
+    check "UNIT: deck.py unit assertions pass" "1"
+  else
+    check "UNIT: deck.py unit assertions pass" "0"
+    sed 's/^/      /' "$REPO_ROOT/.unit.log" >&2
+  fi
+  rm -f "$REPO_ROOT/.unit.log"
+}
+
+run_classification_contract() {
+  local python_bin work
+  python_bin="$(find_python)"
+  if [ -z "$python_bin" ]; then
+    skip "IR-*/XML-*: python-pptx and playwright not installed"
+    return
+  fi
+  check "IR-00: classification fixture exists" "$([ -f "$FIXTURE" ] && echo 1 || echo 0)"
+  [ -f "$FIXTURE" ] || return
+
+  work="$(mktemp -d)"
+  trap 'rm -rf "$work"' RETURN
+
+  if ! "$python_bin" "$DECK_CLI" ir "$FIXTURE" -o "$work/ir.json" >"$work/ir.log" 2>&1; then
+    check "IR: the fixture extracts" "0"
+    sed 's/^/      /' "$work/ir.log" >&2
+    return
+  fi
+  check "IR: the fixture extracts" "1"
+  "$python_bin" "$DECK_CLI" pptx "$FIXTURE" -o "$work/fixture.pptx" --allow-findings >"$work/pptx.log" 2>&1 || true
+
+  if "$python_bin" "$CLASSIFICATION_ASSERTS" "$work/ir.json" "$work/fixture.pptx" >"$work/assert.log" 2>&1; then
+    check "IR/XML: classification and geometry assertions pass" "1"
+  else
+    check "IR/XML: classification and geometry assertions pass" "0"
+    sed 's/^/      /' "$work/assert.log" >&2
+  fi
 }
 
 # ------------------------------------------------------------------ end-to-end --
 
 run_e2e_contract() {
-  local python_bin="${DECK_PYTHON:-}"
-  if [ -z "$python_bin" ]; then
-    for candidate in "$REPO_ROOT/.venv/bin/python" "$(command -v python3 || true)"; do
-      if [ -n "$candidate" ] && "$candidate" -c 'import pptx, playwright' >/dev/null 2>&1; then
-        python_bin="$candidate"
-        break
-      fi
-    done
-  fi
+  local python_bin
+  python_bin="$(find_python)"
 
   if [ -z "$python_bin" ]; then
     skip "E2E-01..03: python-pptx and playwright not installed (run scripts/setup.sh, then set DECK_PYTHON)"
@@ -260,15 +333,19 @@ case "$SELECTOR" in
 skill) run_skill_contract ;;
 assets) run_asset_contract ;;
 tools) run_tool_contract ;;
+unit) run_unit_contract ;;
+ir) run_classification_contract ;;
 e2e) run_e2e_contract ;;
 all)
   run_skill_contract
   run_asset_contract
   run_tool_contract
+  run_unit_contract
+  run_classification_contract
   run_e2e_contract
   ;;
 *)
-  echo "Usage: $0 [skill|assets|tools|e2e]" >&2
+  echo "Usage: $0 [skill|assets|tools|unit|ir|e2e]" >&2
   exit 2
   ;;
 esac

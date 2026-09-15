@@ -19,14 +19,18 @@
   --sld-h: 720px;
   --sld-margin-x: 64px;
   --sld-margin-top: 48px;
-  --sld-margin-bottom: 40px;
+  --sld-margin-bottom: 72px;
   --sld-gap: 24px;
+  --sld-cover-anchor: 256px;
   --sld-ink: var(--color-neutral-solid-gray-900);
   --sld-ink-muted: var(--color-neutral-solid-gray-700);
   --sld-accent: var(--color-key-900);
   --sld-surface: var(--color-neutral-white);
   --sld-surface-sub: var(--color-neutral-solid-gray-50);
-  --sld-border: var(--color-neutral-solid-gray-300);
+  /* 420 and 536 are the off-scale greys that exist because they are the
+     contrast thresholds: 420 is 3.03:1 on white, which is what WCAG 1.4.11
+     requires of a border or rule. 300 is 2.10:1 and fails. */
+  --sld-border: var(--color-neutral-solid-gray-420);
 }
 
 /* ---------------------------------------------------------------- deck ---- */
@@ -52,6 +56,9 @@
   background-color: var(--sld-surface);
   color: var(--sld-ink);
   font-family: var(--font-family-sans);
+  /* Government material should not break a line where Japanese typesetting
+     forbids it; the browser default is permissive. */
+  line-break: strict;
 }
 
 .sld-slide + .sld-slide {
@@ -91,6 +98,13 @@
 
 .sld-slide :where(img, svg) {
   max-width: 100%;
+}
+
+/* 1em is exactly one zenkaku, so this caps the measure at 42 characters at any
+   size. Japanese body text reads comfortably at roughly 30-45 per line; the
+   full 1152px content width is 47 at the body size. */
+.sld-slide__body :where(p, li) {
+  max-width: 42em;
 }
 
 /* ------------------------------------------------------------ structure ---- */
@@ -148,11 +162,20 @@
   min-height: 0;
 }
 
+/* A body that ends in the upper half with nothing below it reads as
+   unfinished. Either anchor a closing band with `sld-push`, or centre the
+   body. Both survive conversion: each child is placed at its own rectangle. */
+.sld-slide__body[data-fill="center"] {
+  justify-content: center;
+}
+
 .sld-slide__footer {
   display: flex;
   position: absolute;
   right: var(--sld-margin-x);
-  bottom: 16px;
+  /* Clearance from the frame must exceed the largest gap inside it (24px),
+     or proximity makes the footer read as the last line of the content. */
+  bottom: 24px;
   left: var(--sld-margin-x);
   align-items: baseline;
   justify-content: space-between;
@@ -168,9 +191,12 @@
   color: var(--color-neutral-white);
 }
 
+/* Centring two blocks of different height gives them different anchors. The
+   cover and the section divider use the same idiom, so they share a top edge. */
 .sld-slide[data-layout="title"] .sld-slide__frame,
 .sld-slide[data-layout="section"] .sld-slide__frame {
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: calc(var(--sld-cover-anchor) - var(--sld-margin-top));
 }
 
 .sld-slide[data-layout="title"] .sld-message,
@@ -184,7 +210,8 @@
 
 .sld-slide[data-layout="title"] .sld-rule,
 .sld-slide[data-layout="section"] .sld-rule {
-  border-top-color: var(--color-key-500);
+  /* key-500 on key-900 is 2.82:1 and fails 1.4.11; key-400 is 3.91:1. */
+  border-top-color: var(--color-key-400);
 }
 
 /* ---------------------------------------------------------------- grid ---- */
@@ -284,6 +311,20 @@
 
 /* Process steps. The number is text, not a graphic, so it survives
    conversion as editable text and is announced by a screen reader. */
+.sld-steps-axis {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* One rule spanning all the steps, not one bar per step: continuity turns
+   three tiles into a single axis, and three identical bars would be ink that
+   does not change when the data does. */
+.sld-steps__track {
+  border-top: 4px solid var(--sld-border);
+  height: 0;
+}
+
 .sld-steps {
   display: grid;
   grid-auto-columns: 1fr;
@@ -299,13 +340,28 @@
   flex-direction: column;
   box-sizing: border-box;
   gap: 8px;
-  border-top: 4px solid var(--sld-accent);
   background-color: var(--sld-surface-sub);
   padding: 16px 20px;
 }
 
 .sld-steps__index {
-  color: var(--sld-accent);
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+  color: var(--sld-ink-muted);
+}
+
+/* The ordinal is what encodes direction, so it carries the key colour. */
+.sld-steps__num {
+  flex: none;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background-color: var(--sld-accent);
+  width: 24px;
+  height: 24px;
+  color: var(--color-neutral-white);
+  line-height: 24px;
+  text-align: center;
 }
 
 /* A takeaway band. Meaning is carried by the words, not by the color. */
@@ -321,14 +377,20 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: center;
   gap: 8px;
   margin: 0;
   min-height: 0;
 }
 
+/* The viewBox supplies the ratio, so the box is the drawing and the caption
+   sits against it. `object-fit` only ever applied to <img>. */
 .sld-figure > img,
 .sld-figure > svg {
-  flex: 1;
+  flex: 0 1 auto;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
   min-height: 0;
   object-fit: contain;
 }
@@ -348,6 +410,24 @@
    layout lopsided. Opt into filling the content column. */
 .sld-fill-width table {
   width: 100%;
+}
+
+/* A column of figures is only comparable when it aligns on place value.
+   `tabular-nums` keeps the digit widths equal; the converter carries the
+   alignment through as the paragraph's alignment. */
+/* `.dads-table__table :is(td, th)` sets `text-align: left` at (0,1,1), so the
+   element-qualified selector is what it takes to match it without redefining a
+   DADS class. The table component's own guidance sanctions right-aligning
+   numeric columns. */
+td.sld-num,
+th.sld-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* A total is derived from the rows above it, not another row beside them. */
+.sld-total > :where(th, td) {
+  border-top: 2px solid var(--sld-ink);
 }
 
 .sld-push {

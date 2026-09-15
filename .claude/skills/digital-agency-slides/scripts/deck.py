@@ -27,6 +27,7 @@ import re
 import sys
 import urllib.request
 import zipfile
+from xml.sax.saxutils import quoteattr
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
@@ -44,7 +45,12 @@ DEFAULTS = {
     "safe_area_px": 32,
     "min_font_px": 14,
     "body_font_px": 18,
-    "max_list_items": 7,
+    "max_list_items": 5,
+    "max_slide_items": 10,
+    # The Digital Agency's colour foundation removes WCAG's large-text
+    # relaxation: all text clears 4.5:1 whatever its size.
+    "text_contrast": 4.5,
+    "nontext_contrast": 3.0,
     "slide_selector": ".sld-slide, [data-slide]",
     "secondary_selector": (
         'footer, figcaption, caption, small, [data-role="meta"], '
@@ -54,20 +60,33 @@ DEFAULTS = {
 
 # Theme slots filled from DADS tokens so PowerPoint's own colour picker offers
 # the design system's palette rather than Office defaults.
+# Which design token fills which theme slot. The values are read from the deck
+# at conversion time and never written down here: a copy of the palette would
+# be a vendored snapshot that drifts silently when the design system moves.
 THEME_COLOR_TOKENS = [
-    ("dk1", "--color-neutral-solid-gray-900", "1A1A1A"),
-    ("lt1", "--color-neutral-white", "FFFFFF"),
-    ("dk2", "--color-neutral-solid-gray-700", "4D4D4D"),
-    ("lt2", "--color-neutral-solid-gray-50", "F2F2F2"),
-    ("accent1", "--color-key-900", "0017C1"),
-    ("accent2", "--color-key-600", "3460FB"),
-    ("accent3", "--color-semantic-success-2", "197A4B"),
-    ("accent4", "--color-semantic-warning-orange-1", "FB5B01"),
-    ("accent5", "--color-semantic-error-1", "EC0000"),
-    ("accent6", "--color-primitive-purple-700", "6F23D0"),
-    ("hlink", "--color-primitive-blue-1000", "00118F"),
-    ("folHlink", "--color-primitive-magenta-900", "8B008B"),
+    ("dk1", "--color-neutral-solid-gray-900"),
+    ("lt1", "--color-neutral-white"),
+    ("dk2", "--color-neutral-solid-gray-700"),
+    ("lt2", "--color-neutral-solid-gray-50"),
+    ("accent1", "--color-key-900"),
+    ("accent2", "--color-key-600"),
+    ("accent3", "--color-semantic-success-2"),
+    ("accent4", "--color-semantic-warning-orange-1"),
+    ("accent5", "--color-semantic-error-1"),
+    ("accent6", "--color-primitive-purple-700"),
+    ("hlink", "--color-primitive-blue-1000"),
+    ("folHlink", "--color-primitive-magenta-900"),
 ]
+
+# The theme is derived from the design system's tokens; it is not the design
+# system. Naming it after the design system would misattribute it.
+THEME_NAME = "Slide deck (design tokens)"
+
+DECORATIVE_URI = "{C183D7F6-B498-43B3-948B-1728B52AA6E4}"
+ADEC = "http://schemas.microsoft.com/office/drawing/2017/decorative"
+
+# OOXML wants a full language tag; the deck declares a subtag.
+LANG_ALIASES = {"ja": "ja-JP", "en": "en-US", "zh": "zh-CN", "ko": "ko-KR"}
 
 
 def px_to_emu(value: float) -> int:
@@ -92,7 +111,7 @@ class Extraction:
 
 
 def _read_token_css(page) -> dict[str, str]:
-    names = [token for _, token, _ in THEME_COLOR_TOKENS] + ["--font-family-sans", "--font-family-mono"]
+    names = [token for _, token in THEME_COLOR_TOKENS] + ["--font-family-sans", "--font-family-mono"]
     return page.evaluate(
         """(names) => {
             const cs = getComputedStyle(document.documentElement);
@@ -187,17 +206,36 @@ def report_findings(findings: Iterable[dict[str, Any]], stream=sys.stderr) -> in
 # ---------------------------------------------------------------- pptx build --
 
 
+MAX_IMAGE_BYTES = 32 * 1024 * 1024
+
+
 def _load_image_bytes(src: str, base: Path) -> bytes | None:
-    if src.startswith("data:"):
-        _, _, payload = src.partition(",")
-        return base64.b64decode(payload)
-    if src.startswith("file://"):
-        return Path(urllib.request.url2pathname(src[7:])).read_bytes()
-    if src.startswith(("http://", "https://")):
-        with urllib.request.urlopen(src, timeout=30) as response:  # noqa: S310 - author-supplied deck asset
-            return response.read()
-    candidate = base / src
-    return candidate.read_bytes() if candidate.exists() else None
+    """Return the bytes, or None with a reason. A broken image reference is an
+    ordinary authoring mistake — the browser still lays out a placeholder box —
+    so it must degrade to one warning, not end the conversion."""
+    import binascii
+    from urllib.parse import unquote_to_bytes, urlsplit
+
+    try:
+        if src.startswith("data:"):
+            head, _, payload = src.partition(",")
+            # A data: URI is only base64 when it says so; inline SVG is usually
+            # percent-encoded.
+            return base64.b64decode(payload) if ";base64" in head else unquote_to_bytes(payload)
+        if src.startswith("file://"):
+            return Path(urllib.request.url2pathname(urlsplit(src).path)).read_bytes()
+        if src.startswith(("http://", "https://")):
+            with urllib.request.urlopen(src, timeout=30) as response:  # noqa: S310 - author-supplied deck asset
+                blob = response.read(MAX_IMAGE_BYTES + 1)
+            if len(blob) > MAX_IMAGE_BYTES:
+                print(f"image exceeds {MAX_IMAGE_BYTES} bytes, skipped: {src}", file=sys.stderr)
+                return None
+            return blob
+        candidate = base / src
+        return candidate.read_bytes() if candidate.is_file() else None
+    except (OSError, ValueError, binascii.Error) as exc:
+        print(f"could not load image {src}: {exc}", file=sys.stderr)
+        return None
 
 
 def _sub_element(parent, tag: str, **attrs):
@@ -222,10 +260,45 @@ def _strip_theme_style(shape) -> None:
     shape.shadow.inherit = False
 
 
+def _mark_decorative(shape) -> None:
+    """Office's "Mark as decorative", which is the only thing that makes a
+    screen reader and the Accessibility Checker skip a shape. An empty `descr`
+    does neither — and python-pptx seeds a picture's `descr` with its filename,
+    so an unlabelled picture is announced as "image.png"."""
+    from lxml import etree
+
+    c_nv_pr = shape._element._nvXxPr.cNvPr
+    c_nv_pr.set("descr", "")
+    ext_lst = c_nv_pr.find(f"{{{A}}}extLst")
+    if ext_lst is None:
+        ext_lst = etree.SubElement(c_nv_pr, f"{{{A}}}extLst")
+    ext = etree.SubElement(ext_lst, f"{{{A}}}ext")
+    ext.set("uri", DECORATIVE_URI)
+    etree.SubElement(ext, f"{{{ADEC}}}decorative", nsmap={"adec": ADEC}).set("val", "1")
+
+
 def _set_alt_text(shape, text: str) -> None:
-    if not text:
-        return
-    shape._element._nvXxPr.cNvPr.set("descr", text)
+    if text:
+        shape._element._nvXxPr.cNvPr.set("descr", text)
+    else:
+        _mark_decorative(shape)
+
+
+def _ooxml_lang(tag: str | None) -> str:
+    tag = (tag or "").strip()
+    if not tag:
+        return "ja-JP"
+    return LANG_ALIASES.get(tag.lower(), tag if "-" in tag else tag)
+
+
+def _apply_lang(run, lang: str) -> None:
+    """OOXML carries language per run. python-pptx writes none, so every run
+    inherits `lang="en-US"` from the presentation's default text style and a
+    screen reader reads Japanese with an English voice."""
+    r_pr = run._r.get_or_add_rPr()
+    r_pr.set("lang", lang)
+    if lang.lower().startswith(("ja", "zh", "ko")):
+        r_pr.set("altLang", "en-US")
 
 
 def _apply_east_asian_font(run, name: str) -> None:
@@ -302,10 +375,10 @@ def _slack_rect(rect: dict[str, float], align: str, slack: float) -> tuple[float
     return rect["x"], rect["w"] + slack
 
 
-def _add_text_shape(slide, shape_ir: dict[str, Any], font_map: dict[str, str], slack: float = 0.0) -> None:
-    from pptx.dml.color import RGBColor
-    from pptx.enum.text import MSO_AUTO_SIZE
-    from pptx.util import Emu, Pt
+def _add_text_shape(
+    slide, shape_ir: dict[str, Any], font_map: dict[str, str], lang: str, slack: float = 0.0
+) -> None:
+    from pptx.util import Emu
 
     rect = shape_ir["rect"]
     wrap = shape_ir.get("wrap", True)
@@ -314,12 +387,32 @@ def _add_text_shape(slide, shape_ir: dict[str, Any], font_map: dict[str, str], s
     box = slide.shapes.add_textbox(
         Emu(px_to_emu(x)), Emu(px_to_emu(rect["y"])), Emu(px_to_emu(w)), Emu(px_to_emu(rect["h"]))
     )
+    _fill_text_frame(box, shape_ir, font_map, lang, slack)
+
+
+def _fill_text_frame(
+    box, shape_ir: dict[str, Any], font_map: dict[str, str], lang: str, slack: float = 0.0
+) -> None:
+    """Place and fill an existing shape. Used for ordinary text boxes and for
+    the title placeholder, so a promoted heading is formatted identically."""
+    from pptx.dml.color import RGBColor
+    from pptx.enum.text import MSO_AUTO_SIZE
+    from pptx.util import Emu, Pt
+
+    rect = shape_ir["rect"]
+    wrap = shape_ir.get("wrap", True)
+    align = shape_ir["paragraphs"][0]["align"] if shape_ir["paragraphs"] else "left"
+    x, w = _slack_rect(rect, align, slack if wrap else 0.0)
+    box.left, box.top = Emu(px_to_emu(x)), Emu(px_to_emu(rect["y"]))
+    box.width, box.height = Emu(px_to_emu(w)), Emu(px_to_emu(rect["h"]))
     frame = box.text_frame
     frame.word_wrap = wrap
     frame.auto_size = MSO_AUTO_SIZE.NONE
     frame.margin_left = frame.margin_right = frame.margin_top = frame.margin_bottom = 0
     frame.vertical_anchor = _anchor(shape_ir.get("anchor", "top"))
 
+    while len(frame.paragraphs) > 1:
+        frame._txBody.remove(frame.paragraphs[-1]._p)
     for index, para_ir in enumerate(shape_ir["paragraphs"]):
         paragraph = frame.paragraphs[0] if index == 0 else frame.add_paragraph()
         paragraph.alignment = _alignment(para_ir["align"])
@@ -330,9 +423,17 @@ def _add_text_shape(slide, shape_ir: dict[str, Any], font_map: dict[str, str], s
 
         first_font = _font_for(para_ir["runs"][0]["font"], font_map) if para_ir["runs"] else "Arial"
         marker = para_ir.get("marker")
-        text_left = para_ir.get("indent_px", 0.0)
-        box_left = para_ir.get("box_left_px", text_left)
-        _apply_bullet(paragraph, marker, text_left, box_left - text_left if marker else 0.0, first_font)
+        if marker:
+            # A bullet hangs left of the text: the margin is where the glyphs
+            # start, the indent is the negative distance back to the marker.
+            text_left = para_ir.get("indent_px", 0.0)
+            box_left = para_ir.get("box_left_px", text_left)
+            _apply_bullet(paragraph, marker, text_left, box_left - text_left, first_font)
+        else:
+            # Without a bullet the left margin is the paragraph box's own
+            # offset. Using the glyph offset would add the centring or
+            # right-alignment gap on top of the alignment itself.
+            _apply_bullet(paragraph, None, para_ir.get("box_left_px", 0.0), 0.0, first_font)
 
         for run_ir in para_ir["runs"]:
             run = paragraph.add_run()
@@ -342,10 +443,14 @@ def _add_text_shape(slide, shape_ir: dict[str, Any], font_map: dict[str, str], s
             font.bold = run_ir["bold"]
             font.italic = run_ir["italic"]
             font.underline = run_ir["underline"]
-            font.color.rgb = RGBColor.from_string(run_ir["color"])
+            if run_ir.get("strike"):
+                run._r.get_or_add_rPr().set("strike", "sngStrike")
+            if run_ir["color"]:
+                font.color.rgb = RGBColor.from_string(run_ir["color"])
             name = _font_for(run_ir["font"], font_map)
             font.name = name
             _apply_east_asian_font(run, name)
+            _apply_lang(run, lang)
             _apply_letter_spacing(run, run_ir.get("letter_spacing_px", 0.0))
 
 
@@ -372,11 +477,13 @@ def _add_decoration(slide, shape_ir: dict[str, Any]) -> None:
             Emu(px_to_emu(rect["h"])),
         )
         _strip_theme_style(box)
+        _mark_decorative(box)
         if radius > 0 and min(rect["w"], rect["h"]) > 0:
             box.adjustments[0] = min(0.5, radius / min(rect["w"], rect["h"]))
         if shape_ir.get("fill"):
             box.fill.solid()
             box.fill.fore_color.rgb = RGBColor.from_string(shape_ir["fill"])
+            _apply_fill_alpha(box.fill, shape_ir.get("fill_alpha", 1.0))
         else:
             box.fill.background()
         if uniform:
@@ -406,10 +513,25 @@ def _add_decoration(slide, shape_ir: dict[str, Any]) -> None:
             MSO_SHAPE.RECTANGLE, *(Emu(px_to_emu(v)) for v in geom)
         )
         _strip_theme_style(bar)
+        _mark_decorative(bar)
         bar.fill.solid()
         bar.fill.fore_color.rgb = RGBColor.from_string(border["color"]["hex"])
         bar.line.fill.background()
         bar.text_frame.text = ""
+
+
+def _apply_fill_alpha(fill, alpha: float) -> None:
+    """A CSS colour can be translucent; DrawingML expresses that as an <a:alpha>
+    child of the colour. Without it a 5% wash paints as a solid block, which is
+    what a design system's opacity-gray tokens would have produced."""
+    if alpha >= 0.999:
+        return
+    srgb = fill.fore_color._xFill.find(f"{{{A}}}srgbClr")
+    if srgb is None:
+        return
+    for existing in srgb.findall(f"{{{A}}}alpha"):
+        srgb.remove(existing)
+    _sub_element(srgb, "alpha", val=int(round(max(0.0, alpha) * 100000)))
 
 
 def _set_cell_borders(cell, borders: list[dict[str, Any]]) -> None:
@@ -424,7 +546,7 @@ def _set_cell_borders(cell, borders: list[dict[str, Any]]) -> None:
         _sub_element(fill, "srgbClr", val=border["color"]["hex"])
 
 
-def _add_table(slide, shape_ir: dict[str, Any], font_map: dict[str, str]) -> None:
+def _add_table(slide, shape_ir: dict[str, Any], font_map: dict[str, str], lang: str) -> None:
     from pptx.dml.color import RGBColor
     from pptx.util import Emu, Pt
 
@@ -436,7 +558,12 @@ def _add_table(slide, shape_ir: dict[str, Any], font_map: dict[str, str]) -> Non
         n_rows, n_cols, Emu(px_to_emu(rect["x"])), Emu(px_to_emu(rect["y"])), Emu(px_to_emu(rect["w"])), Emu(px_to_emu(rect["h"]))
     )
     table = frame.table
-    table.first_row = False
+    # `firstRow` is the only header-row semantic PowerPoint exposes, and without
+    # it a screen reader reading a cell never announces its column. It cannot
+    # repaint anything here: every cell carries its own fill and borders, and
+    # direct cell formatting overrides table-style formatting. Banding is
+    # separate, and stays off.
+    table.first_row = bool(rows_ir) and all(cell["header"] for cell in rows_ir[0])
     table.horz_banding = False
     tbl_pr = table._tbl.find(f"{{{A}}}tblPr")
     if tbl_pr is not None:
@@ -482,16 +609,31 @@ def _add_table(slide, shape_ir: dict[str, Any], font_map: dict[str, str]) -> Non
             frame_.word_wrap = cell_ir.get("lines", 1) > 1
             paragraph = frame_.paragraphs[0]
             paragraph.alignment = _alignment(cell_ir["align"])
-            for run_ir in cell_ir["runs"] or [{"text": cell_ir["text"], "size_px": 16, "bold": cell_ir["header"], "italic": False, "underline": False, "color": "1A1A1A", "font": "sans-serif", "letter_spacing_px": 0}]:
+            fallback = {
+                "text": cell_ir["text"],
+                "size_px": 16,
+                "bold": cell_ir["header"],
+                "italic": False,
+                "underline": False,
+                "strike": False,
+                "color": None,
+                "font": "sans-serif",
+                "letter_spacing_px": 0,
+            }
+            for run_ir in cell_ir["runs"] or [fallback]:
                 run = paragraph.add_run()
                 run.text = run_ir["text"]
                 run.font.size = Pt(px_to_pt(run_ir["size_px"]))
                 run.font.bold = run_ir["bold"]
                 run.font.italic = run_ir["italic"]
-                run.font.color.rgb = RGBColor.from_string(run_ir["color"])
+                if run_ir.get("strike"):
+                    run._r.get_or_add_rPr().set("strike", "sngStrike")
+                if run_ir["color"]:
+                    run.font.color.rgb = RGBColor.from_string(run_ir["color"])
                 name = _font_for(run_ir["font"], font_map)
                 run.font.name = name
                 _apply_east_asian_font(run, name)
+                _apply_lang(run, lang)
             col += span_c
 
 
@@ -509,6 +651,49 @@ def _add_picture(slide, shape_ir: dict[str, Any], blob: bytes) -> None:
     _set_alt_text(picture, shape_ir.get("alt", ""))
 
 
+def _find_heading_shape(shapes: list[dict[str, Any]], heading: str) -> dict[str, Any] | None:
+    """The slide's governing message is already a text shape. Promote that shape
+    into the title placeholder rather than adding a second copy, which a screen
+    reader would announce twice."""
+    if not heading:
+        return None
+    for shape in shapes:
+        if shape["kind"] != "text":
+            continue
+        text = "".join(run["text"] for para in shape["paragraphs"] for run in para["runs"]).strip()
+        if text == heading:
+            return shape
+    return None
+
+
+def _apply_slide_title(
+    slide,
+    slide_ir: dict[str, Any],
+    heading: str,
+    promoted: dict[str, Any] | None,
+    font_map: dict[str, str],
+    lang: str,
+    slack_px: float,
+) -> None:
+    from pptx.util import Emu
+
+    placeholder = slide.shapes.title
+    if placeholder is None:
+        return
+    if promoted is not None:
+        _fill_text_frame(placeholder, promoted, font_map, lang, slack_px)
+        return
+    # The heading is split across shapes, or absent. Keep the slide navigable
+    # with a title parked outside the canvas rather than leaving it untitled.
+    placeholder.left, placeholder.top = Emu(px_to_emu(-4000)), Emu(0)
+    placeholder.width, placeholder.height = Emu(px_to_emu(1000)), Emu(px_to_emu(60))
+    frame = placeholder.text_frame
+    frame.text = heading or f"スライド {slide_ir['index']}"
+    for paragraph in frame.paragraphs:
+        for run in paragraph.runs:
+            _apply_lang(run, lang)
+
+
 def build_pptx(
     extraction: Extraction,
     deck_path: Path,
@@ -524,21 +709,38 @@ def build_pptx(
     presentation = Presentation()
     presentation.slide_width = Emu(px_to_emu(extraction.deck["width_px"]))
     presentation.slide_height = Emu(px_to_emu(extraction.deck["height_px"]))
-    blank = presentation.slide_layouts[6]
+    lang = _ooxml_lang(extraction.deck.get("lang"))
+    core = presentation.core_properties
+    core.title = (extraction.deck.get("title") or "").strip()
+    core.language = lang
+    core.last_modified_by = ""
+    core.comments = ""
+
+    # "Title Only" is the leanest layout that still carries a title placeholder,
+    # and python-pptx clones only title/body/object placeholders, so nothing
+    # else arrives on the slide. A slide without one is untitled in the outline,
+    # in the reading-order pane and to every screen reader.
+    title_layout = presentation.slide_layouts[5]
 
     for slide_ir in extraction.slides:
-        slide = presentation.slides.add_slide(blank)
+        slide = presentation.slides.add_slide(title_layout)
         slide.background.fill.solid()
         slide.background.fill.fore_color.rgb = RGBColor.from_string(slide_ir["background"])
 
+        heading = (slide_ir.get("title") or "").strip()
+        promoted = _find_heading_shape(slide_ir["shapes"], heading)
+        _apply_slide_title(slide, slide_ir, heading, promoted, font_map, lang, slack_px)
+
         for shape_ir in slide_ir["shapes"]:
+            if shape_ir is promoted:
+                continue
             kind = shape_ir["kind"]
             if kind == "text":
-                _add_text_shape(slide, shape_ir, font_map, slack_px)
+                _add_text_shape(slide, shape_ir, font_map, lang, slack_px)
             elif kind == "shape":
                 _add_decoration(slide, shape_ir)
             elif kind == "table":
-                _add_table(slide, shape_ir, font_map)
+                _add_table(slide, shape_ir, font_map, lang)
             elif kind == "raster":
                 blob = extraction.rasters.get(shape_ir["id"])
                 if blob:
@@ -553,57 +755,98 @@ def build_pptx(
                     warnings.append(f"slide {slide_ir['index']}: could not load image {shape_ir['src']}")
 
         if slide_ir["notes"]:
-            slide.notes_slide.notes_text_frame.text = slide_ir["notes"]
+            notes_frame = slide.notes_slide.notes_text_frame
+            notes_frame.text = slide_ir["notes"]
+            for paragraph in notes_frame.paragraphs:
+                for run in paragraph.runs:
+                    _apply_lang(run, lang)
 
     presentation.save(out_path)
-    _patch_theme(out_path, extraction.tokens, font_map)
+    warnings.extend(_patch_package(out_path, extraction.tokens, font_map, lang))
     return warnings
 
 
 # ------------------------------------------------------------------- theming --
 
 
-def _theme_xml(tokens: dict[str, str], font_map: dict[str, str]) -> tuple[str, str]:
-    def hex_of(token: str, fallback: str) -> str:
+def _theme_xml(
+    tokens: dict[str, str], font_map: dict[str, str]
+) -> tuple[str | None, str, list[str]]:
+    """Build the theme from the tokens the deck actually resolved.
+
+    A slot whose token cannot be read is not guessed at: the whole colour scheme
+    is left alone and the caller is told which token was missing. Substituting a
+    remembered value would put a stale copy of someone else's palette in the
+    file under this skill's name."""
+    warnings: list[str] = []
+    values: list[tuple[str, str]] = []
+    for slot, token in THEME_COLOR_TOKENS:
         value = (tokens.get(token) or "").strip().lstrip("#")
-        return value.upper() if re.fullmatch(r"[0-9a-fA-F]{6}", value) else fallback
+        if not re.fullmatch(r"[0-9a-fA-F]{6}", value):
+            warnings.append(f"theme: {token} did not resolve in the deck; keeping the default colour scheme")
+            values = []
+            break
+        values.append((slot, value.upper()))
 
-    parts = ["<a:clrScheme xmlns:a='%s' name='DADS'>" % A]
-    for slot, token, fallback in THEME_COLOR_TOKENS:
-        value = hex_of(token, fallback)
-        parts.append(f"<a:{slot}><a:srgbClr val='{value}'/></a:{slot}>")
-    parts.append("</a:clrScheme>")
+    clr_scheme = None
+    if values:
+        body = "".join(f"<a:{slot}><a:srgbClr val='{value}'/></a:{slot}>" for slot, value in values)
+        clr_scheme = f"<a:clrScheme xmlns:a='{A}' name='{THEME_NAME}'>{body}</a:clrScheme>"
 
-    sans = (tokens.get("--font-family-sans") or "Noto Sans JP").split(",")[0].strip().strip("'\"")
-    sans = _font_for(sans, font_map)
-    fonts = [
-        f"<a:{scheme}><a:latin typeface='{sans}'/><a:ea typeface='{sans}'/><a:cs typeface=''/></a:{scheme}>"
+    sans = (tokens.get("--font-family-sans") or "").split(",")[0].strip().strip("'\"")
+    sans = _font_for(sans, font_map) if sans else ""
+    if not sans:
+        warnings.append("theme: no sans font resolved in the deck; keeping the default font scheme")
+        return clr_scheme, "", warnings
+    quoted = quoteattr(sans)
+    fonts = "".join(
+        f"<a:{scheme}><a:latin typeface={quoted}/><a:ea typeface={quoted}/><a:cs typeface=''/></a:{scheme}>"
         for scheme in ("majorFont", "minorFont")
-    ]
-    font_scheme = "<a:fontScheme xmlns:a='%s' name='DADS'>%s</a:fontScheme>" % (A, "".join(fonts))
-    return "".join(parts), font_scheme
+    )
+    font_scheme = f"<a:fontScheme xmlns:a='{A}' name='{THEME_NAME}'>{fonts}</a:fontScheme>"
+    return clr_scheme, font_scheme, warnings
 
 
-def _patch_theme(pptx_path: Path, tokens: dict[str, str], font_map: dict[str, str]) -> None:
-    """Rewrite the deck theme so PowerPoint's colour and font pickers offer the
-    design system's palette instead of the Office defaults."""
-    clr_scheme, font_scheme = _theme_xml(tokens, font_map)
+def _patch_package(
+    pptx_path: Path, tokens: dict[str, str], font_map: dict[str, str], lang: str
+) -> list[str]:
+    """Rewrite the parts python-pptx cannot reach through its object model:
+
+    the theme, so PowerPoint's colour and font pickers offer the deck's own
+    palette; the inherited `lang="en-US"` in the master, the layouts and the
+    presentation defaults, so text the recipient types later is also tagged
+    correctly; and the slide-size token, which is stale in python-pptx's
+    template."""
+    clr_scheme, font_scheme, warnings = _theme_xml(tokens, font_map)
     with zipfile.ZipFile(pptx_path) as source:
         entries = [(item, source.read(item.filename)) for item in source.infolist()]
 
-    def rewrite(data: bytes) -> bytes:
-        text = data.decode("utf-8")
-        text = re.sub(r"<a:clrScheme\b.*?</a:clrScheme>", clr_scheme, text, count=1, flags=re.S)
-        text = re.sub(r"<a:fontScheme\b.*?</a:fontScheme>", font_scheme, text, count=1, flags=re.S)
-        return text.encode("utf-8")
+    def rewrite_theme(text: str) -> str:
+        if clr_scheme:
+            text = re.sub(r"<a:clrScheme\b.*?</a:clrScheme>", lambda _: clr_scheme, text, count=1, flags=re.S)
+        if font_scheme:
+            text = re.sub(r"<a:fontScheme\b.*?</a:fontScheme>", lambda _: font_scheme, text, count=1, flags=re.S)
+        return text
 
     buffer = BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as target:
         for item, data in entries:
-            if item.filename.startswith("ppt/theme/") and item.filename.endswith(".xml"):
-                data = rewrite(data)
+            name = item.filename
+            if name.endswith(".xml"):
+                text = data.decode("utf-8")
+                if name.startswith("ppt/theme/"):
+                    text = rewrite_theme(text)
+                if name in ("ppt/presentation.xml", "ppt/notesMasters/notesMaster1.xml") or name.startswith(
+                    ("ppt/slideMasters/", "ppt/slideLayouts/")
+                ):
+                    text = text.replace('lang="en-US"', f'lang="{lang}"')
+                if name == "ppt/presentation.xml":
+                    text = re.sub(r'(<p:sldSz[^>]*?)\s*type="[^"]*"', r"\1", text)
+                    text = text.replace("<p:sldSz ", '<p:sldSz type="screen16x9" ', 1)
+                data = text.encode("utf-8")
             target.writestr(copy.copy(item), data)
     pptx_path.write_bytes(buffer.getvalue())
+    return warnings
 
 
 # ----------------------------------------------------------------------- cli --
@@ -617,6 +860,9 @@ def _options(args: argparse.Namespace) -> dict[str, Any]:
             "min_font_px": args.min_font,
             "body_font_px": args.body_font,
             "max_list_items": args.max_list_items,
+            "max_slide_items": args.max_slide_items,
+            "text_contrast": args.text_contrast,
+            "nontext_contrast": args.nontext_contrast,
             "slide_selector": args.selector,
             "secondary_selector": args.secondary_selector,
             "viewport_px": args.viewport,
@@ -652,7 +898,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--safe-area", type=float, default=DEFAULTS["safe_area_px"], help="safe-area inset in px")
     parser.add_argument("--min-font", type=float, default=DEFAULTS["min_font_px"], help="minimum font size in px")
     parser.add_argument("--body-font", type=float, default=DEFAULTS["body_font_px"], help="comfortable body size in px")
-    parser.add_argument("--max-list-items", type=int, default=DEFAULTS["max_list_items"], help="list items per slide")
+    parser.add_argument("--max-list-items", type=int, default=DEFAULTS["max_list_items"], help="items in any one list")
+    parser.add_argument(
+        "--max-slide-items", type=int, default=DEFAULTS["max_slide_items"], help="list items on a slide, pooled"
+    )
+    parser.add_argument(
+        "--text-contrast", type=float, default=DEFAULTS["text_contrast"], help="minimum contrast ratio for text"
+    )
+    parser.add_argument(
+        "--nontext-contrast",
+        type=float,
+        default=DEFAULTS["nontext_contrast"],
+        help="minimum contrast ratio for borders and rules",
+    )
     parser.add_argument("--viewport", type=int, default=1440, help="browser viewport width in px")
     parser.add_argument("--settle-ms", type=int, default=250, help="wait after load before measuring")
     parser.add_argument(
@@ -697,6 +955,10 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(text)
         return 0
+
+    if extraction.deck is None:
+        report_findings(extraction.findings)
+        sys.exit(f"no slide matched {options['slide_selector']}")
 
     errors = report_findings(extraction.findings)
 
