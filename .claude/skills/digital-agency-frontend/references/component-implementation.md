@@ -4,32 +4,46 @@ Load this when writing, porting, or reviewing DADS component code.
 
 The rules below are the Digital Agency's own conventions, taken from
 `AGENTS.md` and `.agents/skills/component-rules/SKILL.md` in
-[design-system-example-components-react](https://github.com/digital-go-jp/design-system-example-components-react).
+[design-system-example-components](https://github.com/digital-go-jp/design-system-example-components).
 Follow them when working inside that repo. Outside it, apply them as the default
 and record any deliberate departure.
 
-## Upstream is a package, not a snippet dump
+## Where each piece actually comes from
 
-The official React components are published to npm. Prefer depending on the
-package over copying files:
+The tokens and the Tailwind theme are npm packages. The React components are
+not — they exist only as repository source. Treating them as a package that
+merely needs installing produces a command that fails.
 
-| Package | Purpose |
-|---|---|
-| `@digital-go-jp/design-system-example-components-react` | React component implementations |
-| `@digital-go-jp/tailwind-theme-plugin` | Tailwind theme (the token classes below) — <https://github.com/digital-go-jp/tailwind-theme-plugin> |
-| `@digital-go-jp/design-tokens` | Raw design tokens, the source both of the above build from |
+| What | Where | How to take it |
+|---|---|---|
+| Raw design tokens | `@digital-go-jp/design-tokens` on npm | A dependency |
+| Tailwind theme (the token classes below) | `@digital-go-jp/tailwind-theme-plugin` on npm — <https://github.com/digital-go-jp/tailwind-theme-plugin> | A dependency |
+| React component implementations | [design-system-example-components](https://github.com/digital-go-jp/design-system-example-components) | Read upstream; vendor only what the project needs |
+| Plain HTML/CSS reference | [design-system-example-components-html](https://github.com/digital-go-jp/design-system-example-components-html) | The React components are ported from here; the better substrate outside React |
 
-Resolve the current version at task time; never trust a version written into a
-document:
+The React repository's `package.json` declares the name
+`@digital-go-jp/design-system-example-components-react` and a public
+`publishConfig`, so publication is intended. Whether it has happened is a fact
+to check, not to assume — and the two repository names above resolve to the same
+HEAD, because one is a rename redirect. The `repository.url` in that
+`package.json` is what settles which name is canonical.
+
+Resolve all of this at task time; never trust a version, or an availability
+claim, written into a document:
 
 ```sh
-npm view @digital-go-jp/design-system-example-components-react version
-npm view @digital-go-jp/tailwind-theme-plugin version
 npm view @digital-go-jp/design-tokens version
+npm view @digital-go-jp/tailwind-theme-plugin version
+# E404 means the React components are still repository-only.
+npm view @digital-go-jp/design-system-example-components-react version
+curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/design-system-example-components/main/package.json
 ```
 
-Copy a component's source only when the project must own and diverge from it.
-Copying forfeits upstream fixes, so state that trade-off when choosing it.
+While the React components are repository-only, a project that wants them owns
+the copy it takes: upstream fixes will not arrive on their own. Copy the
+components the project actually uses rather than the directory, adapt them to
+the project's React, Tailwind and TypeScript versions, and record where each one
+came from. If the package has since been published, depend on it instead.
 
 ### Plugin setup
 
@@ -166,7 +180,7 @@ relative after:absolute after:inset-x-0 after:-inset-y-full after:m-auto after:h
 hatch via `Slot`, `forwardRef`, and the `aria-disabled` handler.
 
 ```sh
-curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/design-system-example-components-react/main/src/components/Button/Button.tsx
+curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/design-system-example-components/main/src/components/Button/Button.tsx
 ```
 
 ## Toolchain
@@ -181,7 +195,7 @@ Match the **target** project's versions instead of importing upstream's. Verify
 current dependencies before relying on any of this:
 
 ```sh
-curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/design-system-example-components-react/main/package.json
+curl -fsSL --proto '=https' https://raw.githubusercontent.com/digital-go-jp/design-system-example-components/main/package.json
 ```
 
 Upstream's own completion gate is `npm run lint`, `npm run lint:markup`,

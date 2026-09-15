@@ -87,10 +87,14 @@ Write or update a failing behavior or accessibility test before implementing,
 wherever the repository can automate the contract. Keep the change type-safe —
 do not weaken or bypass the type checker to make code compile.
 
-Prefer depending on the official npm packages over copying source; copy only when
-the project must own and diverge from the code, and say so. Adapt what you take
-to the target project's React, Tailwind, and TypeScript versions instead of
-copying a directory wholesale or forcing a downgrade. Validate external data at
+Take each official piece the way it is actually distributed: the design tokens
+and the Tailwind theme as npm dependencies, the React components from their
+repository. Check what is on npm at task time rather than assuming — the
+component package's availability is a fact that changes. Where a component has
+to be copied, the project owns that copy and will not get upstream fixes, so say
+so, copy only the components it uses, and adapt them to the target project's
+React, Tailwind, and TypeScript versions instead of copying a directory
+wholesale or forcing a downgrade. Validate external data at
 its boundary and render untrusted text through React's normal escaping.
 Token classes and component idioms: `references/component-implementation.md`.
 
