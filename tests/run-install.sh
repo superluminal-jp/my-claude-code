@@ -55,7 +55,7 @@ if [ "${1:-}" = "plugin" ] && [ "${2:-}" = "marketplace" ] && [ "${3:-}" = "list
     printf '%s\n' 'claude-plugins-official'
 elif [ "${1:-}" = "plugin" ] && [ "${2:-}" = "list" ]; then
   out=""
-  for p in frontend-design code-review skill-creator github deploy-on-aws microsoft-docs; do
+  for p in frontend-design code-review skill-creator; do
     if grep -qx "plugin install ${p}@claude-plugins-official" "$CLAUDE_LOG"; then
       out="${out}${p}@claude-plugins-official
 "
@@ -65,12 +65,7 @@ elif [ "${1:-}" = "plugin" ] && [ "${2:-}" = "list" ]; then
 fi
 STUB
 
-cat >"$STUB_BIN/uvx" <<'STUB'
-#!/usr/bin/env bash
-exit 0
-STUB
-
-chmod +x "$STUB_BIN/claude" "$STUB_BIN/uvx"
+chmod +x "$STUB_BIN/claude"
 
 # Seed paths managed by the current repository version. hooks/ and
 # scripts/guardrails/ are no longer managed paths (install.sh dropped their
@@ -100,7 +95,6 @@ install_output="$TEST_ROOT/install.out"
 if ! HOME="$TEST_HOME" \
   PATH="$STUB_BIN:/usr/bin:/bin:/usr/sbin:/sbin" \
   CLAUDE_LOG="$CLAUDE_LOG" \
-  GOOGLE_DEV_KNOWLEDGE_API_KEY="test-key" \
   bash "$REPO_ROOT/install.sh" >"$install_output" 2>&1; then
   sed 's/^/    /' "$install_output" >&2
   fail "install.sh completes against the isolated home"
@@ -139,25 +133,30 @@ git_config_after="$(cksum <"$git_config")"
   fail "installer does not mutate the source Spec Kit configuration"
 pass "installer does not mutate the source Spec Kit configuration"
 
-actual_mcps="$(awk '$1 == "mcp" && $2 == "add" {print $5}' "$CLAUDE_LOG" | sort)"
-expected_mcps="$(jq -r '.mcpServers | keys[]' "$REPO_ROOT/.mcp.json" | sort)"
-[ "$actual_mcps" = "$expected_mcps" ] || {
-  printf 'Expected MCPs:\n%s\nActual MCPs:\n%s\n' "$expected_mcps" "$actual_mcps" >&2
-  fail "all and only current MCP servers are upserted"
-}
-pass "all and only current MCP servers are upserted"
+# MCP servers are the user's to add: the installer registers and removes none,
+# so a server the user added (or an earlier install left) is never touched.
+grep -q '^mcp ' "$CLAUDE_LOG" && fail "installer runs no claude mcp command"
+pass "installer runs no claude mcp command"
 
 grep -qxF 'plugin marketplace add anthropics/claude-plugins-official' "$CLAUDE_LOG" ||
   fail "official plugin marketplace is added on a fresh environment"
 pass "official plugin marketplace is added on a fresh environment"
 
-for official_plugin in frontend-design code-review skill-creator github deploy-on-aws microsoft-docs; do
+for official_plugin in frontend-design code-review skill-creator; do
   grep -qxF "plugin install ${official_plugin}@claude-plugins-official" "$CLAUDE_LOG" ||
     fail "${official_plugin} is installed on a fresh environment"
   grep -qxF "plugin enable ${official_plugin}@claude-plugins-official" "$CLAUDE_LOG" ||
     fail "${official_plugin} is enabled on a fresh environment"
 done
-pass "official plugins (frontend-design, code-review, skill-creator, github, deploy-on-aws, microsoft-docs) are installed and enabled"
+pass "official plugins (frontend-design, code-review, skill-creator) are installed and enabled"
+
+# Plugins that bundle an MCP server are left for the user to add, like the
+# servers themselves.
+for mcp_plugin in github deploy-on-aws microsoft-docs; do
+  grep -qF "${mcp_plugin}@claude-plugins-official" "$CLAUDE_LOG" &&
+    fail "MCP-bundling plugin ${mcp_plugin} is neither installed nor enabled"
+done
+pass "MCP-bundling plugins (github, deploy-on-aws, microsoft-docs) are neither installed nor enabled"
 
 if grep -qF '.specify/extensions/git/git-config.yml' "$REPO_ROOT/install.sh"; then
   fail "installer has no source-tree Spec Kit mutation"
@@ -168,31 +167,30 @@ pass "installer has no source-tree Spec Kit mutation"
 pass "installed install.sh is executable"
 
 # --- Preflight: missing required commands -----------------------------------
-# An empty PATH means `command -v claude` / `command -v uvx` / `command -v jq`
+# An empty PATH means `command -v claude` / `command -v jq`
 # all fail, so install.sh must exit 1 with its own diagnostic before touching
 # anything — this path was previously dead as far as this suite was concerned.
 EMPTY_BIN="$TEST_ROOT/empty-bin"
 mkdir -p "$EMPTY_BIN"
 # PATH reassignment applies to resolving the `bash` command word itself, not
 # just to what install.sh sees — symlink the real interpreter in so `bash` is
-# still found, while claude/uvx/jq (elsewhere on the real PATH) are not.
+# still found, while claude/jq (elsewhere on the real PATH) are not.
 ln -s "$(command -v bash)" "$EMPTY_BIN/bash"
 preflight_output="$TEST_ROOT/preflight.out"
 if HOME="$TEST_ROOT/unused-home" PATH="$EMPTY_BIN" bash "$REPO_ROOT/install.sh" \
   >"$preflight_output" 2>&1; then
-  fail "install.sh exits non-zero when claude/uvx/jq are missing"
+  fail "install.sh exits non-zero when claude/jq are missing"
 fi
 grep -q 'Missing required command: claude' "$preflight_output" ||
   fail "install.sh names the missing command in its preflight error"
-pass "install.sh fails fast with a clear message when claude/uvx/jq are missing"
+pass "install.sh fails fast with a clear message when claude/jq are missing"
 
-# jq specifically: put claude and uvx on PATH but not jq, so the preflight
-# loop reaches its third command and reports that one by name.
+# jq specifically: put claude on PATH but not jq (nor uvx, which the installer
+# no longer needs), so the preflight loop reaches jq and reports it by name.
 JQLESS_BIN="$TEST_ROOT/jqless-bin"
 mkdir -p "$JQLESS_BIN"
 ln -s "$(command -v bash)" "$JQLESS_BIN/bash"
 ln -s "$STUB_BIN/claude" "$JQLESS_BIN/claude"
-ln -s "$STUB_BIN/uvx" "$JQLESS_BIN/uvx"
 jq_preflight_output="$TEST_ROOT/preflight-jq.out"
 if HOME="$TEST_ROOT/unused-home-jq" PATH="$JQLESS_BIN" bash "$REPO_ROOT/install.sh" \
   >"$jq_preflight_output" 2>&1; then
@@ -221,21 +219,16 @@ jq '. + {
   "$TARGET/settings.json" >"$TARGET/settings.json.tmp"
 mv "$TARGET/settings.json.tmp" "$TARGET/settings.json"
 
-# --- Idempotent re-run, and the GOOGLE_DEV_KNOWLEDGE_API_KEY-unset branch ---
+# --- Idempotent re-run -------------------------------------------------------
 # Re-run against the SAME target, appending to the SAME $CLAUDE_LOG (the claude
 # stub's `plugin marketplace list` / `plugin list` branches look back through
 # that log's full history, so state only carries over if the log is
 # continuous — a fresh log for the second run would make every run look like
 # a first run). This exercises install.sh's "already present" branches for
-# real, not just its "fresh install" branches. `env -u` explicitly removes
-# GOOGLE_DEV_KNOWLEDGE_API_KEY rather than merely not re-setting it — an
-# ambient value already exported in the *outer* shell running this test would
-# otherwise silently leak through and defeat this branch entirely (a prefix
-# assignment overrides an inherited value, but the absence of one does not).
+# real, not just its "fresh install" branches.
 lines_before_second_run="$(wc -l <"$CLAUDE_LOG")"
 second_output="$TEST_ROOT/install-second.out"
-if ! env -u GOOGLE_DEV_KNOWLEDGE_API_KEY \
-  HOME="$TEST_HOME" \
+if ! HOME="$TEST_HOME" \
   PATH="$STUB_BIN:/usr/bin:/bin:/usr/sbin:/sbin" \
   CLAUDE_LOG="$CLAUDE_LOG" \
   bash "$REPO_ROOT/install.sh" >"$second_output" 2>&1; then
@@ -279,18 +272,13 @@ grep -qxF 'plugin marketplace update claude-plugins-official' "$second_run_log" 
   fail "second run updates rather than re-adds an already-registered marketplace"
 pass "second run updates rather than re-adds an already-registered marketplace"
 
-for official_plugin in frontend-design code-review skill-creator github deploy-on-aws microsoft-docs; do
+for official_plugin in frontend-design code-review skill-creator; do
   grep -qxF "plugin install ${official_plugin}@claude-plugins-official" "$second_run_log" &&
     fail "second run does not re-install already-installed plugin ${official_plugin}"
 done
 pass "second run does not re-install any already-installed plugin"
 
-grep -qxF 'mcp remove -s user google-developer-knowledge' "$second_run_log" ||
-  fail "google-developer-knowledge is removed when its API key is unset"
-pass "google-developer-knowledge is removed when its API key is unset"
-
-grep -qF 'mcp add -s user google-developer-knowledge' "$second_run_log" &&
-  fail "google-developer-knowledge is not re-added when its API key is unset"
-pass "google-developer-knowledge is not re-added when its API key is unset"
+grep -q '^mcp ' "$second_run_log" && fail "second run runs no claude mcp command"
+pass "second run runs no claude mcp command"
 
 printf '%s\n' 'All installer contract checks passed.'

@@ -58,9 +58,10 @@ across projects while preserving unrelated user files.
   `specify init` under whichever agent directory `--integration` targets
   (`.claude/skills/`, `.agents/skills/`, `.cursor/skills/`), all gitignored
   (see [Opt-in to spec-kit](#opt-in-to-spec-kit))
-- **`install.sh`** — Copies `.claude/` to `~/.claude/`, registers all MCP
-  servers at user scope, and installs/enables this repository's Claude Code
-  plugins (see [Plugins](#plugins))
+- **`install.sh`** — Copies `.claude/` to `~/.claude/` and installs/enables
+  this repository's Claude Code plugins (see [Plugins](#plugins)). It installs
+  no MCP servers — add the ones you need yourself (see
+  [MCP Servers](#mcp-servers))
 
 ## Supplementary documentation
 
@@ -72,24 +73,27 @@ and skills carry their own sources inline instead.
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | The test each always-on instruction must pass, and what each file deliberately omits |
 | [`docs/live-documentation-standards.md`](docs/live-documentation-standards.md) | The lifecycle standards behind `rules/live-documentation.md`, and why § 7 is shaped as it is |
-| [`docs/mcp-servers.md`](docs/mcp-servers.md) | What `.mcp.json` can and cannot carry, each server's vendor reference, and how to update the tables |
+| [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, and what to update when a server is added |
 | [`docs/adr/`](docs/adr/) | Architecture decision records — immutable once Accepted, only superseded |
 
 ## Install as user configuration
 
 Run the bundled installer from the cloned repo. It synchronizes the declared
-managed paths from `.claude/` to `~/.claude/`, registers all MCP servers at
-user scope, and installs/enables this repository's Claude Code plugins (see
-[Plugins](#plugins)):
+managed paths from `.claude/` to `~/.claude/` and installs/enables this
+repository's Claude Code plugins (see [Plugins](#plugins)):
 
 ```sh
 bash path/to/my-claude-code/install.sh
 ```
 
-Requires the `claude` CLI, `uvx`, and `jq`. The Google Developer Knowledge MCP
-is registered only when `GOOGLE_DEV_KNOWLEDGE_API_KEY` is set.
+Requires the `claude` CLI and `jq`.
 
-Re-running is safe: it re-syncs managed paths and upserts MCP servers.
+The installer does not register, update, or remove MCP servers, and does not
+install plugins that bundle one. Add whichever you need yourself (see
+[MCP Servers](#mcp-servers)); servers already registered at user scope, for
+example by an earlier version of this installer, are left as they are.
+
+Re-running is safe: it re-syncs managed paths and re-checks the plugins.
 
 **Important (overwrite/replace behavior):**
 
@@ -121,8 +125,8 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 my-claude-code/
 ├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
 ├── README.md
-├── install.sh                      # Sync managed Claude paths + register MCP servers + install plugins
-├── .mcp.json                       # Project-scope MCP server definitions (reference)
+├── install.sh                      # Sync managed Claude paths + install plugins (no MCP servers)
+├── .mcp.json                       # Project-scope MCP server definitions; reference for adding servers yourself
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml                  # Runs tests/run-*.sh on every push/PR to main (required check)
@@ -165,8 +169,7 @@ my-claude-code/
 
 ## Verification
 
-After changing `.mcp.json`, `install.sh`, `.claude/settings.json`
-(MCP allowlist, `enabledPlugins`), or
+After changing `.mcp.json`, `install.sh`, `.claude/settings.json`, or
 [`.claude/skills/cloud-platform-research/SKILL.md`](.claude/skills/cloud-platform-research/SKILL.md):
 
 ```sh
@@ -234,18 +237,19 @@ just alert:
 
 ## MCP Servers
 
-MCP servers are defined in [`.mcp.json`](.mcp.json) for project-scope use —
-that file is the canonical catalog of transports, packages, and endpoints.
-Which server to pick and the AWS skill-registry protocol — the operational part
-Claude Code needs — are in
-[`.claude/skills/cloud-platform-research/SKILL.md`](.claude/skills/cloud-platform-research/SKILL.md),
-loaded on demand rather than every session. The
-background a maintainer needs, including each server's vendor reference and how
-to update the tables when a server is added, is in
+This repository does not install MCP servers into your user configuration.
+`install.sh` neither registers nor removes any, and nothing under `.claude/`
+assumes a particular server is present — `cloud-platform-research` uses
+whatever documentation tools the session actually exposes. Add the servers you
+need yourself.
+
+[`.mcp.json`](.mcp.json) defines the servers used when working inside this
+repository (project scope) and doubles as a catalog to copy from. Background —
+what `.mcp.json` can carry and each server's vendor reference — is in
 [`docs/mcp-servers.md`](docs/mcp-servers.md).
 
-User-scope MCP servers are registered via the CLI (stored separately; not
-installed by copying `.claude/` alone). Equivalent commands:
+To register any of them at user scope, run only the lines you want (the
+`uvx`-based servers need [uv](https://docs.astral.sh/uv/)):
 
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
@@ -258,38 +262,42 @@ claude mcp add -s user \
   https://developerknowledge.googleapis.com/mcp \
   --header "X-Goog-Api-Key: ${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}"
 claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
+claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/mcp
 ```
-
-Or run `~/.claude/install.sh` (see [Install](#install-as-user-configuration)) — the installer performs these registrations.
 
 ## Plugins
 
-This repository depends on six Claude Code plugins, all resolved from
-Anthropic's official `claude-plugins-official` marketplace
-(`anthropics/claude-plugins-official`, which also mirrors third-party plugins
-such as `github` and `microsoft-docs`):
+`install.sh` installs three Claude Code plugins, all from Anthropic's official
+`claude-plugins-official` marketplace (`anthropics/claude-plugins-official`):
 
 | Plugin | Author | Purpose |
 |---|---|---|
 | `frontend-design` | Anthropic | UI/UX implementation guidance |
 | `code-review` | Anthropic | Multi-agent PR review, incl. `/code-review ultra` |
 | `skill-creator` | Anthropic | Scaffold, update, and evaluate skills |
-| `github` | GitHub | Official GitHub MCP server (issues, PRs, repo search) |
-| `deploy-on-aws` | AWS | AWS architecture diagrams + deploy/IaC skills — adopted in full per [ADR-0009](docs/adr/0009-adopt-deploy-on-aws-plugin.md); its deploy/mutating-AWS-CLI capability requires confirmation on every use per [`.claude/rules/permissions.md`](.claude/rules/permissions.md), not a plugin-level gate |
-| `microsoft-docs` | Microsoft | Official Microsoft/Azure/.NET docs MCP server + skills. Bundles its own MCP entry named `microsoft-learn` pointing at the same `https://learn.microsoft.com/api/mcp` endpoint as this repository's own [`.mcp.json`](.mcp.json) `microsoft-learn` entry — redundant, not conflicting, left as-is (same pattern as `deploy-on-aws`'s `awsknowledge` duplication, [ADR-0009](docs/adr/0009-adopt-deploy-on-aws-plugin.md)) |
 
-Declared for project-scope discovery in `.claude/settings.json`'s
-`enabledPlugins`, so any session opened in this repository is prompted to
-install whichever of the six it doesn't already have. `install.sh` performs
-the actual install: it adds the marketplace if missing, then installs and
-enables each plugin at user scope so it works across all your projects, not
-only this one. Equivalent commands:
+It adds the marketplace if missing, then installs and enables each plugin at
+user scope so it works across all your projects, not only this one.
+Equivalent commands:
 
 ```sh
 claude plugin marketplace add anthropics/claude-plugins-official
 claude plugin install frontend-design@claude-plugins-official
 claude plugin install code-review@claude-plugins-official
 claude plugin install skill-creator@claude-plugins-official
+```
+
+Plugins that bundle an MCP server are, like the servers themselves, yours to
+add when you need them; the installer neither installs nor removes them. The
+same marketplace carries, for example:
+
+| Plugin | Author | Bundles |
+|---|---|---|
+| `github` | GitHub | Official GitHub MCP server (issues, PRs, repo search) |
+| `deploy-on-aws` | AWS | AWS architecture diagrams + deploy/IaC skills, with AWS MCP servers. Its deploy and mutating AWS CLI operations still require confirmation on every use per [`.claude/rules/permissions.md`](.claude/rules/permissions.md) |
+| `microsoft-docs` | Microsoft | Official Microsoft/Azure/.NET docs MCP server + skills |
+
+```sh
 claude plugin install github@claude-plugins-official
 claude plugin install deploy-on-aws@claude-plugins-official
 claude plugin install microsoft-docs@claude-plugins-official
