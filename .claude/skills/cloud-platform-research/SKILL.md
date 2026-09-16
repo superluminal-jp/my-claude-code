@@ -20,17 +20,7 @@ Ask only when a missing dimension would materially change the result. Otherwise 
 
 ## Discover the current official capability
 
-Use the available tool-discovery mechanism before concluding that provider documentation is unavailable. Select the provider's official source at task time:
-
-| Subject | Preferred official capability |
-|---|---|
-| AWS services and regional availability | `aws-knowledge` or `aws-documentation` |
-| Amazon Bedrock AgentCore | `bedrock-agentcore` |
-| Strands Agents | `strands-agents` |
-| Google Cloud and Google developer products | `google-developer-knowledge` |
-| Microsoft Azure and Microsoft Learn | `microsoft-learn` |
-
-Treat this table as a preference, not proof that a capability is configured, authorized, or healthy. Discover its current tools and follow any instructions returned by the server. Do not infer OAuth state or invent a tool, skill name, parameter, or response.
+Use the available tool-discovery mechanism before concluding that provider documentation is unavailable. Select the provider's official source at task time from whatever documentation tools the current session actually exposes. Nothing here assumes a particular tool is installed, configured, authorized, or healthy. Follow any instructions a discovered tool returns. Do not infer OAuth state or invent a tool, skill name, parameter, or response.
 
 For AWS agent-skill questions, if the official capability exposes skill-registry search, search the `agent_skills` topic first and retrieve only an exact name returned by that search. Never guess a registry identifier.
 
