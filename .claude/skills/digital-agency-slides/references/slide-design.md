@@ -191,8 +191,10 @@ Rules the linter enforces:
 - On a slide, body copy at 18 px or larger. 16 px is legal but small at
   projection distance, so the linter warns — except on the secondary content
   the foundation's exception covers: footers, captions, eyebrows, tile labels.
-- Cap the measure at about 42 zenkaku. `slide.css` does this with
-  `max-width: 42em`, which holds at any size because 1em is one zenkaku.
+- Body text, lists and takeaway bands span the full width of their container,
+  so their right edge lines up with the headline and the table. `slide.css`
+  sets no measure cap; if a line runs long, shorten the sentence or split the
+  content into columns rather than narrowing the text box.
 - A headline that has to shrink to fit means the headline is too long.
 
 ## Colour

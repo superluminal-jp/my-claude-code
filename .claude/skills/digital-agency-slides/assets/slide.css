@@ -100,13 +100,6 @@
   max-width: 100%;
 }
 
-/* 1em is exactly one zenkaku, so this caps the measure at 42 characters at any
-   size. Japanese body text reads comfortably at roughly 30-45 per line; the
-   full 1152px content width is 47 at the body size. */
-.sld-slide__body :where(p, li) {
-  max-width: 42em;
-}
-
 /* ------------------------------------------------------------ structure ---- */
 
 /* The content frame every non-cover layout sits in. Its inset is the safe
