@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>classification fixture</title>
+<!--
+  A self-contained fixture for the slide extractor's classification and
+  geometry rules. No network, no fetched assets, no web fonts: every case is a
+  defect that once shipped silently, and each one is asserted against the IR by
+  tests/assert_classification.py.
+-->
+<style>
+  body { margin: 0; font-family: sans-serif; }
+  .sld-slide {
+    position: relative; box-sizing: border-box;
+    width: 1280px; height: 720px; overflow: hidden;
+    background: #ffffff; color: #1a1a1a;
+  }
+  .at { position: absolute; }
+  h2 { margin: 0; font-size: 32px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- 1. Bare text nodes sitting beside block children were dropped silently. -->
+<section class="sld-slide" data-case="mixed-content">
+  <h2 class="at" style="left:64px;top:48px">mixed content</h2>
+  <div class="at" style="left:64px;top:160px;width:600px;font-size:24px">
+    BARE-BEFORE
+    <div>BLOCK-CHILD</div>
+    BARE-AFTER
+  </div>
+</section>
+
+<!-- 2. An un-annotated inline <svg> reports a lowercase tagName, so it was read
+        as a text block and every graphic in it disappeared. -->
+<section class="sld-slide" data-case="inline-svg">
+  <h2 class="at" style="left:64px;top:48px">inline svg</h2>
+  <svg class="at" style="left:64px;top:160px" width="300" height="200" viewBox="0 0 300 200" aria-label="a chart">
+    <rect width="300" height="200" fill="#0017c1"></rect>
+    <text x="20" y="100" fill="#ffffff" font-size="20">SVGTEXT</text>
+  </svg>
+</section>
+
+<!-- 3. A translucent fill was emitted fully opaque, so a 5% wash painted solid. -->
+<section class="sld-slide" data-case="translucent-fill">
+  <h2 class="at" style="left:64px;top:48px">translucent fill</h2>
+  <div class="at" style="left:64px;top:160px;width:400px;height:80px;background:rgba(0,0,0,0.05)"></div>
+</section>
+
+<!-- 4. Centred text took the glyph offset as its paragraph margin, which
+        PowerPoint then added on top of the centring. -->
+<section class="sld-slide" data-case="centred-text">
+  <h2 class="at" style="left:64px;top:48px">centred text</h2>
+  <div class="at" style="left:100px;top:200px;width:800px;font-size:28px;text-align:center">CENTERED</div>
+</section>
+
+<!-- 5. Adjacent sibling margins collapse in CSS and are summed in DrawingML. -->
+<section class="sld-slide" data-case="margin-collapse">
+  <h2 class="at" style="left:64px;top:48px">margin collapse</h2>
+  <div class="at" style="left:64px;top:160px;width:600px;font-size:20px;line-height:1.5">
+    <p style="margin:16px 0">PARA-A</p>
+    <p style="margin:16px 0">PARA-B</p>
+    <p style="margin:16px 0">PARA-C</p>
+  </div>
+</section>
+
+<!-- 6. Out-of-flow children have no flow position to become paragraph spacing,
+        so stacking them discarded their placement. -->
+<section class="sld-slide" data-case="out-of-flow">
+  <h2 class="at" style="left:64px;top:48px">out of flow</h2>
+  <div class="at" style="left:100px;top:160px;width:600px;height:300px;font-size:20px">
+    <div style="position:absolute;left:0;top:0">TOP-LEFT</div>
+    <div style="position:absolute;left:400px;top:250px">BOT-RIGHT</div>
+  </div>
+</section>
+
+<!-- 7. inline-flex was not counted as a block box, so two labels were welded
+        into one word with the gap between them lost. -->
+<section class="sld-slide" data-case="inline-flex">
+  <h2 class="at" style="left:64px;top:48px">inline flex</h2>
+  <div class="at" style="left:64px;top:160px;width:600px;font-size:20px">
+    <span style="display:inline-flex;margin-right:40px">IFLEX-ONE</span><span style="display:inline-flex">IFLEX-TWO</span>
+  </div>
+</section>
+
+<!-- 8. Strikethrough was measured and then never written to the file. -->
+<section class="sld-slide" data-case="strike">
+  <h2 class="at" style="left:64px;top:48px">strike</h2>
+  <p class="at" style="left:64px;top:160px;font-size:20px"><s>STRUCK</s></p>
+</section>
+
+<!-- 9. A padded inline highlight overflows its line box legitimately; treating
+        that as clipping blocked conversion of a correct deck. -->
+<section class="sld-slide" data-case="inline-highlight">
+  <h2 class="at" style="left:64px;top:48px">inline highlight</h2>
+  <p class="at" style="left:64px;top:160px;width:600px;font-size:20px">plain
+    <span style="background:#ffd43d;padding:4px 8px">HIGHLIGHT</span> tail</p>
+</section>
+
+<!-- 10. A transform scales geometry but not type, voiding the px/pt invariant. -->
+<section class="sld-slide" data-case="transformed" style="transform:scale(0.5)">
+  <h2 class="at" style="left:64px;top:48px">transformed</h2>
+</section>
+
+</body>
+</html>

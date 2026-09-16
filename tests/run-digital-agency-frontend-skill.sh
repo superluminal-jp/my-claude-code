@@ -82,7 +82,15 @@ run_dads_contract() {
   check "SRC-09: no reference pins a DADS version number (must resolve current)" "$(! grep -Eqr 'v2\.1[0-9]\.[0-9]' "$SKILL_FILE" "$SOURCING_REFERENCE" "$IMPL_REFERENCE" "$A11Y_REFERENCE" && echo 1 || echo 0)"
 
   check "IMPL-01: implementation reference exists" "$([ -f "$IMPL_REFERENCE" ] && echo 1 || echo 0)"
-  check_contains "IMPL-02: reference links official React examples" "$IMPL_REFERENCE" 'https://github\.com/digital-go-jp/design-system-example-components-react'
+  # The React repository was renamed; `…-react` still resolves as a redirect, but
+  # the package's own repository.url is the canonical name. IMPL-02A is the
+  # regression guard for the drift this replaced: the React components are not
+  # published to npm, and a document that says they are hands the reader a
+  # command that fails.
+  check_contains "IMPL-02: reference links the official React repository by its canonical name" "$IMPL_REFERENCE" 'https://github\.com/digital-go-jp/design-system-example-components[)/ ]'
+  check "IMPL-02A: reference does not claim the React components are published to npm" \
+    "$([ -f "$IMPL_REFERENCE" ] && ! grep -Eiq 'React components are published to npm|components are published to npm' "$IMPL_REFERENCE" && echo 1 || echo 0)"
+  check_contains "IMPL-02B: reference names the plain HTML/CSS reference repository" "$IMPL_REFERENCE" 'design-system-example-components-html'
   check_contains "IMPL-03: reference links official Tailwind plugin" "$IMPL_REFERENCE" 'https://github\.com/digital-go-jp/tailwind-theme-plugin'
   check_contains "IMPL-04: reference names the official npm packages" "$IMPL_REFERENCE" '@digital-go-jp/design-tokens'
   check_contains "IMPL-05: reference resolves current versions at task time" "$IMPL_REFERENCE" 'npm view'

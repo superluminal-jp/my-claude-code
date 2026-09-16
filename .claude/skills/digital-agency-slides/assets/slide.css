@@ -1,0 +1,453 @@
+/*
+ * 16:9 slide layout for decks that are converted to PowerPoint.
+ *
+ * These `sld-*` classes are this skill's own layout primitives. They are NOT
+ * Digital Agency Design System components and must not be described as such.
+ * Every value they use is either a DADS design token custom property
+ * (`--color-*`, `--font-family-*`, `--elevation-*`, supplied by the official
+ * token stylesheet) or slide geometry defined below. Official DADS components
+ * keep their own `dads-*` classes and their own official stylesheets.
+ *
+ * Geometry contract (see references/pptx-conversion.md):
+ *   1 CSS px = 1/96 in = 0.75 pt = 9525 EMU.
+ *   A 1280 x 720 px slide is therefore exactly 13.333 x 7.5 in — PowerPoint's
+ *   standard 16:9 slide — with no scaling anywhere in the pipeline.
+ */
+
+:root {
+  --sld-w: 1280px;
+  --sld-h: 720px;
+  --sld-margin-x: 64px;
+  --sld-margin-top: 48px;
+  --sld-margin-bottom: 72px;
+  --sld-gap: 24px;
+  --sld-cover-anchor: 256px;
+  --sld-ink: var(--color-neutral-solid-gray-900);
+  --sld-ink-muted: var(--color-neutral-solid-gray-700);
+  --sld-accent: var(--color-key-900);
+  --sld-surface: var(--color-neutral-white);
+  --sld-surface-sub: var(--color-neutral-solid-gray-50);
+  /* 420 and 536 are the off-scale greys that exist because they are the
+     contrast thresholds: 420 is 3.03:1 on white, which is what WCAG 1.4.11
+     requires of a border or rule. 300 is 2.10:1 and fails. */
+  --sld-border: var(--color-neutral-solid-gray-420);
+}
+
+/* ---------------------------------------------------------------- deck ---- */
+
+.sld-deck {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-neutral-solid-gray-100);
+  color: var(--sld-ink);
+  font-family: var(--font-family-sans);
+}
+
+/* One slide = one fixed-size canvas. Never let a slide scroll or reflow:
+   the converter reads laid-out geometry, so what overflows here is lost there.
+   The linter reports overflow rather than hiding it silently. */
+.sld-slide {
+  position: relative;
+  box-sizing: border-box;
+  width: var(--sld-w);
+  height: var(--sld-h);
+  margin: 0 auto 24px;
+  overflow: hidden;
+  background-color: var(--sld-surface);
+  color: var(--sld-ink);
+  font-family: var(--font-family-sans);
+  /* Government material should not break a line where Japanese typesetting
+     forbids it; the browser default is permissive. */
+  line-break: strict;
+}
+
+.sld-slide + .sld-slide {
+  margin-top: 0;
+}
+
+/* Print / PDF: one slide per page, no browser margins. */
+@page {
+  size: 1280px 720px;
+  margin: 0;
+}
+
+@media print {
+  .sld-deck {
+    background-color: transparent;
+  }
+
+  .sld-slide {
+    margin: 0;
+    break-after: page;
+    break-inside: avoid;
+  }
+}
+
+/* The official DADS stylesheet ships without a CSS reset, so user-agent
+   margins on headings, paragraphs and lists would otherwise appear as gaps the
+   author never wrote — and the converter would faithfully reproduce them.
+   `:where()` keeps specificity at zero, so every DADS component stylesheet
+   still wins over this. */
+.sld-slide :where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, pre, ul, ol) {
+  margin: 0;
+}
+
+/* A list's left padding is the strip its markers are drawn in — it is layout,
+   not a user-agent default to reset, and the converter reads it to place the
+   PowerPoint bullet. */
+
+.sld-slide :where(img, svg) {
+  max-width: 100%;
+}
+
+/* 1em is exactly one zenkaku, so this caps the measure at 42 characters at any
+   size. Japanese body text reads comfortably at roughly 30-45 per line; the
+   full 1152px content width is 47 at the body size. */
+.sld-slide__body :where(p, li) {
+  max-width: 42em;
+}
+
+/* ------------------------------------------------------------ structure ---- */
+
+/* The content frame every non-cover layout sits in. Its inset is the safe
+   area: PowerPoint themes, projector overscan and video framing all eat the
+   outer band, so nothing meaningful is placed outside it. */
+.sld-slide__frame {
+  display: flex;
+  position: absolute;
+  inset: var(--sld-margin-top) var(--sld-margin-x) var(--sld-margin-bottom);
+  flex-direction: column;
+  gap: var(--sld-gap);
+}
+
+.sld-slide__header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* The eyebrow names where the slide sits in the deck's argument. */
+.sld-eyebrow {
+  display: flex;
+  align-items: center;
+  column-gap: 12px;
+  color: var(--sld-ink-muted);
+}
+
+/* A real element, not ::after: pseudo-elements have no DOM node and therefore
+   no shape in the converted deck. */
+.sld-rule {
+  flex: 1;
+  align-self: center;
+  border-top: 2px solid var(--sld-border);
+  height: 0;
+}
+
+/* The governing message: one assertion, written as a full sentence. */
+.sld-message {
+  margin: 0;
+  color: var(--sld-ink);
+}
+
+.sld-message--accent {
+  color: var(--sld-accent);
+}
+
+.sld-slide__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: var(--sld-gap);
+  min-height: 0;
+}
+
+/* A body that ends in the upper half with nothing below it reads as
+   unfinished. Either anchor a closing band with `sld-push`, or centre the
+   body. Both survive conversion: each child is placed at its own rectangle. */
+.sld-slide__body[data-fill="center"] {
+  justify-content: center;
+}
+
+.sld-slide__footer {
+  display: flex;
+  position: absolute;
+  right: var(--sld-margin-x);
+  /* Clearance from the frame must exceed the largest gap inside it (24px),
+     or proximity makes the footer read as the last line of the content. */
+  bottom: 24px;
+  left: var(--sld-margin-x);
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 16px;
+  color: var(--sld-ink-muted);
+}
+
+/* -------------------------------------------------------------- covers ---- */
+
+.sld-slide[data-layout="title"],
+.sld-slide[data-layout="section"] {
+  background-color: var(--color-key-900);
+  color: var(--color-neutral-white);
+}
+
+/* Centring two blocks of different height gives them different anchors. The
+   cover and the section divider use the same idiom, so they share a top edge. */
+.sld-slide[data-layout="title"] .sld-slide__frame,
+.sld-slide[data-layout="section"] .sld-slide__frame {
+  justify-content: flex-start;
+  padding-top: calc(var(--sld-cover-anchor) - var(--sld-margin-top));
+}
+
+.sld-slide[data-layout="title"] .sld-message,
+.sld-slide[data-layout="section"] .sld-message,
+.sld-slide[data-layout="title"] .sld-eyebrow,
+.sld-slide[data-layout="section"] .sld-eyebrow,
+.sld-slide[data-layout="title"] .sld-slide__footer,
+.sld-slide[data-layout="section"] .sld-slide__footer {
+  color: var(--color-neutral-white);
+}
+
+.sld-slide[data-layout="title"] .sld-rule,
+.sld-slide[data-layout="section"] .sld-rule {
+  /* key-500 on key-900 is 2.82:1 and fails 1.4.11; key-400 is 3.91:1. */
+  border-top-color: var(--color-key-400);
+}
+
+/* ---------------------------------------------------------------- grid ---- */
+
+/* Blocks size to their content and stack from the top of the body. Leftover
+   space stays empty rather than inflating every tile, which is what makes a
+   three-item row read as three items instead of three panels. Opt into filling
+   the remaining height with `sld-grow`. */
+.sld-cols {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: var(--sld-gap);
+  min-height: 0;
+}
+
+.sld-cols[data-cols="2"] {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.sld-cols[data-cols="3"] {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.sld-cols[data-cols="4"] {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Asymmetric split for "claim on the left, evidence on the right". */
+.sld-cols[data-cols="2-1"] {
+  grid-auto-flow: row;
+  grid-template-columns: 2fr 1fr;
+}
+
+.sld-cols[data-cols="1-2"] {
+  grid-auto-flow: row;
+  grid-template-columns: 1fr 2fr;
+}
+
+.sld-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/* -------------------------------------------------------------- blocks ---- */
+
+.sld-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  gap: 8px;
+  border: 1px solid var(--sld-border);
+  border-radius: 8px;
+  background-color: var(--sld-surface);
+  padding: 20px;
+  min-height: 0;
+}
+
+.sld-card[data-tone="sub"] {
+  border-color: transparent;
+  background-color: var(--sld-surface-sub);
+}
+
+.sld-card[data-tone="accent"] {
+  border-color: var(--color-key-600);
+  background-color: var(--color-key-50);
+}
+
+.sld-card__label {
+  color: var(--sld-ink-muted);
+}
+
+/* A KPI tile states one number and what it measures. */
+.sld-kpi {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 8px;
+  background-color: var(--sld-surface-sub);
+  padding: 20px 24px;
+}
+
+.sld-kpi__value {
+  color: var(--sld-accent);
+}
+
+.sld-kpi__label {
+  color: var(--sld-ink-muted);
+}
+
+/* Process steps. The number is text, not a graphic, so it survives
+   conversion as editable text and is announced by a screen reader. */
+.sld-steps-axis {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* One rule spanning all the steps, not one bar per step: continuity turns
+   three tiles into a single axis, and three identical bars would be ink that
+   does not change when the data does. */
+.sld-steps__track {
+  border-top: 4px solid var(--sld-border);
+  height: 0;
+}
+
+.sld-steps {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sld-steps > li {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  gap: 8px;
+  background-color: var(--sld-surface-sub);
+  padding: 16px 20px;
+}
+
+.sld-steps__index {
+  display: flex;
+  align-items: center;
+  column-gap: 8px;
+  color: var(--sld-ink-muted);
+}
+
+/* The ordinal is what encodes direction, so it carries the key colour. */
+.sld-steps__num {
+  flex: none;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background-color: var(--sld-accent);
+  width: 24px;
+  height: 24px;
+  color: var(--color-neutral-white);
+  line-height: 24px;
+  text-align: center;
+}
+
+/* A takeaway band. Meaning is carried by the words, not by the color. */
+.sld-takeaway {
+  box-sizing: border-box;
+  border-left: 8px solid var(--sld-accent);
+  background-color: var(--color-key-50);
+  padding: 16px 24px;
+}
+
+/* A figure the converter rasterizes as one picture (charts, SVG diagrams). */
+.sld-figure {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 0;
+}
+
+/* The viewBox supplies the ratio, so the box is the drawing and the caption
+   sits against it. `object-fit` only ever applied to <img>. */
+.sld-figure > img,
+.sld-figure > svg {
+  flex: 0 1 auto;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
+.sld-figure__caption {
+  color: var(--sld-ink-muted);
+}
+
+/* ------------------------------------------------------------- utility ---- */
+
+.sld-grow {
+  flex: 1;
+  min-height: 0;
+}
+
+/* A slide is fixed-width, so a table that shrinks to its content leaves the
+   layout lopsided. Opt into filling the content column. */
+.sld-fill-width table {
+  width: 100%;
+}
+
+/* A column of figures is only comparable when it aligns on place value.
+   `tabular-nums` keeps the digit widths equal; the converter carries the
+   alignment through as the paragraph's alignment. */
+/* `.dads-table__table :is(td, th)` sets `text-align: left` at (0,1,1), so the
+   element-qualified selector is what it takes to match it without redefining a
+   DADS class. The table component's own guidance sanctions right-aligning
+   numeric columns. */
+td.sld-num,
+th.sld-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* A total is derived from the rows above it, not another row beside them. */
+.sld-total > :where(th, td) {
+  border-top: 2px solid var(--sld-ink);
+}
+
+.sld-push {
+  margin-top: auto;
+}
+
+.sld-muted {
+  color: var(--sld-ink-muted);
+}
+
+.sld-accent {
+  color: var(--sld-accent);
+}
+
+.sld-on-accent {
+  color: var(--color-neutral-white);
+}
+
+/* Speaker notes live in the document but never render. The converter reads
+   them into the PowerPoint notes pane. */
+.sld-notes {
+  display: none;
+}
