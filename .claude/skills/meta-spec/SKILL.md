@@ -1,6 +1,6 @@
 ---
 name: meta-spec
-description: "Decompose one complex initiative into independently specifiable feature slices and record them as a single meta-spec — each slice's purpose, observable end state, dependency order, exposed contracts, and priority — so a spec-driven workflow such as Speckit can then specify, plan, and implement one slice at a time. Also owns re-decomposition when implementation shows a slice boundary was wrong. Use when one request would otherwise produce a single oversized specification, when several specifications must be sequenced, or when an existing decomposition must be revised. Out of scope, each a separate capability's job: writing a slice's own specification, plan, tasks, or code; framing the underlying problem as a gap between current and ideal state; setting product direction, target users, or success metrics; and confirming the acceptance criteria of a single already-agreed feature. When another capability independently matches, this skill owns only the decomposition phase and hands each slice to that capability."
+description: "Decompose one complex initiative into independently specifiable feature slices and record them as a single meta-spec — each slice's purpose, observable end state, dependency order, exposed contracts, priority, material assumptions, and predictable decision branches — so a spec-driven workflow such as Speckit can then specify, plan, and implement one slice at a time without silently continuing after its premises fail. Also owns re-decomposition when implementation shows a slice boundary was wrong. Use when one request would otherwise produce a single oversized specification, when several specifications must be sequenced, or when an existing decomposition must be revised. Out of scope, each a separate capability's job: writing a slice's own specification, plan, tasks, or code; framing the underlying problem as a gap between current and ideal state; setting product direction, target users, or success metrics; and confirming the acceptance criteria of a single already-agreed feature. When another capability independently matches, this skill owns only the decomposition phase and hands each slice to that capability."
 ---
 
 # Meta-Spec
@@ -27,8 +27,9 @@ If the initiative fits in a single specification, say so and do not produce a me
 1. **Check for an existing meta-spec** ([Re-decomposition](#re-decomposition)). If one exists for this initiative, that path governs and the steps below apply as a diff.
 2. **Cut the slices** against the decomposition criterion ([Where to cut](#where-to-cut)).
 3. **Order them and expose the contracts** ([Ordering and contracts](#ordering-and-contracts)).
-4. **Test the set before writing** ([Completeness gate](#completeness-gate)).
-5. **Write the meta-spec** ([Output shape](#output-shape)). If the session ends early, follow [Handling interruption](#handling-interruption).
+4. **Register material uncertainty and predictable branches** ([Material uncertainty and predicted branches](#material-uncertainty-and-predicted-branches)).
+5. **Test the set before writing** ([Completeness gate](#completeness-gate)).
+6. **Write the meta-spec** ([Output shape](#output-shape)). If the session ends early, follow [Handling interruption](#handling-interruption).
 
 ## Where to cut
 
@@ -51,17 +52,43 @@ When a candidate fails a condition, apply the split patterns in Richard Lawrence
 - **The first slice is a walking skeleton** — the thinnest end-to-end path that exercises every contract at least once (Alistair Cockburn, *Crystal Clear*, Addison-Wesley, 2004). It retires integration risk before the slices that carry the volume.
 - **Priority is MoSCoW** (Dai Clegg & Richard Barker, *Case Method Fast-Track: A RAD Approach*, Addison-Wesley, 1994), applied to slices, and it never contradicts the dependency order: a Must slice that depends on a Could slice means one of the two is misclassified.
 
+## Material uncertainty and predicted branches
+
+Record uncertainty only when getting it wrong could invalidate a slice's observable end state, a contract, the dependency order, or a downstream specification. Do not enumerate ordinary implementation alternatives or defensive error handling; those belong to planning and implementation.
+
+For each material uncertainty:
+
+1. State the **assumption** so that evidence can falsify it.
+2. State the **validation signal** — the observation that decides whether it still holds.
+3. State the **predicted branch** — what remains valid if the condition holds and which lifecycle stage becomes invalid if it does not.
+4. State the **authority** for the branch. An executor may detect and report a branch, but it may not silently rewrite an upstream canonical artifact merely to make the current implementation fit.
+
+Use only these transition meanings:
+
+- **Continue** — the current meta-spec, slice specification, and plan remain valid.
+- **Re-plan** — the slice's purpose, end state, acceptance boundary, dependencies, and exposed contracts remain valid; only the implementation plan or task ordering needs revision.
+- **Re-specify** — the slice still exists, but its agreed behavior, acceptance boundary, or contract is no longer valid. Stop affected downstream work until the slice specification is revised by its owner.
+- **Re-decompose** — a slice boundary, dependency, or cross-slice contract no longer satisfies the decomposition criteria. Stop the affected slice and dependent work and return the evidence to this skill.
+- **Escalate** — the evidence exposes materially different valid directions and the deciding fact or preference belongs to the user or another external authority.
+
+A predicted branch is a **state transition, not a procedure**. It says which artifact or decision is invalidated; it does not prescribe files, functions, libraries, commands, or implementation steps.
+
+**Unmodeled-event rule.** If a new observation fits no predicted branch and could materially change scope, an acceptance boundary, a contract, a dependency, or a slice boundary, do not force it into the closest existing branch and do not continue on the previous route. Stop the affected downstream work, preserve the observation and evidence, classify the likely transition, and surface it to the owner of the artifact that may need revision.
+
 ## Completeness gate
 
 Before writing, test the set as a whole:
 
 - **100% rule** (Project Management Institute, *Practice Standard for Work Breakdown Structures*, 3rd ed., 2019): the slices together cover the initiative's stated scope and nothing beyond it. Work that appears in no slice is either out of scope — say so explicitly — or a missing slice.
 - **No overlap**: two slices must not both claim the same observable outcome. If they do, the boundary between them is the thing to state, not the outcome.
+- **Branch coverage**: every material assumption with Medium or Low confidence has an observable validation signal and an explicit false branch. No branch may silently change scope, an acceptance boundary, a contract, a dependency, or a slice boundary.
 - **Size**: keep the set small enough to hold in one reading. Above roughly nine slices, group them into a two-level decomposition and say which level each downstream specification maps to, rather than emitting a flat list.
 
 ## What each slice records
 
 Per slice, state **purpose and end state, not procedure** — Commander's Intent (US Army ADP 6-0, *Mission Command: Command and Control of Army Forces*, July 2019). How the slice is built is decided later, by the planning step that reads its specification. A meta-spec that names files, functions, or libraries has taken that decision early and on worse information.
+
+Material assumptions and predicted branches are the exception only in form, not in level of detail: they record when the current route stops being valid and which lifecycle stage must reconsider it. They never describe how either branch is implemented.
 
 ## Output shape
 
@@ -96,6 +123,18 @@ Write the meta-spec in the language of the conversation. Keep framework names an
 
 **C1 — <name>**: <the interface, data shape, or key; who produces it and who consumes it>
 
+## Assumptions
+
+| ID | Assumption | Basis | Confidence | Applies to | Validation signal | If false |
+|----|------------|-------|------------|------------|-------------------|----------|
+| A1 | ...        | ...   | High / Medium / Low | S1, C1 | ... | B1 |
+
+## Predicted branches
+
+| ID | Applies to | Condition | Evidence | If true | If false | Authority |
+|----|------------|-----------|----------|---------|----------|-----------|
+| B1 | A1, S1     | ...       | ...      | Continue | Re-plan / Re-specify / Re-decompose / Escalate | ... |
+
 ## Sequence
 
 <the order read off the dependency matrix, and why the first slice is the walking skeleton>
@@ -117,12 +156,14 @@ Write the meta-spec in the language of the conversation. Keep framework names an
 
 Implementation is the strongest test of a cut, so a boundary that fails during implementation is expected output, not failure. This skill owns the revision.
 
+Re-decomposition is triggered when observed evidence shows that a slice is no longer independently specifiable, independently verifiable, or dependency-closed by contract, or when a registered branch resolves to **Re-decompose**. The downstream executor reports the observation and evidence and stops affected work; it does not edit the meta-spec to preserve its current route.
+
 Detect an existing meta-spec **by path**, never by how similar the content looks — any similarity threshold is arbitrary and cannot be checked. When one exists, ask whether to revise it in place or save a new version; never decide silently.
 
 On revision:
 
 - Apply the change as a diff — add, merge, split, drop, or reorder slices — and leave untouched slices untouched.
-- Re-run [Ordering and contracts](#ordering-and-contracts) and [Completeness gate](#completeness-gate) on the whole set; a local change can create a cycle or a gap elsewhere.
+- Re-run [Ordering and contracts](#ordering-and-contracts), [Material uncertainty and predicted branches](#material-uncertainty-and-predicted-branches), and [Completeness gate](#completeness-gate) on the whole set; a local change can create a cycle, a gap, or a stale branch elsewhere.
 - Append one `Change log` row per revision, stating the change and the reason it was needed. Do not rewrite history that was already acted on.
 - A slice already specified downstream may be superseded but is not silently deleted: mark it and say what replaced it.
 
@@ -139,5 +180,7 @@ If the session ends before the set is complete, save what was cut so far with `*
 | A slice has no observable end state of its own | It is a layer or a task, not a slice; re-cut by workflow step, rule, or data variation |
 | More than roughly nine slices | Group into two levels; state which level maps to a downstream specification |
 | Scope that fits no slice | Either a missing slice or explicitly out of scope — never left unstated |
+| A material Medium/Low-confidence assumption exists | Record its validation signal and false branch before handing the affected slice downstream |
+| A material observation matches no predicted branch | Stop affected downstream work and surface the evidence; never invent a silent fallback or coerce it into the nearest branch |
 | A meta-spec already exists at the path | Ask: revise in place, or new version |
 | The user asks for the slice's specification too | Produce the meta-spec, then hand the first slice to the spec-driven workflow; do not write the specification here |
