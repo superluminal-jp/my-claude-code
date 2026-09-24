@@ -28,7 +28,9 @@ across projects while preserving unrelated user files.
   completeness (six self-checks: dependency, branching, iteration,
   inference), authorization and safety (the enforced deny list lives in
   `settings.json`), reader-facing structure (the Pyramid Principle
-  self-check), and documentation integrity (seven checks). None references
+  self-check), model and effort routing (capability tiers, closed
+  escalation conditions, subagent model and effort), and documentation
+  integrity (seven checks). None references
   another rule, a skill, or a config path. What each file deliberately
   omits, and where that content went, is recorded in
   [`docs/claude-config-design.md`](docs/claude-config-design.md)
@@ -135,9 +137,10 @@ my-claude-code/
 └── .claude/                        # Source for installer-managed Claude paths
     ├── CLAUDE.md                   # Principles, preflight, close-out; rationale → docs/
     ├── settings.json               # User-level Claude Code settings
-    ├── rules/                      # Always-on: loaded every session, 5 independent concerns
+    ├── rules/                      # Always-on: loaded every session, 6 independent concerns
     │   ├── clarifier.md            # Requirements certainty: when to ask vs proceed
     │   ├── thinking-lenses.md      # Reasoning completeness: six self-checks applied every task
+    │   ├── model-routing.md        # Model and effort routing: lowest sufficient tier, closed escalation conditions
     │   ├── permissions.md          # Authorization and safety; enforced deny → settings.json
     │   ├── pyramid-principle.md    # Reader-facing structure self-check for substantive outputs
     │   └── live-documentation.md   # Documentation integrity (7 checks); rationale → docs/

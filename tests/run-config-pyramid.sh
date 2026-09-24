@@ -76,11 +76,12 @@ run_rule_contract() {
   local actual expected
   expected="clarifier.md
 live-documentation.md
+model-routing.md
 permissions.md
 pyramid-principle.md
 thinking-lenses.md"
   actual="$(find "$RULE_DIR" -maxdepth 1 -type f -name '*.md' -exec basename {} \; | sort)"
-  check "RULE-01: exactly five universal rule files" "$([ "$actual" = "$expected" ] && echo 1 || echo 0)"
+  check "RULE-01: exactly six universal rule files" "$([ "$actual" = "$expected" ] && echo 1 || echo 0)"
 
   check_absent_pattern "RULE-02: no config path or slash-command dependency" \
     '(\.claude/|rules/|skills/|SKILL\.md|settings(\.local)?\.json|\.mcp\.json|/speckit-[[:alnum:]-]+)' "$RULE_DIR"
@@ -108,6 +109,8 @@ thinking-lenses.md"
 
   check "RULE-10: legacy conditional and routing rules are absent" \
     "$([ ! -e "$RULE_DIR/git-workflow.md" ] && [ ! -e "$RULE_DIR/mcp.md" ] && [ ! -e "$RULE_DIR/skill-routing.md" ] && echo 1 || echo 0)"
+
+  check_contains "RULE-11: routing owns capability tiers and effort" "$RULE_DIR/model-routing.md" 'tier|capabilit|effort'
 }
 
 run_skill_contract() {
