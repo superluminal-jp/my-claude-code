@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "maintaining-living-documentation/config.schema.json",
+  "title": "Living documentation project classification configuration",
+  "description": "Optional .living-documentation.json at the project root. It affects classification, check scope, and Stop-hook enforcement; it never relocates project artifacts. This schema is the single source of truth for accepted keys: the bundled scripts read it at run time.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional editor hint pointing at this schema. Ignored by the scripts."
+    },
+    "enforcement": {
+      "type": "string",
+      "enum": [
+        "block",
+        "warn",
+        "off"
+      ],
+      "default": "block",
+      "description": "How the Stop-hook gate treats this project: block (default) blocks unfinished documentation work a limited number of times, warn only shows a warning, off disables the gate and the session-start rule. The LIVING_DOCS_GATE environment variable overrides it."
+    },
+    "exclude_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Extra paths to skip, in addition to the built-in exclusions. Patterns are matched against project-relative POSIX paths; a leading '**/' also matches at the top level."
+    },
+    "implementation_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as implementation."
+    },
+    "documentation_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as documentation."
+    },
+    "specification_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as authoritative specifications or contracts."
+    },
+    "decision_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as decision records."
+    },
+    "evidence_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as evidence (tests, benchmarks, validation)."
+    },
+    "generated_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as generated artifacts."
+    },
+    "infrastructure_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as infrastructure, deployment, or CI definitions."
+    },
+    "configuration_globs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Files to classify as configuration, build, or dependency manifests."
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "minto-pyramid",
+  "displayName": "Minto Pyramid",
+  "version": "0.3.0",
+  "description": "Apply the Minto Pyramid Principle to problem framing, reasoning structure, user communication, decisions, plans, and deliverables.",
+  "author": {
+    "name": "minto-pyramid maintainers"
+  },
+  "keywords": [
+    "minto",
+    "pyramid-principle",
+    "structured-writing",
+    "reasoning",
+    "communication"
+  ],
+  "defaultEnabled": true
+}

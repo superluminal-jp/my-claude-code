@@ -1,0 +1,41 @@
+# Living documentation checks for pull requests (GitHub Actions).
+#
+# Copy to .github/workflows/living-documentation.yml in the target project.
+# Assumes the Skill is installed in the repository at
+# .claude/skills/maintaining-living-documentation (project installation);
+# adjust SKILL_DIR otherwise. Pin actions to full commit SHAs if your
+# security policy requires it.
+#
+# The audit step is advisory (it never fails the job). The link check fails
+# only on broken local links in changed files or links to changed/deleted
+# targets; add --strict to also fail on unresolved anchors and root links,
+# and --site-root <dir> if documentation uses site-absolute links.
+
+name: living-documentation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      SKILL_DIR: .claude/skills/maintaining-living-documentation
+      BASE_REF: origin/${{ github.base_ref }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # merge-base with the target branch is needed
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Documentation impact (advisory)
+        run: python3 "$SKILL_DIR/scripts/audit.py" --root . --base "$BASE_REF"
+
+      - name: Link check (changed scope)
+        run: python3 "$SKILL_DIR/scripts/check_links.py" --root . --changed --base "$BASE_REF"

@@ -19,14 +19,12 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
   推論の完全性（6つの推論セルフチェック: 依存・分岐・反復・推論）、権限と安全性
   （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック）、
-  モデルと労力のルーティング（能力層、閉じたエスカレーション条件、サブエージェントのモデルと労力）、
-  ドキュメント完全性（7つのチェック））。他のルール・スキル・設定パスへの言及は持たない。
+  モデルと労力のルーティング（能力層、閉じたエスカレーション条件、サブエージェントのモデルと労力））。他のルール・スキル・設定パスへの言及は持たない。
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック。中央ルーティング表なしに
   自己記述だけで選択できるよう、2つの独立した軸で分類する
   - ライフサイクル操作: `coder`（TDD/SDD、品質、安全、型安全性、ドキュメント同期）、
-    Minto ドキュメントスイート — `minto-reviewer`（構造診断）、`minto-rewriter`
-    （最終版への書き直し）、`minto-builder`（対話による構築） — `clarifier`
+    `clarifier`
     （まず意図の共通認識を形成し——AIが自分の理解・前提・スコープを述べ、
     ユーザーが却下できる形にする——その後、形式的要件へ変換。INVEST/Gherkin）、`problem-definition`
     （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
@@ -35,8 +33,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     開発着手前に整理）、`meta-spec`
     （1つの大きな取り組みを、独立して仕様化できるフィーチャに分割し、
     仕様駆動フローが1スライスずつ消費する1枚のメタスペックとして記録）、
-    `adr`（アーキテクチャ決定記録、
-    MADR形式）、`git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
+    `git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
     `cloud-platform-research`（AWS/GCP/Azure 公式ドキュメントの最新調査）
   - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
@@ -44,6 +41,13 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （DADS 公式資材で 16:9 スライドを HTML として作成し、同梱ツールで編集可能な
     PowerPoint に変換）、`scrum-master`（Scrumイベントの
     設計・ファシリテーション、障害除去、フロー指標）
+  - skills ディレクトリ型プラグイン2件を上流のパッケージのまま取り込んでいる:
+    `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
+    `SessionStart` のルール注入と `Stop` フックのゲート付き）、`minto-pyramid`
+    （あらゆる実質的タスクに Minto 構造を適用。`Stop` フックの検査付き）。
+    オプションは各パッケージの `README.md` を参照。従来の Minto スイート
+    （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
+    [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
@@ -58,7 +62,6 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 | ドキュメント | 内容 |
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | 常時ロードの指示が通すべき判断基準と、各ファイルが意図的に置いていないもの |
-| [`docs/live-documentation-standards.md`](docs/live-documentation-standards.md) | `rules/live-documentation.md` の背後にあるライフサイクル標準と § 7 の設計論拠 |
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、サーバー追加時の更新箇所 |
 | [`docs/adr/`](docs/adr/) | アーキテクチャ決定記録 — Accepted 後は不変で、supersede のみ |
 
