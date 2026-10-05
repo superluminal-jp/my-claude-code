@@ -1,0 +1,16 @@
+{
+  "name": "maintaining-living-documentation",
+  "description": "Keeps documentation consistent with code, specifications, decisions, and research artifacts, with a Stop-hook gate that enforces the workflow.",
+  "version": "2.0.0",
+  "author": {
+    "name": "maintaining-living-documentation maintainers"
+  },
+  "keywords": [
+    "documentation",
+    "docs-as-code",
+    "adr",
+    "architecture",
+    "changelog",
+    "iso-iec-ieee"
+  ]
+}

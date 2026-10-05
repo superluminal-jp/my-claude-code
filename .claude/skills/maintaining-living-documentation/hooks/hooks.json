@@ -1,0 +1,30 @@
+{
+  "description": "Living documentation: inject the rule at session start and gate the end of turns that changed files.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/stop_gate.py", "--session-start"],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/stop_gate.py"],
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

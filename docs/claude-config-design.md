@@ -29,7 +29,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 ## 3. ファイル別 — 何を意図的に置いていないか
 
-### 3.1 常時ロードに残る6つのルール
+### 3.1 常時ロードに残る5つのルール
 
 各ルールは apex の3分岐（定義・実行・引き渡し）のうち正確に1つだけを支え、他のルールが既に持つ関心事は持たない。
 
@@ -40,9 +40,8 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `CLAUDE.md` | ルール・スキル・コマンド・サーバーいずれの個別名 | apex は意味で子を支えるのであり、名指しで委譲しない。名指しすると、子の改名・分割・削除のたびに apex 自体が壊れる |
 | `permissions.md` | 資格情報パスの列挙 | `settings.json` の `permissions.deny` が正本 |
 | `permissions.md` | 部分一致をグロブ化しない理由 | [ADR-0014](adr/0014-restore-credential-deny-rules.md) |
-| `live-documentation.md` | ライフサイクル標準規格表、§7 の論拠、参考文献 | [live-documentation-standards.md](live-documentation-standards.md) |
 | `clarifier.md` | 意図の共通認識を形成する手順、判断基準の接地先となる枠組みの在庫、曖昧性パターン目録、品質ゲート、出典 | `.claude/skills/clarifier/SKILL.md` と同パッケージの `references/` |
-| `pyramid-principle.md` | Minto の4条件の詳述そのもの | `live-documentation.md` §7.1（ドキュメント成果物向け）と各 Minto skill（対話・診断・書き直し向け）が、それぞれの対象で個別に持つ |
+| `pyramid-principle.md` | Minto の4条件の詳述そのもの | `minto-pyramid` スキルが全タスク向けに持つ（従来の対話・診断・書き直し向け Minto スキル3件は `archive/minto-suite/` へ退避済み） |
 | `model-routing.md` | モデルID・価格・コンテキスト上限、モデルや労力を設定する構文 | ハーネスとベンダーのモデル文書が正本。ルールは能力層とエイリアス、労力レベルだけを持つため、モデルの世代交代でルーティングの論理は古くならない |
 | `thinking-lenses.md` | 6レンズを出力へ強制する書式 | 自然な置き場がある成果物（`clarifier`/`coder` の Given/When/Then、Spec Kit の依存順タスクリストなど）にだけ表出させる |
 
@@ -82,10 +81,10 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | 層 | 依存できる上位層 | 分類原理 | 許可する参照 | 禁止する参照 |
 |---|---|---|---|---|
 | `CLAUDE.md`（1件） | なし | ライフサイクル段階（定義→実行→引き渡し） | なし | ルール・スキル・コマンド・サーバーいずれの個別名も不可 |
-| `.claude/rules/*.md`（6件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
+| `.claude/rules/*.md`（5件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
 | `.claude/skills/*/SKILL.md` | `CLAUDE.md` と、自身が支える品質の関心事 | ライフサイクル操作軸／ドメインオーバーレイ軸 | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源 | 他スキルへの名指し・パス参照、`.claude/` 配下の絶対パスのハードコード |
 
-対象スキルは、この改訂で編集対象として管理する10件 — `clarifier`、`coder`、`adr`、`minto-builder`、`minto-reviewer`、`minto-rewriter`、`scrum-master`、`digital-agency-frontend`、`git-workflow`、`cloud-platform-research` — に限定する。後の2件は §3.2 で常時ロードから移した先である。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）と Spec Kit の生成物はこの対象スキル一覧に含めない。
+対象スキルは、この改訂で編集対象として管理する10件 — `clarifier`、`coder`、`adr`（`archive/adr/` へ退避、規則は `maintaining-living-documentation` へ統合）、`minto-builder`、`minto-reviewer`、`minto-rewriter`（後に `archive/minto-suite/` へ退避）、`scrum-master`、`digital-agency-frontend`、`git-workflow`、`cloud-platform-research` — に限定する。後の2件は §3.2 で常時ロードから移した先である。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流のまま取り込んだ2つのプラグイン（`maintaining-living-documentation`、`minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
 
 同一階層にしかない情報が必要になったら、参照を足すのではなく、次のどちらかを行う。
 

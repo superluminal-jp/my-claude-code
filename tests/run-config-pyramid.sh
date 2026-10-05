@@ -44,16 +44,12 @@ check_absent_pattern() {
 }
 
 authored_skills=(
-  adr
   clarifier
   cloud-platform-research
   coder
   digital-agency-frontend
   git-workflow
   meta-spec
-  minto-builder
-  minto-reviewer
-  minto-rewriter
   problem-definition
   product-strategy
   scrum-master
@@ -75,18 +71,17 @@ run_apex_contract() {
 run_rule_contract() {
   local actual expected
   expected="clarifier.md
-live-documentation.md
 model-routing.md
 permissions.md
 pyramid-principle.md
 thinking-lenses.md"
   actual="$(find "$RULE_DIR" -maxdepth 1 -type f -name '*.md' -exec basename {} \; | sort)"
-  check "RULE-01: exactly six universal rule files" "$([ "$actual" = "$expected" ] && echo 1 || echo 0)"
+  check "RULE-01: exactly five universal rule files" "$([ "$actual" = "$expected" ] && echo 1 || echo 0)"
 
   check_absent_pattern "RULE-02: no config path or slash-command dependency" \
     '(\.claude/|rules/|skills/|SKILL\.md|settings(\.local)?\.json|\.mcp\.json|/speckit-[[:alnum:]-]+)' "$RULE_DIR"
   check_absent_pattern "RULE-03: no named authored-skill routing" \
-    '(`|/)(adr|clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|meta-spec|minto-builder|minto-reviewer|minto-rewriter|problem-definition|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
+    '(`|/)(clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
 
   local source target target_name failed=0
   for source in "$RULE_DIR"/*.md; do
@@ -105,7 +100,6 @@ thinking-lenses.md"
   check_contains "RULE-06: reasoning owns inference" "$RULE_DIR/thinking-lenses.md" 'deduct|induct|演繹|帰納'
   check_contains "RULE-07: permission owns external effects" "$RULE_DIR/permissions.md" 'external|remote|外部'
   check_contains "RULE-08: presentation owns sibling grouping" "$RULE_DIR/pyramid-principle.md" 'siblings|group|MECE|同列'
-  check_contains "RULE-09: documentation owns canonical contracts" "$RULE_DIR/live-documentation.md" 'canonical|source of truth|正本'
 
   check "RULE-10: legacy conditional and routing rules are absent" \
     "$([ ! -e "$RULE_DIR/git-workflow.md" ] && [ ! -e "$RULE_DIR/mcp.md" ] && [ ! -e "$RULE_DIR/skill-routing.md" ] && echo 1 || echo 0)"
@@ -134,8 +128,15 @@ run_skill_contract() {
   check "SKILL-02: standard description is the only trigger metadata" "$([ "$bad_metadata" -eq 0 ] && echo 1 || echo 0)"
   check "SKILL-03: every authored description states an exclusion boundary" "$([ "$bad_description" -eq 0 ] && echo 1 || echo 0)"
 
+  # Vendored upstream plugins (maintaining-living-documentation, minto-pyramid)
+  # are kept verbatim and reference their own packaged paths, so only authored
+  # skills are checked.
+  local authored_entry_points=() entry_skill
+  for entry_skill in "${authored_skills[@]}"; do
+    authored_entry_points+=("$SKILL_DIR/$entry_skill/SKILL.md")
+  done
   check_absent_pattern "SKILL-04: no entry point depends on config paths" \
-    '(\.claude/(CLAUDE\.md|rules|skills)|\.agents/skills|rules/[[:alnum:]_-]+\.md)' "$SKILL_DIR"/*/SKILL.md
+    '(\.claude/(CLAUDE\.md|rules|skills)|\.agents/skills|rules/[[:alnum:]_-]+\.md)' "${authored_entry_points[@]}"
 
   local source target file failed=0
   for source in "${authored_skills[@]}"; do
@@ -154,18 +155,15 @@ run_skill_contract() {
   check "SKILL-05: authored packages do not name siblings" "$([ "$failed" -eq 0 ] && echo 1 || echo 0)"
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(adr|clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|meta-spec|minto-builder|minto-reviewer|minto-rewriter|problem-definition|product-strategy|scrum-master)' \
-    "$SKILL_DIR/adr" "$SKILL_DIR/clarifier" "$SKILL_DIR/cloud-platform-research" "$SKILL_DIR/coder" \
-    "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" "$SKILL_DIR/meta-spec" "$SKILL_DIR/minto-builder" \
-    "$SKILL_DIR/minto-reviewer" "$SKILL_DIR/minto-rewriter" "$SKILL_DIR/problem-definition" \
+    '\.claude/skills/(clarifier|cloud-platform-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|scrum-master)' \
+    "$SKILL_DIR/clarifier" "$SKILL_DIR/cloud-platform-research" "$SKILL_DIR/coder" \
+    "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" "$SKILL_DIR/meta-spec" \
+    "$SKILL_DIR/problem-definition" \
     "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master"
 }
 
 run_routing_fixtures() {
   check_contains "ROUTE-01: code-only selects implementation" "$SKILL_DIR/coder/SKILL.md" '^description:.*(code|configuration|observable behavior)'
-  check_contains "ROUTE-02: bare document creation selects incomplete-material operation" "$SKILL_DIR/minto-builder/SKILL.md" '^description:.*(document|artifact).*(incomplete|from scratch)'
-  check_contains "ROUTE-03: substantive docs can compose with implementation" "$SKILL_DIR/minto-rewriter/SKILL.md" '^description:.*(alongside|compound|independent|implementation)'
-  check_contains "ROUTE-04: diagnosis plus rewrite preserves a diagnosis phase" "$SKILL_DIR/minto-reviewer/SKILL.md" '^description:.*(phase|deliverable|rewrite|transform)'
   check_contains "ROUTE-05: DADS remains an independently matching domain overlay" "$SKILL_DIR/digital-agency-frontend/SKILL.md" '^description:.*(overlay|independent|alongside|also applies)'
   check_contains "ROUTE-06: formal requirements can precede DADS implementation" "$SKILL_DIR/clarifier/SKILL.md" '^description:.*(before|prerequisite|independent|compound)'
   check_contains "ROUTE-07: Scrum artifacts retain domain judgement" "$SKILL_DIR/scrum-master/SKILL.md" '^description:.*(artifact|成果物|資料).*(independent|別|併用|適用)'
