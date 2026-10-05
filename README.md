@@ -45,8 +45,8 @@ across projects while preserving unrelated user files.
   before development work begins), `meta-spec` (slicing one large
   initiative into independently specifiable features and recording them as a
   single meta-spec the spec-driven flow then consumes one slice at a time),
-  `git-workflow` (branch/commit/push/PR conventions), `cloud-platform-research`
-  (current AWS/GCP/Azure documentation lookup) — and domain overlays —
+  `git-workflow` (branch/commit/push/PR conventions), `aws-research`
+  (current AWS documentation lookup) — and domain overlays —
   `digital-agency-frontend` (DADS-based accessible React/Tailwind
   public-service frontends and web dashboards), `digital-agency-slides`
   (DADS 16:9 slide decks authored as HTML and converted to editable
@@ -158,7 +158,7 @@ my-claude-code/
         ├── product-strategy/SKILL.md # Vision/users/value-prop/metrics before development begins
         ├── meta-spec/SKILL.md      # One initiative -> meta-spec of independently specifiable slices
         ├── git-workflow/SKILL.md   # Branch/commit/push/PR conventions
-        ├── cloud-platform-research/SKILL.md # Current AWS/GCP/Azure doc lookup
+        ├── aws-research/SKILL.md # Current AWS doc lookup
         ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references (domain overlay)
         ├── digital-agency-slides/  # DADS 16:9 decks in HTML -> editable .pptx (domain overlay)
         │   ├── SKILL.md            #   playbook
@@ -174,7 +174,7 @@ my-claude-code/
 ## Verification
 
 After changing `.mcp.json`, `install.sh`, `.claude/settings.json`, or
-[`.claude/skills/cloud-platform-research/SKILL.md`](.claude/skills/cloud-platform-research/SKILL.md):
+[`.claude/skills/aws-research/SKILL.md`](.claude/skills/aws-research/SKILL.md):
 
 ```sh
 bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
@@ -243,7 +243,7 @@ just alert:
 
 This repository does not install MCP servers into your user configuration.
 `install.sh` neither registers nor removes any, and nothing under `.claude/`
-assumes a particular server is present — `cloud-platform-research` uses
+assumes a particular server is present — `aws-research` uses
 whatever documentation tools the session actually exposes. Add the servers you
 need yourself.
 

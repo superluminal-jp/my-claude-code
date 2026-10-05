@@ -34,7 +34,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （1つの大きな取り組みを、独立して仕様化できるフィーチャに分割し、
     仕様駆動フローが1スライスずつ消費する1枚のメタスペックとして記録）、
     `git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
-    `cloud-platform-research`（AWS/GCP/Azure 公式ドキュメントの最新調査）
+    `aws-research`（AWS 公式ドキュメントの最新調査）
   - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
     React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
@@ -136,7 +136,7 @@ my-claude-code/
 ## 検証
 
 `.mcp.json` / `install.sh` / `.claude/settings.json` /
-`.claude/skills/cloud-platform-research/SKILL.md` を変更したら:
+`.claude/skills/aws-research/SKILL.md` を変更したら:
 
 ```sh
 bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
@@ -201,7 +201,7 @@ bash tests/run-removed-guardrails.sh
 
 このリポジトリは MCP サーバーをユーザー設定に取り込みません。`install.sh` は
 MCP サーバーを登録も削除もせず、`.claude/` 配下も特定のサーバーがあることを
-前提にしていません（`cloud-platform-research` は、そのセッションで実際に使える
+前提にしていません（`aws-research` は、そのセッションで実際に使える
 ドキュメントツールを使います）。必要なサーバーは各自で追加してください。
 
 [`.mcp.json`](.mcp.json) は、このリポジトリ内で作業するときのプロジェクトスコープ
