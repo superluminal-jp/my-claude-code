@@ -129,7 +129,7 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 
 ```
 my-claude-code/
-├── CLAUDE.md                       # Thin re-export: @.claude/CLAUDE.md (for in-repo development)
+├── CLAUDE.md                       # Repo purpose + re-export of @.claude/CLAUDE.md (in-repo only, not synced)
 ├── README.md
 ├── install.sh                      # Sync managed Claude paths + install plugins (no MCP servers)
 ├── .mcp.json                       # Project-scope MCP server definitions; reference for adding servers yourself
