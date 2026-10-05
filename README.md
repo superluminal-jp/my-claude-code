@@ -46,7 +46,8 @@ across projects while preserving unrelated user files.
   initiative into independently specifiable features and recording them as a
   single meta-spec the spec-driven flow then consumes one slice at a time),
   `git-workflow` (branch/commit/push/PR conventions), `aws-research`
-  (current AWS documentation lookup) — and domain overlays —
+  (current AWS documentation lookup), `sdd-pipeline` (one hands-off
+  Spec Kit run from description to an opened pull request) — and domain overlays —
   `digital-agency-frontend` (DADS-based accessible React/Tailwind
   public-service frontends and web dashboards), `digital-agency-slides`
   (DADS 16:9 slide decks authored as HTML and converted to editable
@@ -159,6 +160,7 @@ my-claude-code/
         ├── meta-spec/SKILL.md      # One initiative -> meta-spec of independently specifiable slices
         ├── git-workflow/SKILL.md   # Branch/commit/push/PR conventions
         ├── aws-research/SKILL.md # Current AWS doc lookup
+        ├── sdd-pipeline/           # One hands-off Spec Kit run: description -> PR (+ workflow overlay)
         ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references (domain overlay)
         ├── digital-agency-slides/  # DADS 16:9 decks in HTML -> editable .pptx (domain overlay)
         │   ├── SKILL.md            #   playbook

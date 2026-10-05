@@ -34,7 +34,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （1つの大きな取り組みを、独立して仕様化できるフィーチャに分割し、
     仕様駆動フローが1スライスずつ消費する1枚のメタスペックとして記録）、
     `git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
-    `aws-research`（AWS 公式ドキュメントの最新調査）
+    `aws-research`（AWS 公式ドキュメントの最新調査）、
+    `sdd-pipeline`（Spec Kit の工程を、機能の記述から PR 作成までハンズオフで 1 回に実行）
   - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
     React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`

@@ -420,11 +420,13 @@ function Get-BranchName {
         if ($stopWords -contains $word) { continue }
         if ($word.Length -ge 3) {
             $meaningfulWords += $word
-        } elseif ($Description -cmatch "\b$($word.ToUpper())\b") {
+        } elseif ($Description -cmatch "(?<![0-9A-Za-z_])$($word.ToUpper())(?![0-9A-Za-z_])") {
             # Case-sensitive (-cmatch) to mirror the bash twin's case-sensitive
             # whole-word acronym match: keep a short word only when its UPPERCASE
             # form appears in the original (an acronym). -match is case-insensitive
-            # and would keep every short word.
+            # and would keep every short word. ASCII boundaries rather than \b,
+            # which is Unicode-aware in .NET and would miss an acronym sitting
+            # next to an accented letter that bash's LC_ALL=C grep still splits on.
             $meaningfulWords += $word
         }
     }
@@ -565,6 +567,12 @@ if (-not $DryRun) {
     $env:SPECIFY_FEATURE = $branchName
 }
 
+# Build the PowerShell-idiomatic persist hint, mirroring the core
+# create-new-feature.ps1 twin (and the bash/python twins of this script), which
+# all emit "# To persist in your shell: ...".
+$quotedBranchName = "'" + $branchName.Replace("'", "''") + "'"
+$featureAssignment = '$env:SPECIFY_FEATURE = ' + $quotedBranchName
+
 if ($Json) {
     $obj = [PSCustomObject]@{
         BRANCH_NAME = $branchName
@@ -581,6 +589,6 @@ if ($Json) {
     Write-Output "BRANCH_NAME: $branchName"
     Write-Output "FEATURE_NUM: $featureNum"
     if (-not $DryRun) {
-        Write-Output "SPECIFY_FEATURE environment variable set to: $branchName"
+        Write-Output "# To persist in your shell: $featureAssignment"
     }
 }
