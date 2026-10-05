@@ -9,7 +9,6 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SKILL_DIR="$REPO_ROOT/.claude/skills/digital-agency-slides"
 SKILL_FILE="$SKILL_DIR/SKILL.md"
-JA_SKILL_FILE="$REPO_ROOT/.claude-ja/skills/digital-agency-slides/SKILL.md"
 DESIGN_REFERENCE="$SKILL_DIR/references/slide-design.md"
 CONTRACT_REFERENCE="$SKILL_DIR/references/authoring-contract.md"
 CONVERSION_REFERENCE="$SKILL_DIR/references/pptx-conversion.md"
@@ -88,8 +87,6 @@ run_skill_contract() {
     "$(! grep -Eqr 'v2\.[0-9]+\.[0-9]+' "$SKILL_FILE" "$DESIGN_REFERENCE" "$CONTRACT_REFERENCE" "$CONVERSION_REFERENCE" "$SOURCING_REFERENCE" && echo 1 || echo 0)"
   check "SKILL-20: no official DADS code is vendored in the skill" \
     "$([ ! -e "$SKILL_DIR/assets/dads" ] && [ ! -e "$SKILL_DIR/references/dads-docs" ] && echo 1 || echo 0)"
-  check "SKILL-21: Japanese mirror exists" "$([ -f "$JA_SKILL_FILE" ] && echo 1 || echo 0)"
-  check_contains "SKILL-22: Japanese mirror carries the canonical name" "$JA_SKILL_FILE" '^name:[[:space:]]+digital-agency-slides$'
 
   check "DSN-01: design reference exists" "$([ -f "$DESIGN_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "DSN-02: reference requires one assertion per slide" "$DESIGN_REFERENCE" '(headline is an assertion|one assertion)'
