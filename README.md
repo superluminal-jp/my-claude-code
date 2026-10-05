@@ -258,8 +258,6 @@ To register any of them at user scope, run only the lines you want (the
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
 claude mcp add -s user aws-documentation -- uvx awslabs.aws-documentation-mcp-server@latest
-claude mcp add -s user bedrock-agentcore -- uvx awslabs.amazon-bedrock-agentcore-mcp-server@latest
-claude mcp add -s user strands-agents -- uvx strands-agents-mcp-server@latest
 claude mcp add -s user \
   --transport http \
   google-developer-knowledge \

@@ -42,13 +42,11 @@
 |---|---|
 | `aws-documentation` | <https://awslabs.github.io/mcp/servers/aws-documentation-mcp-server/> |
 | `aws-knowledge` | <https://awslabs.github.io/mcp/servers/aws-knowledge-mcp-server/> |
-| `bedrock-agentcore` | <https://awslabs.github.io/mcp/servers/amazon-bedrock-agentcore-mcp-server/> |
-| `strands-agents` | <https://github.com/strands-agents/harness-sdk> |
 | `google-developer-knowledge` | <https://developers.google.com/knowledge/mcp> |
 | `microsoft-learn` | <https://learn.microsoft.com/training/support/mcp> |
 | `wolfram` | <https://www.wolfram.com/artificial-intelligence/mcp/cloud/wolfram-mcp-cloud/> |
 
-stdio の 3 件（`aws-documentation` / `bedrock-agentcore` / `strands-agents`）は PyPI のパッケージメタデータ（`https://pypi.org/pypi/<package>/json` の `project_urls`）から取得した。HTTP の 4 件はベンダーの公式ドキュメントページ。`aws-knowledge` の URL のみ、掲載一覧が返した末尾スラッシュなしの形に、他と揃えてスラッシュを補っている。
+stdio の 1 件（`aws-documentation`）は PyPI のパッケージメタデータ（`https://pypi.org/pypi/<package>/json` の `project_urls`）から取得した。HTTP の 4 件はベンダーの公式ドキュメントページ。`aws-knowledge` の URL のみ、掲載一覧が返した末尾スラッシュなしの形に、他と揃えてスラッシュを補っている。
 
 ## 4. サーバーを追加・削除したとき
 
