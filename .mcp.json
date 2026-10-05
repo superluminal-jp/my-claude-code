@@ -12,20 +12,6 @@
         "AWS_DOCUMENTATION_PARTITION": "aws"
       }
     },
-    "bedrock-agentcore": {
-      "command": "uvx",
-      "args": ["awslabs.amazon-bedrock-agentcore-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
-    },
-    "strands-agents": {
-      "command": "uvx",
-      "args": ["strands-agents-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
-    },
     "google-developer-knowledge": {
       "type": "http",
       "url": "https://developerknowledge.googleapis.com/mcp",
