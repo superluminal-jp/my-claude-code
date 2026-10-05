@@ -65,7 +65,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | 旧ファイル | 移動先・置き換え先 | 理由 |
 |---|---|---|
 | `rules/git-workflow.md` | `.claude/skills/git-workflow/SKILL.md` | ブランチ・コミット・push・PR の作業は Git 協業が発生するときだけの条件付き手順で、全セッションに課金する理由がない |
-| `rules/mcp.md` | `.claude/skills/cloud-platform-research/SKILL.md` | サーバー選択と AWS スキルレジストリ手順も、クラウド提供元の現行ドキュメントが要る条件付き調査であり、同様の理由で移した |
+| `rules/mcp.md` | `.claude/skills/aws-research/SKILL.md` | サーバー選択と AWS スキルレジストリ手順も、クラウド提供元の現行ドキュメントが要る条件付き調査であり、同様の理由で移した |
 | `rules/skill-routing.md` | 削除（復元先なし） | 中央ルーティング表はスキルの `description`/`when_to_use` と重複する第二の状態で、スキル境界が変わるたびにドリフトしていた。apex 内の汎用マルチマッチ不変条件と、各スキル自身の記述に置き換えた |
 
 移動した2件は、移動先スキル自身が「いつ呼ぶか」を `description`/`when_to_use` で自己記述する。削除した1件は、その自己記述の仕組みそのものに置き換わっている。経緯と却下した代替案は [ADR-0015](adr/0015-rule-layer-independence.md) にある。
@@ -84,7 +84,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `.claude/rules/*.md`（5件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
 | `.claude/skills/*/SKILL.md` | `CLAUDE.md` と、自身が支える品質の関心事 | ライフサイクル操作軸／ドメインオーバーレイ軸 | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源 | 他スキルへの名指し・パス参照、`.claude/` 配下の絶対パスのハードコード |
 
-対象スキルは、この改訂で編集対象として管理する10件 — `clarifier`、`coder`、`adr`（`archive/adr/` へ退避、規則は `maintaining-living-documentation` へ統合）、`minto-builder`、`minto-reviewer`、`minto-rewriter`（後に `archive/minto-suite/` へ退避）、`scrum-master`、`digital-agency-frontend`、`git-workflow`、`cloud-platform-research` — に限定する。後の2件は §3.2 で常時ロードから移した先である。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流のまま取り込んだ2つのプラグイン（`maintaining-living-documentation`、`minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
+対象スキルは、この改訂で編集対象として管理する10件 — `clarifier`、`coder`、`adr`（`archive/adr/` へ退避、規則は `maintaining-living-documentation` へ統合）、`minto-builder`、`minto-reviewer`、`minto-rewriter`（後に `archive/minto-suite/` へ退避）、`scrum-master`、`digital-agency-frontend`、`git-workflow`、`aws-research` — に限定する。後の2件は §3.2 で常時ロードから移した先である。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流のまま取り込んだ2つのプラグイン（`maintaining-living-documentation`、`minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
 
 同一階層にしかない情報が必要になったら、参照を足すのではなく、次のどちらかを行う。
 
