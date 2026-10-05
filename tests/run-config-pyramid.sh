@@ -53,6 +53,7 @@ authored_skills=(
   problem-definition
   product-strategy
   scrum-master
+  sdd-pipeline
 )
 
 run_apex_contract() {
@@ -155,11 +156,11 @@ run_skill_contract() {
   check "SKILL-05: authored packages do not name siblings" "$([ "$failed" -eq 0 ] && echo 1 || echo 0)"
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|scrum-master)' \
+    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|scrum-master|sdd-pipeline)' \
     "$SKILL_DIR/clarifier" "$SKILL_DIR/aws-research" "$SKILL_DIR/coder" \
     "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" "$SKILL_DIR/meta-spec" \
     "$SKILL_DIR/problem-definition" \
-    "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master"
+    "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master" "$SKILL_DIR/sdd-pipeline"
 }
 
 run_routing_fixtures() {
