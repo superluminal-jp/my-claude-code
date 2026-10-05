@@ -71,7 +71,7 @@ run_skill_contract() {
   check_contains "SKILL-05: description routes PowerPoint conversion" "$SKILL_FILE" '^description:.*(PowerPoint|\.pptx)'
   check_contains "SKILL-06: description states the negative boundary" "$SKILL_FILE" '^description:.*Do not use'
   check "SKILL-07: skill body names no sibling skill (self-contained)" \
-    "$([ -f "$SKILL_FILE" ] && ! grep -Eq '`(coder|clarifier|adr|git-workflow|meta-spec|minto-[a-z]+|digital-agency-frontend|problem-definition|product-strategy|scrum-master|cloud-platform-research)`' "$SKILL_FILE" && echo 1 || echo 0)"
+    "$([ -f "$SKILL_FILE" ] && ! grep -Eq '`(coder|clarifier|adr|git-workflow|meta-spec|minto-[a-z]+|digital-agency-frontend|problem-definition|product-strategy|scrum-master|aws-research)`' "$SKILL_FILE" && echo 1 || echo 0)"
   check_contains "SKILL-08: skill states the exact px/pt/EMU invariant" "$SKILL_FILE" '9525 EMU'
   check_contains "SKILL-09: skill states the 1280x720 canvas" "$SKILL_FILE" '1280 x 720'
   check_contains "SKILL-10: skill links the design reference" "$SKILL_FILE" 'references/slide-design\.md'
