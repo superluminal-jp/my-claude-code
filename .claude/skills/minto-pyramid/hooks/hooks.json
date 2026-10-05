@@ -1,0 +1,16 @@
+{
+  "description": "Require observable Minto Pyramid compliance before a substantive turn ends.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Evaluate only the observable assistant result and task completion state; do not request or infer hidden chain-of-thought. Allow stopping if the result is trivial/short or if it materially follows the Minto Pyramid constraints: it answers the controlling question, makes the governing answer clear at the earliest point allowed by the user's requested format, uses directly supporting first-level points, keeps sibling points logically comparable with coherent ordering, places evidence/detail below claims, and avoids topic-only parent labels. The user's explicit requested format takes precedence over default presentation order. Return {\"ok\": true} if compliant. Otherwise return {\"ok\": false, \"reason\": \"Revise the observable result to satisfy the specific Minto structural defect(s): ...\"}. Context: $ARGUMENTS",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
