@@ -37,7 +37,7 @@ Other ways to load it: `claude --plugin-dir ./maintaining-living-documentation` 
 
 - `SKILL.md` — normative basis, standing instructions, workflow, and the completion report format.
 - `.claude-plugin/plugin.json` — plugin manifest. Replace the placeholder `author` before publishing.
-- `hooks/hooks.json` — `SessionStart` and `Stop` hooks, in exec form (`command` plus `args`) so they need no shell.
+- `hooks/hooks.json` — `SessionStart`, `UserPromptSubmit`, and `Stop` hooks, in exec form (`command` plus `args`) so they need no shell.
 - `hooks/rule.md` — the mandatory rule that the `SessionStart` hook adds to Claude's context.
 - `references/` — standards applicability, practices, and bibliography.
 - `scripts/` — read-only inspection, change-audit, and link-check helpers, and the hook script.
@@ -55,7 +55,7 @@ The Skill does **not** prescribe `docs/`, `specs/`, ADR paths, programming langu
 | `scripts/inspect_project.py` | Inventory artifact classes (implementation, documentation, specification, decision, evidence, generated, infrastructure, configuration) and change-history files | No |
 | `scripts/audit.py` | Classify changed files and list possible documentation impact, including renamed/deleted files, a missing changelog entry, and edits to accepted decision records | Yes |
 | `scripts/check_links.py` | Check local Markdown links, images, reference definitions, HTML `href`/`src`, and heading anchors; ignores code blocks and comments | Only for `--changed` |
-| `scripts/stop_gate.py` | `SessionStart`/`Stop` hook that injects the rule and enforces the workflow | Yes (inactive without it) |
+| `scripts/stop_gate.py` | `SessionStart`/`UserPromptSubmit`/`Stop` hook that injects the rule and enforces the workflow | Yes (inactive without it) |
 
 Run them from anywhere:
 
@@ -122,7 +122,7 @@ If plugins are restricted by policy or the folder sits outside a skills director
 ### How the gate behaves
 
 - At session start it records the state of uncommitted changes, so changes that existed before the session do not trigger the gate. It also adds `hooks/rule.md` to Claude's context, with the Skill's install path, unless `.claude/rules/living-documentation.md` exists in the project or in `~/.claude/`.
-- On each stop after an `end_turn`, the gate runs only if the worktree changed since that baseline or since the last passing check.
+- At the start of each turn (`UserPromptSubmit`) it records the worktree state again. On each stop after an `end_turn`, the gate runs only if the worktree differs from that turn-start state, the session baseline, and the last passing check, so edits made between turns do not trigger it.
 - A failing check blocks the stop and tells Claude what is missing. The block asks Claude not to repeat its earlier answer. The same worktree state is blocked at most twice (`LIVING_DOCS_GATE_MAX_BLOCKS`), and never again right after the gate's own block (`stop_hook_active`); then the stop is allowed and you see a warning. Claude Code also caps consecutive Stop blocks.
 - The gate checks that the report exists and that links are intact. It cannot judge whether the documentation is correct; review and CI remain necessary.
 - Outside Git worktrees, without Git, or on internal errors, the gate does nothing (fails open). State is kept in the system temp directory, never in the project.
