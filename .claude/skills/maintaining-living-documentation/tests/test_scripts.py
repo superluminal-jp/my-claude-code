@@ -449,7 +449,8 @@ class StopGateTests(TempDirTestCase):
                         HOME=str(self.home), **env)
         if "LIVING_DOCS_GATE" not in env:
             full_env.pop("LIVING_DOCS_GATE", None)
-        event = "SessionStart" if "--session-start" in args else "Stop"
+        event = ("SessionStart" if "--session-start" in args
+                 else "UserPromptSubmit" if "--turn-start" in args else "Stop")
         # turn_number makes otherwise identical calls distinct, as real consecutive events are.
         payload = {"session_id": "s1", "cwd": str(self.repo), "hook_event_name": event,
                    "stop_reason": "end_turn", "turn_number": self.calls, **payload}
@@ -484,6 +485,20 @@ class StopGateTests(TempDirTestCase):
         write(self.repo, "app.py", "print('dirty before session')\n")
         self.hook({}, "--session-start")
         self.assertIsNone(self.hook({"last_assistant_message": "Done."}))
+
+    def test_changes_made_between_turns_do_not_trigger(self):
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('edited by the user between turns')\n")
+        self.assertIsNone(self.hook({}, "--turn-start"))
+        self.assertIsNone(self.hook({"last_assistant_message": "Answered a question."}))
+
+    def test_change_during_turn_is_still_blocked_after_turn_start(self):
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('between turns')\n")
+        self.hook({}, "--turn-start")
+        write(self.repo, "app.py", "print('edited this turn')\n")
+        out = self.hook({"last_assistant_message": "Implemented the feature."})
+        self.assertEqual(out["decision"], "block")
 
     def test_code_change_without_report_is_blocked_once_per_turn_then_released(self):
         self.hook({}, "--session-start")

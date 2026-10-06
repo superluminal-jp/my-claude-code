@@ -10,6 +10,10 @@ Registered by hooks/hooks.json when this folder loads as a plugin.
                 context unless the project or user already installed it as
                 .claude/rules/living-documentation.md. It runs again after
                 compaction to restore the rule.
+  UserPromptSubmit  stop_gate.py --turn-start
+                Records the worktree fingerprint when a turn begins, so the Stop
+                gate only judges changes made during that turn, not edits made
+                between turns by the user or other tools.
   Stop          stop_gate.py
                 When the worktree changed during the session, checks that
                 1. no broken local links are introduced (check_links --changed), and
@@ -199,6 +203,18 @@ def on_session_start(payload: dict) -> int:
     return 0
 
 
+def on_turn_start(payload: dict) -> int:
+    root = project_root(payload)
+    session_id = payload.get("session_id")
+    if root is None or not session_id:
+        return 0
+    path = state_path(root, session_id)
+    state = load_state(path)
+    state["turn_start"] = fingerprint(root)
+    save_state(path, state)
+    return 0
+
+
 def on_stop(payload: dict) -> int:
     if payload.get("stop_reason") not in (None, "end_turn"):
         return 0
@@ -213,8 +229,8 @@ def on_stop(payload: dict) -> int:
     path = state_path(root, session_id)
     state = load_state(path)
     current = fingerprint(root)
-    if current is None or current in (state.get("baseline"), state.get("last_ok")):
-        return 0
+    if current is None or current in (state.get("baseline"), state.get("last_ok"), state.get("turn_start")):
+        return 0  # nothing changed during this turn (turn_start is absent until the first prompt)
 
     problems = evaluate(root, payload.get("last_assistant_message"))
     if not problems:
@@ -256,7 +272,10 @@ def main() -> int:
     except ValueError:
         payload = {}
     try:
-        return on_session_start(payload) if "--session-start" in sys.argv[1:] else on_stop(payload)
+        args = sys.argv[1:]
+        if "--session-start" in args:
+            return on_session_start(payload)
+        return on_turn_start(payload) if "--turn-start" in args else on_stop(payload)
     except Exception as exc:  # noqa: BLE001 - fail open; CI is the hard gate
         print(f"living-documentation gate skipped: {exc}", file=sys.stderr)
         return 0
