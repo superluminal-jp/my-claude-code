@@ -37,7 +37,7 @@ Claude Code loads plugin components from the plugin root. The manifest is `.clau
 
 ## Enforcement model
 
-The skill description states that the skill applies to every substantive task. The `Stop` hook then checks the observable result against the core Minto constraints. If the result is materially non-compliant, Claude receives a concrete correction request and continues rather than ending the turn.
+The skill description states that the skill applies to every substantive task. The `Stop` hook then checks the observable result against the core Minto constraints. If the result is materially non-compliant, Claude receives a concrete correction request (without repeating its earlier output) and continues rather than ending the turn. The hook allows the stop when `stop_hook_active` is true, so it corrects at most once per turn.
 
 The user’s explicit requested format or ordering takes precedence when it conflicts with the default Minto presentation order. The underlying argument structure should still remain pyramidal where possible.
 

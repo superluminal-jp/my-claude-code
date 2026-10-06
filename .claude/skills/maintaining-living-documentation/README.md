@@ -123,7 +123,7 @@ If plugins are restricted by policy or the folder sits outside a skills director
 
 - At session start it records the state of uncommitted changes, so changes that existed before the session do not trigger the gate. It also adds `hooks/rule.md` to Claude's context, with the Skill's install path, unless `.claude/rules/living-documentation.md` exists in the project or in `~/.claude/`.
 - On each stop after an `end_turn`, the gate runs only if the worktree changed since that baseline or since the last passing check.
-- A failing check blocks the stop and tells Claude what is missing. The same worktree state is blocked at most twice (`LIVING_DOCS_GATE_MAX_BLOCKS`); after that the stop is allowed and you see a warning. Claude Code also caps consecutive Stop blocks.
+- A failing check blocks the stop and tells Claude what is missing. The block asks Claude not to repeat its earlier answer. The same worktree state is blocked at most twice (`LIVING_DOCS_GATE_MAX_BLOCKS`), and never again right after the gate's own block (`stop_hook_active`); then the stop is allowed and you see a warning. Claude Code also caps consecutive Stop blocks.
 - The gate checks that the report exists and that links are intact. It cannot judge whether the documentation is correct; review and CI remain necessary.
 - Outside Git worktrees, without Git, or on internal errors, the gate does nothing (fails open). State is kept in the system temp directory, never in the project.
 
