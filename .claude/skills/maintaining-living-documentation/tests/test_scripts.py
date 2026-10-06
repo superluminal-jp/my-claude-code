@@ -485,18 +485,29 @@ class StopGateTests(TempDirTestCase):
         self.hook({}, "--session-start")
         self.assertIsNone(self.hook({"last_assistant_message": "Done."}))
 
-    def test_code_change_without_report_is_blocked_then_released(self):
+    def test_code_change_without_report_is_blocked_once_per_turn_then_released(self):
         self.hook({}, "--session-start")
         write(self.repo, "app.py", "print('v2')\n")
         msg = {"last_assistant_message": "Implemented the feature."}
-        for _ in range(2):
-            out = self.hook(msg)
-            self.assertEqual(out["decision"], "block")
-            self.assertIn("Documentation impact", out["reason"])
-        out = self.hook(msg)  # block budget spent: warn the user instead of looping
+        out = self.hook(msg)
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("Documentation impact", out["reason"])
+        # The correction must not make Claude restate the answer it already gave.
+        self.assertIn("do not repeat", out["reason"].lower())
+        # Re-entry after our own block (stop_hook_active) never blocks again: warn instead of looping.
+        out = self.hook({**msg, "stop_hook_active": True})
         self.assertNotIn("decision", out)
         self.assertIn("not blocking", out["systemMessage"])
         self.assertIsNone(self.hook(msg))  # same state is not reported again
+
+    def test_block_budget_limits_blocks_across_turns(self):
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('v2')\n")
+        msg = {"last_assistant_message": "Implemented the feature."}
+        self.assertEqual(self.hook(msg, LIVING_DOCS_GATE_MAX_BLOCKS="1")["decision"], "block")
+        out = self.hook(msg, LIVING_DOCS_GATE_MAX_BLOCKS="1")
+        self.assertNotIn("decision", out)
+        self.assertIn("not blocking", out["systemMessage"])
 
     def test_report_satisfies_the_gate(self):
         self.hook({}, "--session-start")

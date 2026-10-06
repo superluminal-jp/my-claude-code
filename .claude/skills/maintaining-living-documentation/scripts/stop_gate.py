@@ -17,10 +17,11 @@ Registered by hooks/hooks.json when this folder loads as a plugin.
                    decision-related files changed, Claude's final message
                    contains the completion report headed "Documentation impact".
                 A failed check blocks the stop and tells Claude what is
-                missing. The same worktree state is blocked at most
-                LIVING_DOCS_GATE_MAX_BLOCKS times (default 2); after that the
-                stop is allowed and the user sees a warning. Claude Code also
-                caps consecutive Stop blocks on its own.
+                missing and asks Claude not to repeat its earlier answer. The
+                same worktree state is blocked at most LIVING_DOCS_GATE_MAX_BLOCKS
+                times (default 2) and never on a re-entry caused by the gate's own
+                block (stop_hook_active); then the stop is allowed and the user
+                sees a warning. Claude Code also caps consecutive Stop blocks.
 
 Mode, first match wins: LIVING_DOCS_GATE environment variable, then
 "enforcement" in .living-documentation.json, then "block".
@@ -229,12 +230,16 @@ def on_stop(payload: dict) -> int:
     blocks = state.get("blocks", {})
     count = blocks.get(current, 0)
     summary = "Living documentation gate: " + " ".join(problems)
+    # A re-entry after our own block (stop_hook_active) must not block again: a second round only
+    # makes Claude restate its earlier output.
+    reentry = bool(payload.get("stop_hook_active"))
 
-    if mode == "block" and count < max_blocks:
+    if mode == "block" and count < max_blocks and not reentry:
         blocks[current] = count + 1
         state["blocks"] = blocks
         save_state(path, state)
-        emit({"decision": "block", "reason": summary})
+        emit({"decision": "block", "reason": summary + " Do not repeat or restate your previous answer; "
+                                                      "reply with only the missing correction or report."})
         return 0
 
     # Warn mode, or the block budget for this worktree state is spent.
