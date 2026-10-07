@@ -129,9 +129,9 @@ run_skill_contract() {
   check "SKILL-02: standard description is the only trigger metadata" "$([ "$bad_metadata" -eq 0 ] && echo 1 || echo 0)"
   check "SKILL-03: every authored description states an exclusion boundary" "$([ "$bad_description" -eq 0 ] && echo 1 || echo 0)"
 
-  # Vendored upstream plugins (maintaining-living-documentation, minto-pyramid)
-  # are kept verbatim and reference their own packaged paths, so only authored
-  # skills are checked.
+  # Vendored upstream plugins (maintaining-living-documentation, kept verbatim;
+  # minto-pyramid, vendored with its Stop hook removed) reference their own
+  # packaged paths, so only authored skills are checked.
   local authored_entry_points=() entry_skill
   for entry_skill in "${authored_skills[@]}"; do
     authored_entry_points+=("$SKILL_DIR/$entry_skill/SKILL.md")

@@ -21,7 +21,7 @@ Checked against the current Claude Code documentation on 2026-10-05.
 - Plugin hooks live in `hooks/hooks.json` and merge with user/project hooks when the plugin is enabled.
 - Prompt-based hooks avoid shell dependencies but incur a model call.
 - `Stop` prompt hooks can return `ok: false` with a reason; Claude Code feeds that reason back so Claude can continue and repair the result.
-- This plugin uses a `Stop` hook only for observable-output compliance. It explicitly does not request hidden chain-of-thought.
+- This plugin declares no hooks; it relies on the skill's self-applied completion check (`rules/completion-check.md`). It explicitly does not request hidden chain-of-thought.
 
 ## Non-standard resource directories
 

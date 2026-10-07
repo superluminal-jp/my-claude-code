@@ -42,10 +42,13 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （DADS 公式資材で 16:9 スライドを HTML として作成し、同梱ツールで編集可能な
     PowerPoint に変換）、`scrum-master`（Scrumイベントの
     設計・ファシリテーション、障害除去、フロー指標）
-  - skills ディレクトリ型プラグイン2件を上流のパッケージのまま取り込んでいる:
+  - skills ディレクトリ型プラグイン2件を上流のパッケージから取り込んでいる:
     `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
     `SessionStart` のルール注入と `Stop` フックのゲート付き）、`minto-pyramid`
-    （あらゆる実質的タスクに Minto 構造を適用。`Stop` フックの検査付き）。
+    （あらゆる実質的タスクに Minto 構造を助言的ガイダンスとして適用。`Stop`
+    フックの検査はない）。上流のパッケージのまま取り込んでいるのは
+    `maintaining-living-documentation` のみで、`minto-pyramid` のローカルコピーは
+    上流の `Stop` フックを削除している。上流からそのまま再コピーするとフックが復活する。
     オプションは各パッケージの `README.md` を参照。従来の Minto スイート
     （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
     [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した

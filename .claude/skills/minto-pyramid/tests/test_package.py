@@ -22,11 +22,10 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(manifest['name'], 'minto-pyramid')
         self.assertTrue(manifest['version'])
 
-    def test_stop_hook(self):
-        hooks = json.loads(require('hooks/hooks.json').read_text())
-        self.assertIn('Stop', hooks['hooks'])
-        stop_handlers = hooks['hooks']['Stop'][0]['hooks']
-        self.assertTrue(any(h.get('type') == 'prompt' for h in stop_handlers))
+    def test_declares_no_hooks(self):
+        self.assertFalse((ROOT / 'hooks' / 'hooks.json').exists())
+        manifest = json.loads(require('.claude-plugin/plugin.json').read_text())
+        self.assertNotIn('hooks', manifest)
 
     def test_skill(self):
         skill = require('SKILL.md').read_text()

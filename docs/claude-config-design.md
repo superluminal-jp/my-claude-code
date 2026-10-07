@@ -84,7 +84,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `.claude/rules/*.md`（5件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
 | `.claude/skills/*/SKILL.md` | `CLAUDE.md` と、自身が支える品質の関心事 | ライフサイクル操作軸／ドメインオーバーレイ軸 | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源 | 他スキルへの名指し・パス参照、`.claude/` 配下の絶対パスのハードコード |
 
-対象スキルは、この改訂で編集対象として管理する10件 — `clarifier`、`coder`、`adr`（`archive/adr/` へ退避、規則は `maintaining-living-documentation` へ統合）、`minto-builder`、`minto-reviewer`、`minto-rewriter`（後に `archive/minto-suite/` へ退避）、`scrum-master`、`digital-agency-frontend`、`git-workflow`、`aws-research` — に限定する。後の2件は §3.2 で常時ロードから移した先である。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流のまま取り込んだ2つのプラグイン（`maintaining-living-documentation`、`minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
+対象スキルは、この改訂で編集対象として管理する10件 — `clarifier`、`coder`、`adr`（`archive/adr/` へ退避、規則は `maintaining-living-documentation` へ統合）、`minto-builder`、`minto-reviewer`、`minto-rewriter`（後に `archive/minto-suite/` へ退避）、`scrum-master`、`digital-agency-frontend`、`git-workflow`、`aws-research` — に限定する。後の2件は §3.2 で常時ロードから移した先である。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流から取り込んだ2つのプラグイン（上流のままの `maintaining-living-documentation` と、`Stop` フックを削除するローカル変更を加えた `minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
 
 同一階層にしかない情報が必要になったら、参照を足すのではなく、次のどちらかを行う。
 
