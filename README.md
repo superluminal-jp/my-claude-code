@@ -56,9 +56,11 @@ across projects while preserving unrelated user files.
   lifecycle operation rather than replace it. Two vendored skills-directory
   plugins — `maintaining-living-documentation` (documentation consistency
   workflow with a `SessionStart` rule and a `Stop`-hook gate) and
-  `minto-pyramid` (Minto structure applied to every substantive task, with a
-  `Stop`-hook check) — are copied verbatim from their upstream packages; see
-  their own `README.md` for options. The former Minto suite (`minto-builder`,
+  `minto-pyramid` (Minto structure applied to every substantive task as
+  advisory guidance, with no `Stop`-hook check) — are vendored from their
+  upstream packages. `maintaining-living-documentation` is copied verbatim;
+  the local copy of `minto-pyramid` removes the upstream `Stop` hook, so a
+  verbatim re-copy would restore it. See their own `README.md` for options. The former Minto suite (`minto-builder`,
   `minto-reviewer`, `minto-rewriter`) and the `adr` skill (its rules merged
   into `maintaining-living-documentation`) are retired to
   [`archive/`](archive/), which is not synced. Spec Kit's `speckit-*`
@@ -150,7 +152,7 @@ my-claude-code/
     │   └── pyramid-principle.md    # Reader-facing structure self-check for substantive outputs
     └── skills/                     # On-demand: body loaded when relevant, self-describing
         ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
-        ├── minto-pyramid/          # Vendored plugin: Minto structure for every substantive task (+ Stop-hook check)
+        ├── minto-pyramid/          # Vendored plugin: Minto structure for every substantive task (locally modified: no Stop hook)
         ├── maintaining-living-documentation/ # Vendored plugin: docs kept consistent with changes (+ SessionStart rule, Stop-hook gate)
         ├── clarifier/              # Shared understanding of intent, then formal requirements
         │   ├── SKILL.md            #   two-stage playbook

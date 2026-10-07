@@ -1,7 +1,7 @@
 {
   "name": "minto-pyramid",
   "displayName": "Minto Pyramid",
-  "version": "0.3.0",
+  "version": "0.3.0+local.no-stop-hook",
   "description": "Apply the Minto Pyramid Principle to problem framing, reasoning structure, user communication, decisions, plans, and deliverables.",
   "author": {
     "name": "minto-pyramid maintainers"

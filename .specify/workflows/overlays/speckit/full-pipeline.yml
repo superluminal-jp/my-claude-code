@@ -1,0 +1,169 @@
+id: full-pipeline
+extends: speckit
+priority: 10
+enabled: true
+edits:
+- remove: review-spec
+- remove: review-plan
+- replace: specify
+  step:
+    id: specify
+    type: command
+    command: speckit.specify
+    integration: '{{ inputs.integration }}'
+    input:
+      args: '{{ inputs.spec }} Cite authoritative sources for every non-obvious claim
+        or decision: international standards, industry best practices, scientifically
+        and academically accepted findings, and official documentation, each with
+        its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+        Never state an unsourced claim as fact; mark unverified points as unverified.'
+- replace: plan
+  step:
+    id: plan
+    type: command
+    command: speckit.plan
+    integration: '{{ inputs.integration }}'
+    input:
+      args: '{{ inputs.spec }} Cite authoritative sources for every non-obvious claim
+        or decision: international standards, industry best practices, scientifically
+        and academically accepted findings, and official documentation, each with
+        its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+        Never state an unsourced claim as fact; mark unverified points as unverified.
+        Record each citation with the decision it supports in research.md and plan.md.'
+- replace: tasks
+  step:
+    id: tasks
+    type: command
+    command: speckit.tasks
+    integration: '{{ inputs.integration }}'
+    input:
+      args: '{{ inputs.spec }} Cite authoritative sources for every non-obvious claim
+        or decision: international standards, industry best practices, scientifically
+        and academically accepted findings, and official documentation, each with
+        its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+        Never state an unsourced claim as fact; mark unverified points as unverified.'
+- replace: implement
+  step:
+    id: implement
+    type: command
+    command: speckit.implement
+    integration: '{{ inputs.integration }}'
+    input:
+      args: '{{ inputs.spec }} Cite authoritative sources for every non-obvious claim
+        or decision: international standards, industry best practices, scientifically
+        and academically accepted findings, and official documentation, each with
+        its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+        Never state an unsourced claim as fact; mark unverified points as unverified.'
+- insert_after: tasks
+  step:
+    id: analyze
+    type: command
+    command: speckit.analyze
+    integration: '{{ inputs.integration }}'
+    input:
+      args: '{{ inputs.spec }} Cite authoritative sources for every non-obvious claim
+        or decision: international standards, industry best practices, scientifically
+        and academically accepted findings, and official documentation, each with
+        its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+        Never state an unsourced claim as fact; mark unverified points as unverified.'
+- insert_after: tasks
+  step:
+    id: apply-analyze-recommendations
+    type: prompt
+    integration: '{{ inputs.integration }}'
+    prompt: 'Apply the remediation recommendations from the analysis report to spec.md,
+      plan.md and tasks.md by returning to the owning artifact. Keep every change
+      traceable. Cite authoritative sources for every non-obvious claim or decision:
+      international standards, industry best practices, scientifically and academically
+      accepted findings, and official documentation, each with its URL. For AWS use
+      the AWS Knowledge and AWS Documentation MCP servers. Never state an unsourced
+      claim as fact; mark unverified points as unverified.'
+- insert_after: implement
+  step:
+    id: converge
+    type: command
+    command: speckit.converge
+    integration: '{{ inputs.integration }}'
+    input:
+      args: '{{ inputs.spec }} Cite authoritative sources for every non-obvious claim
+        or decision: international standards, industry best practices, scientifically
+        and academically accepted findings, and official documentation, each with
+        its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+        Never state an unsourced claim as fact; mark unverified points as unverified.'
+- insert_after: implement
+  step:
+    id: implement-converge-recommendations
+    type: command
+    command: speckit.implement
+    integration: '{{ inputs.integration }}'
+    input:
+      args: '{{ inputs.spec }} Implement only the tasks converge appended, once. Cite
+        authoritative sources for every non-obvious claim or decision: international
+        standards, industry best practices, scientifically and academically accepted
+        findings, and official documentation, each with its URL. For AWS use the AWS
+        Knowledge and AWS Documentation MCP servers. Never state an unsourced claim
+        as fact; mark unverified points as unverified.'
+- insert_after: implement
+  step:
+    id: commit-implementation
+    type: command
+    command: speckit.git.commit
+    integration: '{{ inputs.integration }}'
+    input:
+      args: implementation and converge changes
+- insert_after: implement
+  step:
+    id: code-review-fix
+    type: prompt
+    integration: '{{ inputs.integration }}'
+    prompt: /code-review --fix
+- insert_after: implement
+  step:
+    id: commit-review-fixes
+    type: command
+    command: speckit.git.commit
+    integration: '{{ inputs.integration }}'
+    input:
+      args: code-review fixes
+- insert_after: implement
+  step:
+    id: push
+    type: shell
+    run: git push -u origin HEAD
+- insert_after: implement
+  step:
+    id: open-pr
+    type: prompt
+    integration: '{{ inputs.integration }}'
+    prompt: 'Open a pull request for the current branch with gh. Title in Conventional
+      Commits form; body leads with the conclusion, then what changed, why, how it
+      was verified, known limits, and a list of the cited sources with URLs. Report
+      the PR URL and the verification results. Cite authoritative sources for every
+      non-obvious claim or decision: international standards, industry best practices,
+      scientifically and academically accepted findings, and official documentation,
+      each with its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+      Never state an unsourced claim as fact; mark unverified points as unverified.'
+- insert_after: implement
+  step:
+    id: ci-wait
+    type: shell
+    run: gh pr checks --watch >/dev/null 2>&1 && echo CI_OK || echo CI_FAIL
+- insert_after: implement
+  step:
+    id: ci-fix-once
+    type: if
+    condition: '{{ steps.ci-wait.output.stdout | contains(''CI_FAIL'') }}'
+    then:
+    - id: ci-fix
+      type: prompt
+      integration: '{{ inputs.integration }}'
+      prompt: 'CI reported errors on the open pull request. Read the failing check
+        logs, fix the cause once, commit, and push. If it still fails afterwards,
+        stop and report; do not retry. Cite authoritative sources for every non-obvious
+        claim or decision: international standards, industry best practices, scientifically
+        and academically accepted findings, and official documentation, each with
+        its URL. For AWS use the AWS Knowledge and AWS Documentation MCP servers.
+        Never state an unsourced claim as fact; mark unverified points as unverified.'
+    - id: ci-push
+      type: shell
+      run: git push
