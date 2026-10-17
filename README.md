@@ -52,7 +52,10 @@ across projects while preserving unrelated user files.
   public-service frontends and web dashboards), `digital-agency-slides`
   (DADS 16:9 slide decks authored as HTML and converted to editable
   PowerPoint by its own bundled tooling), `scrum-master` (Scrum
-  Guide-only events, roles, impediments), which compose with a matching
+  Guide-only events, roles, impediments), `secure-logging` (implement and
+  check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0
+  V16, and CWE; code-verifiable items only, operational items reported as
+  unverified), which compose with a matching
   lifecycle operation rather than replace it. Two vendored skills-directory
   plugins — `maintaining-living-documentation` (documentation consistency
   workflow with a `SessionStart` rule and a `Stop`-hook gate) and
@@ -169,10 +172,13 @@ my-claude-code/
         │   ├── references/         #   slide design, markup contract, conversion, sourcing
         │   ├── assets/             #   1280x720 layout CSS + annotated deck template
         │   └── scripts/            #   setup, official-asset fetch, DOM extractor, deck CLI
-        └── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments (domain overlay)
+        ├── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments (domain overlay)
+        │   ├── SKILL.md            #   playbook
+        │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+        │       └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
+        └── secure-logging/         # OWASP logging implementation + checklist (domain overlay)
             ├── SKILL.md            #   playbook
-            └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
-                └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
+            └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP)
 ```
 
 ## Verification
@@ -187,6 +193,17 @@ bash tests/run-digital-agency-frontend-skill.sh
 bash tests/run-digital-agency-slides-skill.sh
 bash tests/run-removed-guardrails.sh
 ```
+
+After changing [`.claude/skills/secure-logging/`](.claude/skills/secure-logging/):
+
+```sh
+bash tests/run-secure-logging-skill.sh
+bash tests/run-config-pyramid.sh
+```
+
+The first checks the skill's structure and the sourcing rules of its checklist.
+How the skill behaves is checked by hand with the fixture in
+`tests/fixtures/secure-logging/`.
 
 `run-digital-agency-slides-skill.sh` ends with an end-to-end section that
 fetches the official DADS stylesheets and converts the bundled deck template.

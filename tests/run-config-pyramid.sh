@@ -54,6 +54,7 @@ authored_skills=(
   product-strategy
   scrum-master
   sdd-pipeline
+  secure-logging
 )
 
 run_apex_contract() {
@@ -156,11 +157,12 @@ run_skill_contract() {
   check "SKILL-05: authored packages do not name siblings" "$([ "$failed" -eq 0 ] && echo 1 || echo 0)"
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|scrum-master|sdd-pipeline)' \
+    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|scrum-master|sdd-pipeline|secure-logging)' \
     "$SKILL_DIR/clarifier" "$SKILL_DIR/aws-research" "$SKILL_DIR/coder" \
     "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" "$SKILL_DIR/meta-spec" \
     "$SKILL_DIR/problem-definition" \
-    "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master" "$SKILL_DIR/sdd-pipeline"
+    "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master" "$SKILL_DIR/sdd-pipeline" \
+    "$SKILL_DIR/secure-logging"
 }
 
 run_routing_fixtures() {
@@ -172,6 +174,8 @@ run_routing_fixtures() {
   check_contains "ROUTE-09: product strategy precedes development, distinct from scope/facilitation/generic docs" "$SKILL_DIR/product-strategy/SKILL.md" '^description:.*(戦略|strategy).*(対象外|使わない|out of scope|not for)'
   check_contains "ROUTE-10: problem definition stays gap-framing, distinct from cause analysis/solutions/scope clarification" "$SKILL_DIR/problem-definition/SKILL.md" '^description:.*(problem|問題).*(out of scope|not for|対象外|使わない)'
   check_contains "ROUTE-11: decomposition owns slicing only, not the sliced specification" "$SKILL_DIR/meta-spec/SKILL.md" '^description:.*(decompos|slice).*(out of scope|not for|対象外|使わない)'
+  check_contains "ROUTE-12: secure logging stays a domain overlay, distinct from log infrastructure operations" "$SKILL_DIR/secure-logging/SKILL.md" '^description:.*overlay.*alongside.*supplements'
+  check_contains "ROUTE-13: secure logging excludes log infrastructure operations" "$SKILL_DIR/secure-logging/SKILL.md" '^description:.*(Do not use|not for).*(SIEM|infrastructure)'
 }
 
 run_owned_link_contract() {
