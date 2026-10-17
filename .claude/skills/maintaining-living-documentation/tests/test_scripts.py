@@ -16,6 +16,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(SCRIPTS))
 
 import common  # noqa: E402
+import stop_gate  # noqa: E402
 from common import classify, excluded  # noqa: E402
 
 HAS_GIT = shutil.which("git") is not None
@@ -614,6 +615,110 @@ class StopGateTests(TempDirTestCase):
         self.hook({}, "--session-start")
         self.assertIsNone(self.hook({"last_assistant_message": self.REPORT}))
 
+    # --- Report quality: empty or boilerplate reasons (slice S3, contract C2) ---
+
+    def impl_turns(self, messages: list[str], **env: str) -> list[dict | None]:
+        """Run one Stop per message; every message follows a distinct implementation change."""
+        self.hook({}, "--session-start")
+        outs = []
+        for i, message in enumerate(messages, 1):
+            write(self.repo, "app.py", f"print('v{i + 1}')\n")
+            outs.append(self.hook({"last_assistant_message": message}, **env))
+        return outs
+
+    def test_none_without_a_reason_is_blocked(self):  # G1
+        messages = ["Documentation impact: none —", "Documentation impact: none", "Documentation impact: none —   "]
+        for message, out in zip(messages, self.impl_turns(messages)):
+            with self.subTest(message=message):
+                self.assertEqual(out["decision"], "block")
+                self.assertIn("specific reason", out["reason"])
+
+    def test_boilerplate_none_reason_is_blocked(self):  # G2
+        messages = ["Documentation impact: none — n/a", "Documentation impact: none — なし。",
+                    "Documentation impact: none — <reason>"]
+        for message, out in zip(messages, self.impl_turns(messages)):
+            with self.subTest(message=message):
+                self.assertEqual(out["decision"], "block")
+
+    def test_specific_none_reason_is_accepted(self):  # G3
+        messages = ["Documentation impact: none — internal refactor.",
+                    "Documentation impact: none — 内部の変数名のみの変更で公開される挙動は不変"]
+        for message, out in zip(messages, self.impl_turns(messages)):
+            with self.subTest(message=message):
+                self.assertIsNone(out)
+
+    def test_heading_only_report_is_blocked_when_no_documentation_changed(self):  # G4
+        out = self.impl_turns(["Documentation impact"])[0]
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("No change needed", out["reason"])
+
+    def test_heading_only_report_passes_when_documentation_changed(self):  # G5
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('v2')\n")
+        write(self.repo, "docs/guide.md", "# Guide\n\nDocuments the change.\n")
+        self.assertIsNone(self.hook({"last_assistant_message": "Documentation impact"}))
+
+    def test_updated_and_no_change_needed_lines_are_evidence(self):  # G6
+        messages = ["Documentation impact\n- Updated: docs/guide.md — rewrote the setup section",
+                    "Documentation impact\n- No change needed: docs/guide.md — the change is internal",
+                    "Documentation impact\n- No change needed: docs/guide.md — n/a"]
+        outs = self.impl_turns(messages)
+        self.assertIsNone(outs[0])
+        self.assertIsNone(outs[1])
+        self.assertEqual(outs[2]["decision"], "block")
+
+    def test_full_report_format_still_passes(self):  # G7
+        report = "\n".join([
+            "Documentation impact",
+            "- Updated: docs/guide.md — new flag documented",
+            "- No change needed: README.md — unaffected by the flag",
+            "- Unresolved: none — nothing pending",
+            "- Proposed decision record: none",
+            "- Checks: python3 -m unittest — passed",
+        ])
+        self.assertIsNone(self.impl_turns([report])[0])
+
+    def test_invalid_none_declaration_is_blocked_even_when_documentation_changed(self):  # G8
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('v2')\n")
+        write(self.repo, "docs/guide.md", "# Guide\n\nMore.\n")
+        out = self.hook({"last_assistant_message": "Documentation impact: none — n/a"})
+        self.assertEqual(out["decision"], "block")
+        write(self.repo, "docs/guide.md", "# Guide\n\nMore, again.\n")
+        mixed = "Documentation impact: none — internal refactor.\nDocumentation impact: none — n/a"
+        self.assertEqual(self.hook({"last_assistant_message": mixed})["decision"], "block")
+
+    def test_warn_and_off_modes_for_invalid_none_reason(self):  # G9
+        out = self.impl_turns(["Documentation impact: none — n/a"], LIVING_DOCS_GATE="warn")[0]
+        self.assertNotIn("decision", out)
+        self.assertIn("specific reason", out["systemMessage"])
+        self.assertIsNone(self.impl_turns(["Documentation impact: none — n/a"], LIVING_DOCS_GATE="off")[0])
+
+    def test_block_budget_and_reentry_for_invalid_none_reason(self):  # G10
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('v2')\n")
+        msg = {"last_assistant_message": "Documentation impact: none —"}
+        self.assertEqual(self.hook(msg, LIVING_DOCS_GATE_MAX_BLOCKS="1")["decision"], "block")
+        out = self.hook(msg, LIVING_DOCS_GATE_MAX_BLOCKS="1")
+        self.assertNotIn("decision", out)
+        self.assertIn("not blocking", out["systemMessage"])
+        write(self.repo, "app.py", "print('v3')\n")
+        out = self.hook({**msg, "stop_hook_active": True})
+        self.assertNotIn("decision", out)
+        self.assertIn("specific reason", out["systemMessage"])
+
+    def test_report_problem_and_unaddressed_document_share_one_block(self):  # G11
+        self.start_with_src_change()
+        out = self.hook({"last_assistant_message": "Documentation impact: none —"})
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("specific reason", out["reason"])
+        self.assertIn("src/README.md", out["reason"])
+
+    def test_missing_final_message_skips_the_report_quality_check(self):  # G12
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('v2')\n")
+        self.assertIsNone(self.hook({}))
+
     def test_env_modes(self):
         self.hook({}, "--session-start")
         write(self.repo, "app.py", "print('v2')\n")
@@ -767,6 +872,70 @@ class FindRelatedTests(TempDirTestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("src/README.md", proc.stdout)
         self.assertIn("src/x.py", proc.stdout)
+
+
+class ReportQualityTests(unittest.TestCase):
+    """Reasons and report lines the Stop gate reads from the final message (slice S3, contract C2)."""
+
+    BOILERPLATE = [
+        "", "   ", "n/a", "N/A", "na", "none", "nil", "no", "nothing", "no impact", "No changes.",
+        "not applicable", "なし", "なし。", "無し", "該当なし", "変更なし", "影響なし", "-", "—", "...",
+        "<reason>", "<what is unchanged and why>", "ＮＯＮＥ",
+    ]
+    SPECIFIC = [
+        "internal refactor", "comment only", "内部の変数名のみの変更で公開される挙動は不変",
+        "no behavior change: only renames a private helper",
+    ]
+
+    def test_boilerplate_reasons_are_rejected(self):  # R1
+        for reason in self.BOILERPLATE:
+            with self.subTest(reason=reason):
+                self.assertTrue(stop_gate.is_boilerplate(reason))
+
+    def test_specific_reasons_are_accepted(self):  # R2
+        for reason in self.SPECIFIC:
+            with self.subTest(reason=reason):
+                self.assertFalse(stop_gate.is_boilerplate(reason))
+
+    def test_none_declarations_read_every_separator(self):  # R3
+        for sep in ("—", "–", "-", "--", ":", "："):
+            for spaced in (f" {sep} ", sep):
+                with self.subTest(separator=sep, spaced=spaced):
+                    message = f"Done.\n\nDocumentation impact: none{spaced}internal refactor."
+                    self.assertEqual(stop_gate.none_declarations(message), ["internal refactor."])
+
+    def test_none_declarations_accept_prefixes_and_case(self):  # R3
+        for line in ("- Documentation impact: none — x", "* **Documentation impact**: none — x",
+                     "> DOCUMENTATION IMPACT: None — x", "  Documentation Impact: none — x"):
+            with self.subTest(line=line):
+                self.assertEqual(stop_gate.none_declarations(line), ["x"])
+
+    def test_none_declarations_without_a_separator_have_an_empty_reason(self):  # R3
+        self.assertEqual(stop_gate.none_declarations("Documentation impact: none"), [""])
+        self.assertEqual(stop_gate.none_declarations("Documentation impact: none —"), [""])
+
+    def test_none_declarations_keep_order_and_ignore_prose(self):  # R3
+        message = ("Documentation impact: none — first\n"
+                   "I think Documentation impact: none — mid-sentence\n"
+                   "Documentation impact: none of the above\n"
+                   "Documentation impact: none — second")
+        self.assertEqual(stop_gate.none_declarations(message), ["first", "second"])
+        self.assertEqual(stop_gate.none_declarations("Documentation impact\n- Updated: docs/guide.md"), [])
+
+    def test_report_lines(self):  # R4
+        message = "\n".join([
+            "Documentation impact",
+            "- Updated: docs/guide.md — added a section",
+            "- Updated:",
+            "- Updated: <file> — <what changed and why>",
+            "* **No change needed**: README.md — behavior unchanged",
+            "- No change needed: my-file.md — n/a",
+            "- No change needed: README stays accurate",
+            "- No change needed: a.md - spaced hyphen reason",
+        ])
+        updated, no_change = stop_gate.report_lines(message)
+        self.assertEqual(updated, ["docs/guide.md — added a section"])
+        self.assertEqual(no_change, ["behavior unchanged", "n/a", "README stays accurate", "spaced hyphen reason"])
 
 
 class PluginPackagingTests(unittest.TestCase):

@@ -48,6 +48,7 @@ import json
 import os
 import re
 import tempfile
+import unicodedata
 from pathlib import Path
 
 from common import (
@@ -60,6 +61,25 @@ RULE_TEMPLATE = SKILL_ROOT / "hooks" / "rule.md"
 RULE_NAME = "living-documentation.md"
 MODES = ("block", "warn", "off")
 RELATED_LIMIT = 10  # documents listed in one problem; the rest are summarized as "+N more"
+
+# Reasons that say nothing, in normalized form (see normalize_reason). A report that gives one of these as
+# its reason for "no documentation impact" is treated as having no reason.
+BOILERPLATE_REASONS = frozenset({
+    "n/a", "na", "none", "nil", "no", "nothing", "no impact", "no change", "no changes", "no change needed",
+    "not applicable", "no documentation impact", "なし", "無し", "該当なし", "変更なし", "影響なし", "特になし",
+})
+
+# Report lines. Horizontal whitespace only, so a match never runs into the next line.
+_LINE_START = r"^[ \t>*_`#•\-]*"
+_NONE_RE = re.compile(
+    _LINE_START + r"documentation[ \t]+impact[ \t*_`]*[:：]?[ \t*_`]*none\b[ \t*_`]*"
+    r"(?:(?:[—–:：]|-+)[ \t]*(?P<reason>.*))?$", re.IGNORECASE | re.MULTILINE)
+_UPDATED_RE = re.compile(_LINE_START + r"updated[ \t*_`]*[:：][ \t]*(?P<content>.*)$", re.IGNORECASE | re.MULTILINE)
+_NO_CHANGE_RE = re.compile(_LINE_START + r"no[ \t]+change[ \t]+needed[ \t*_`]*[:：][ \t]*(?P<content>.*)$",
+                           re.IGNORECASE | re.MULTILINE)
+_REASON_SPLIT = re.compile(r"\s[—–-]\s|[—–]")  # "<area> — <reason>"; a hyphen inside a path does not split
+_PLACEHOLDER = re.compile(r"<[^<>]*>")  # unfilled template text such as <reason>
+_MARKDOWN_NOISE = re.compile(r"[*_`]")
 
 
 # --------------------------------------------------------------------------
@@ -167,10 +187,69 @@ def evaluate(root: Path, last_message: str | None) -> list[str]:
             "documentation (and change history if the project keeps it), run its checks, then end with the "
             "report headed 'Documentation impact' (or 'Documentation impact: none — <reason>')."
         )
+    if last_message is not None:
+        problems += report_quality_problems(last_message, needs_report, "documentation" in categories)
     related = unaddressed_related(root, config, changes, last_message)
     if related:
         problems.append(related)
     return problems
+
+
+def _is_noise(char: str) -> bool:
+    return char.isspace() or unicodedata.category(char)[0] in "PSZ"
+
+
+def normalize_reason(text: str) -> str:
+    """Fold width and case, drop template placeholders and markdown marks, trim punctuation and spaces."""
+    text = _MARKDOWN_NOISE.sub("", _PLACEHOLDER.sub("", unicodedata.normalize("NFKC", text).casefold()))
+    start, end = 0, len(text)
+    while start < end and _is_noise(text[start]):
+        start += 1
+    while end > start and _is_noise(text[end - 1]):
+        end -= 1
+    return text[start:end]
+
+
+def is_boilerplate(text: str) -> bool:
+    """True when the reason is empty, only punctuation, an unfilled template, or a stock phrase."""
+    reason = normalize_reason(text)
+    return not any(char.isalnum() for char in reason) or reason in BOILERPLATE_REASONS
+
+
+def none_declarations(message: str) -> list[str]:
+    """Reasons given in 'Documentation impact: none — <reason>' lines, in order ('' when there is none)."""
+    return [(match.group("reason") or "").strip() for match in _NONE_RE.finditer(message)]
+
+
+def report_lines(message: str) -> tuple[list[str], list[str]]:
+    """Contents of 'Updated:' lines that say something, and reasons of 'No change needed:' lines."""
+    updated = []
+    for match in _UPDATED_RE.finditer(message):
+        content = match.group("content").strip()
+        if any(char.isalnum() for char in _PLACEHOLDER.sub("", content)):
+            updated.append(content)
+    no_change = []
+    for match in _NO_CHANGE_RE.finditer(message):
+        parts = _REASON_SPLIT.split(match.group("content").strip(), maxsplit=1)
+        no_change.append(parts[-1].strip())
+    return updated, no_change
+
+
+def report_quality_problems(message: str, needs_report: list[str], docs_changed: bool) -> list[str]:
+    """Problems with the content of the completion report (contract C2)."""
+    nones = none_declarations(message)
+    if any(is_boilerplate(reason) for reason in nones):
+        return ["The final message says 'Documentation impact: none' without a specific reason. State why the "
+                "change needs no documentation update: 'Documentation impact: none — <what stays unchanged "
+                "and why>'."]
+    if needs_report and not docs_changed and not nones and REPORT_MARKER.search(message):
+        updated, no_change = report_lines(message)
+        if not updated and all(is_boilerplate(reason) for reason in no_change):
+            return ["Changed files include " + ", ".join(needs_report) + " artifacts and no documentation file "
+                    "changed, but the report has no 'Updated: <file> — <what changed>' line, no 'No change "
+                    "needed: <area> — <specific reason>' line, and no 'Documentation impact: none — <reason>' "
+                    "line. Add one."]
+    return []
 
 
 def unaddressed_related(root: Path, config: dict, changes: list, last_message: str | None) -> str | None:
