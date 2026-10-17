@@ -1,0 +1,4 @@
+{
+  "$schema": ".claude/skills/maintaining-living-documentation/schemas/config.schema.json",
+  "exclude_globs": ["specs/**"]
+}

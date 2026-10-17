@@ -89,7 +89,28 @@ def _check_type(value, spec: dict) -> bool:
             return False
         item_spec = spec.get("items", {})
         return all(_check_type(v, item_spec) for v in value) if item_spec else True
+    if expected == "integer":
+        return isinstance(value, int) and not isinstance(value, bool) and value >= spec.get("minimum", value)
+    if expected == "object":
+        return isinstance(value, dict)
     return True
+
+
+def _check_members(key: str, value: dict, spec: dict) -> None:
+    """Validate the members of an object-valued setting (unknown members, types, lower bounds)."""
+    members = spec.get("properties", {})
+    unknown = set(value) - set(members)
+    if unknown and spec.get("additionalProperties") is False:
+        raise ConfigError(
+            f"invalid {CONFIG_NAME}: unknown keys in {key}: {', '.join(f'{key}.{name}' for name in sorted(unknown))} "
+            f"(accepted: {', '.join(f'{key}.{name}' for name in sorted(members))})"
+        )
+    for name, member in value.items():
+        if name in members and not _check_type(member, members[name]):
+            expected = members[name].get("type")
+            if "minimum" in members[name]:
+                expected = f"{expected} >= {members[name]['minimum']}"
+            raise ConfigError(f"invalid {CONFIG_NAME}: {key}.{name} must be {expected}")
 
 
 def load_config(root: Path) -> dict:
@@ -120,6 +141,8 @@ def load_config(root: Path) -> dict:
             expected = " or ".join(repr(v) for v in spec["enum"]) if "enum" in spec else spec.get("type")
             raise ConfigError(f"invalid {CONFIG_NAME}: {key} must be {expected}"
                               + (" of strings" if spec.get("type") == "array" else ""))
+        if properties[key].get("type") == "object":
+            _check_members(key, value, properties[key])
     return data
 
 
