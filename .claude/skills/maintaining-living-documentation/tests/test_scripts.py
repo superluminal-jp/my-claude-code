@@ -1286,6 +1286,29 @@ class SkillDefinitionTests(unittest.TestCase):
         self.assertIn("scripts/find_related.py", step)
         self.assertIn("final message", step)
 
+    def every_change(self) -> str:
+        return self.text.split("## For every change", 1)[1].split("## Workflow", 1)[0]
+
+    def test_skill_disposes_of_related_documents(self):  # S4a
+        self.assertIn("Dispose of every related document", self.every_change())
+        self.assertIn("name its path in the final message", self.every_change())
+
+    def test_skill_states_when_a_document_may_be_created(self):  # S4b
+        for phrase in ("new public contract", "at most three new files",
+                       "references/practices.md#layers-placement-and-proximity", "never start a change history"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, self.every_change())
+
+    def test_completion_report_lists_created_files_after_updated_ones(self):  # S4c
+        block = self.text.split("## Completion report", 1)[1].split("## References", 1)[0]
+        labels = [line.strip().split(":")[0] for line in block.splitlines() if line.strip().startswith("- ")]
+        self.assertEqual(labels[:3], ["- Updated", "- Created", "- No change needed"])
+
+    def test_rule_names_disposition_and_creation(self):  # S4d
+        rule = (SKILL_ROOT / "hooks/rule.md").read_text(encoding="utf-8")
+        self.assertIn("find_related.py", rule)
+        self.assertIn("new public contract", rule)
+
     def test_scripts_named_in_the_skill_exist(self):  # D2
         import re
         for name in set(re.findall(r"scripts/([a-z_]+\.py)", self.text)):

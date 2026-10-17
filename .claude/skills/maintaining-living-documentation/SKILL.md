@@ -35,6 +35,8 @@ Applicability, interpretation, and sources for each standard: [references/standa
 - Never invent missing facts. Mark unknown, assumed, inferred, proposed, historical, and verified information distinctly when it matters.
 - Do not declare completion while implementation, specifications, evidence, and documentation disagree. Report what remains unresolved.
 - Discover and respect the project's existing structure. Keep project artifacts in the project, never inside this Skill directory.
+- Dispose of every related document that `find_related.py` lists: update it, or name its path in the final message with the reason it needs no change.
+- Create a document only when the change adds a new public contract (command, option, setting, API, module) and no related document covers it. Place and shape it by [references/practices.md](references/practices.md#layers-placement-and-proximity). Create at most three new files per change and propose the rest in the report. Never create a decision record unless the user asks, and never start a change history the project does not keep.
 
 If the change alters no observable behavior, interface, configuration, operation, decision, or documented claim (formatting, comments, a refactor that keeps every documented contract), write `Documentation impact: none — <reason>` and stop. Do not add documentation the change does not need.
 
@@ -72,6 +74,7 @@ Run the commands as written; a project can pre-approve them with permission rule
 ```
 Documentation impact
 - Updated: <file> — <what changed and why>
+- Created: <file> — <what it documents and why no existing document fit>
 - No change needed: <area> — <reason>
 - Unresolved: <inconsistency or uncertainty> — <what would resolve it>
 - Proposed decision record: <title> — <why it qualifies; the user decides whether to record it>
