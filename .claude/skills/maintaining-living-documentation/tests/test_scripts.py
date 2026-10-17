@@ -151,6 +151,21 @@ class ConfigTests(TempDirTestCase):
         with self.assertRaises(common.ConfigError):
             common.load_config(self.root)
 
+    def test_related_settings_are_validated(self):  # C1 (slice S2)
+        write(self.root, ".living-documentation.json", json.dumps({"related": {"max_candidates": 3, "min_name_length": 4}}))
+        self.assertEqual(common.load_config(self.root)["related"], {"max_candidates": 3, "min_name_length": 4})
+        bad_settings = [("x", "related"), ({"max_candidates": 0}, "related.max_candidates"),
+                        ({"max_candidates": True}, "related.max_candidates"),
+                        ({"min_name_length": "6"}, "related.min_name_length"),
+                        ({"min_name_length": 2.5}, "related.min_name_length"),
+                        ({"unknown": 1}, "related.unknown")]
+        for value, needle in bad_settings:
+            with self.subTest(value=value):
+                write(self.root, ".living-documentation.json", json.dumps({"related": value}))
+                with self.assertRaises(common.ConfigError) as caught:
+                    common.load_config(self.root)
+                self.assertIn(needle, str(caught.exception))
+
     def test_loader_and_schema_agree(self):
         schema = json.loads(common.SCHEMA_PATH.read_text(encoding="utf-8"))
         glob_keys = {k for k in schema["properties"] if k.endswith("_globs") and k != "exclude_globs"}
@@ -719,6 +734,53 @@ class StopGateTests(TempDirTestCase):
         write(self.repo, "app.py", "print('v2')\n")
         self.assertIsNone(self.hook({}))
 
+    # --- Slice S2: mentions, change history, advisory comments, cap ---
+
+    REPORT_FOR_S2 = "Done.\n\nDocumentation impact: none — internal refactor.\nNo change needed: src/README.md — unaffected."
+
+    def test_unaddressed_mention_is_blocked_until_updated_or_named(self):  # G1
+        self.add_src_tree()
+        write(self.repo, "docs/guide.md", "Edit src/x.py to change it.\n")
+        commit_all(self.repo, "guide names x.py")
+        self.hook({}, "--session-start")
+        write(self.repo, "src/x.py", "print('x2')\n")
+        out = self.hook({"last_assistant_message": self.REPORT_FOR_S2})
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("docs/guide.md", out["reason"])
+        self.assertIn("mentions changed src/x.py", out["reason"])
+        write(self.repo, "src/x.py", "print('x3')\n")
+        named = self.REPORT_FOR_S2 + "\nNo change needed: docs/guide.md — the instructions are unchanged."
+        self.assertIsNone(self.hook({"last_assistant_message": named}))
+
+    def test_comment_records_alone_do_not_block(self):  # G2
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('v2')\n")
+        self.assertIsNone(self.hook({"last_assistant_message": self.REPORT}))
+
+    def test_unaddressed_change_history_is_blocked(self):  # G3
+        write(self.repo, "CHANGELOG.md", "# Changelog\n")
+        commit_all(self.repo, "changelog")
+        self.hook({}, "--session-start")
+        write(self.repo, "app.py", "print('v2')\n")
+        out = self.hook({"last_assistant_message": self.REPORT})
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("CHANGELOG.md", out["reason"])
+        self.assertIn("change history", out["reason"])
+        write(self.repo, "app.py", "print('v3')\n")
+        self.assertIsNone(self.hook({"last_assistant_message": self.REPORT + "\nUpdated: CHANGELOG.md — noted."}))
+
+    def test_omitted_candidates_are_counted_in_the_problem(self):  # G4
+        self.add_src_tree()
+        write(self.repo, "src/design.md", "# design\n")
+        write(self.repo, ".living-documentation.json", json.dumps({"related": {"max_candidates": 1}}))
+        commit_all(self.repo, "two siblings and a cap")
+        self.hook({}, "--session-start")
+        write(self.repo, "src/x.py", "print('x2')\n")
+        out = self.hook({"last_assistant_message": self.REPORT})
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("+1 more", out["reason"])
+        self.assertIn("max_candidates", out["reason"])
+
     def test_env_modes(self):
         self.hook({}, "--session-start")
         write(self.repo, "app.py", "print('v2')\n")
@@ -779,7 +841,22 @@ class FindRelatedTests(TempDirTestCase):
 
     @staticmethod
     def pairs(data: dict) -> list[tuple[str, str]]:
-        return [(c["source"], c["path"]) for c in data["candidates"]]
+        """(source, path) of the document candidates; advisory comment records (P0) are left out."""
+        return [(c["source"], c["path"]) for c in data["candidates"] if c["kind"] != "comment"]
+
+    @staticmethod
+    def of_kind(data: dict, kind: str) -> list[dict]:
+        return [c for c in data["candidates"] if c["kind"] == kind]
+
+    def commit_files(self, **files: str) -> None:
+        """Write files (keyword names use '__' for '/' and '_dot_' for '.') and commit them."""
+        for name, text in files.items():
+            write(self.root, name.replace("__", "/").replace("_dot_", "."), text)
+        commit_all(self.root, "fixture")
+
+    def use_settings(self, **related: int) -> None:
+        write(self.root, ".living-documentation.json", json.dumps({"related": related}))
+        commit_all(self.root, "settings")
 
     def status(self) -> str:
         return subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=self.root,
@@ -793,8 +870,10 @@ class FindRelatedTests(TempDirTestCase):
         self.assertEqual(data["changed"], ["src/x.py"])
         self.assertEqual(data["truncated"], 0)
         self.assertEqual(self.pairs(data), [("src/x.py", "src/README.md"), ("src/x.py", "src/design.md")])
+        self.assertEqual({c["kind"] for c in data["candidates"]}, {"sibling", "comment"})  # comment: slice S2
+        for candidate in self.of_kind(data, "sibling"):
+            self.assertEqual(candidate["proximity"], "P1")
         for candidate in data["candidates"]:
-            self.assertEqual((candidate["kind"], candidate["proximity"]), ("sibling", "P1"))
             self.assertTrue(candidate["reason"])
         self.assertEqual(self.status(), before)  # read-only
 
@@ -865,6 +944,133 @@ class FindRelatedTests(TempDirTestCase):
         git(self.root, "mv", "src/x.py", "src/z.py")
         self.assertEqual(self.pairs(self.related()),
                          [("src/z.py", "src/README.md"), ("src/z.py", "src/design.md")])
+
+    # --- Slice S2: mentions (P2), change history (P3), comments (P0), settings and cap ---
+
+    def setup_install_script(self, doc_text: str = "Run scripts/install.sh first.\n") -> None:
+        self.commit_files(scripts__install_dot_sh="echo hi\n", docs__setup_dot_md=doc_text)
+
+    def change_install_script(self) -> dict:
+        write(self.root, "scripts/install.sh", "echo hi2\n")
+        return self.related()
+
+    def test_document_naming_a_changed_path_is_a_mention(self):  # M1
+        self.setup_install_script()
+        mention = self.of_kind(self.change_install_script(), "mention")
+        self.assertEqual([(c["source"], c["path"], c["proximity"]) for c in mention],
+                         [("scripts/install.sh", "docs/setup.md", "P2")])
+        self.assertIn("scripts/install.sh", mention[0]["reason"])
+
+    def test_file_name_mentions_need_the_minimum_length(self):  # M2
+        self.commit_files(docs__a_dot_md="This page uses x.py heavily.\n", docs__b_dot_md="See src/x.py for details.\n",
+                          docs__c_dot_md="Run install.sh.\n", scripts__install_dot_sh="echo hi\n")
+        write(self.root, "src/x.py", "print('x2')\n")
+        write(self.root, "scripts/install.sh", "echo hi2\n")
+        mentions = {(c["source"], c["path"]) for c in self.of_kind(self.related(), "mention")}
+        self.assertEqual(mentions, {("src/x.py", "docs/b.md"), ("scripts/install.sh", "docs/c.md")})
+
+    def test_partial_word_matches_are_not_mentions(self):  # M3
+        self.setup_install_script("reinstall.sh and install.shx and my-install.sh are different.\n")
+        self.assertEqual(self.of_kind(self.change_install_script(), "mention"), [])
+
+    def test_a_sibling_that_also_names_the_file_is_listed_once(self):  # M4
+        self.commit_files(scripts__install_dot_sh="echo hi\n", scripts__NOTES_dot_md="Edit scripts/install.sh.\n")
+        data = self.change_install_script()
+        records = [(c["kind"], c["path"]) for c in data["candidates"] if c["path"] == "scripts/NOTES.md"]
+        self.assertEqual(records, [("sibling", "scripts/NOTES.md")])
+
+    def test_changed_excluded_decision_and_history_documents_are_not_mentions(self):  # M5
+        text = "Uses scripts/install.sh.\n"
+        write(self.root, ".living-documentation.json", json.dumps({"exclude_globs": ["docs/private/*"]}))
+        self.commit_files(scripts__install_dot_sh="echo hi\n", docs__changed_dot_md=text, docs__private__p_dot_md=text,
+                          docs__adr__0001_x_dot_md=text, CHANGELOG_dot_md=text)
+        write(self.root, "docs/changed.md", text + "More.\n")
+        self.assertEqual(self.of_kind(self.change_install_script(), "mention"), [])
+
+    def test_a_deleted_file_still_finds_documents_that_name_it(self):  # M6
+        self.setup_install_script()
+        (self.root / "scripts/install.sh").unlink()
+        mention = self.of_kind(self.related(), "mention")
+        self.assertEqual([c["path"] for c in mention], ["docs/setup.md"])
+
+    def test_unreadable_and_huge_documents_are_skipped(self):  # M7
+        self.setup_install_script()
+        (self.root / "docs/bad.md").write_bytes(b"\xff\xfe scripts/install.sh \xff")
+        (self.root / "docs/big.md").write_text("scripts/install.sh " + "x" * (1024 * 1024 + 1), encoding="utf-8")
+        commit_all(self.root, "unreadable and huge")
+        mention = self.of_kind(self.change_install_script(), "mention")
+        self.assertEqual([c["path"] for c in mention], ["docs/setup.md"])
+
+    def test_changelog_is_a_candidate_for_user_visible_changes(self):  # H1
+        self.commit_files(CHANGELOG_dot_md="# Changelog\n")
+        write(self.root, "src/x.py", "print('x2')\n")
+        changelog = self.of_kind(self.related(), "changelog")
+        self.assertEqual([(c["path"], c["source"], c["proximity"]) for c in changelog],
+                         [("CHANGELOG.md", "src/x.py", "P3")])
+
+    def test_no_changelog_candidate_when_history_changed_or_absent_or_not_user_visible(self):  # H1
+        write(self.root, "src/x.py", "print('x2')\n")
+        self.assertEqual(self.of_kind(self.related(), "changelog"), [])  # the project keeps no change history
+        self.commit_files(CHANGELOG_dot_md="# Changelog\n")
+        write(self.root, "CHANGELOG.md", "# Changelog\n\n- x\n")
+        self.assertEqual(self.of_kind(self.related(), "changelog"), [])  # history already updated
+        git(self.root, "checkout", "--", "CHANGELOG.md", "src/x.py")
+        write(self.root, "tests/test_a.py", "def test_a(): pass\n")
+        self.assertEqual(self.of_kind(self.related(), "changelog"), [])  # tests are not user-visible
+        git(self.root, "stash", "-u", "-q")
+        write(self.root, "src/design.md", "# design, updated\n")
+        self.assertEqual(self.of_kind(self.related(), "changelog"), [])  # documentation only
+
+    def test_only_a_project_level_changelog_counts_as_change_history(self):  # H3 (re-plan after the A1 measurement)
+        self.commit_files(vendor__lib__changelog_dot_md="# vendored changelog\n")
+        write(self.root, "src/x.py", "print('x2')\n")
+        self.assertEqual(self.of_kind(self.related(), "changelog"), [])  # nested changelogs belong to vendored code
+        git(self.root, "checkout", "--", "src/x.py")
+        self.commit_files(CHANGELOG_dot_md="# Changelog\n")
+        write(self.root, "src/x.py", "print('x3')\n")
+        write(self.root, "vendor/lib/changelog.md", "# vendored changelog, updated\n")  # not the project's history
+        self.assertEqual([c["path"] for c in self.of_kind(self.related(), "changelog")], ["CHANGELOG.md"])
+
+    def test_changelog_candidate_is_one_per_file_with_a_count(self):  # H2
+        self.commit_files(CHANGELOG_dot_md="# Changelog\n")
+        write(self.root, "src/x.py", "print('x2')\n")
+        write(self.root, "app.py", "print('v2')\n")
+        changelog = self.of_kind(self.related(), "changelog")
+        self.assertEqual(len(changelog), 1)
+        self.assertEqual(changelog[0]["source"], "app.py")
+        self.assertIn("2", changelog[0]["reason"])
+
+    def test_comment_records_are_advisory_and_only_for_implementation_files(self):  # K1
+        write(self.root, "src/x.py", "print('x2')\n")
+        comments = self.of_kind(self.related(), "comment")
+        self.assertEqual([(c["source"], c["path"], c["proximity"]) for c in comments], [("src/x.py", "src/x.py", "P0")])
+        write(self.root, "pyproject.toml", "[project]\n")
+        write(self.root, "tests/test_a.py", "def test_a(): pass\n")
+        write(self.root, "src/design.md", "# design, updated\n")
+        self.assertEqual([c["source"] for c in self.of_kind(self.related(), "comment")], ["src/x.py"])
+
+    def cap_fixture(self, cap: int) -> dict:
+        self.commit_files(docs__a_dot_md="Edit src/x.py.\n", docs__b_dot_md="Edit src/x.py.\n", CHANGELOG_dot_md="# Changelog\n")
+        self.use_settings(max_candidates=cap)
+        write(self.root, "src/x.py", "print('x2')\n")
+        return self.related()
+
+    def test_max_candidates_keeps_the_closest_documents_and_counts_the_rest(self):  # X1
+        data = self.cap_fixture(2)
+        self.assertEqual(self.pairs(data), [("src/x.py", "src/README.md"), ("src/x.py", "src/design.md")])
+        self.assertEqual(data["truncated"], 3)  # docs/a.md, docs/b.md, CHANGELOG.md
+        self.assertEqual(len(self.of_kind(data, "comment")), 1)  # advisory records are not counted
+
+    def test_documents_beyond_the_cap_are_cut_by_proximity_then_path(self):  # X1
+        data = self.cap_fixture(3)
+        self.assertEqual([p for _, p in self.pairs(data)], ["src/README.md", "src/design.md", "docs/a.md"])
+        self.assertEqual(data["truncated"], 2)
+
+    def test_min_name_length_setting_changes_what_counts_as_a_mention(self):  # X2
+        self.commit_files(docs__m_dot_md="Run install.sh.\n", scripts__install_dot_sh="echo hi\n")
+        self.assertEqual(len(self.of_kind(self.change_install_script(), "mention")), 1)
+        self.use_settings(min_name_length=11)
+        self.assertEqual(self.of_kind(self.related(), "mention"), [])
 
     def test_text_output(self):  # F10
         write(self.root, "src/x.py", "print('x2')\n")

@@ -91,6 +91,25 @@
       },
       "default": [],
       "description": "Files to classify as configuration, build, or dependency manifests."
+    },
+    "related": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_candidates": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Most related documents (distinct paths) find_related.py lists and the Stop-hook gate enforces; the closest are kept first and the rest are counted in 'truncated'. Advisory comment records are not counted."
+        },
+        "min_name_length": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 6,
+          "description": "Shortest file name that counts as a mention of a changed file in a document. Shorter names match only when the whole project-relative path appears."
+        }
+      },
+      "description": "Settings for related-document discovery (find_related.py and the Stop-hook gate)."
     }
   }
 }

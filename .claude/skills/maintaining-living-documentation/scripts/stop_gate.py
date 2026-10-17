@@ -252,29 +252,41 @@ def report_quality_problems(message: str, needs_report: list[str], docs_changed:
     return []
 
 
+RELATED_LABELS = {
+    "sibling": "next to changed {source}",
+    "mention": "mentions changed {source}",
+    "changelog": "change history; user-visible change {source}",
+}
+
+
 def unaddressed_related(root: Path, config: dict, changes: list, last_message: str | None) -> str | None:
-    """Describe candidate documents next to changed files that were neither changed nor named.
+    """Describe related documents (next to, naming, or recording changed files) that were neither changed nor named.
 
     A candidate is addressed when it changed (find_candidates already leaves such documents out)
-    or when its project-relative path appears in the final message (contract C2).
+    or when its project-relative path appears in the final message (contract C2). Advisory
+    comment records (P0) point at the changed file itself and are never enforced.
     """
     if last_message is None:
         return None
     import find_related  # local import keeps SessionStart fast
 
-    sources_by_path: dict[str, list[str]] = {}
-    for candidate in find_related.find_candidates(root, config, changes)["candidates"]:
-        if candidate["path"] not in last_message:
-            sources_by_path.setdefault(candidate["path"], []).append(candidate["source"])
-    if not sources_by_path:
+    report = find_related.find_candidates(root, config, changes)
+    labels_by_path: dict[str, list[str]] = {}
+    for candidate in report["candidates"]:
+        if candidate["kind"] == "comment" or candidate["path"] in last_message:
+            continue
+        label = RELATED_LABELS[candidate["kind"]].format(source=candidate["source"])
+        labels_by_path.setdefault(candidate["path"], []).append(label)
+    if not labels_by_path:
         return None
-    paths = sorted(sources_by_path)
-    listed = "; ".join(f"{path} (next to changed {', '.join(sources_by_path[path])})"
-                       for path in paths[:RELATED_LIMIT])
+    paths = sorted(labels_by_path)
+    listed = "; ".join(f"{path} ({', '.join(labels_by_path[path])})" for path in paths[:RELATED_LIMIT])
     more = f" (+{len(paths) - RELATED_LIMIT} more)" if len(paths) > RELATED_LIMIT else ""
-    return ("Documents next to changed files were neither updated nor named in the final message: "
-            f"{listed}{more}. Update each one, or name its path in your final message with the reason "
-            "it needs no change.")
+    omitted = (f" (+{report['truncated']} more not listed: raise related.max_candidates)"
+               if report["truncated"] else "")
+    return ("Documents related to changed files were neither updated nor named in the final message: "
+            f"{listed}{more}{omitted}. Update each one, or name its path in your final message with the "
+            "reason it needs no change.")
 
 
 # --------------------------------------------------------------------------
