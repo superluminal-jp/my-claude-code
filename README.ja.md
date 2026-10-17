@@ -41,7 +41,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
     （DADS 公式資材で 16:9 スライドを HTML として作成し、同梱ツールで編集可能な
     PowerPoint に変換）、`scrum-master`（Scrumイベントの
-    設計・ファシリテーション、障害除去、フロー指標）
+    設計・ファシリテーション、障害除去、フロー指標）、`secure-logging`
+    （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE に基づくアプリケーションログの実装と
+    検査。コードで検証できる項目のみ判定し、運用項目は未検証として報告）
   - skills ディレクトリ型プラグイン2件を上流のパッケージから取り込んでいる:
     `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
     `SessionStart` のルール注入と `Stop` フックのゲート付き）、`minto-pyramid`
@@ -149,6 +151,16 @@ bash tests/run-digital-agency-frontend-skill.sh
 bash tests/run-digital-agency-slides-skill.sh
 bash tests/run-removed-guardrails.sh
 ```
+
+[`.claude/skills/secure-logging/`](.claude/skills/secure-logging/) を変更したら:
+
+```sh
+bash tests/run-secure-logging-skill.sh
+bash tests/run-config-pyramid.sh
+```
+
+前者はスキルの構造とチェックリストの出典の規則を検査する。スキルの振る舞いは、
+`tests/fixtures/secure-logging/` の見本を使って手で確認する。
 
 `run-digital-agency-slides-skill.sh` の末尾は、公式 DADS スタイルシートを取得して
 同梱のデッキテンプレートを変換する end-to-end セクションです。ネットワーク接続と、
