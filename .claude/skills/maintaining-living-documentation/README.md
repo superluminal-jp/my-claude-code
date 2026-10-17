@@ -40,7 +40,7 @@ Other ways to load it: `claude --plugin-dir ./maintaining-living-documentation` 
 - `hooks/hooks.json` — `SessionStart`, `UserPromptSubmit`, and `Stop` hooks, in exec form (`command` plus `args`) so they need no shell.
 - `hooks/rule.md` — the mandatory rule that the `SessionStart` hook adds to Claude's context.
 - `references/` — standards applicability, practices, and bibliography.
-- `scripts/` — read-only inspection, change-audit, and link-check helpers, and the hook script.
+- `scripts/` — read-only inspection, change-audit, related-document discovery, and link-check helpers, and the hook script.
 - `schemas/` — JSON Schema for the optional project configuration. The scripts read it at run time, so it is the single definition of accepted keys.
 - `templates/` — fallback document templates (used only when the target project has no convention) and a CI workflow template.
 - `evals/` — behavior tests for `claude plugin eval`.
@@ -54,6 +54,7 @@ The Skill does **not** prescribe `docs/`, `specs/`, ADR paths, programming langu
 |---|---|---|
 | `scripts/inspect_project.py` | Inventory artifact classes (implementation, documentation, specification, decision, evidence, generated, infrastructure, configuration) and change-history files | No |
 | `scripts/audit.py` | Classify changed files and list possible documentation impact, including renamed/deleted files, a missing changelog entry, and edits to accepted decision records | Yes |
+| `scripts/find_related.py` | List the documents a change may leave out of date, closest first: next to a changed file (P1), naming it (P2), the project's change history (P3), and the changed file's own comments (P0, advisory); honors `related.*` settings | Yes |
 | `scripts/check_links.py` | Check local Markdown links, images, reference definitions, HTML `href`/`src`, and heading anchors; ignores code blocks and comments | Only for `--changed` |
 | `scripts/stop_gate.py` | `SessionStart`/`UserPromptSubmit`/`Stop` hook that injects the rule and enforces the workflow | Yes (inactive without it) |
 
@@ -63,6 +64,7 @@ Run them from anywhere:
 SKILL_DIR=~/.claude/skills/maintaining-living-documentation
 python3 "$SKILL_DIR/scripts/inspect_project.py" --root /path/to/repo
 python3 "$SKILL_DIR/scripts/audit.py" --root /path/to/repo --base origin/main
+python3 "$SKILL_DIR/scripts/find_related.py" --root /path/to/repo --base origin/main
 python3 "$SKILL_DIR/scripts/check_links.py" --root /path/to/repo --changed --base origin/main
 ```
 
@@ -72,11 +74,12 @@ All scripts accept `--json`. Exit codes: `0` success, `1` findings (`check_links
 
 ### Pre-approve the read-only scripts
 
-To let Claude run the three read-only scripts without asking, add these rules to `permissions.allow` in a settings file:
+To let Claude run the four read-only scripts without asking, add these rules to `permissions.allow` in a settings file:
 
 ```json
 "Bash(python3 *maintaining-living-documentation/scripts/inspect_project.py*)",
 "Bash(python3 *maintaining-living-documentation/scripts/audit.py*)",
+"Bash(python3 *maintaining-living-documentation/scripts/find_related.py*)",
 "Bash(python3 *maintaining-living-documentation/scripts/check_links.py*)"
 ```
 
@@ -101,6 +104,7 @@ The scripts work without configuration. To adjust classification or enforcement,
 - `exclude_globs`: adds to the built-in exclusions (VCS metadata, `node_modules`, virtual environments, and caches at any depth; `dist`, `build`, `target`, `vendor`, `out`, `site`, `_build` at the top level).
 - Patterns match project-relative POSIX paths; `*` also crosses `/`, and a leading `**/` also matches at the top level.
 - A `"$schema"` key is allowed for editor validation against `schemas/config.schema.json`.
+- `related`: settings for related-document discovery. `related.max_candidates` (integer ≥ 1, default 10) is how many distinct related documents `find_related.py` lists and the gate enforces; the closest are kept and the rest are counted in `truncated`. `related.min_name_length` (integer ≥ 1, default 6) is the shortest file name that counts as a mention of a changed file; shorter names match only when the whole path appears. Invalid values are rejected with the key name.
 
 ## Making it mandatory
 
@@ -110,7 +114,7 @@ Claude applies a Skill when it judges the Skill relevant; Claude Code cannot pre
 |---|---|---|
 | Skill (`SKILL.md`) | Normative basis, workflow, references, scripts | Applied when Claude judges it relevant |
 | Rule (injected by the `SessionStart` hook, or `.claude/rules/living-documentation.md`) | Tells Claude, at every session start and after compaction, to use the Skill and end with the `Documentation impact` report | Strong guidance, not enforced |
-| Stop hook (`scripts/stop_gate.py`) | When files changed during the session, blocks Claude from finishing while links in the changed scope are broken, or while code, specification, configuration, infrastructure, or decision files changed without the report | Enforced within Claude Code |
+| Stop hook (`scripts/stop_gate.py`) | When files changed during the session, blocks Claude from finishing while links in the changed scope are broken, while code, specification, configuration, infrastructure, or decision files changed without the report, while the report gives no real reason for "none" or no basis when no documentation changed, or while documents related to a changed file were neither updated nor named | Enforced within Claude Code |
 | CI (`templates/ci/github-actions.yml`) | Link check on pull requests | Enforced before merge, for every contributor and tool |
 
 When the folder loads as a plugin, the first three layers need no setup. CLAUDE.md needs no entry: the rule reaches Claude through the hook or a rule file, and a CLAUDE.md copy would duplicate it. If the project also uses other coding agents, put the rule's bullet points in their instruction file (for example `AGENTS.md`).
@@ -124,7 +128,16 @@ If plugins are restricted by policy or the folder sits outside a skills director
 - At session start it records the state of uncommitted changes, so changes that existed before the session do not trigger the gate. It also adds `hooks/rule.md` to Claude's context, with the Skill's install path, unless `.claude/rules/living-documentation.md` exists in the project or in `~/.claude/`.
 - At the start of each turn (`UserPromptSubmit`) it records the worktree state again. On each stop after an `end_turn`, the gate runs only if the worktree differs from that turn-start state, the session baseline, and the last passing check, so edits made between turns do not trigger it.
 - A failing check blocks the stop and tells Claude what is missing. The block asks Claude not to repeat its earlier answer. The same worktree state is blocked at most twice (`LIVING_DOCS_GATE_MAX_BLOCKS`), and never again right after the gate's own block (`stop_hook_active`); then the stop is allowed and you see a warning. Claude Code also caps consecutive Stop blocks.
-- The gate checks that the report exists and that links are intact. It cannot judge whether the documentation is correct; review and CI remain necessary.
+- The gate checks that the report exists, that links are intact, that a `Documentation impact: none` line gives a reason that is not empty or a stock phrase, that a report written when no documentation file changed carries an `Updated:` line, a `No change needed:` line with a real reason, or such a `none` line, and that every related document (next to a changed file, naming it, or the project's change history) either changed or has its path named in the final message. Advisory comment records (P0) are never enforced. It cannot judge whether the documentation is correct; review and CI remain necessary.
+
+### Known limits
+
+- Correctness is not judged: a specific-sounding but meaningless reason passes, and the list of stock phrases is fixed (it cannot be extended by configuration).
+- Naming a related document's path in the final message is enough, even if done only to get past the gate.
+- Mentions are whole-word string matches. A document that describes a file without naming it is not found; a document that names many paths is a candidate for many changes. Projects that keep frozen history documents (for example completed feature specifications) should list them in `exclude_globs`. Measured on this repository's last 30 non-merge commits, the median number of related documents per change sat at the default cap of 10 before `specs/**` was excluded, and at 1 after.
+- Only the project's own change history at the project root counts; a changelog inside a vendored subtree is ignored.
+- Comments are checked per file, not per function, and only as advice.
+- The behavior evals below are not run in this repository; whether the rules change what the model writes is unmeasured.
 - Outside Git worktrees, without Git, or on internal errors, the gate does nothing (fails open). State is kept in the system temp directory, never in the project.
 
 ## CI integration
@@ -133,7 +146,7 @@ If plugins are restricted by policy or the folder sits outside a skills director
 
 ## Evals
 
-`evals/` holds behavior cases for `claude plugin eval`. Each case seeds a small Git project and checks the result with deterministic graders (no judge model). The cases check that a configuration-default change also updates the configuration document, the changelog, and the report; that a behavior-preserving rename leaves documentation untouched and reports `Documentation impact: none`; and that a change reversing an accepted decision proposes a new record instead of creating one or editing the accepted record. From this folder:
+`evals/` holds behavior cases for `claude plugin eval`. Each case seeds a small Git project and checks the result with deterministic graders (no judge model). Three cases check that a configuration-default change also updates the configuration document, the changelog, and the report; that a behavior-preserving rename leaves documentation untouched and reports `Documentation impact: none`; and that a change reversing an accepted decision proposes a new record instead of creating one or editing the accepted record. Three more check the related-document rules: `updates-adjacent-doc` (a new option reaches the README beside the tool), `creates-doc-for-new-contract` (a new public module with no covering document gets a Markdown document, and no decision record or changelog appears), and `no-creation-for-internal-refactor` (renaming a private helper creates and edits no document). These three are scaffolding: their fixtures are tested, but they have not been run, so their grading patterns are unverified until a run with an approved cost cap. From this folder:
 
 ```bash
 claude plugin eval . --scaffold --allow-tools Edit Write --trust-plugin --no-publish --max-cost-usd 10
@@ -152,12 +165,18 @@ The unit tests also run `claude plugin validate` when the Claude Code CLI is ins
 
 ## Local modifications
 
-This copy differs from the upstream package in one place: `references/practices.md` (Decision records) adds the *Numbering* and *Language* bullets, which came from the retired `adr` skill (see `archive/adr/`). Re-apply them when updating from upstream.
+This copy is vendored in my-claude-code and differs from the upstream package as listed here. Re-apply these when updating from upstream.
+
+- `references/practices.md`, Decision records: the *Numbering* and *Language* bullets (from the retired `adr` skill, see `archive/adr/`) and the *Local convention (my-claude-code)* bullet (location, status values, and language of decision records).
+- Related-document discovery and disposition (specifications 043 to 049 under `specs/`):
+  - `scripts/find_related.py` is new.
+  - `scripts/stop_gate.py` checks related documents, the reason of a `none` declaration, and the basis of a report when no documentation changed.
+  - `scripts/common.py` validates integer and object settings (additive: `_check_type` and `_check_members`).
+  - `schemas/config.schema.json` adds the `related` setting.
+  - `references/practices.md` adds the section *Layers, placement, and proximity*; `references/bibliography.bib` adds `GoogleSWE2020`, `PEP8`, `LinuxKernelStyle`, and `Diataxis`.
+  - `SKILL.md` adds the `find_related.py` command, the dispose and create rules, and the `Created:` report line; `hooks/rule.md` adds one sentence for them.
+  - `evals/` adds three cases (not run), and `tests/test_scripts.py` covers all of the above.
 
 ## Security
 
 The bundled scripts do not access the network, install packages, or execute commands from project configuration. They invoke only read-only Git commands (`rev-parse`, `ls-files`, `diff`, `merge-base`, `status`). None of them writes project files; `stop_gate.py` keeps its state in the system temp directory. The eval fixtures run only when you pass `--scaffold`.
-
-## Local modifications
-
-This copy is vendored in my-claude-code. It differs from upstream only by the `Local convention (my-claude-code)` bullet under *Decision records* in `references/practices.md`. Re-apply it when updating from upstream.

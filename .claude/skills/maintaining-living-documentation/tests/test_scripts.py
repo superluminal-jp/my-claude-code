@@ -1197,6 +1197,61 @@ class PracticesDocumentTests(unittest.TestCase):
         self.assertIn("No source reviewed presents a single hierarchy", section)
 
 
+class EvalCaseTests(unittest.TestCase):
+    """The behavior evals are scaffolding for `claude plugin eval` (slice S6); they are not run here."""
+
+    CASES = ("updates-docs-for-config-change", "no-impact-internal-rename", "proposes-decision-record",
+             "updates-adjacent-doc", "creates-doc-for-new-contract", "no-creation-for-internal-refactor")
+    EVALS = SKILL_ROOT / "evals"
+
+    def test_each_case_is_well_formed(self):
+        import re
+        for name in self.CASES:
+            with self.subTest(case=name):
+                case = self.EVALS / name
+                self.assertTrue(case.is_dir())
+                self.assertRegex((case / "case.yaml").read_text(encoding="utf-8"), rf"(?m)^name: {re.escape(name)}$")
+                prompt = (case / "prompt.md").read_text(encoding="utf-8")
+                self.assertTrue(prompt.startswith("---\n"))
+                self.assertRegex(prompt.split("---", 2)[1], r"(?m)^description: .+")
+                self.assertTrue(os.access(case / "fixture.sh", os.X_OK))
+                graders = sorted((case / "graders").glob("*.md"))
+                self.assertTrue(graders)
+                for grader in graders:
+                    self.assertRegex(grader.read_text(encoding="utf-8"), r"(?m)^type: \w+")
+
+    @unittest.skipUnless(HAS_GIT, "git is required")
+    def test_fixtures_create_a_committed_clean_repository(self):
+        for name in self.CASES:
+            with self.subTest(case=name), tempfile.TemporaryDirectory() as td:
+                subprocess.run(["bash", str(self.EVALS / name / "fixture.sh")], cwd=td, check=True,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                log = subprocess.run(["git", "log", "--oneline"], cwd=td, text=True, stdout=subprocess.PIPE, check=True)
+                self.assertEqual(len(log.stdout.splitlines()), 1)
+                status = subprocess.run(["git", "status", "--porcelain"], cwd=td, text=True, stdout=subprocess.PIPE, check=True)
+                self.assertEqual(status.stdout, "")
+
+
+class ReadmeTests(unittest.TestCase):
+    """The skill README describes the current behavior and records the divergence from upstream (slice S6)."""
+
+    def setUp(self) -> None:
+        self.text = (SKILL_ROOT / "README.md").read_text(encoding="utf-8")
+
+    def test_local_modifications_is_one_complete_section(self):
+        self.assertEqual(self.text.count("\n## Local modifications"), 1)
+        section = self.text.split("\n## Local modifications", 1)[1].split("\n## ", 1)[0]
+        for term in ("Numbering", "Language", "Local convention", "find_related.py", "stop_gate.py", "common.py",
+                     "related", "Layers, placement, and proximity", "bibliography.bib", "SKILL.md", "rule.md", "evals"):
+            with self.subTest(term=term):
+                self.assertIn(term, section)
+
+    def test_readme_documents_related_discovery(self):
+        for term in ("find_related.py", "related.max_candidates", "related.min_name_length", "Known limits"):
+            with self.subTest(term=term):
+                self.assertIn(term, self.text)
+
+
 class PluginPackagingTests(unittest.TestCase):
     def test_manifest(self):
         manifest = json.loads((SKILL_ROOT / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
