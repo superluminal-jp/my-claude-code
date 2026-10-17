@@ -35,7 +35,7 @@ across projects while preserving unrelated user files.
   [`docs/claude-config-design.md`](docs/claude-config-design.md)
 - **`.claude/skills/`** — On-demand playbooks loaded by relevance, self-describing
   on two independent axes so no central router is needed: lifecycle
-  operations — `coder` (TDD, SDD, code quality, security, type safety, docs),
+  operations — `coder` (change workflow, TDD, SDD, code quality, security, type safety, docs),
   `clarifier` (agree on intent
   first — the AI states its reading, assumptions, and scope for the user to
   reject — then formalize it: INVEST/Gherkin), `problem-definition` (turning a vague
@@ -153,7 +153,7 @@ my-claude-code/
     │   ├── permissions.md          # Authorization and safety; enforced deny → settings.json
     │   └── pyramid-principle.md    # Reader-facing structure self-check for substantive outputs
     └── skills/                     # On-demand: body loaded when relevant, self-describing
-        ├── coder/SKILL.md          # TDD + SDD + code quality + security + type safety + docs
+        ├── coder/SKILL.md          # Change workflow + TDD + SDD + code quality + security + type safety + docs
         ├── minto-pyramid/          # Vendored plugin: Minto structure for every substantive task (locally modified: no Stop hook)
         ├── maintaining-living-documentation/ # Vendored plugin: docs kept consistent with changes (+ SessionStart rule, Stop-hook gate)
         ├── clarifier/              # Shared understanding of intent, then formal requirements

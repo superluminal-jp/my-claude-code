@@ -23,7 +23,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック。中央ルーティング表なしに
   自己記述だけで選択できるよう、2つの独立した軸で分類する
-  - ライフサイクル操作: `coder`（TDD/SDD、品質、安全、型安全性、ドキュメント同期）、
+  - ライフサイクル操作: `coder`（変更手順、TDD/SDD、品質、安全、型安全性、ドキュメント同期）、
     `clarifier`
     （まず意図の共通認識を形成し——AIが自分の理解・前提・スコープを述べ、
     ユーザーが却下できる形にする——その後、形式的要件へ変換。INVEST/Gherkin）、`problem-definition`
