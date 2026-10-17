@@ -16,7 +16,7 @@ python3 /Users/taikiogihara/.claude/skills/maintaining-living-documentation/scri
 
 ## 手動(検査の挙動)
 
-前提: スキルを `~/.claude/` に同期済み(`bash install.sh`)。検証用サンプルは `tests/fixtures/secure-logging/defective_auth.py`、期待は同ディレクトリの `expected.md`。
+前提: スキルを `~/.claude/` に同期済み(`bash install.sh`)。検証用サンプルは `tests/fixtures/secure-logging/defective_auth.py.fixture`、期待は同ディレクトリの `expected.md`。
 
 1. 新しいセッションで、サンプルに対して「このコードのログが良い慣行に沿っているか検査して」と依頼する。
 2. 報告が [検査報告の契約](contracts/inspection-report.md) の順序であること、`expected.md` の不合格項目がすべて場所付きで報告されること、group B が Pass になっていないことを確認する(SC-001、SC-002)。

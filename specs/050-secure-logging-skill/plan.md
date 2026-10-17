@@ -120,7 +120,7 @@ tests/
 ├── run-secure-logging-skill.sh           # 新規
 ├── run-config-pyramid.sh                 # 修正: ROUTE-12
 └── fixtures/secure-logging/
-    ├── defective_auth.py                 # 新規
+    ├── defective_auth.py.fixture                 # 新規
     └── expected.md                       # 新規
 
 README.md                                 # 修正: Verification

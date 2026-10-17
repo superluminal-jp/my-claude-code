@@ -1,5 +1,8 @@
 """Fixture for the secure-logging skill: deliberately defective logging.
 
+Stored with a .fixture suffix so code scanners do not report its intentional
+defects as real findings. Copy it to a .py file to run or inspect it as Python.
+
 Used by the manual check in specs/050-secure-logging-skill/quickstart.md.
 The sample credentials are fake values for this test only.
 """

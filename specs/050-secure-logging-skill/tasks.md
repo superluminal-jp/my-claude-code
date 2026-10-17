@@ -28,7 +28,7 @@ description: "Task list for 050: アプリケーションログの実装と検�
 
 **Independent Test**: `tests/run-secure-logging-skill.sh` の根拠・除外・草案の検査が通り、quickstart の手動手順 1〜2 で、検証用サンプルの欠陥がすべて場所付きの不合格として報告される。
 
-- [X] T004 [P] [US1] `tests/fixtures/secure-logging/defective_auth.py` を新規作成する。秘密情報の出力(パスワードとトークンの見本値をそのままログへ)、利用者入力を改行の無害化なしでログへ、認証失敗を記録しない分岐、を小さな関数に含める
+- [X] T004 [P] [US1] `tests/fixtures/secure-logging/defective_auth.py.fixture` を新規作成する。秘密情報の出力(パスワードとトークンの見本値をそのままログへ)、利用者入力を改行の無害化なしでログへ、認証失敗を記録しない分岐、を小さな関数に含める
 - [X] T005 [P] [US1] `tests/fixtures/secure-logging/expected.md` を新規作成する。T004 の欠陥ごとに、期待される不合格の項目ID(`LOG-DATA-1`、`LOG-INJ-1`、`LOG-EVT-1`)と該当行を列挙し、group B が Pass にならないことも期待として書く
 - [X] T006 [US1] `SKILL/references/logging-checklist.md` の `LOG-EVT-4` と `LOG-EVT-6` の根拠を節名付きに直す(`CS Which events to log`)。他に節名なしの `CS` 単独があれば同様に直す(FR-007)
 - [X] T007 [US1] `SKILL/references/logging-checklist.md` の `LOG-EVT-8` から `Top10 (CWE-223)` を外し、根拠を `CWE-778` と `Top10` に限る。Sources の `Top10` 行の注記は、CWE-221 と 223 の本文は読んでいないため要件の根拠にしない旨を残す(FR-008)
