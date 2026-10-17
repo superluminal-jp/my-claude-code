@@ -938,6 +938,59 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(no_change, ["behavior unchanged", "n/a", "README stays accurate", "spaced hyphen reason"])
 
 
+class PracticesDocumentTests(unittest.TestCase):
+    """references/practices.md: layers, placement, and proximity (slice S5, contract C4)."""
+
+    LAYERS = ("Project entry", "How-to", "Reference", "Architecture", "Decision records", "Change history",
+              "Feature specification", "Code comments", "Research provenance")
+    NEW_KEYS = ("GoogleSWE2020", "PEP8", "LinuxKernelStyle", "Diataxis")
+    HEADING = "## Layers, placement, and proximity"
+
+    def setUp(self) -> None:
+        self.text = (SKILL_ROOT / "references/practices.md").read_text(encoding="utf-8")
+        self.bib = (SKILL_ROOT / "references/bibliography.bib").read_text(encoding="utf-8")
+
+    def section(self) -> str:
+        self.assertIn(self.HEADING, self.text)
+        return self.text.split(self.HEADING, 1)[1].split("\n## ", 1)[0]
+
+    def test_layer_table_has_every_layer_with_a_basis(self):  # P1
+        import re
+        rows = [[c.strip() for c in line.strip().strip("|").split("|")]
+                for line in self.section().splitlines() if line.startswith("|") and not set(line) <= set("|- ")]
+        header, *body = rows
+        self.assertEqual(header[0], "Layer")
+        self.assertEqual(len(header), 5)
+        for layer in self.LAYERS:
+            with self.subTest(layer=layer):
+                matching = [r for r in body if r[0].startswith(layer)]
+                self.assertEqual(len(matching), 1)
+                row = matching[0]
+                self.assertEqual(len(row), 5)
+                self.assertTrue(all(row), row)
+                self.assertTrue(re.match(r"(Sourced|Design decision)", row[4]), row[4])
+
+    def test_cited_bibliography_keys_exist(self):  # P2
+        import re
+        defined = set(re.findall(r"^@\w+\{([^,\s]+),", self.bib, re.MULTILINE))
+        cited = set()
+        for group in re.findall(r"\[([^\[\]]+)\](?!\()", self.text):
+            parts = [p.strip() for p in group.split(";")]
+            if all(re.fullmatch(r"[A-Z][A-Za-z0-9_]+", p) for p in parts):
+                cited.update(parts)
+        self.assertFalse(cited - defined, f"cited but not in bibliography.bib: {sorted(cited - defined)}")
+        self.assertFalse(set(self.NEW_KEYS) - cited, "new sources must be cited in practices.md")
+        self.assertFalse(set(self.NEW_KEYS) - defined)
+
+    def test_proximity_scale_is_labelled_as_a_design_decision(self):  # P3
+        section = self.section()
+        for level in ("P0", "P1", "P2", "P3", "P4"):
+            self.assertIn(level, section)
+        self.assertRegex(section, r"(?i)proximity.*design decision|design decision.*proximity")
+        self.assertRegex(section, r"(?i)per-directory README.*design decision|design decision.*per-directory README")
+        self.assertIn("No source reviewed presents a single hierarchy", section)
+
+
 class PluginPackagingTests(unittest.TestCase):
     def test_manifest(self):
         manifest = json.loads((SKILL_ROOT / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
