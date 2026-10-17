@@ -542,6 +542,78 @@ class StopGateTests(TempDirTestCase):
         write(self.repo, "docs/guide.md", "# Guide\n\nMore text.\n")
         self.assertIsNone(self.hook({"last_assistant_message": "Edited the guide."}))
 
+    # --- Related documents next to changed files (slice S1: contracts C1 and C2) ---
+
+    REPORT = "Done.\n\nDocumentation impact: none — internal refactor."
+
+    def add_src_tree(self) -> None:
+        write(self.repo, "src/x.py", "print('x')\n")
+        write(self.repo, "src/README.md", "# src\n")
+        commit_all(self.repo, "add src")
+
+    def start_with_src_change(self) -> None:
+        self.add_src_tree()
+        self.hook({}, "--session-start")
+        write(self.repo, "src/x.py", "print('x2')\n")
+
+    def test_unaddressed_sibling_readme_is_blocked(self):  # G1
+        self.start_with_src_change()
+        out = self.hook({"last_assistant_message": self.REPORT})
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("src/README.md", out["reason"])
+        self.assertIn("src/x.py", out["reason"])
+        self.assertNotIn("completion report", out["reason"])  # the report exists; only the document is open
+
+    def test_updating_the_readme_satisfies_the_gate(self):  # G2
+        self.start_with_src_change()
+        write(self.repo, "src/README.md", "# src\n\nUpdated for the change.\n")
+        self.assertIsNone(self.hook({"last_assistant_message": self.REPORT}))
+
+    def test_naming_the_path_in_the_final_message_satisfies_the_gate(self):  # G3
+        self.start_with_src_change()
+        message = self.REPORT + "\nNo change needed: src/README.md — behavior is unchanged."
+        self.assertIsNone(self.hook({"last_assistant_message": message}))
+
+    def test_report_alone_or_basename_only_does_not_satisfy_the_gate(self):  # G4
+        self.start_with_src_change()
+        out = self.hook({"last_assistant_message": self.REPORT + "\nNo change needed: README.md — unchanged."})
+        self.assertEqual(out["decision"], "block")
+        self.assertIn("src/README.md", out["reason"])
+
+    def test_warn_mode_only_warns_about_unaddressed_documents(self):  # G5
+        self.start_with_src_change()
+        out = self.hook({"last_assistant_message": self.REPORT}, LIVING_DOCS_GATE="warn")
+        self.assertNotIn("decision", out)
+        self.assertIn("src/README.md", out["systemMessage"])
+
+    def test_off_mode_ignores_unaddressed_documents(self):  # G5
+        self.start_with_src_change()
+        self.assertIsNone(self.hook({"last_assistant_message": self.REPORT}, LIVING_DOCS_GATE="off"))
+
+    def test_reentry_after_the_gate_own_block_does_not_block_again(self):  # G6
+        self.start_with_src_change()
+        out = self.hook({"last_assistant_message": self.REPORT, "stop_hook_active": True})
+        self.assertNotIn("decision", out)
+        self.assertIn("src/README.md", out["systemMessage"])
+
+    def test_block_budget_applies_to_unaddressed_documents(self):  # G7
+        self.start_with_src_change()
+        msg = {"last_assistant_message": self.REPORT}
+        self.assertEqual(self.hook(msg, LIVING_DOCS_GATE_MAX_BLOCKS="1")["decision"], "block")
+        out = self.hook(msg, LIVING_DOCS_GATE_MAX_BLOCKS="1")
+        self.assertNotIn("decision", out)
+        self.assertIn("not blocking", out["systemMessage"])
+
+    def test_missing_final_message_reports_no_related_problem(self):  # G8
+        self.start_with_src_change()
+        self.assertIsNone(self.hook({}))
+
+    def test_changes_that_predate_the_session_do_not_trigger_related_check(self):  # G9
+        self.add_src_tree()
+        write(self.repo, "src/x.py", "print('dirty before session')\n")
+        self.hook({}, "--session-start")
+        self.assertIsNone(self.hook({"last_assistant_message": self.REPORT}))
+
     def test_env_modes(self):
         self.hook({}, "--session-start")
         write(self.repo, "app.py", "print('v2')\n")
@@ -581,6 +653,121 @@ class StopGateTests(TempDirTestCase):
 # ---------------------------------------------------------------------------
 # Plugin packaging
 # ---------------------------------------------------------------------------
+
+class FindRelatedTests(TempDirTestCase):
+    """find_related.py lists the documents next to changed files (contract C1, proximity P1)."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        init_repo(self.root)
+        write(self.root, "app.py", "print('v1')\n")
+        write(self.root, "README.md", "# Project\n")
+        write(self.root, "src/x.py", "print('x')\n")
+        write(self.root, "src/README.md", "# src\n")
+        write(self.root, "src/design.md", "# design\n")
+        commit_all(self.root, "initial")
+
+    def related(self, *args: str, root: Path | None = None) -> dict:
+        proc = run_script("find_related.py", "--root", str(root or self.root), "--json", *args)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return json.loads(proc.stdout)
+
+    @staticmethod
+    def pairs(data: dict) -> list[tuple[str, str]]:
+        return [(c["source"], c["path"]) for c in data["candidates"]]
+
+    def status(self) -> str:
+        return subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=self.root,
+                              text=True, stdout=subprocess.PIPE, check=True).stdout
+
+    def test_lists_sibling_documents_of_a_changed_file(self):  # F1, SC-003
+        write(self.root, "src/x.py", "print('x2')\n")
+        before = self.status()
+        data = self.related()
+        self.assertEqual(set(data), {"changed", "candidates", "truncated"})
+        self.assertEqual(data["changed"], ["src/x.py"])
+        self.assertEqual(data["truncated"], 0)
+        self.assertEqual(self.pairs(data), [("src/x.py", "src/README.md"), ("src/x.py", "src/design.md")])
+        for candidate in data["candidates"]:
+            self.assertEqual((candidate["kind"], candidate["proximity"]), ("sibling", "P1"))
+            self.assertTrue(candidate["reason"])
+        self.assertEqual(self.status(), before)  # read-only
+
+    def test_changed_documents_are_not_candidates(self):  # F2
+        write(self.root, "src/x.py", "print('x2')\n")
+        write(self.root, "src/README.md", "# src, updated\n")
+        data = self.related()
+        self.assertEqual(data["changed"], ["src/README.md", "src/x.py"])
+        self.assertEqual(self.pairs(data), [("src/x.py", "src/design.md")])
+
+    def test_excluded_and_ignored_documents_are_not_candidates(self):  # F3
+        write(self.root, ".living-documentation.json", json.dumps({"exclude_globs": ["src/design.md"]}))
+        write(self.root, ".gitignore", "src/notes.md\n")
+        write(self.root, "src/notes.md", "# ignored\n")
+        commit_all(self.root, "config")
+        write(self.root, "src/x.py", "print('x2')\n")
+        self.assertEqual(self.pairs(self.related()), [("src/x.py", "src/README.md")])
+
+    def test_document_only_change_has_no_candidates(self):  # F4
+        write(self.root, "src/README.md", "# src, updated\n")
+        data = self.related()
+        self.assertEqual(data["changed"], ["src/README.md"])
+        self.assertEqual(data["candidates"], [])
+
+    def test_root_level_source_finds_root_readme(self):  # F5
+        write(self.root, "app.py", "print('v2')\n")
+        self.assertEqual(self.pairs(self.related()), [("app.py", "README.md")])
+
+    def test_one_record_per_source_and_document_in_stable_order(self):  # F6
+        write(self.root, "src/x.py", "print('x2')\n")
+        write(self.root, "src/y.py", "print('y')\n")
+        data = self.related()
+        self.assertEqual(self.pairs(data), [
+            ("src/x.py", "src/README.md"), ("src/y.py", "src/README.md"),
+            ("src/x.py", "src/design.md"), ("src/y.py", "src/design.md"),
+        ])
+        first = run_script("find_related.py", "--root", str(self.root), "--json").stdout
+        second = run_script("find_related.py", "--root", str(self.root), "--json").stdout
+        self.assertEqual(first, second)
+
+    def test_base_includes_committed_changes(self):  # F7
+        git(self.root, "branch", "base")
+        write(self.root, "src/x.py", "print('x2')\n")
+        commit_all(self.root, "change x")
+        self.assertEqual(self.related()["candidates"], [])
+        self.assertEqual(self.pairs(self.related("--base", "base")),
+                         [("src/x.py", "src/README.md"), ("src/x.py", "src/design.md")])
+
+    def test_outside_git_is_a_clean_error_and_writes_nothing(self):  # F8
+        with tempfile.TemporaryDirectory() as td:
+            plain = Path(td).resolve()
+            write(plain, "x.py", "print('x')\n")
+            before = sorted((p.relative_to(plain).as_posix(), p.read_bytes()) for p in plain.rglob("*") if p.is_file())
+            proc = run_script("find_related.py", "--root", str(plain))
+            self.assertEqual(proc.returncode, 2)
+            self.assertIn("Git", proc.stderr)
+            after = sorted((p.relative_to(plain).as_posix(), p.read_bytes()) for p in plain.rglob("*") if p.is_file())
+            self.assertEqual(before, after)
+
+    def test_deleted_source_still_finds_documents_but_deleted_documents_are_not_candidates(self):  # F9
+        (self.root / "src/x.py").unlink()
+        self.assertEqual(self.pairs(self.related()),
+                         [("src/x.py", "src/README.md"), ("src/x.py", "src/design.md")])
+        (self.root / "src/design.md").unlink()
+        self.assertEqual(self.pairs(self.related()), [("src/x.py", "src/README.md")])
+
+    def test_renamed_source_uses_its_new_directory(self):  # F9
+        git(self.root, "mv", "src/x.py", "src/z.py")
+        self.assertEqual(self.pairs(self.related()),
+                         [("src/z.py", "src/README.md"), ("src/z.py", "src/design.md")])
+
+    def test_text_output(self):  # F10
+        write(self.root, "src/x.py", "print('x2')\n")
+        proc = run_script("find_related.py", "--root", str(self.root))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("src/README.md", proc.stdout)
+        self.assertIn("src/x.py", proc.stdout)
+
 
 class PluginPackagingTests(unittest.TestCase):
     def test_manifest(self):
@@ -665,6 +852,17 @@ class SkillDefinitionTests(unittest.TestCase):
         self.assertIn(self.field("name"), rule)
         self.assertIn("Documentation impact", rule)
         self.assertIn("Documentation impact", self.text)
+
+    def test_workflow_names_related_discovery_and_its_disposition(self):  # D1
+        step = self.text.split("3. **Assess impact.**", 1)[1].split("4. **Update together.**", 1)[0]
+        self.assertIn("scripts/find_related.py", step)
+        self.assertIn("final message", step)
+
+    def test_scripts_named_in_the_skill_exist(self):  # D2
+        import re
+        for name in set(re.findall(r"scripts/([a-z_]+\.py)", self.text)):
+            with self.subTest(script=name):
+                self.assertTrue((SCRIPTS / name).is_file())
 
     def test_normative_basis_names_each_standard(self):
         for ref in ("12207", "15289", "42010", "26514", "Docs-as-Code", "arc42", "C4", "ADR", "FAIR", "PROV", "RO-Crate"):

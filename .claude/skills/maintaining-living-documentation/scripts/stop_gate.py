@@ -59,6 +59,7 @@ REPORT_REQUIRED_FOR = {"implementation", "specification", "configuration", "infr
 RULE_TEMPLATE = SKILL_ROOT / "hooks" / "rule.md"
 RULE_NAME = "living-documentation.md"
 MODES = ("block", "warn", "off")
+RELATED_LIMIT = 10  # documents listed in one problem; the rest are summarized as "+N more"
 
 
 # --------------------------------------------------------------------------
@@ -166,7 +167,35 @@ def evaluate(root: Path, last_message: str | None) -> list[str]:
             "documentation (and change history if the project keeps it), run its checks, then end with the "
             "report headed 'Documentation impact' (or 'Documentation impact: none — <reason>')."
         )
+    related = unaddressed_related(root, config, changes, last_message)
+    if related:
+        problems.append(related)
     return problems
+
+
+def unaddressed_related(root: Path, config: dict, changes: list, last_message: str | None) -> str | None:
+    """Describe candidate documents next to changed files that were neither changed nor named.
+
+    A candidate is addressed when it changed (find_candidates already leaves such documents out)
+    or when its project-relative path appears in the final message (contract C2).
+    """
+    if last_message is None:
+        return None
+    import find_related  # local import keeps SessionStart fast
+
+    sources_by_path: dict[str, list[str]] = {}
+    for candidate in find_related.find_candidates(root, config, changes)["candidates"]:
+        if candidate["path"] not in last_message:
+            sources_by_path.setdefault(candidate["path"], []).append(candidate["source"])
+    if not sources_by_path:
+        return None
+    paths = sorted(sources_by_path)
+    listed = "; ".join(f"{path} (next to changed {', '.join(sources_by_path[path])})"
+                       for path in paths[:RELATED_LIMIT])
+    more = f" (+{len(paths) - RELATED_LIMIT} more)" if len(paths) > RELATED_LIMIT else ""
+    return ("Documents next to changed files were neither updated nor named in the final message: "
+            f"{listed}{more}. Update each one, or name its path in your final message with the reason "
+            "it needs no change.")
 
 
 # --------------------------------------------------------------------------

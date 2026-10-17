@@ -57,6 +57,8 @@ Documentation progress:
 2. **Locate authority.** Identify the authoritative source for each affected fact or contract ([references/practices.md](references/practices.md#source-of-truth)).
 3. **Assess impact.** In a Git worktree, list changed artifact classes and impact hints; add `--base <target branch>` to cover the whole branch. Treat each hint as a question to answer, not a verdict.
    `python3 "${CLAUDE_SKILL_DIR}/scripts/audit.py" --root "${CLAUDE_PROJECT_DIR}"`
+   Also list the documents next to the changed files (same directory, not changed). Update each one, or name its path in the final message with the reason it needs no change; the Stop-hook gate flags documents that are neither.
+   `python3 "${CLAUDE_SKILL_DIR}/scripts/find_related.py" --root "${CLAUDE_PROJECT_DIR}"`
 4. **Update together.** Change the implementation and the affected knowledge in one change, reusing the project's conventions. Use `${CLAUDE_SKILL_DIR}/templates/` only when the project has no applicable convention and a new artifact is needed. When the project keeps change history and the change is user-visible, breaking, or a deprecation, add an entry in the project's format, with migration notes for breaking changes.
 5. **Check.** Run the link checker and the project's own tests, documentation builds, schema checks, linters, and generators. Fix failures and re-run.
    `python3 "${CLAUDE_SKILL_DIR}/scripts/check_links.py" --root "${CLAUDE_PROJECT_DIR}" --changed`
