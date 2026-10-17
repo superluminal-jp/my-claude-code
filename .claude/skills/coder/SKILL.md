@@ -31,6 +31,20 @@ SDD and TDD compose: the spec names the behavior; the test enforces it; the impl
 
 When a project already uses [github/spec-kit](https://github.com/github/spec-kit), follow its installed specification, planning, task, consistency-analysis, and implementation lifecycle explicitly rather than improvising an abbreviated substitute.
 
+# Change workflow
+
+Take every code change through these steps in order; skip a step only when its condition does not hold.
+
+1. **Define**: settle purpose, scope, and the observable completion condition. Resolve material gaps before editing.
+2. **Specify**: if observable behavior is added or altered, write or update the spec first (Spec Kit lifecycle where the project uses it).
+3. **Red**: add or identify the failing automated check, or record the concrete pre-change observation.
+4. **Green**: make the smallest coherent change that passes it, then refactor with the checks still passing.
+5. **Verify**: run the repository's tests, linter, formatter, and type-checker, and read the result before claiming success.
+6. **Synchronize**: update affected contract documentation in the same change (see Documentation Sync).
+7. **Publish only on request**: committing, pushing, and opening a pull request each need the user's explicit request; a request for one does not authorize the others. Do not widen the change to make publication easier.
+
+Stop and surface the problem when a step fails for a reason the change cannot fix, such as a wrong spec or an unavailable check; do not skip the step or loosen the check to proceed.
+
 # Documentation Sync
 
 Identify the canonical explanation of each changed public interface, behavior, configuration field, schema, or usage contract and update it in the **same change**.
