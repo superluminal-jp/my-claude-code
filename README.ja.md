@@ -45,11 +45,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     検査。コードで検証できる項目のみ判定し、運用項目は未検証として報告）
   - skills ディレクトリ型プラグイン2件を上流のパッケージから取り込んでいる:
     `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
-    `SessionStart` のルール注入と `Stop` フックのゲート付き）、`minto-pyramid`
+    フックなし）、`minto-pyramid`
     （あらゆる実質的タスクに Minto 構造を助言的ガイダンスとして適用。`Stop`
-    フックの検査はない）。上流のパッケージのまま取り込んでいるのは
-    `maintaining-living-documentation` のみで、`minto-pyramid` のローカルコピーは
-    上流の `Stop` フックを削除している。上流からそのまま再コピーするとフックが復活する。
+    フックの検査はない）。どちらのローカルコピーも上流のフックを削除している
+    （`maintaining-living-documentation` は `hooks/hooks.json`、`minto-pyramid` は `Stop` フック）。上流からそのまま再コピーするとフックが復活する。
     オプションは各パッケージの `README.md` を参照。従来の Minto スイート
     （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
     [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した

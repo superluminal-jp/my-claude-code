@@ -1,7 +1,7 @@
 ---
 name: maintaining-living-documentation
 description: Keeps documentation consistent with code, specifications, decisions, and research artifacts as they change, following ISO/IEC/IEEE 12207, 15289, 42010, and 26514, Docs-as-Code, arc42, C4, ADRs, and FAIR/W3C PROV/RO-Crate for research. Use when implementing or reviewing changes that affect behavior, interfaces or API schemas, configuration, deployment, architecture or ADRs, README/user or operational guides, CHANGELOG or release notes, or research provenance, and for documentation drift audits. Not needed for changes with no observable or documented effect.
-compatibility: Claude Code with Python 3.9+. Git is optional and enables change audits and .gitignore-aware scanning. Project-root substitution needs Claude Code v2.1.196+. Loads as a plugin with an enforcing Stop hook when placed in a skills directory. The scripts are plain CLIs usable by other agents and CI.
+compatibility: Claude Code with Python 3.9+. Git is optional and enables change audits and .gitignore-aware scanning. Project-root substitution needs Claude Code v2.1.196+. The scripts are plain CLIs usable by other agents and CI.
 ---
 
 # Living Documentation
@@ -91,7 +91,7 @@ Keep the heading `Documentation impact` in English in every language; the Stop-h
 
 ## Enforcement
 
-When this folder is in `~/.claude/skills/` or a project's `.claude/skills/`, Claude Code loads it as a plugin: `hooks/hooks.json` adds the mandatory rule at session start and runs the Stop-hook gate (`scripts/stop_gate.py`). A project can set `"enforcement": "warn"` or `"off"` in `.living-documentation.json`. README.md describes the enforcement levels, CI, and evals.
+When this folder is in `~/.claude/skills/` or a project's `.claude/skills/`, this copy registers no hooks (`hooks/hooks.json` removed locally), so nothing runs at session start or at Stop; the workflow is followed by invoking this skill. `scripts/stop_gate.py` remains only as an unregistered script. README.md describes CI and evals.
 
 ## Bundled tooling
 
