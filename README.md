@@ -57,12 +57,13 @@ across projects while preserving unrelated user files.
   unverified), which compose with a matching
   lifecycle operation rather than replace it. Two vendored skills-directory
   plugins — `maintaining-living-documentation` (documentation consistency
-  workflow with a `SessionStart` rule and a `Stop`-hook gate) and
+  workflow) and
   `minto-pyramid` (Minto structure applied to every substantive task as
   advisory guidance, with no `Stop`-hook check) — are vendored from their
-  upstream packages. `maintaining-living-documentation` is copied verbatim;
+  upstream packages. The local copy of `maintaining-living-documentation`
+  removes its `hooks/hooks.json` (no `SessionStart` rule, no `Stop` gate) and
   the local copy of `minto-pyramid` removes the upstream `Stop` hook, so a
-  verbatim re-copy would restore it. See their own `README.md` for options. The former Minto suite (`minto-builder`,
+  verbatim re-copy would restore them. See their own `README.md` for options. The former Minto suite (`minto-builder`,
   `minto-reviewer`, `minto-rewriter`) and the `adr` skill (its rules merged
   into `maintaining-living-documentation`) are retired to
   [`archive/`](archive/), which is not synced. Spec Kit's `speckit-*`
@@ -155,7 +156,7 @@ my-claude-code/
     └── skills/                     # On-demand: body loaded when relevant, self-describing
         ├── coder/SKILL.md          # Change workflow + TDD + SDD + code quality + security + type safety + docs
         ├── minto-pyramid/          # Vendored plugin: Minto structure for every substantive task (locally modified: no Stop hook)
-        ├── maintaining-living-documentation/ # Vendored plugin: docs kept consistent with changes (+ SessionStart rule, Stop-hook gate)
+        ├── maintaining-living-documentation/ # Vendored plugin: docs kept consistent with changes (locally modified: no hooks)
         ├── clarifier/              # Shared understanding of intent, then formal requirements
         │   ├── SKILL.md            #   two-stage playbook
         │   └── references/         #   framework inventory (named to the user) + design basis (not named)

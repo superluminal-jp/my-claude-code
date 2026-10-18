@@ -20,7 +20,7 @@ cp -R maintaining-living-documentation .claude/skills/
 Because the folder contains `.claude-plugin/plugin.json`, Claude Code loads it from either location as a skills-directory plugin (`maintaining-living-documentation@skills-dir`):
 
 - the Skill (`SKILL.md`) becomes available, and
-- `hooks/hooks.json` registers the enforcing hooks (see [Making it mandatory](#making-it-mandatory)).
+- This copy removes `hooks/hooks.json`, so no hooks are registered and nothing is enforced automatically; the sections below that describe the hooks apply only if you restore that file from upstream (see [Making it mandatory](#making-it-mandatory)).
 
 A project-scope plugin loads only after you accept the workspace trust dialog for the project folder, and only from the `.claude/skills/` of the folder where the session starts. Running with `-p` does not count as accepting trust. To disable the plugin while keeping the files, set `"enabledPlugins": {"maintaining-living-documentation@skills-dir": false}` in a settings file, or set `"enforcement": "off"` in the project's `.living-documentation.json` to keep the Skill but disable the hooks' effect.
 
@@ -37,8 +37,8 @@ Other ways to load it: `claude --plugin-dir ./maintaining-living-documentation` 
 
 - `SKILL.md` — normative basis, standing instructions, workflow, and the completion report format.
 - `.claude-plugin/plugin.json` — plugin manifest. Replace the placeholder `author` before publishing.
-- `hooks/hooks.json` — `SessionStart`, `UserPromptSubmit`, and `Stop` hooks, in exec form (`command` plus `args`) so they need no shell.
-- `hooks/rule.md` — the mandatory rule that the `SessionStart` hook adds to Claude's context.
+- `hooks/hooks.json` (removed in this copy; upstream only) — `SessionStart`, `UserPromptSubmit`, and `Stop` hooks, in exec form (`command` plus `args`) so they need no shell.
+- `hooks/rule.md` — the mandatory rule that the `SessionStart` hook adds (unused while `hooks.json` is absent; the rule still describes the workflow) to Claude's context.
 - `references/` — standards applicability, practices, and bibliography.
 - `scripts/` — read-only inspection, change-audit, related-document discovery, and link-check helpers, and the hook script.
 - `schemas/` — JSON Schema for the optional project configuration. The scripts read it at run time, so it is the single definition of accepted keys.
