@@ -178,7 +178,7 @@ my-claude-code/
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs tests/run-*.sh on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs six tests/run-*.sh suites on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
@@ -285,6 +285,17 @@ bash tests/run-note-body-conversion.sh # requires Node.js
 Both test logic pulled out of the scripts and need no macOS. The calls into
 Notes.app itself are not covered. `apple-reminders` has no automated suite.
 
+After adding, removing, or renaming a skill under `.claude/skills/`, or
+editing either README:
+
+```sh
+bash tests/run-readme-skill-index.sh
+```
+
+It fails when a skill directory (other than the generated `speckit-*`) is not
+named in both `README.md` and `README.ja.md`, as `` `<name>` `` or as a
+`<name>/` path.
+
 After changing one of the vendored plugins
 ([`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
 or [`minto-pyramid`](.claude/skills/minto-pyramid/)), run its own unit tests
@@ -318,11 +329,11 @@ configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-Five of the suites above also run automatically in CI
+Six of the suites above also run automatically in CI
 (`.github/workflows/ci.yml`) on every push and pull request to `main`:
 `run-install.sh`, `run-digital-agency-frontend-skill.sh`,
-`run-removed-guardrails.sh`, `run-package-safety-bundle.sh`, and
-`run-mcp-startup.sh`. The others run only when you run them. `main` is
+`run-removed-guardrails.sh`, `run-package-safety-bundle.sh`,
+`run-readme-skill-index.sh`, and `run-mcp-startup.sh`. The others run only when you run them. `main` is
 protected by a repository ruleset
 (`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)
 to pass before anything merges.

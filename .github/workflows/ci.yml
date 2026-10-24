@@ -31,5 +31,8 @@ jobs:
       - name: Run package-safety bundle contract tests
         run: bash tests/run-package-safety-bundle.sh
 
+      - name: Run README skill-index check
+        run: bash tests/run-readme-skill-index.sh
+
       - name: Run MCP startup smoke test
         run: bash tests/run-mcp-startup.sh

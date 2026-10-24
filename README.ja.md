@@ -162,7 +162,7 @@ my-claude-code/
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち6本を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── .claude/                        # インストーラーが管理する Claude パスの正本
@@ -267,6 +267,16 @@ bash tests/run-note-body-conversion.sh # Node.js が必要
 どちらもスクリプトから切り出したロジックを検査し、macOS を必要としない。
 Notes.app への呼び出しそのものは対象外。`apple-reminders` には自動テストがない。
 
+`.claude/skills/` のスキルを追加・削除・改名したとき、またはどちらかの README を
+編集したら:
+
+```sh
+bash tests/run-readme-skill-index.sh
+```
+
+生成物の `speckit-*` を除くスキルのディレクトリが、`README.md` と `README.ja.md` の
+両方に `` `<name>` `` または `<name>/` のパスとして書かれていなければ失敗する。
+
 取り込んだプラグイン（[`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
 または [`minto-pyramid`](.claude/skills/minto-pyramid/)）を変更したら、その README の
 とおり、そのフォルダで単体テストを実行する:
@@ -298,9 +308,10 @@ python3 -B -m unittest discover -s tests -v
 
 ## リポジトリのセキュリティ自動化
 
-上記のうち5本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+上記のうち6本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
 自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
-`run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、`run-mcp-startup.sh`。
+`run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、
+`run-readme-skill-index.sh`、`run-mcp-startup.sh`。
 それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
 する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
 
