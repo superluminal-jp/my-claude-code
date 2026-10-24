@@ -75,6 +75,13 @@ across projects while preserving unrelated user files.
   this repository's Claude Code plugins (see [Plugins](#plugins)). It installs
   no MCP servers — add the ones you need yourself (see
   [MCP Servers](#mcp-servers))
+- **`team/package-safety/`** — A package-install safety bundle to hand to
+  other developers: one Claude Code settings file that works as a
+  repository's `.claude/settings.json` or as a managed-settings drop-in, plus
+  npm, pnpm, and uv templates that keep installs to versions published at
+  least 7 days ago. It is not synced by `install.sh` and does not change this
+  repository's own settings; see its [README](team/package-safety/README.md)
+  and [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md)
 
 ## Supplementary documentation
 
@@ -139,6 +146,7 @@ my-claude-code/
 ├── README.md
 ├── install.sh                      # Sync managed Claude paths + install plugins (no MCP servers)
 ├── .mcp.json                       # Project-scope MCP server definitions; reference for adding servers yourself
+├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml                  # Runs tests/run-*.sh on every push/PR to main (required check)
@@ -203,6 +211,16 @@ bash tests/run-config-pyramid.sh
 The first checks the skill's structure and the sourcing rules of its checklist.
 How the skill behaves is checked by hand with the fixture in
 `tests/fixtures/secure-logging/`.
+
+After changing [`team/package-safety/`](team/package-safety/):
+
+```sh
+bash tests/run-package-safety-bundle.sh
+```
+
+It checks the bundle's files against each other without network access. How
+the bundle behaves inside Claude Code is checked by hand with the procedure
+in its [README](team/package-safety/README.md#check-that-it-is-in-force).
 
 `run-digital-agency-slides-skill.sh` ends with an end-to-end section that
 fetches the official DADS stylesheets and converts the bundled deck template.

@@ -28,5 +28,8 @@ jobs:
       - name: Run removed-guardrails regression tests
         run: bash tests/run-removed-guardrails.sh
 
+      - name: Run package-safety bundle contract tests
+        run: bash tests/run-package-safety-bundle.sh
+
       - name: Run MCP startup smoke test
         run: bash tests/run-mcp-startup.sh

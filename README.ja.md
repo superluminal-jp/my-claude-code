@@ -56,6 +56,12 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
     プロジェクトローカルな成果物で、すべて gitignore 対象（後述「spec-kit のオプトイン」参照）
+- **`team/package-safety/`**: 他の開発メンバーに配布するパッケージインストール安全化バンドル。
+  リポジトリの `.claude/settings.json` としても managed settings の drop-in としても使える
+  Claude Code 設定ファイル 1 つと、公開から 7 日以上たった版だけを入れるための npm・pnpm・uv の
+  テンプレートからなる。`install.sh` の同期対象ではなく、このリポジトリ自身の設定も変えない。
+  詳細は[バンドルの README](team/package-safety/README.ja.md) と
+  [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md) を参照
 
 ## 補足ドキュメント
 
@@ -125,6 +131,7 @@ my-claude-code/
 ├── README.ja.md
 ├── install.sh
 ├── .mcp.json
+├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh を実行(必須チェック)
@@ -159,6 +166,16 @@ bash tests/run-config-pyramid.sh
 
 前者はスキルの構造とチェックリストの出典の規則を検査する。スキルの振る舞いは、
 `tests/fixtures/secure-logging/` の見本を使って手で確認する。
+
+[`team/package-safety/`](team/package-safety/) を変更したら:
+
+```sh
+bash tests/run-package-safety-bundle.sh
+```
+
+バンドル内のファイル同士の整合をネットワークなしで検査する。Claude Code 内での
+振る舞いは、[バンドルの README](team/package-safety/README.ja.md#適用されたことの確認)
+の手順で手で確認する。
 
 `run-digital-agency-slides-skill.sh` の末尾は、公式 DADS スタイルシートを取得して
 同梱のデッキテンプレートを変換する end-to-end セクションです。ネットワーク接続と、
