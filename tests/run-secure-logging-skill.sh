@@ -63,6 +63,17 @@ field() {
   printf '%s\n' "$1" | awk -F'|' -v n="$2" '{ gsub(/^ +| +$/, "", $(n + 1)); print $(n + 1) }'
 }
 
+last_field() {
+  # last_field <row>: trimmed last column, which is the basis in every item table
+  printf '%s\n' "$1" | awk -F'|' '{ gsub(/^ +| +$/, "", $(NF - 1)); print $(NF - 1) }'
+}
+
+# Short names in the first column of the Sources table.
+source_names() {
+  awk '/^## Sources/ { on = 1; next } /^## / { on = 0 } on && /^\| [^-|]/' "$CHECKLIST" 2>/dev/null |
+    awk -F'|' 'NR > 1 { gsub(/^ +| +$/, "", $2); print $2 }'
+}
+
 run_skill_contract() {
   check "SL-01: SKILL.md and checklist exist" "$([ -f "$SKILL_FILE" ] && [ -f "$CHECKLIST" ] && echo 1 || echo 0)"
   check_contains "SL-02: front matter names the skill" "$SKILL_FILE" '^name: secure-logging$'
@@ -71,6 +82,10 @@ run_skill_contract() {
   check_contains "SL-05: description excludes unrelated observability" "$SKILL_FILE" '^description:.*(Do not use|not for).*observability'
   check_contains "SL-06: description excludes changes that touch no logging" "$SKILL_FILE" '^description:.*(Do not use|not for).*touch no logging'
   check "SL-07: SKILL.md stays under 200 lines" "$([ "$(wc -l <"$SKILL_FILE")" -lt 200 ] && echo 1 || echo 0)"
+  check_contains "SL-10: description covers logging practice from official stack documentation" "$SKILL_FILE" '^description:.*logging practices?.*official documentation'
+  check_contains "SL-11: description covers logging resources in CDK, Terraform, and Bicep" "$SKILL_FILE" '^description:.*infrastructure code.*CDK.*Terraform.*Bicep'
+  check_contains "SL-12: description covers serverless runtimes and AI inference services" "$SKILL_FILE" '^description:.*Cloud Run functions.*Azure Functions.*AI inference'
+  check_contains "SL-13: description covers GitHub Actions workflow logs" "$SKILL_FILE" '^description:.*GitHub Actions'
 
   # The checklist is the single source of requirements: SKILL.md cites items
   # by ID instead of restating them, and every cited ID must exist.
@@ -92,7 +107,7 @@ run_checklist_contract() {
   bad_basis=0
   while IFS= read -r row; do
     [ -z "$row" ] && continue
-    basis="$(field "$row" 3)"
+    basis="$(last_field "$row")"
     # A basis must name a source and a section or requirement id, never a bare source.
     case "$basis" in
       "" | CS | ASVS | Top10 | Vocab | OTel) bad_basis=$((bad_basis + 1)) ;;
@@ -117,9 +132,62 @@ run_checklist_contract() {
   ops_pass="$(printf '%s\n' "$all_rows" | grep -E '^\| LOG-OPS-' | grep -Ei '\bpass(es|ed)?\b' || true)"
   check "CL-10: group B items never read as passable from code" "$([ -z "$ops_pass" ] && printf '%s\n' "$all_rows" | grep -q '^| LOG-OPS-' && echo 1 || echo 0)"
 
-  for group in INV EVT ATT DATA INJ ERR CFG TST OPS; do
+  for group in INV EVT ATT DATA INJ ERR CFG TST OPS PRC; do
     check "CL-11: group $group has at least one item" "$(printf '%s\n' "$all_rows" | grep -q "^| LOG-$group-" && echo 1 || echo 0)"
   done
+
+  # Practice items rest on a stack's official documentation: each names the
+  # stack it applies to and cites a listed source with a section after it.
+  local prc_rows names bad_prc=0 applies cited name
+  prc_rows="$(printf '%s\n' "$all_rows" | grep -E '^\| LOG-PRC-' || true)"
+  names="$(source_names)"
+  while IFS= read -r row; do
+    [ -z "$row" ] && continue
+    applies="$(field "$row" 3)"
+    basis="$(last_field "$row")"
+    cited=0
+    while IFS= read -r name; do
+      [ -z "$name" ] && continue
+      case "$basis" in "$name "?*) cited=1 ;; esac
+    done <<<"$names"
+    { [ -z "$applies" ] || [ "$applies" = "$basis" ] || [ "$cited" -eq 0 ]; } && bad_prc=$((bad_prc + 1))
+  done <<<"$prc_rows"
+  check "CL-12: every practice item names its stack and cites a listed source section" "$([ -n "$prc_rows" ] && [ "$bad_prc" -eq 0 ] && echo 1 || echo 0)"
+
+  # A practice item's security impact is "none" or the security items a Fail
+  # would also violate; those items must exist and must not be practice items.
+  local bad_impact=0 impact
+  while IFS= read -r row; do
+    [ -z "$row" ] && continue
+    impact="$(field "$row" 4)"
+    if [ -z "$impact" ] || [ "$impact" = "$(last_field "$row")" ]; then
+      bad_impact=$((bad_impact + 1))
+      continue
+    fi
+    [ "$impact" = "none" ] && continue
+    for id in $(printf '%s\n' "$impact" | tr ',' ' '); do
+      case "$id" in LOG-PRC-*) bad_impact=$((bad_impact + 1)); continue ;; esac
+      printf '%s\n' "$all_rows" | grep -q "^| $id |" || bad_impact=$((bad_impact + 1))
+    done
+  done <<<"$prc_rows"
+  check "CL-14: every practice item states its security impact as none or existing security items" "$([ -n "$prc_rows" ] && [ "$bad_impact" -eq 0 ] && echo 1 || echo 0)"
+
+  # Evidence rows map an existing group B item to infrastructure-code
+  # attributes; their ID is backquoted so they are not read as items.
+  local evidence_rows bad_evidence=0 id
+  evidence_rows="$(grep -E '^\| `LOG-OPS-[0-9]+` \|' "$CHECKLIST" 2>/dev/null || true)"
+  while IFS= read -r row; do
+    [ -z "$row" ] && continue
+    id="$(field "$row" 1 | tr -d '`')"
+    basis="$(last_field "$row")"
+    cited=0
+    while IFS= read -r name; do
+      [ -z "$name" ] && continue
+      case "$basis" in "$name "?*) cited=1 ;; esac
+    done <<<"$names"
+    { printf '%s\n' "$all_rows" | grep -q "^| $id |" && [ "$cited" -eq 1 ]; } || bad_evidence=$((bad_evidence + 1))
+  done <<<"$evidence_rows"
+  check "CL-13: infrastructure-code evidence maps existing group B items and cites listed sources" "$([ -n "$evidence_rows" ] && [ "$bad_evidence" -eq 0 ] && echo 1 || echo 0)"
 }
 
 # Heading levels in document order, skipping fenced code blocks.

@@ -41,8 +41,11 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （DADS 公式資材で 16:9 スライドを HTML として作成し、同梱ツールで編集可能な
     PowerPoint に変換）、`scrum-master`（Scrumイベントの
     設計・ファシリテーション、障害除去、フロー指標）、`secure-logging`
-    （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE に基づくアプリケーションログの実装と
-    検査。コードで検証できる項目のみ判定し、運用項目は未検証として報告）。
+    （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE と、Python・React・AWS Lambda と CDK・
+    Google Cloud（Cloud Run functions を含む）・Azure（Azure Functions を含む）・各クラウドの
+    AI 推論サービス・GitHub Actions のワークフローの公式ドキュメントにあるログの作法に基づく、アプリケーションと CI のログの実装と
+    検査。コードで検証できる項目のみ判定し、運用項目は、リポジトリのインフラコード
+    （AWS CDK、Terraform、Bicep）で決まる場合を除き未検証として報告）。
     `secure-logging` は自作の skills ディレクトリ型プラグインとしても構成している
     （`.claude-plugin/plugin.json`、フックなし。詳細は同パッケージの `README.md`）
   - skills ディレクトリ型プラグイン2件を上流のパッケージから取り込んでいる:

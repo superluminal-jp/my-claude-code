@@ -53,8 +53,13 @@ across projects while preserving unrelated user files.
   PowerPoint by its own bundled tooling), `scrum-master` (Scrum
   Guide-only events, roles, impediments), `secure-logging` (implement and
   check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0
-  V16, and CWE; code-verifiable items only, operational items reported as
-  unverified), which compose with a matching
+  V16, and CWE, and against the official logging practices of Python, React,
+  AWS Lambda and CDK, Google Cloud (including Cloud Run functions), Azure
+  (including Azure Functions), each cloud's AI inference service, and GitHub
+  Actions workflow logs;
+  code-verifiable items only, operational items reported as unverified unless
+  the repository's infrastructure code (AWS CDK, Terraform, Bicep) settles
+  them), which compose with a matching
   lifecycle operation rather than replace it. `secure-logging` is also
   packaged as an authored skills-directory plugin (`.claude-plugin/plugin.json`,
   no hooks); see its `README.md`. Two vendored skills-directory
@@ -177,11 +182,11 @@ my-claude-code/
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
         │       └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
-        └── secure-logging/         # Authored plugin: OWASP logging implementation + checklist (domain overlay, no hooks)
+        └── secure-logging/         # Authored plugin: OWASP + stack-practice logging checklist (domain overlay, no hooks)
             ├── SKILL.md            #   playbook
             ├── README.md           #   install, modes, how checks work (README.ja.md: Japanese)
             ├── .claude-plugin/     #   plugin manifest (secure-logging@skills-dir)
-            └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP)
+            └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP, official stack docs)
 ```
 
 ## Verification
