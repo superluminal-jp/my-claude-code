@@ -55,7 +55,9 @@ across projects while preserving unrelated user files.
   check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0
   V16, and CWE; code-verifiable items only, operational items reported as
   unverified), which compose with a matching
-  lifecycle operation rather than replace it. Two vendored skills-directory
+  lifecycle operation rather than replace it. `secure-logging` is also
+  packaged as an authored skills-directory plugin (`.claude-plugin/plugin.json`,
+  no hooks); see its `README.md`. Two vendored skills-directory
   plugins — `maintaining-living-documentation` (documentation consistency
   workflow) and
   `minto-pyramid` (Minto structure applied to every substantive task as
@@ -175,8 +177,10 @@ my-claude-code/
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
         │       └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
-        └── secure-logging/         # OWASP logging implementation + checklist (domain overlay)
+        └── secure-logging/         # Authored plugin: OWASP logging implementation + checklist (domain overlay, no hooks)
             ├── SKILL.md            #   playbook
+            ├── README.md           #   install, modes, how checks work (README.ja.md: Japanese)
+            ├── .claude-plugin/     #   plugin manifest (secure-logging@skills-dir)
             └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP)
 ```
 
@@ -200,7 +204,9 @@ bash tests/run-secure-logging-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
-The first checks the skill's structure and the sourcing rules of its checklist.
+The first checks the skill's structure, the sourcing rules of its checklist,
+its plugin manifest, and that its two READMEs share one heading structure; with
+the Claude Code CLI installed it also runs `claude plugin validate --strict`.
 How the skill behaves is checked by hand with the fixture in
 `tests/fixtures/secure-logging/`.
 

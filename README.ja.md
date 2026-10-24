@@ -42,7 +42,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     PowerPoint に変換）、`scrum-master`（Scrumイベントの
     設計・ファシリテーション、障害除去、フロー指標）、`secure-logging`
     （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE に基づくアプリケーションログの実装と
-    検査。コードで検証できる項目のみ判定し、運用項目は未検証として報告）
+    検査。コードで検証できる項目のみ判定し、運用項目は未検証として報告）。
+    `secure-logging` は自作の skills ディレクトリ型プラグインとしても構成している
+    （`.claude-plugin/plugin.json`、フックなし。詳細は同パッケージの `README.md`）
   - skills ディレクトリ型プラグイン2件を上流のパッケージから取り込んでいる:
     `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
     フックなし）、`minto-pyramid`
@@ -157,7 +159,9 @@ bash tests/run-secure-logging-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
-前者はスキルの構造とチェックリストの出典の規則を検査する。スキルの振る舞いは、
+前者は、スキルの構造、チェックリストの出典の規則、プラグインのマニフェスト、
+2つの README の見出し構造が一致することを検査し、Claude Code CLI があれば
+`claude plugin validate --strict` も実行する。スキルの振る舞いは、
 `tests/fixtures/secure-logging/` の見本を使って手で確認する。
 
 `run-digital-agency-slides-skill.sh` の末尾は、公式 DADS スタイルシートを取得して

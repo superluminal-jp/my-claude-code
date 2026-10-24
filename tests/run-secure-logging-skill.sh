@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Contract tests for the secure-logging skill: structure, scope text, and the
-# sourcing rules of its checklist. They do not exercise how the skill behaves
+# Contract tests for the secure-logging skill: structure, scope text, the
+# sourcing rules of its checklist, and its plugin packaging. They do not exercise how the skill behaves
 # when a model follows it; that is checked by hand (see
 # specs/050-secure-logging-skill/quickstart.md).
 # Usage: bash tests/run-secure-logging-skill.sh
@@ -122,8 +122,40 @@ run_checklist_contract() {
   done
 }
 
+# Heading levels in document order, skipping fenced code blocks.
+heading_levels() {
+  awk '/^```/ { fenced = !fenced; next } !fenced && /^#+ / { print substr($0, 1, index($0, " ") - 1) }' "$1"
+}
+
+run_plugin_contract() {
+  local manifest="$SKILL_DIR/.claude-plugin/plugin.json"
+  local readme="$SKILL_DIR/README.md" readme_ja="$SKILL_DIR/README.ja.md"
+
+  check "PL-01: plugin manifest names the skill and describes it" \
+    "$([ -f "$manifest" ] && jq -e '.name == "secure-logging" and (.description | length > 0)' "$manifest" >/dev/null 2>&1 && echo 1 || echo 0)"
+  check "PL-02: README.md and README.ja.md share one heading structure" \
+    "$([ -f "$readme" ] && [ -f "$readme_ja" ] && [ -n "$(heading_levels "$readme")" ] && [ "$(heading_levels "$readme")" = "$(heading_levels "$readme_ja")" ] && echo 1 || echo 0)"
+
+  if ! command -v claude >/dev/null 2>&1; then
+    printf "SKIP PL-03, PL-04: Claude Code CLI not installed\n"
+    return
+  fi
+  check "PL-03: claude plugin validate --strict accepts the plugin" \
+    "$(claude plugin validate --strict "$SKILL_DIR" >/dev/null 2>&1 && echo 1 || echo 0)"
+  # The manifest check does not read SKILL.md; validate it as a skills directory.
+  local tmp
+  tmp="$(mktemp -d)"
+  mkdir -p "$tmp/skills"
+  cp -R "$SKILL_DIR" "$tmp/skills/secure-logging"
+  rm -rf "$tmp/skills/secure-logging/.claude-plugin"
+  check "PL-04: claude plugin validate --strict accepts SKILL.md as a skill" \
+    "$(claude plugin validate --strict "$tmp/skills" >/dev/null 2>&1 && echo 1 || echo 0)"
+  rm -rf "$tmp"
+}
+
 run_skill_contract
 run_checklist_contract
+run_plugin_contract
 
 echo ""
 echo "===================="
