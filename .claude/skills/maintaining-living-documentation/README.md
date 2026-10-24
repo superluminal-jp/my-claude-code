@@ -1,6 +1,6 @@
 # Maintaining Living Documentation — Claude Code Skill and plugin
 
-A portable Claude Code Skill for keeping implementation, specifications, decisions, evidence, and documentation consistent as a project evolves. The same folder is also a Claude Code plugin, so placing it in a skills directory also enforces the workflow with hooks.
+A portable Claude Code Skill for keeping implementation, specifications, decisions, evidence, and documentation consistent as a project evolves. The same folder is also a Claude Code plugin; upstream it enforces the workflow with hooks, but this copy registers none (see [How checks work](#how-checks-work)).
 
 ## Install
 
@@ -36,6 +36,7 @@ Other ways to load it: `claude --plugin-dir ./maintaining-living-documentation` 
 ## Layout
 
 - `SKILL.md` — normative basis, standing instructions, workflow, and the completion report format.
+- `README.md`, `README.ja.md` — this guide in English and Japanese; keep the two in sync.
 - `.claude-plugin/plugin.json` — plugin manifest. Replace the placeholder `author` before publishing.
 - `hooks/hooks.json` (removed in this copy; upstream only) — `SessionStart`, `UserPromptSubmit`, and `Stop` hooks, in exec form (`command` plus `args`) so they need no shell.
 - `hooks/rule.md` — the mandatory rule that the `SessionStart` hook adds (unused while `hooks.json` is absent; the rule still describes the workflow) to Claude's context.
@@ -105,6 +106,47 @@ The scripts work without configuration. To adjust classification or enforcement,
 - Patterns match project-relative POSIX paths; `*` also crosses `/`, and a leading `**/` also matches at the top level.
 - A `"$schema"` key is allowed for editor validation against `schemas/config.schema.json`.
 - `related`: settings for related-document discovery. `related.max_candidates` (integer ≥ 1, default 10) is how many distinct related documents `find_related.py` lists and the gate enforces; the closest are kept and the rest are counted in `truncated`. `related.min_name_length` (integer ≥ 1, default 6) is the shortest file name that counts as a mention of a changed file; shorter names match only when the whole path appears. Invalid values are rejected with the key name.
+
+## How checks work
+
+`SKILL.md` is authoritative for the workflow; this section summarizes how its checks run in this copy.
+
+Checks run only when the Skill is invoked: Claude follows `SKILL.md` and checks its own change. Nothing runs automatically, because this copy registers no hooks. The scripts and the project's own checks settle mechanically only which documents a change may affect and whether local links resolve. Whether a document's content is correct rests on Claude's own reading, so it is a self-check.
+
+### Checks in the workflow
+
+| Workflow step | What is checked | How |
+|---|---|---|
+| 3. Assess impact | Which artifact classes changed and what documentation they may affect | `audit.py`. Its hints are questions to answer, not verdicts |
+| 3. Assess impact | Which documents the change may leave out of date: next to a changed file (P1), naming it (P2), the change history (P3); comments in the changed file (P0) are advice only | `find_related.py`. Claude updates each listed document or names its path in the final message with the reason it needs no change |
+| 5. Check | Local Markdown links and anchors | `check_links.py --changed`. It does not compare documentation with behavior |
+| 5. Check | The project's tests, documentation builds, schema checks, linters, and generators | Claude runs them, fixes failures, and re-runs until every check passes, a failure remains after two fixes, or a failure lies outside the change. What remains is reported under `Unresolved` or `Checks`; a check that cannot run is named with the reason |
+| 5. Check | Whether the documentation agrees with the change | Claude's own reading. For a breaking change or a new or changed public contract, a subagent SHOULD compare the documentation with the diff in a fresh context; for other changes to architecture descriptions, specifications, or user documentation, it MAY |
+
+### Verdicts in the report
+
+The report under `Documentation impact` states one verdict per line:
+
+| Line | Verdict |
+|---|---|
+| `Updated:` / `Created:` | The document agrees with the authoritative source the line names |
+| `No change needed:` | Not applicable, with the reason |
+| `Unresolved:` | A known disagreement and what would resolve it |
+| `Unverified:` | Not checked, with the evidence that would settle it |
+| `Checks:` | Each check run and its result, or why it could not run |
+
+Editing a document is not evidence that it is correct: a document whose agreement with its source was not checked goes under `Unverified:`. A change with no documentation impact gets one line, `Documentation impact: none — <reason>`.
+
+### What this copy does not enforce
+
+| Mechanism | What it checks | In this copy |
+|---|---|---|
+| Stop hook (`scripts/stop_gate.py`) | The report exists and gives a real reason or basis, links are intact, and every related document was handled | Not registered, because `hooks/hooks.json` is removed; see [Making it mandatory](#making-it-mandatory) |
+| CI (`templates/ci/github-actions.yml`) | Advisory impact audit and changed-scope link check on pull requests | A template; it runs only after a project copies it into its workflows (see [CI integration](#ci-integration)) |
+| Behavior evals (`evals/`) | Whether Claude updates the documents it should and leaves the rest alone | Run only through `claude plugin eval`, which calls the model with your credentials (see [Evals](#evals)) |
+| Unit tests (`tests/`) | The scripts and the structure of `SKILL.md` | Run on demand (see [Tests](#tests)); they do not judge documentation |
+
+Even when registered, the Stop hook cannot judge whether documentation is correct (see [Known limits](#known-limits)). Correctness rests on Claude's reading, the fresh-context comparison, and human review.
 
 ## Making it mandatory
 
@@ -177,6 +219,7 @@ This copy is vendored in my-claude-code and differs from the upstream package as
   - `SKILL.md` adds the `find_related.py` command, the dispose and create rules, and the `Created:` report line; `hooks/rule.md` adds one sentence for them.
   - `evals/` adds three cases (not run), and `tests/test_scripts.py` covers all of the above.
 - Verification verdicts (no specification): `SKILL.md` names the authoritative source on `Updated:` and `Created:` report lines, adds the `Unverified:` line and narrows `Unresolved:` to known disagreements, bounds the re-runs in step 5, and calls step 5 a self-check, raising the fresh-context comparison to SHOULD for breaking or public-contract changes. `tests/test_scripts.py` covers the report lines.
+- Documentation: `README.md` adds *How checks work* and aligns its opening paragraph with this hook-free copy; `README.ja.md` is a new Japanese translation of `README.md`.
 
 ## Security
 
