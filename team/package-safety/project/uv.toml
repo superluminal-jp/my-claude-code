@@ -1,0 +1,8 @@
+# Package-install safety: consider only distributions uploaded at least
+# 7 days ago. Needs uv >= 0.9.17; older uv fails to parse this file.
+# If pyproject.toml already has a [tool.uv] table, put this setting there
+# instead: a uv.toml in the same directory makes uv ignore [tool.uv].
+exclude-newer = "P7D"
+# Exception for an urgent fix: exempt one package, and review it in a PR.
+# [exclude-newer-package]
+# some-package = false
