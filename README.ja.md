@@ -3,10 +3,14 @@
 Claude Code の公式仕様・ベストプラクティス（https://code.claude.com/docs/）に
 沿った、再利用可能な **ユーザーレベル設定** です。
 
-`install.sh` は `.claude/` のうちリポジトリが管理する設定、rules、skills、agents、memory を
+`install.sh` は `.claude/` のうちリポジトリが管理する設定、rules、skills、memory を
 `~/.claude/` に同期し、管理対象外のユーザーファイルは保持します。
 
 英語版: [README.md](README.md)
+
+自分の設定を作る場合は、常時ロードの各指示が通すべき判断基準と、このリポジトリが
+意図的に置いていないものを [`docs/claude-config-design.md`](docs/claude-config-design.md)
+にまとめています。
 
 ## このリポジトリで提供するもの
 
@@ -17,7 +21,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 - **`.claude/settings.json`**: Claude Code のユーザーレベル設定
 - **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
-  推論の完全性（6つの推論セルフチェック: 依存・分岐・反復・推論）、権限と安全性
+  推論の完全性（4つの推論セルフチェック: 依存と並行・条件と分岐・反復・推論）、権限と安全性
   （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック）、
   モデルと労力のルーティング（能力層、閉じたエスカレーション条件、サブエージェントのモデルと労力））。他のルール・スキル・設定パスへの言及は持たない。
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
@@ -39,8 +43,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
     React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
     （DADS 公式資材で 16:9 スライドを HTML として作成し、同梱ツールで編集可能な
-    PowerPoint に変換）、`scrum-master`（Scrumイベントの
-    設計・ファシリテーション、障害除去、フロー指標）、`secure-logging`
+    PowerPoint に変換）、`scrum-master`（Scrum Guide 2020 だけを規範に、
+    Scrumイベント・作成物・アカウンタビリティ・逸脱を診断・改善）、`secure-logging`
     （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE と、Python・React・AWS Lambda と CDK・
     Google Cloud（Cloud Run functions を含む）・Azure（Azure Functions を含む）・各クラウドの
     AI 推論サービス・GitHub Actions のワークフローの公式ドキュメントにあるログの作法に基づく、アプリケーションと CI のログの実装と
@@ -48,6 +52,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （AWS CDK、Terraform、Bicep）で決まる場合を除き未検証として報告）。
     `secure-logging` は自作の skills ディレクトリ型プラグインとしても構成している
     （`.claude-plugin/plugin.json`、フックなし。詳細は同パッケージの `README.md`）
+  - どちらの軸にも分類していない macOS アプリ連携2件: `apple-notes`（同梱の JXA
+    スクリプトで Notes.app を読み書き。上書きと削除は SHA-256 ハッシュのゲート付き）、
+    `apple-reminders`（Swift ファイル1つからビルドする小さな EventKit CLI で
+    Reminders.app を読み書き。[ADR-0013](docs/adr/0013-eventkit-for-reminders-automation.md) 参照）
   - skills ディレクトリ型プラグイン2件を上流のパッケージから取り込んでいる:
     `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
     フックなし）、`minto-pyramid`
@@ -67,6 +75,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   テンプレートからなる。`install.sh` の同期対象ではなく、このリポジトリ自身の設定も変えない。
   詳細は[バンドルの README](team/package-safety/README.ja.md) と
   [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md) を参照
+- **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md)・
+  [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)**: この設定の作業原則を
+  ChatGPT と Claude.ai のカスタム指示欄へ持ち込むための、貼り付け用のポータブル
+  プロンプト。`install.sh` の同期対象ではない
 
 ## 補足ドキュメント
 
@@ -117,6 +129,9 @@ bash path/to/my-claude-code/install.sh
   保持されます。
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側の置換対象パスでも
   削除されます。
+- `agents/` と `commands/` はこのリポジトリに元ファイルがなく、以前のバージョンが
+  入れたものを片付けるためだけに管理対象に残しています。そのため実行のたびに
+  `~/.claude/agents/` と `~/.claude/commands/` は削除されます。
 - `settings.local.json` を含む `~/.claude` の管理対象外パスは保持されます。個人用ファイルは上記の管理対象外に置いてください。
 
 ## 代替: `CLAUDE.md` から import
@@ -131,22 +146,68 @@ bash path/to/my-claude-code/install.sh
 
 ```text
 my-claude-code/
-├── CLAUDE.md
-├── README.md
+├── CLAUDE.md                       # リポジトリの目的 + @.claude/CLAUDE.md の再エクスポート(リポジトリ内専用, 同期対象外)
+├── README.md                       # 英語版ガイド(本書は README.ja.md)
 ├── README.ja.md
-├── install.sh
-├── .mcp.json
+├── install.sh                      # 管理対象の Claude パスを同期 + プラグインをインストール(MCP サーバーは入れない)
+├── .mcp.json                       # プロジェクトスコープの MCP サーバー定義。自分で追加するときの参照
+├── .living-documentation.json      # maintaining-living-documentation のスクリプト設定(specs/ を除外)
+├── chatgpt-system-prompt.md        # ChatGPT のカスタム指示用ポータブルプロンプト(同期対象外)
+├── claude-ai-system-prompt.md      # Claude.ai の指示欄用ポータブルプロンプト(同期対象外)
+├── docs/                           # 保守者向け文書: 設計根拠、MCP の背景、ADR(同期対象外)
+├── tests/                          # オフラインの契約テスト(run-*.sh)と fixture。「検証」参照
+├── specs/                          # このリポジトリ自身の変更の Spec Kit 機能仕様
+├── .specify/                       # このリポジトリの Spec Kit プロジェクトファイル(テンプレート、スクリプト、git 拡張)
+├── archive/                        # 参照用に残した退役スキル(同期対象外)
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち6本を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
-└── .claude/
-    ├── CLAUDE.md
-    ├── settings.json
-    ├── rules/
-    └── skills/
+└── .claude/                        # インストーラーが管理する Claude パスの正本
+    ├── CLAUDE.md                   # 達成目標: 定義 → 実行 → 引き渡し。設計根拠は docs/
+    ├── settings.json               # Claude Code のユーザーレベル設定
+    ├── rules/                      # 常時ロード: 毎セッション読み込む、独立した5つの関心事
+    │   ├── clarifier.md            # 要件確実性: 確認するか進めるか
+    │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
+    │   ├── model-routing.md        # モデルと労力のルーティング: 足りる最小の層、閉じたエスカレーション条件
+    │   ├── permissions.md          # 権限と安全性。強制される deny は settings.json
+    │   └── pyramid-principle.md    # 実質的な出力に対する読み手本位の構造セルフチェック
+    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型
+        ├── coder/SKILL.md          # 変更手順 + TDD + SDD + 品質 + 安全 + 型安全性 + ドキュメント
+        ├── minto-pyramid/          # 取り込んだプラグイン: 全実質タスクに Minto 構造(ローカル変更: Stop フックなし)
+        ├── maintaining-living-documentation/ # 取り込んだプラグイン: 変更とドキュメントの整合(ローカル変更: フックなし)
+        ├── clarifier/              # 意図の共通認識を形成し、その後に形式的要件へ
+        │   ├── SKILL.md            #   二段構成のプレイブック
+        │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
+        ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
+        ├── product-strategy/SKILL.md # 開発着手前のビジョン・ユーザー・提供価値・指標
+        ├── meta-spec/SKILL.md      # 1つの取り組み -> 独立して仕様化できるスライスのメタスペック
+        ├── git-workflow/SKILL.md   # ブランチ/コミット/プッシュ/PR 運用
+        ├── aws-research/SKILL.md   # AWS 公式ドキュメントの最新調査
+        ├── digital-agency-frontend/ # DADS React/Tailwind の手順 + 出典付きの参考資料(ドメインオーバーレイ)
+        ├── digital-agency-slides/  # DADS 16:9 デッキを HTML で作り編集可能な .pptx へ(ドメインオーバーレイ)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   スライド設計、マークアップ契約、変換、資材の出典
+        │   ├── assets/             #   1280x720 のレイアウト CSS + 注釈付きデッキテンプレート
+        │   └── scripts/            #   セットアップ、公式資材の取得、DOM 抽出、デッキ CLI
+        ├── scrum-master/           # Scrum Guide (2020) だけを規範に、イベント・作成物・アカウンタビリティを診断(ドメインオーバーレイ)
+        │   ├── SKILL.md            #   プレイブック
+        │   └── references/         #   必要時に読む参考文書3件 + Scrum Guide の PDF
+        │       └── templates/      #   すぐ使える Markdown テンプレート8件(作成物 + イベント)
+        ├── secure-logging/         # 自作プラグイン: OWASP + 各スタックのログ作法のチェックリスト(ドメインオーバーレイ, フックなし)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── README.md           #   インストール、モード、検査の仕組み(README.ja.md: 日本語)
+        │   ├── .claude-plugin/     #   プラグインのマニフェスト(secure-logging@skills-dir)
+        │   └── references/         #   出典付きチェックリスト(ASVS 5.0.0 V16、CWE、OWASP、各スタックの公式文書)
+        ├── apple-notes/            # JXA で Notes.app を操作(macOS アプリ連携)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   プロパティ、スクリプトの使い方、安全な Markdown サブセット、ハッシュゲート
+        │   └── scripts/            #   JXA スクリプト + Python のハッシュゲート
+        └── apple-reminders/        # EventKit で Reminders.app を操作(macOS アプリ連携)
+            ├── SKILL.md            #   プレイブック、ビルド手順、権限モデル
+            └── scripts/            #   Swift ソース1つ、Info.plist、build.sh(ビルドした remind-cli は gitignore)
 ```
 
 ## 検証
@@ -184,6 +245,46 @@ bash tests/run-package-safety-bundle.sh
 振る舞いは、[バンドルの README](team/package-safety/README.ja.md#適用されたことの確認)
 の手順で手で確認する。
 
+[`.claude/CLAUDE.md`](.claude/CLAUDE.md)・[`.claude/rules/`](.claude/rules/)・
+自作スキルを変更したら:
+
+```sh
+bash tests/run-config-pyramid.sh
+```
+
+設定のピラミッド構造をオフラインで検査する: apex の3分岐、他のルール・スキル・設定
+パスを名指さないちょうど5つのルールファイル、自身の除外境界を記述し兄弟スキルを
+名指さない自作スキル。対象とする自作スキルは、スクリプト冒頭の `authored_skills`
+の一覧である。
+
+[`.claude/skills/apple-notes/`](.claude/skills/apple-notes/) を変更したら:
+
+```sh
+bash tests/run-note-write-guard.sh
+bash tests/run-note-body-conversion.sh # Node.js が必要
+```
+
+どちらもスクリプトから切り出したロジックを検査し、macOS を必要としない。
+Notes.app への呼び出しそのものは対象外。`apple-reminders` には自動テストがない。
+
+`.claude/skills/` のスキルを追加・削除・改名したとき、またはどちらかの README を
+編集したら:
+
+```sh
+bash tests/run-readme-skill-index.sh
+```
+
+生成物の `speckit-*` を除くスキルのディレクトリが、`README.md` と `README.ja.md` の
+両方に `` `<name>` `` または `<name>/` のパスとして書かれていなければ失敗する。
+
+取り込んだプラグイン（[`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
+または [`minto-pyramid`](.claude/skills/minto-pyramid/)）を変更したら、その README の
+とおり、そのフォルダで単体テストを実行する:
+
+```sh
+python3 -B -m unittest discover -s tests -v
+```
+
 `run-digital-agency-slides-skill.sh` の末尾は、公式 DADS スタイルシートを取得して
 同梱のデッキテンプレートを変換する end-to-end セクションです。ネットワーク接続と、
 `python-pptx` および `playwright` を備えた Python 環境が必要です — `DECK_PYTHON` で
@@ -207,9 +308,12 @@ bash tests/run-package-safety-bundle.sh
 
 ## リポジトリのセキュリティ自動化
 
-上記4本のスクリプトは `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
-自動実行され、`main` はそのチェックを必須とする repository ruleset
-(`.github/rulesets/main-required-checks.json`)で保護されています。
+上記のうち6本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
+`run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、
+`run-readme-skill-index.sh`、`run-mcp-startup.sh`。
+それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
+する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
 
 これに加えて、GitHub自身が検知する脆弱性への対応も自動化しています:
 
@@ -280,6 +384,17 @@ MCP サーバーを同梱するプラグインは、MCP サーバーと同じく
 [`.claude/rules/permissions.md`](.claude/rules/permissions.md) により毎回確認が必要、AWS）、
 `microsoft-docs`（Microsoft 公式ドキュメント MCP サーバー + skill、Microsoft）があります。
 
+同等のコマンド:
+
+```sh
+claude plugin marketplace add anthropics/claude-plugins-official
+claude plugin install frontend-design@claude-plugins-official
+claude plugin install code-review@claude-plugins-official
+claude plugin install skill-creator@claude-plugins-official
+```
+
+MCP サーバーを同梱するプラグインを入れる場合:
+
 ```sh
 claude plugin install github@claude-plugins-official
 claude plugin install deploy-on-aws@claude-plugins-official
@@ -347,5 +462,6 @@ specify extension add git
 （ネットワークエラー時は fail-open で処理を止めません。他の `speckit-*`
 スキルではこの hook は発火しません）。これは docs/adr/0005 の「`.claude/hooks/`
 なし・自動強制なし」という広い方針に対する、意図的かつ限定的な例外です —
-理由は docs/adr/0008 を参照してください。`.specify/` が未導入のプロジェクトへ
-`specify init` を提案するのは、引き続き `CLAUDE.md` 自体の指示です。
+理由は docs/adr/0008 を参照してください。Spec Kit を導入していないプロジェクトへ
+`specify init` を勧める指示は `.claude/` のどこにもありません。`coder` スキルが
+Spec Kit の工程に従うのは、プロジェクトがすでに導入している場合だけです。

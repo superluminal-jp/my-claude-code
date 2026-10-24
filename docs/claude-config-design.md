@@ -43,7 +43,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `clarifier.md` | 意図の共通認識を形成する手順、判断基準の接地先となる枠組みの在庫、曖昧性パターン目録、品質ゲート、出典 | `.claude/skills/clarifier/SKILL.md` と同パッケージの `references/` |
 | `pyramid-principle.md` | Minto の4条件の詳述そのもの | `minto-pyramid` スキルが全タスク向けに持つ（従来の対話・診断・書き直し向け Minto スキル3件は `archive/minto-suite/` へ退避済み） |
 | `model-routing.md` | モデルID・価格・コンテキスト上限、モデルや労力を設定する構文 | ハーネスとベンダーのモデル文書が正本。ルールは能力層とエイリアス、労力レベルだけを持つため、モデルの世代交代でルーティングの論理は古くならない |
-| `thinking-lenses.md` | 6レンズを出力へ強制する書式 | 自然な置き場がある成果物（`clarifier`/`coder` の Given/When/Then、Spec Kit の依存順タスクリストなど）にだけ表出させる |
+| `thinking-lenses.md` | 4つのセルフチェック（依存と並行・条件と分岐・反復・推論）を出力へ強制する書式 | 自然な置き場がある成果物（`clarifier`/`coder` の Given/When/Then、Spec Kit の依存順タスクリストなど）にだけ表出させる |
 
 残っているのは、いずれの分類にも当たらないもの — **非自明で、判断を変え、他のどこにも存在しない**記述だけである。
 
@@ -76,7 +76,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 ## 5. 変更するとき
 
-構成は `CLAUDE.md` を唯一の頂点とする独立ピラミッドとして保つ。各層は**意味**でのみ親の主張を支え、名前やパスで他ノードを名指ししない。第2層は6個のユニバーサルルール（品質の関心事1つにつき1ファイル）、第3層は2つの独立した軸で自己記述するスキルである — ライフサイクル操作（要件formalization、実装、決定記録、成果物の構築/診断/書き直し、Git 協業、クラウド調査）と、ドメインオーバーレイ（Scrum、Digital Agency フロントエンド）。ドメインオーバーレイは一致するライフサイクル操作に**追加で**適用されるものであり、置き換えではない。第3層の分類がなぜルールへの1対1対応ではなく2軸なのかは [ADR-0015](adr/0015-rule-layer-independence.md) にある。
+構成は `CLAUDE.md` を唯一の頂点とする独立ピラミッドとして保つ。各層は**意味**でのみ親の主張を支え、名前やパスで他ノードを名指ししない。第2層は5個のユニバーサルルール（品質の関心事1つにつき1ファイル）、第3層は2つの独立した軸で自己記述するスキルである — ライフサイクル操作（意図の共通認識と要件化、問題定義、プロダクト戦略、メタスペック分割、実装、Git 協業、AWS 調査）と、ドメインオーバーレイ（Scrum、Digital Agency フロントエンド、Digital Agency スライド、セキュアロギング）。macOS アプリ連携の2件（`apple-notes`、`apple-reminders`）はどちらの軸にも分類していない。ドメインオーバーレイは一致するライフサイクル操作に**追加で**適用されるものであり、置き換えではない。第3層の分類がなぜルールへの1対1対応ではなく2軸なのかは [ADR-0015](adr/0015-rule-layer-independence.md) にある。
 
 | 層 | 依存できる上位層 | 分類原理 | 許可する参照 | 禁止する参照 |
 |---|---|---|---|---|
@@ -84,7 +84,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `.claude/rules/*.md`（5件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
 | `.claude/skills/*/SKILL.md` | `CLAUDE.md` と、自身が支える品質の関心事 | ライフサイクル操作軸／ドメインオーバーレイ軸 | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源 | 他スキルへの名指し・パス参照、`.claude/` 配下の絶対パスのハードコード |
 
-対象スキルは、この改訂で編集対象として管理する10件 — `clarifier`、`coder`、`adr`（`archive/adr/` へ退避、規則は `maintaining-living-documentation` へ統合）、`minto-builder`、`minto-reviewer`、`minto-rewriter`（後に `archive/minto-suite/` へ退避）、`scrum-master`、`digital-agency-frontend`、`git-workflow`、`aws-research` — に限定する。後の2件は §3.2 で常時ロードから移した先である。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流から取り込んだ2つのプラグイン（上流のままの `maintaining-living-documentation` と、`Stop` フックを削除するローカル変更を加えた `minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
+対象スキルは `tests/run-config-pyramid.sh` の `authored_skills` に列挙した10件で、この一覧が正本である — `clarifier`、`aws-research`、`coder`、`digital-agency-frontend`、`git-workflow`、`meta-spec`、`problem-definition`、`product-strategy`、`scrum-master`、`secure-logging`。このうち `git-workflow` と `aws-research` は §3.2 で常時ロードから移した先である。spec 036 の改訂時点の対象には `adr` と Minto スイート3件（`minto-builder`、`minto-reviewer`、`minto-rewriter`）も含まれていたが、いずれも `archive/` へ退避した（`adr` の規則は `maintaining-living-documentation` へ統合）。自作スキルのうち `digital-agency-slides`、`apple-notes`、`apple-reminders` は現在この一覧に入っておらず、入れていない理由は記録されていない。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流から取り込んだ2つのプラグイン（`hooks/hooks.json` を削除するローカル変更を加えた `maintaining-living-documentation` と、`Stop` フックを削除するローカル変更を加えた `minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
 
 同一階層にしかない情報が必要になったら、参照を足すのではなく、次のどちらかを行う。
 

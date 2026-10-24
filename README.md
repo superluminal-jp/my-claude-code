@@ -11,8 +11,8 @@ test each always-on instruction has to pass, and what this repo deliberately
 leaves out of it.
 
 `install.sh` synchronizes the repository-managed parts of `.claude/` to
-`~/.claude/`, making its settings, rules, skills, agents, and memory available
-across projects while preserving unrelated user files.
+`~/.claude/`, making its settings, rules, skills, and memory available across
+projects while preserving unrelated user files.
 
 ## What this provides
 
@@ -25,8 +25,8 @@ across projects while preserving unrelated user files.
 - **`.claude/rules/`** — Always-on universal rules, each kept to what changes
   Claude's decisions and nothing else, and each supporting exactly one apex
   branch: requirements-certainty clarification triggers, reasoning
-  completeness (six self-checks: dependency, branching, iteration,
-  inference), authorization and safety (the enforced deny list lives in
+  completeness (four self-checks: dependencies and concurrency, conditions
+  and branches, iteration, inference), authorization and safety (the enforced deny list lives in
   `settings.json`), reader-facing structure (the Pyramid Principle
   self-check), and model and effort routing (capability tiers, closed
   escalation conditions, subagent model and effort). None references
@@ -50,8 +50,9 @@ across projects while preserving unrelated user files.
   `digital-agency-frontend` (DADS-based accessible React/Tailwind
   public-service frontends and web dashboards), `digital-agency-slides`
   (DADS 16:9 slide decks authored as HTML and converted to editable
-  PowerPoint by its own bundled tooling), `scrum-master` (Scrum
-  Guide-only events, roles, impediments), `secure-logging` (implement and
+  PowerPoint by its own bundled tooling), `scrum-master` (diagnose and
+  improve Scrum events, artifacts, accountabilities, and deviations against
+  the Scrum Guide 2020 alone), `secure-logging` (implement and
   check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0
   V16, and CWE, and against the official logging practices of Python, React,
   AWS Lambda and CDK, Google Cloud (including Cloud Run functions), Azure
@@ -60,7 +61,12 @@ across projects while preserving unrelated user files.
   code-verifiable items only, operational items reported as unverified unless
   the repository's infrastructure code (AWS CDK, Terraform, Bicep) settles
   them), which compose with a matching
-  lifecycle operation rather than replace it. `secure-logging` is also
+  lifecycle operation rather than replace it. Two macOS app integrations are
+  classified on neither axis: `apple-notes` (read and write Notes.app through
+  bundled JXA scripts, with a SHA-256 hash gate on overwrite and delete) and
+  `apple-reminders` (read and write Reminders.app through a small EventKit CLI
+  built from one Swift file; see
+  [ADR-0013](docs/adr/0013-eventkit-for-reminders-automation.md)). `secure-logging` is also
   packaged as an authored skills-directory plugin (`.claude-plugin/plugin.json`,
   no hooks); see its `README.md`. Two vendored skills-directory
   plugins — `maintaining-living-documentation` (documentation consistency
@@ -89,6 +95,11 @@ across projects while preserving unrelated user files.
   least 7 days ago. It is not synced by `install.sh` and does not change this
   repository's own settings; see its [README](team/package-safety/README.md)
   and [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md)
+- **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md),
+  [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)** — Paste-ready
+  portable prompts that carry this configuration's working principles into
+  the custom-instruction fields of ChatGPT and Claude.ai. They are not synced
+  by `install.sh`
 
 ## Supplementary documentation
 
@@ -134,6 +145,9 @@ Re-running is safe: it re-syncs managed paths and re-checks the plugins.
   anything else you or the CLI added — is left untouched.
 - Files removed from this repository are also removed from `~/.claude` under
   the replaced managed paths.
+- `agents/` and `commands/` have no source in this repository; they stay
+  managed only to clean up what earlier versions installed. Every run
+  therefore deletes `~/.claude/agents/` and `~/.claude/commands/`.
 - Unrelated paths in `~/.claude`, including `settings.local.json`, are
   preserved. Keep personal-only files outside the managed paths above.
 
@@ -150,21 +164,29 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 ```
 my-claude-code/
 ├── CLAUDE.md                       # Repo purpose + re-export of @.claude/CLAUDE.md (in-repo only, not synced)
-├── README.md
+├── README.md                       # This guide (README.ja.md: Japanese)
 ├── install.sh                      # Sync managed Claude paths + install plugins (no MCP servers)
 ├── .mcp.json                       # Project-scope MCP server definitions; reference for adding servers yourself
+├── .living-documentation.json      # Settings for the maintaining-living-documentation scripts (excludes specs/)
+├── chatgpt-system-prompt.md        # Portable prompt for ChatGPT custom instructions (not synced)
+├── claude-ai-system-prompt.md      # Portable prompt for Claude.ai instructions (not synced)
+├── docs/                           # Maintainer documentation: design rationale, MCP background, ADRs (not synced)
+├── tests/                          # Offline contract suites (run-*.sh) + fixtures; see Verification
+├── specs/                          # Spec Kit feature specifications for this repository's own changes
+├── .specify/                       # Spec Kit project files for this repository (templates, scripts, git extension)
+├── archive/                        # Retired skills kept for reference (not synced)
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs tests/run-*.sh on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs six tests/run-*.sh suites on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
-    ├── CLAUDE.md                   # Principles, preflight, close-out; rationale → docs/
+    ├── CLAUDE.md                   # Governing proposition: define → execute → hand off; rationale → docs/
     ├── settings.json               # User-level Claude Code settings
     ├── rules/                      # Always-on: loaded every session, 5 independent concerns
     │   ├── clarifier.md            # Requirements certainty: when to ask vs proceed
-    │   ├── thinking-lenses.md      # Reasoning completeness: six self-checks applied every task
+    │   ├── thinking-lenses.md      # Reasoning completeness: four self-checks applied every task
     │   ├── model-routing.md        # Model and effort routing: lowest sufficient tier, closed escalation conditions
     │   ├── permissions.md          # Authorization and safety; enforced deny → settings.json
     │   └── pyramid-principle.md    # Reader-facing structure self-check for substantive outputs
@@ -186,15 +208,22 @@ my-claude-code/
         │   ├── references/         #   slide design, markup contract, conversion, sourcing
         │   ├── assets/             #   1280x720 layout CSS + annotated deck template
         │   └── scripts/            #   setup, official-asset fetch, DOM extractor, deck CLI
-        ├── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments (domain overlay)
+        ├── scrum-master/           # Scrum Guide (2020)-only diagnosis of events, artifacts, accountabilities (domain overlay)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
-        │       └── templates/      #   7 ready-to-use Markdown templates (artifacts + events)
-        └── secure-logging/         # Authored plugin: OWASP + stack-practice logging checklist (domain overlay, no hooks)
-            ├── SKILL.md            #   playbook
-            ├── README.md           #   install, modes, how checks work (README.ja.md: Japanese)
-            ├── .claude-plugin/     #   plugin manifest (secure-logging@skills-dir)
-            └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP, official stack docs)
+        │       └── templates/      #   8 ready-to-use Markdown templates (artifacts + events)
+        ├── secure-logging/         # Authored plugin: OWASP + stack-practice logging checklist (domain overlay, no hooks)
+        │   ├── SKILL.md            #   playbook
+        │   ├── README.md           #   install, modes, how checks work (README.ja.md: Japanese)
+        │   ├── .claude-plugin/     #   plugin manifest (secure-logging@skills-dir)
+        │   └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP, official stack docs)
+        ├── apple-notes/            # Notes.app via JXA (macOS app integration)
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   property surface, script usage, safe Markdown subset, hash gate
+        │   └── scripts/            #   JXA scripts + the Python hash-gate guard
+        └── apple-reminders/        # Reminders.app via EventKit (macOS app integration)
+            ├── SKILL.md            #   playbook, build step, permission model
+            └── scripts/            #   one Swift source, Info.plist, build.sh (the built remind-cli is gitignored)
 ```
 
 ## Verification
@@ -233,6 +262,49 @@ It checks the bundle's files against each other without network access. How
 the bundle behaves inside Claude Code is checked by hand with the procedure
 in its [README](team/package-safety/README.md#check-that-it-is-in-force).
 
+After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
+[`.claude/rules/`](.claude/rules/), or an authored skill:
+
+```sh
+bash tests/run-config-pyramid.sh
+```
+
+It checks the configuration pyramid offline: the apex's three branches,
+exactly five rule files that name no other rule, skill, or config path, and
+authored skills that describe their own exclusion boundary and name no
+sibling. The authored skills it covers are the `authored_skills` list at the
+top of the script.
+
+After changing [`.claude/skills/apple-notes/`](.claude/skills/apple-notes/):
+
+```sh
+bash tests/run-note-write-guard.sh
+bash tests/run-note-body-conversion.sh # requires Node.js
+```
+
+Both test logic pulled out of the scripts and need no macOS. The calls into
+Notes.app itself are not covered. `apple-reminders` has no automated suite.
+
+After adding, removing, or renaming a skill under `.claude/skills/`, or
+editing either README:
+
+```sh
+bash tests/run-readme-skill-index.sh
+```
+
+It fails when a skill directory (other than the generated `speckit-*`) is not
+named in both `README.md` and `README.ja.md`, as `` `<name>` `` or as a
+`<name>/` path.
+
+After changing one of the vendored plugins
+([`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
+or [`minto-pyramid`](.claude/skills/minto-pyramid/)), run its own unit tests
+from its folder, as its README describes:
+
+```sh
+python3 -B -m unittest discover -s tests -v
+```
+
 `run-digital-agency-slides-skill.sh` ends with an end-to-end section that
 fetches the official DADS stylesheets and converts the bundled deck template.
 It needs network access and a Python environment carrying `python-pptx` and
@@ -257,10 +329,14 @@ configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-The four scripts above also run automatically in CI (`.github/workflows/ci.yml`)
-on every push and pull request to `main`, and `main` is protected by a
-repository ruleset (`.github/rulesets/main-required-checks.json`) requiring
-that check to pass before anything merges.
+Six of the suites above also run automatically in CI
+(`.github/workflows/ci.yml`) on every push and pull request to `main`:
+`run-install.sh`, `run-digital-agency-frontend-skill.sh`,
+`run-removed-guardrails.sh`, `run-package-safety-bundle.sh`,
+`run-readme-skill-index.sh`, and `run-mcp-startup.sh`. The others run only when you run them. `main` is
+protected by a repository ruleset
+(`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)
+to pass before anything merges.
 
 On top of that, GitHub's own vulnerability detection is wired to respond, not
 just alert:
@@ -415,5 +491,6 @@ tag against the `rev=` pinned in `uv`'s install receipt and reinstalls via
 fails open on any network error, and no other `speckit-*` skill triggers it.
 This is a deliberate, narrow exception to the broader "no `.claude/hooks/`,
 no automatic enforcement" removal in docs/adr/0005 — see docs/adr/0008 for
-why. Recommending `specify init` in a project that hasn't adopted Spec Kit
-yet is still handled by `CLAUDE.md`'s own instructions.
+why. Nothing in `.claude/` recommends `specify init` to a project that has
+not adopted Spec Kit: the `coder` skill follows the Spec Kit lifecycle only
+where a project already uses it.
