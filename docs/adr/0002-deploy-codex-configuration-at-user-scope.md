@@ -66,4 +66,5 @@ configuration remains untouched.
 
 - [`specs/014-codex-config-port/spec.md`](../../specs/014-codex-config-port/spec.md)
 - [`specs/014-codex-config-port/plan.md`](../../specs/014-codex-config-port/plan.md)
-- [`.codex/README.md`](../../.codex/README.md)
+- [`.codex/README.md`](https://github.com/superluminal-jp/my-claude-code/blob/42aaa697742434af4da55286c83e6867b7fcca48/.codex/README.md)
+  (permalink to the last commit that had it; removed in `bae17e9`)
