@@ -332,8 +332,9 @@ INFRA_NAMES = {
     "compose.yml", "compose.yaml", "jenkinsfile", ".gitlab-ci.yml", "procfile",
     "vagrantfile", "azure-pipelines.yml", "bitbucket-pipelines.yml", ".travis.yml",
     "cloudbuild.yaml", "skaffold.yaml", "chart.yaml",
+    "action.yml", "action.yaml", "cdk.json",
 }
-INFRA_SUFFIXES = {".tf", ".tfvars", ".hcl", ".bicep", ".nomad"}
+INFRA_SUFFIXES = {".tf", ".tfvars", ".hcl", ".bicep", ".bicepparam", ".nomad"}
 INFRA_DIRS = {".circleci", ".buildkite", "terraform", "infra", "infrastructure",
               "deploy", "deployment", "deployments", "k8s", "kubernetes", "helm",
               "charts", "ansible"}
@@ -346,9 +347,10 @@ CONFIG_NAMES = {
     "gemfile", "gemfile.lock", "composer.json", "composer.lock", "makefile",
     "cmakelists.txt", ".env.example", ".editorconfig", "tox.ini", "noxfile.py",
     ".pre-commit-config.yaml", "mkdocs.yml", "mkdocs.yaml", "docusaurus.config.js",
-    "docusaurus.config.ts", "conf.py",
+    "docusaurus.config.ts", "conf.py", "host.json", "function.json",
 }
-CONFIG_NAME_RE = re.compile(r"(^requirements.*\.(txt|in)$)|(^tsconfig.*\.json$)|(^\.env\.[\w.-]+\.example$)")
+CONFIG_NAME_RE = re.compile(r"(^requirements.*\.(txt|in)$)|(^tsconfig.*\.json$)|(^\.env\.[\w.-]+\.example$)"
+                            r"|(^[\w-]+\.config\.[cm]?[jt]s$)")
 CONFIG_SUFFIXES = {".ini", ".cfg", ".conf", ".toml", ".properties"}
 CONFIG_DIRS = {"config", "configs", "conf", "settings", ".config"}
 

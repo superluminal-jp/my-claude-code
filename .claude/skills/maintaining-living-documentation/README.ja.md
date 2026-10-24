@@ -220,6 +220,11 @@ Claude Code CLI がインストールされていれば、単体テストは `cl
   - `evals/` に3ケースを追加（未実行）。`tests/test_scripts.py` は以上すべてを扱う。
 - 検証の判定（仕様なし）: `SKILL.md` で、報告の `Updated:` 行と `Created:` 行に正本を明記し、`Unverified:` 行を追加して `Unresolved:` を既知の不一致に絞り、Step 5 の再実行に上限を設け、Step 5 を自己点検と明記したうえで、破壊的変更や公開契約の変更では別のコンテキストでの比較を SHOULD に上げた。`tests/test_scripts.py` が報告の行を扱う。
 - ドキュメント: `README.md` に *How checks work* の節を追加し、冒頭の説明をフックのないこのコピーに合わせた。`README.ja.md` は `README.md` の日本語訳（新規）。
+- スタックの慣習（仕様なし）:
+  - `references/practices.md` に *Stack conventions* の節（Python、TypeScript、Terraform、Bicep、GitHub Actions のファイル内リファレンス文書）を追加。`references/bibliography.bib` に `PEP257`、`TSDoc`、`TFModuleStructure`、`BicepParameters`、`BicepLintDescription`、`GHActionMetadata` を追加。
+  - `SKILL.md` の Step 4 からその節を参照する。
+  - `scripts/common.py` は、`.bicepparam`、`action.yml`、`action.yaml`、`cdk.json` をインフラに、`host.json`、`function.json`、`<name>.config.{js,cjs,mjs,ts,cts,mts}` を設定に分類する。
+  - `tests/test_scripts.py` は以上すべてを扱う。
 
 ## セキュリティ
 

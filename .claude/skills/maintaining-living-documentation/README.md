@@ -220,6 +220,11 @@ This copy is vendored in my-claude-code and differs from the upstream package as
   - `evals/` adds three cases (not run), and `tests/test_scripts.py` covers all of the above.
 - Verification verdicts (no specification): `SKILL.md` names the authoritative source on `Updated:` and `Created:` report lines, adds the `Unverified:` line and narrows `Unresolved:` to known disagreements, bounds the re-runs in step 5, and calls step 5 a self-check, raising the fresh-context comparison to SHOULD for breaking or public-contract changes. `tests/test_scripts.py` covers the report lines.
 - Documentation: `README.md` adds *How checks work* and aligns its opening paragraph with this hook-free copy; `README.ja.md` is a new Japanese translation of `README.md`.
+- Stack conventions (no specification):
+  - `references/practices.md` adds the section *Stack conventions* (in-file reference documentation for Python, TypeScript, Terraform, Bicep, and GitHub Actions), and `references/bibliography.bib` adds `PEP257`, `TSDoc`, `TFModuleStructure`, `BicepParameters`, `BicepLintDescription`, and `GHActionMetadata`.
+  - `SKILL.md` step 4 points to that section.
+  - `scripts/common.py` classifies `.bicepparam`, `action.yml`, `action.yaml`, and `cdk.json` as infrastructure, and `host.json`, `function.json`, and `<name>.config.{js,cjs,mjs,ts,cts,mts}` as configuration.
+  - `tests/test_scripts.py` covers all of the above.
 
 ## Security
 
