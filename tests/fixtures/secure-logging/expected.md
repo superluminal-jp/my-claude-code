@@ -12,6 +12,14 @@ each with its location:
 | `LOG-INJ-1` | `defective_auth.py.fixture:22` | `username` reaches the log without CR/LF neutralization |
 | `LOG-EVT-1` | `defective_auth.py.fixture:28` | the failed authentication path logs nothing |
 
+It also reports these practice items as Fail, counted apart from the security
+Fail items above:
+
+| Item | Where | Why |
+|---|---|---|
+| `LOG-PRC-1` | `defective_auth.py.fixture:12` | the logger is named `"auth"` instead of `__name__` |
+| `LOG-PRC-3` | `defective_auth.py.fixture:22` | the message is built by concatenation instead of logger arguments |
+
 It must also:
 
 - report the operational items (`LOG-OPS-*`) as Unverified, never Pass, with the

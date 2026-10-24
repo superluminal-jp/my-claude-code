@@ -50,7 +50,7 @@ Documentation progress:
 - [ ] 2. Locate authoritative sources
 - [ ] 3. Assess impact
 - [ ] 4. Update implementation and documentation together
-- [ ] 5. Run checks, fix, and re-run until they pass
+- [ ] 5. Run checks, fix, and re-run until they pass or the stop condition holds
 - [ ] 6. Report with evidence
 ```
 
@@ -61,10 +61,10 @@ Documentation progress:
    `python3 "${CLAUDE_SKILL_DIR}/scripts/audit.py" --root "${CLAUDE_PROJECT_DIR}"`
    Also list the documents next to the changed files (same directory, not changed). Update each one, or name its path in the final message with the reason it needs no change; the Stop-hook gate flags documents that are neither.
    `python3 "${CLAUDE_SKILL_DIR}/scripts/find_related.py" --root "${CLAUDE_PROJECT_DIR}"`
-4. **Update together.** Change the implementation and the affected knowledge in one change, reusing the project's conventions. Use `${CLAUDE_SKILL_DIR}/templates/` only when the project has no applicable convention and a new artifact is needed. When the project keeps change history and the change is user-visible, breaking, or a deprecation, add an entry in the project's format, with migration notes for breaking changes.
-5. **Check.** Run the link checker and the project's own tests, documentation builds, schema checks, linters, and generators. Fix failures and re-run.
+4. **Update together.** Change the implementation and the affected knowledge in one change, reusing the project's conventions. When a public contract changes in a file whose stack keeps its reference documentation in the file (docstrings, doc comments, variable or parameter descriptions, action metadata), update it there in that stack's form ([references/practices.md](references/practices.md#stack-conventions)). Use `${CLAUDE_SKILL_DIR}/templates/` only when the project has no applicable convention and a new artifact is needed. When the project keeps change history and the change is user-visible, breaking, or a deprecation, add an entry in the project's format, with migration notes for breaking changes.
+5. **Check.** Run the link checker and the project's own tests, documentation builds, schema checks, linters, and generators. Fix failures and re-run. Stop when every check passes, or when a failure remains after two fixes or lies outside this change; report it under `Unresolved` or `Checks` instead of continuing.
    `python3 "${CLAUDE_SKILL_DIR}/scripts/check_links.py" --root "${CLAUDE_PROJECT_DIR}" --changed`
-   `check_links.py` checks only local links and anchors in Markdown. Without Git, omit `--changed`; for root-relative links (`/path`), pass `--site-root`. If a check cannot run, say which one and why instead of reporting it as passed. For changes to architecture descriptions, specifications, or user documentation, MAY have a subagent compare the documentation with the diff in a fresh context and report only gaps that affect correctness.
+   `check_links.py` checks only local links and anchors in Markdown. Without Git, omit `--changed`; for root-relative links (`/path`), pass `--site-root`. If a check cannot run, say which one and why instead of reporting it as passed. These checks and your own reading are a self-check: they confirm links and builds, not that the documentation is correct. For a breaking change or a new or changed public contract, SHOULD have a subagent compare the documentation with the diff in a fresh context and report only gaps that affect correctness; for other changes to architecture descriptions, specifications, or user documentation, MAY do so.
 6. **Report** in the format below. Report pre-existing drift found along the way; fix it only when it is in scope or the user asks.
 
 Run the commands as written; a project can pre-approve them with permission rules (README.md). If a command still contains a literal `${...}` placeholder (older Claude Code or another agent runtime), use the directory containing this SKILL.md and the repository root (`git rev-parse --show-toplevel`, otherwise the working directory).
@@ -73,20 +73,23 @@ Run the commands as written; a project can pre-approve them with permission rule
 
 ```
 Documentation impact
-- Updated: <file> — <what changed and why>
-- Created: <file> — <what it documents and why no existing document fit>
+- Updated: <file> — <what changed and why>; agrees with <authoritative source>
+- Created: <file> — <what it documents and why no existing document fit>; agrees with <authoritative source>
 - No change needed: <area> — <reason>
-- Unresolved: <inconsistency or uncertainty> — <what would resolve it>
+- Unresolved: <document> — <how it disagrees with its authoritative source>; <what would resolve it>
+- Unverified: <document or claim> — <the evidence that would settle it>
 - Proposed decision record: <title> — <why it qualifies; the user decides whether to record it>
 - Checks: <command> — <its result, or why it could not run>
 ```
+
+An `Updated` or `Created` line claims that the document now agrees with the authoritative source located in step 2. Editing a document is not evidence that it is correct: when that agreement was not checked, list the document under `Unverified` instead.
 
 Keep the heading `Documentation impact` in English in every language; the Stop-hook gate looks for it. Omit empty lines.
 
 ## References
 
 - [references/standards.md](references/standards.md): applicability map, precedence, interpretation, and official links for each standard and practice.
-- [references/practices.md](references/practices.md): source of truth, change coupling, change history, minimality, decision records, evidence and uncertainty, research provenance.
+- [references/practices.md](references/practices.md): source of truth, change coupling, change history, minimality, decision records, layers and proximity, stack conventions, evidence and uncertainty, research provenance.
 - [references/bibliography.bib](references/bibliography.bib): bibliographic metadata.
 
 ## Enforcement

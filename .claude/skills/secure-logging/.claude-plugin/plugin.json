@@ -1,0 +1,16 @@
+{
+  "name": "secure-logging",
+  "description": "Implement, change, or review application and CI logging against the OWASP Logging Cheat Sheet, OWASP ASVS 5.0.0 V16, related CWE entries, and the official logging practices of Python, React, AWS Lambda, Google Cloud, Azure, each cloud's AI inference service, and GitHub Actions, reporting each checklist item as Pass, Fail, N/A, or Unverified with evidence.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Taiki Ogihara"
+  },
+  "keywords": [
+    "logging",
+    "security",
+    "owasp",
+    "asvs",
+    "cwe",
+    "audit-logging"
+  ]
+}

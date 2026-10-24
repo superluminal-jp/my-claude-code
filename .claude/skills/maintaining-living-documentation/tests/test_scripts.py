@@ -113,6 +113,14 @@ class ClassificationTests(unittest.TestCase):
         "notes.txt": {"implementation"},
         "docs/notes.txt": {"documentation"},
         "api/service_pb2.py": {"generated"},
+        "main.bicepparam": {"infrastructure"},
+        ".github/actions/setup/action.yml": {"infrastructure"},
+        "action.yaml": {"infrastructure"},
+        "cdk.json": {"infrastructure"},
+        "host.json": {"configuration"},
+        "src/functions/http/function.json": {"configuration"},
+        "vite.config.ts": {"configuration"},
+        "next.config.mjs": {"configuration"},
     }
 
     def test_heuristics(self):
@@ -1197,6 +1205,48 @@ class PracticesDocumentTests(unittest.TestCase):
         self.assertIn("No source reviewed presents a single hierarchy", section)
 
 
+class StackConventionsTests(unittest.TestCase):
+    STACKS = ("Python", "TypeScript", "Terraform", "Bicep", "GitHub Actions")
+    KEYS = ("PEP257", "TSDoc", "TFModuleStructure", "BicepParameters", "BicepLintDescription", "GHActionMetadata")
+    HEADING = "## Stack conventions"
+
+    def setUp(self) -> None:
+        self.text = (SKILL_ROOT / "references/practices.md").read_text(encoding="utf-8")
+        self.bib = (SKILL_ROOT / "references/bibliography.bib").read_text(encoding="utf-8")
+
+    def section(self) -> str:
+        self.assertIn(self.HEADING, self.text)
+        return self.text.split(self.HEADING, 1)[1].split("\n## ", 1)[0]
+
+    def test_every_stack_has_one_row_with_a_basis(self):
+        import re
+        rows = [[c.strip() for c in line.strip().strip("|").split("|")]
+                for line in self.section().splitlines() if line.startswith("|") and not set(line) <= set("|- ")]
+        header, *body = rows
+        self.assertEqual(header[0], "Stack")
+        for stack in self.STACKS:
+            with self.subTest(stack=stack):
+                matching = [r for r in body if r[0] == stack]
+                self.assertEqual(len(matching), 1)
+                self.assertEqual(len(matching[0]), len(header))
+                self.assertTrue(re.match(r"(Sourced|Design decision)", matching[0][-1]), matching[0][-1])
+
+    def test_stack_sources_are_cited_and_defined(self):
+        import re
+        defined = set(re.findall(r"^@\w+\{([^,\s]+),", self.bib, re.MULTILINE))
+        cited = {part.strip() for group in re.findall(r"\[([^\[\]]+)\](?!\()", self.section())
+                 for part in group.split(";")}
+        for key in self.KEYS:
+            with self.subTest(key=key):
+                self.assertIn(key, cited)
+                self.assertIn(key, defined)
+
+    def test_skill_points_to_the_stack_conventions(self):
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        step = skill.split("4. **Update together.**", 1)[1].split("5. **Check.**", 1)[0]
+        self.assertIn("references/practices.md#stack-conventions", step)
+
+
 class EvalCaseTests(unittest.TestCase):
     """The behavior evals are scaffolding for `claude plugin eval` (slice S6); they are not run here."""
 
@@ -1358,6 +1408,18 @@ class SkillDefinitionTests(unittest.TestCase):
         block = self.text.split("## Completion report", 1)[1].split("## References", 1)[0]
         labels = [line.strip().split(":")[0] for line in block.splitlines() if line.strip().startswith("- ")]
         self.assertEqual(labels[:3], ["- Updated", "- Created", "- No change needed"])
+
+    def test_completion_report_separates_unverified_from_unresolved(self):
+        block = self.text.split("## Completion report", 1)[1].split("## References", 1)[0]
+        labels = [line.strip().split(":")[0] for line in block.splitlines() if line.strip().startswith("- ")]
+        self.assertLessEqual({"- Unresolved", "- Unverified"}, set(labels))
+
+    def test_conformance_lines_name_the_authoritative_source(self):
+        block = self.text.split("## Completion report", 1)[1].split("## References", 1)[0]
+        for label in ("- Updated:", "- Created:"):
+            line = next(line for line in block.splitlines() if line.strip().startswith(label))
+            with self.subTest(label=label):
+                self.assertIn("authoritative source", line)
 
     def test_rule_names_disposition_and_creation(self):  # S4d
         rule = (SKILL_ROOT / "hooks/rule.md").read_text(encoding="utf-8")

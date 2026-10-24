@@ -135,6 +135,19 @@ The **per-directory README (P1) is also a design decision**. The nearest sourced
 
 No source reviewed presents a single hierarchy from the project README down to code comments. The sources describe different axes: C4 gives four levels of architectural abstraction (software system, container, component, code) [BrownC4]; the arc42 building block view descends through levels 1 to 3 [Arc42]; Diátaxis classifies documentation by four user needs [Diataxis]. The proximity scale combines placement with how often a document changes together with its subject, and should be read as a working default rather than an established model.
 
+## Stack conventions
+
+Reference documentation inside a file (proximity P0) takes the form that each stack's tooling reads. When a change alters a public contract in one of these files, update that in-file documentation in the same change; `find_related.py` lists the changed file's own comments as P0 advice. The project's existing convention still wins (see the precedence in [standards.md](standards.md)), and the documentation is still checked against its source of truth.
+
+| Stack | In-file reference documentation | Mechanical check | Basis |
+|---|---|---|---|
+| Python | Docstrings on every module, on the functions and classes a module exports, and on public methods including `__init__`; a package is documented in its `__init__.py`. A function's docstring summarizes its behavior on one line, then documents its arguments, return values, side effects, exceptions raised, and restrictions on calling it | The project's docstring linter, if it has one | Sourced [PEP257] |
+| TypeScript | `/** ... */` doc comments on exported APIs in TSDoc syntax. TSDoc is a Microsoft proposal to standardize TypeScript doc comments, not part of TypeScript, so the project's existing comment style wins where it differs | `eslint-plugin-tsdoc`, if the project uses it | Sourced [TSDoc] |
+| Terraform | A one- or two-sentence `description` on every variable and output; a README in the root module and in each nested module; usage examples under `examples/` | None in the sources reviewed | Sourced [TFModuleStructure] |
+| Bicep | `@description()` on each parameter whose purpose its name does not convey; the Azure portal shows the text as a tip during deployment | The linter rule `use-description-params`, which requires a non-empty description on every parameter when it is enabled | Sourced [BicepParameters; BicepLintDescription] |
+| GitHub Actions | `description` for the action and for each of its inputs and outputs in `action.yml` or `action.yaml`; the metadata syntax requires all of them | None in the sources reviewed | Sourced [GHActionMetadata] |
+| AWS CDK and React | The sources reviewed for this skill give no documentation convention for them. CDK code and its synthesized template are the source of truth for infrastructure facts (see Source of truth), and React components use the doc comments of their language | None | Design decision |
+
 ## Evidence and uncertainty
 
 Never fill gaps with invented facts. Distinguish when material:
