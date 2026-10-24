@@ -176,6 +176,7 @@ This copy is vendored in my-claude-code and differs from the upstream package as
   - `references/practices.md` adds the section *Layers, placement, and proximity*; `references/bibliography.bib` adds `GoogleSWE2020`, `PEP8`, `LinuxKernelStyle`, and `Diataxis`.
   - `SKILL.md` adds the `find_related.py` command, the dispose and create rules, and the `Created:` report line; `hooks/rule.md` adds one sentence for them.
   - `evals/` adds three cases (not run), and `tests/test_scripts.py` covers all of the above.
+- Verification verdicts (no specification): `SKILL.md` names the authoritative source on `Updated:` and `Created:` report lines, adds the `Unverified:` line and narrows `Unresolved:` to known disagreements, bounds the re-runs in step 5, and calls step 5 a self-check, raising the fresh-context comparison to SHOULD for breaking or public-contract changes. `tests/test_scripts.py` covers the report lines.
 
 ## Security
 

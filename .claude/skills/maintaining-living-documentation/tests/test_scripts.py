@@ -1359,6 +1359,18 @@ class SkillDefinitionTests(unittest.TestCase):
         labels = [line.strip().split(":")[0] for line in block.splitlines() if line.strip().startswith("- ")]
         self.assertEqual(labels[:3], ["- Updated", "- Created", "- No change needed"])
 
+    def test_completion_report_separates_unverified_from_unresolved(self):
+        block = self.text.split("## Completion report", 1)[1].split("## References", 1)[0]
+        labels = [line.strip().split(":")[0] for line in block.splitlines() if line.strip().startswith("- ")]
+        self.assertLessEqual({"- Unresolved", "- Unverified"}, set(labels))
+
+    def test_conformance_lines_name_the_authoritative_source(self):
+        block = self.text.split("## Completion report", 1)[1].split("## References", 1)[0]
+        for label in ("- Updated:", "- Created:"):
+            line = next(line for line in block.splitlines() if line.strip().startswith(label))
+            with self.subTest(label=label):
+                self.assertIn("authoritative source", line)
+
     def test_rule_names_disposition_and_creation(self):  # S4d
         rule = (SKILL_ROOT / "hooks/rule.md").read_text(encoding="utf-8")
         self.assertIn("find_related.py", rule)

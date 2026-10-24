@@ -90,12 +90,26 @@ status:
 Never convert Unverified into Pass by inference. Observed behavior, sourced
 requirement, and your inference stay distinguishable in the wording.
 
+In implement mode, a Fail in code the change adds or modifies blocks the
+report: fix it and run this step again. Stop after two rounds that leave the
+same Fail, and report it as remaining with what blocked the fix. Report a Fail
+in code the change leaves untouched as pre-existing, and fix it only when the
+request covers it or the user asks.
+
+In implement mode, this step is a self-check by the agent that made the
+change. When the scope also handles authentication, payment, or personal data,
+a subagent should evaluate the group A items against the diff in a fresh
+context; report any item whose status differs. If no subagent is available, say the result is a
+self-check only.
+
 ### 6. Report
 
 Lead with the verdict: counts of Fail and Unverified, and the most serious
-failures. Then give the item table in checklist order, the changes made (if
-any) with the checks run and their results, and the group B evidence the user
-must supply. State what was not checked.
+failures; in implement mode, separate remaining Fail from pre-existing Fail.
+Then give the item table in checklist order; N/A items may share one row per
+checklist section that lists their IDs and the common reason. Then give the
+changes made (if any) with the checks run and their results, and the group B
+evidence the user must supply. State what was not checked.
 
 ## Edge cases
 
@@ -112,9 +126,9 @@ must supply. State what was not checked.
 ## Completion check
 
 - Every checklist item has a status with evidence or a stated reason.
-- No log call in scope emits a secret, token, session identifier, or personal
-  data in clear text, verified by test or by reading the call.
-- Untrusted input reaching a log call is neutralized for the output format.
-- A logging failure does not change request outcome or disclose information.
+- For implementation, LOG-DATA-1, LOG-DATA-2, LOG-INJ-1, and LOG-INJ-4 are Pass
+  or N/A for the code the change adds or modifies, shown by a test or by
+  reading the call. If one is still Fail after the stop condition in step 5,
+  report the work as incomplete.
 - For implementation, the test written first now passes and the project's
   existing checks still pass; if a check could not run, say which and why.

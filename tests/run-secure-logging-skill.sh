@@ -71,6 +71,17 @@ run_skill_contract() {
   check_contains "SL-05: description excludes unrelated observability" "$SKILL_FILE" '^description:.*(Do not use|not for).*observability'
   check_contains "SL-06: description excludes changes that touch no logging" "$SKILL_FILE" '^description:.*(Do not use|not for).*touch no logging'
   check "SL-07: SKILL.md stays under 200 lines" "$([ "$(wc -l <"$SKILL_FILE")" -lt 200 ] && echo 1 || echo 0)"
+
+  # The checklist is the single source of requirements: SKILL.md cites items
+  # by ID instead of restating them, and every cited ID must exist.
+  local completion_ids cited_ids unknown_ids="" id
+  completion_ids="$(sed -n '/^## Completion check/,$p' "$SKILL_FILE" 2>/dev/null | grep -oE 'LOG-[A-Z]+-[0-9]+' || true)"
+  check "SL-08: the completion check cites checklist items by ID" "$([ -n "$completion_ids" ] && echo 1 || echo 0)"
+  cited_ids="$(grep -oE 'LOG-[A-Z]+-[0-9]+' "$SKILL_FILE" 2>/dev/null | sort -u || true)"
+  for id in $cited_ids; do
+    rows | grep -q "^| $id |" || unknown_ids="$unknown_ids $id"
+  done
+  check "SL-09: every item ID cited in SKILL.md exists in the checklist" "$([ -n "$cited_ids" ] && [ -z "$unknown_ids" ] && echo 1 || echo 0)"
 }
 
 run_checklist_contract() {
