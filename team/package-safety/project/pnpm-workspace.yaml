@@ -1,0 +1,7 @@
+# Package-install safety: resolve only versions published at least
+# 7 days (10080 minutes) ago. Needs pnpm >= 10.16.
+# If the repository already has a pnpm-workspace.yaml, add these keys to it.
+minimumReleaseAge: 10080
+# Exception for an urgent fix: list the package name, and review it in a PR.
+# minimumReleaseAgeExclude:
+#   - some-package

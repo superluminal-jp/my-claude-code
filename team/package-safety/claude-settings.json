@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "npm_config_min_release_age": "7",
+    "npm_config_ignore_scripts": "true",
+    "pnpm_config_minimum_release_age": "10080",
+    "PIP_USE_DEPRECATED": "legacy-certs",
+    "PIP_REQUIRE_VIRTUALENV": "true"
+  },
+  "permissions": {
+    "ask": [
+      "Bash(npm install *)",
+      "Bash(npm i *)",
+      "Bash(npm add *)",
+      "Bash(npm update *)",
+      "Bash(npm exec *)",
+      "Bash(npx *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm update *)",
+      "Bash(pnpm up *)",
+      "Bash(pnpm dlx *)",
+      "Bash(yarn add *)",
+      "Bash(yarn dlx *)",
+      "Bash(bun add *)",
+      "Bash(bunx *)",
+      "Bash(uv add *)",
+      "Bash(uv pip install *)",
+      "Bash(uv tool install *)",
+      "Bash(uv tool run *)",
+      "Bash(uvx *)",
+      "Bash(pipx install *)",
+      "Bash(pipx run *)",
+      "Bash(brew install *)",
+      "Bash(brew reinstall *)",
+      "Bash(brew upgrade *)",
+      "Bash(brew tap *)",
+      "Bash(brew bundle *)",
+      "Bash(git push *)",
+      "Bash(terraform apply *)",
+      "Bash(terraform destroy *)",
+      "Bash(terraform import *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh repo delete *)",
+      "Bash(gh release create *)",
+      "Bash(gh api *)",
+      "Bash(dangerouslyDisableSandbox:true)"
+    ],
+    "deny": [
+      "Bash(pip install *)",
+      "Bash(pip3 install *)",
+      "Bash(python -m pip install *)",
+      "Bash(python3 -m pip install *)",
+      "Bash(npm install -g *)",
+      "Bash(npm i -g *)",
+      "Bash(npm install --global *)",
+      "Bash(pnpm add -g *)",
+      "Bash(uv pip install --system *)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.netrc)",
+      "Read(~/.npmrc)",
+      "Read(~/.pypirc)",
+      "Read(**/.env)",
+      "Read(**/.env.*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "excludedCommands": [
+      "gh *",
+      "terraform *",
+      "git fetch *",
+      "git pull *",
+      "git push *",
+      "git clone *",
+      "git ls-remote *"
+    ],
+    "filesystem": {
+      "allowWrite": [
+        "~/.npm/_cacache",
+        "~/.cache/uv"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "registry.npmjs.org",
+        "pypi.org",
+        "files.pythonhosted.org"
+      ]
+    },
+    "credentials": {
+      "envVars": [
+        { "name": "GITHUB_TOKEN", "mode": "deny" },
+        { "name": "GH_TOKEN", "mode": "deny" },
+        { "name": "NPM_TOKEN", "mode": "deny" },
+        { "name": "NODE_AUTH_TOKEN", "mode": "deny" },
+        { "name": "UV_PUBLISH_TOKEN", "mode": "deny" },
+        { "name": "TWINE_PASSWORD", "mode": "deny" },
+        { "name": "AWS_ACCESS_KEY_ID", "mode": "deny" },
+        { "name": "AWS_SECRET_ACCESS_KEY", "mode": "deny" },
+        { "name": "AWS_SESSION_TOKEN", "mode": "deny" }
+      ]
+    }
+  }
+}
