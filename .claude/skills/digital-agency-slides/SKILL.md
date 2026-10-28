@@ -25,7 +25,8 @@ stated against that canvas. Break the canvas size and they stop holding.
   surrounding project or introduce a build system it does not already have.
 - Resolve material ambiguity before building: who the audience is and what
   they already know, what decision the deck asks for, the governing message,
-  and how the deck will be used (projected, read alone, or both). Ask when two
+  how the deck will be used (projected, read alone, or both), and the
+  information's classification — its 機密性 (1, 2 or 3) and its 公開範囲. Ask when two
   reasonable readings would produce different decks; otherwise proceed on a
   stated assumption.
 
@@ -61,7 +62,9 @@ built, so a deck always uses the current upstream reference implementation.
 ### 1. Define the deck before opening an editor
 
 Establish the audience and what they already know, the decision or action
-being asked for, the single governing message, and the delivery context.
+being asked for, the single governing message, the delivery context, and the
+classification marking every slide will carry: the 機密性 level and the
+公開範囲, as the author or the organisation's security policy sets them.
 
 ### 2. Write the tree, then derive the slides from it
 
@@ -127,7 +130,8 @@ contract is in `references/authoring-contract.md`.
 ```
 
 `lint` reports a broken tree order, an over-long deck, a tracker that marks
-the wrong part, document-level
+the wrong part, a missing or inconsistent classification marking,
+document-level
 accessibility faults, clipped or off-slide content, type below the legibility
 floor, insufficient contrast, and missing text alternatives. Drive errors to
 zero and account for every warning. Then **look at the preview images** — a
@@ -144,6 +148,10 @@ Sans JP font. Apply the attribution rules in `references/asset-sourcing.md`.
 
 ## Guardrails
 
+- **Never guess a classification.** Take the 機密性 level and the 公開範囲
+  from the author or the organisation's security policy; if neither is given,
+  ask before building. Every slide, the cover and the appendix included,
+  carries the same marking at its top right, so every printed page does too.
 - **Never split a node across slides** to make each slide shorter. A slide
   that cannot hold its children has children that are not one group: regroup
   them into at most four, or move detail to the appendix.

@@ -201,6 +201,28 @@ seen before a word is read.
 - One treatment means one level throughout the deck. A child's title is never
   bold on one slide and plain on another.
 
+## The classification marking
+
+Every slide carries a box at its top right stating how the information must
+be handled: its 機密性 (1, 2 or 3) and its 公開範囲 (for example 「△△課のみ」).
+
+- **Every slide, the same marking.** The cover and the appendix included. A
+  slide is printed, photographed and forwarded on its own; a page without the
+  marking, or with a different one, can be handled wrongly.
+- **The author decides the level, not the deck.** The levels come from the
+  government's unified cybersecurity standard, but each organisation's
+  security policy defines them and may prescribe its own wording. Take the
+  level and the scope from the author or that policy; never guess them, and
+  never copy a definition of the levels into the deck.
+- **Stated in words.** The box says 機密性2 in text; colour never carries the
+  level.
+- **Outside the content.** It sits on the safe-area line above the frame, so
+  it never shares space with the headline, the tracker or the body.
+
+`lint` reports a slide without the marking, a marking that differs from the
+first slide's, a level other than 1, 2 or 3, and a marking that is not at the
+top right.
+
 ## Projected, distributed, or both
 
 The delivery context is established before the deck is written because the
@@ -243,8 +265,8 @@ coherence principle). Cutting is design work, not tidying. On each slide:
 |---|---|---|
 | Canvas | 1280 x 720 px | 16:9; prints as one 1280 x 720 page |
 | Side margin | 64 px | 5% of the width; the frame every slide sits in |
-| Top / bottom margin | 48 / 80 px | Leaves the footer band clear of the content |
-| Safe area | 32 px | Projector overscan and video framing eat the outer band; the footer sits on its line |
+| Top / bottom margin | 80 / 80 px | Leaves the classification band and the footer band clear of the content |
+| Safe area | 32 px | Projector overscan and video framing eat the outer band; the classification marking and the footer sit on its line |
 | Column gap | 24 px | Wide enough that columns read as separate |
 
 Content never crosses the safe area. The linter reports anything that does.

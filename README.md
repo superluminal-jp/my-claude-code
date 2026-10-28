@@ -55,7 +55,8 @@ across projects while preserving unrelated user files.
   public-service frontends and web dashboards), `digital-agency-slides`
   (DADS 16:9 slide decks delivered as HTML, built as a tree — premises, then
   the answer, then one slide per supporting point — with a tracker on every
-  main slide showing where it sits, and checked by its own bundled linter),
+  main slide showing where it sits, a 機密性/公開範囲 classification box on
+  every slide, and checked by its own bundled linter),
   `scrum-master` (Scrum
   Guide-only events, roles, impediments), `secure-logging` (implement and
   check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0

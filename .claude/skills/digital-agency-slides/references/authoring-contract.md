@@ -32,6 +32,7 @@ relative path.
 <body class="sld-deck">
 <main>
   <section class="sld-slide" data-layout="title" aria-labelledby="s1-title">
+    <p class="sld-marking dads-u-dns-16N-130" data-level="2"><span class="sld-marking__level">機密性2</span><span class="sld-marking__scope">公開範囲：△△課のみ</span></p>
     <div class="sld-slide__frame">
       <hgroup class="dads-heading" data-size="45" data-rule="8">
         <p class="dads-heading__shoulder">…organisation…</p>
@@ -42,6 +43,7 @@ relative path.
   </section>
 
   <section class="sld-slide" data-layout="point" aria-labelledby="s4-title">
+    <p class="sld-marking dads-u-dns-16N-130" data-level="2">…the same marking…</p>
     <div class="sld-slide__frame">
       <hgroup class="dads-heading" data-size="32">
         <p class="dads-heading__shoulder">論点1</p>
@@ -73,6 +75,12 @@ relative path.
   positioned separately so it sits on the safe-area line at the foot of the
   slide, with the page number as `n / N` in the main deck and `付録 n` in the
   appendix.
+- Every slide opens with the same `p.sld-marking`: `data-level` is the
+  機密性 level (1, 2 or 3), `.sld-marking__level` states it in words, and
+  `.sld-marking__scope` states the 公開範囲. It is the section's first child,
+  so it is read first, and it is positioned at the top right of the slide,
+  outside the frame. The linter checks that every slide carries it, that all
+  of them are identical, and where it sits.
 - Every main slide after the cover carries an `ol.sld-tracker` after its
   heading: one item per main slide after the cover, in order, with
   `aria-current="step"` on this slide's item and no other. The cover and the
@@ -142,6 +150,7 @@ these blocks are this skill's own, built on the tokens.
 
 | Class | What it is |
 |---|---|
+| `sld-marking`, `sld-marking__level`, `sld-marking__scope` | The classification marking: 機密性 and 公開範囲 in a two-part box at the top right of every slide |
 | `sld-tracker` | Where the slide sits in the deck. The design system's step navigation also marks a current step, but at about 90 px tall it does not fit on every slide; the tracker follows its `aria-current` convention in one line |
 | `sld-tree`, `sld-tree__node` | The answer slide's key line: an `<ol>` whose items hang from the headline's rule |
 | `sld-index` | A position number, as text inside the heading it numbers |
@@ -169,6 +178,8 @@ spacing is left as published.
 
 ## Checklist before delivering
 
+- [ ] Every slide carries the same classification marking, with the level and
+      the 公開範囲 the author or the organisation's policy set.
 - [ ] `<html lang>` and `<title>` are set; the `<title>` subject matches the `h1`.
 - [ ] One `h1`, one `h2` per slide, no skipped level.
 - [ ] The answer slide is slide 3 or earlier; the main deck fits k + 4 slides.

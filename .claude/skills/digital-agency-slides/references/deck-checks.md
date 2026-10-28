@@ -26,7 +26,7 @@ deck.py preview deck.html -o preview         # one PNG per slide, plus the findi
 | `--max-slides` | 9 | Slides in the main deck, appendix excluded: k + 4 with k = 5 key-line points |
 | `--safe-area` | 32 px | Tighter or looser edge band |
 | `--min-font` / `--body-font` | 14 / 18 px | The legibility floor and the body-copy warning |
-| `--secondary-selector` | footers, captions, shoulders, trackers, chip and figure labels | What is exempt from the body-copy warning |
+| `--secondary-selector` | footers, captions, shoulders, trackers, markings, chip and figure labels | What is exempt from the body-copy warning |
 | `--max-list-items` | 5 | Items in any one list |
 | `--max-slide-items` | 10 | List items on a slide, pooled |
 | `--text-contrast` | 4.5 | Minimum ratio for text, at every size |
@@ -58,6 +58,17 @@ A finding on slide 0 is about the whole document.
 | `no-heading` | error | A slide has no `h1` or `h2`, so it states no assertion |
 | `no-alt` | error | An image with no `alt`, or an SVG with no accessible name that is not `aria-hidden` |
 | `table-no-header` | error | A table with no `<th>`, so no cell is announced with its column or row |
+
+### Classification — can every page be handled correctly?
+
+| Code | Level | Means |
+|---|---|---|
+| `marking-missing` | error | A slide carries no classification marking; on slide 0, no slide in the deck does |
+| `marking` | error | The marking differs from the first slide's, its `data-level` is not 1, 2 or 3, its text does not state that level, it has no 公開範囲, or it is not at the top right |
+
+The checker checks the marking's form and consistency, not whether the level
+is right for the content: that is the author's call under their
+organisation's policy.
 
 ### Slide — does it fit and can it be read?
 

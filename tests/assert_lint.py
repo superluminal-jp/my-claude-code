@@ -109,6 +109,20 @@ def main(argv: list[str]) -> int:
     )
     check("LINT-14 a wrong tracker is an error", status != 0, f"exit {status}")
 
+    status, report = lint(python, deck_cli, fixture_dir / "marking.html")
+    found = sorted((f["code"], f["slide"]) for f in report.get("findings", []))
+    check(
+        "LINT-15 a differing, missing, misplaced, unknown or mislabelled marking is each reported, and nothing else",
+        found == [("marking", 2), ("marking", 4), ("marking", 5), ("marking", 6), ("marking-missing", 3)],
+        str(found),
+    )
+    status, report = lint(python, deck_cli, fixture_dir / "document.html")
+    check(
+        "LINT-16 a deck with no marking at all is reported once, for the whole document",
+        [f["slide"] for f in report.get("findings", []) if f["code"] == "marking-missing"] == [0],
+        str([f for f in report.get("findings", []) if f["code"] == "marking-missing"]),
+    )
+
     print(f"\n{CHECKS - len(FAILURES)} passed, {len(FAILURES)} failed")
     return 1 if FAILURES else 0
 

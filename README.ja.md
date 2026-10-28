@@ -39,7 +39,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
     React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
     （DADS 公式資材で 16:9 スライドを HTML として作成し、前提 → 結論 → 論点ごとの
-    スライドという木の構造で組み、本編の各スライドに全体の中の現在地を示し、同梱の検査ツールで確認する）、`scrum-master`（Scrumイベントの
+    スライドという木の構造で組み、本編の各スライドに全体の中の現在地を、全スライドの右上に機密性と公開範囲を示し、同梱の検査ツールで確認する）、`scrum-master`（Scrumイベントの
     設計・ファシリテーション、障害除去、フロー指標）、`secure-logging`
     （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE と、Python・React・AWS Lambda と CDK・
     Google Cloud（Cloud Run functions を含む）・Azure（Azure Functions を含む）・各クラウドの

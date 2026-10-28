@@ -93,6 +93,7 @@ run_skill_contract() {
     "$(! grep -rIil -- 'pptx\|powerpoint' "$SKILL_DIR" | grep -v "^$SKILL_FILE$" | grep -q . && \
       ! sed '/^description:/d' "$SKILL_FILE" | grep -Eiq 'pptx|powerpoint' && echo 1 || echo 0)"
   check "SKILL-22: the conversion reference is gone" "$([ ! -e "$SKILL_DIR/references/pptx-conversion.md" ] && echo 1 || echo 0)"
+  check_contains "SKILL-23: guardrail forbids guessing a classification" "$SKILL_FILE" '[Nn]ever guess.*classification'
 
   check "DSN-01: design reference exists" "$([ -f "$DESIGN_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "DSN-02: reference requires one assertion per headline" "$DESIGN_REFERENCE" '(headline is an assertion|one assertion)'
@@ -114,6 +115,7 @@ run_skill_contract() {
   check_contains "DSN-18: reference puts the paper's discussion on the closing slide" "$DESIGN_REFERENCE" '^\| Discussion.*closing'
   check_contains "DSN-19: reference shows where each slide sits in the deck" "$DESIGN_REFERENCE" 'sld-tracker'
   check_contains "DSN-20: reference gives each tree level its own visual treatment" "$DESIGN_REFERENCE" '^### Make the tree visible'
+  check_contains "DSN-21: reference places the classification marking on every slide" "$DESIGN_REFERENCE" '機密性.*公開範囲'
 
   check "CON-01: authoring contract exists" "$([ -f "$CONTRACT_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "CON-02: contract uses the DADS heading with a shoulder" "$CONTRACT_REFERENCE" 'dads-heading__shoulder'
@@ -121,6 +123,7 @@ run_skill_contract() {
   check_contains "CON-04: contract uses the description list for definitions" "$CONTRACT_REFERENCE" 'dads-description-list'
   check_contains "CON-05: contract names the slide roles" "$CONTRACT_REFERENCE" 'data-layout="answer"'
   check_contains "CON-06: contract separates the dads-* and sld-* namespaces" "$CONTRACT_REFERENCE" 'sld-\*'
+  check_contains "CON-07: contract gives the marking's markup" "$CONTRACT_REFERENCE" 'sld-marking__scope'
 
   check "CHK-01: checks reference exists" "$([ -f "$CHECKS_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "CHK-02: reference documents both subcommands" "$CHECKS_REFERENCE" 'deck\.py preview'
@@ -128,6 +131,7 @@ run_skill_contract() {
   check_contains "CHK-04: reference lists the document findings" "$CHECKS_REFERENCE" 'heading-skip'
   check_contains "CHK-05: reference documents the slide budget option" "$CHECKS_REFERENCE" '--max-slides'
   check_contains "CHK-06: reference lists the tracker findings" "$CHECKS_REFERENCE" 'tracker-missing'
+  check_contains "CHK-07: reference lists the marking findings" "$CHECKS_REFERENCE" 'marking-missing'
 
   check "SRC-01: sourcing reference exists" "$([ -f "$SOURCING_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "SRC-02: reference links the official DADS site" "$SOURCING_REFERENCE" 'https://design\.digital\.go\.jp/dads/'
@@ -156,6 +160,7 @@ run_asset_contract() {
   check_contains "CSS-09: stylesheet prints one slide per page" "$SLIDE_CSS" '@page'
   check_contains "CSS-10: stylesheet draws the answer slide's tree" "$SLIDE_CSS" '^\.sld-tree'
   check_contains "CSS-11: stylesheet draws the position tracker" "$SLIDE_CSS" '^\.sld-tracker'
+  check_contains "CSS-12: stylesheet draws the classification marking" "$SLIDE_CSS" '^\.sld-marking'
 
   check "TPL-01: deck template exists" "$([ -f "$DECK_TEMPLATE" ] && echo 1 || echo 0)"
   check_contains "TPL-02: template links the fetched DADS global stylesheet" "$DECK_TEMPLATE" 'dads/global\.css'
@@ -174,6 +179,8 @@ run_asset_contract() {
   check_contains "TPL-15: template shows each slide's place in the deck" "$DECK_TEMPLATE" 'class="sld-tracker[ "]'
   check_contains "TPL-16: the tracker marks the current part for assistive technology" "$DECK_TEMPLATE" 'aria-current="step"'
   check_contains "TPL-17: main slides number themselves against the whole" "$DECK_TEMPLATE" '<span>4 / 7</span>'
+  check "TPL-18: every slide carries the classification marking" \
+    "$([ -f "$DECK_TEMPLATE" ] && [ "$(grep -c 'class="sld-marking' "$DECK_TEMPLATE")" -eq "$(grep -c 'class="sld-slide"' "$DECK_TEMPLATE")" ] && echo 1 || echo 0)"
   check "TPL-12: template has exactly one h1" \
     "$([ -f "$DECK_TEMPLATE" ] && [ "$(grep -o '<h1' "$DECK_TEMPLATE" | wc -l)" -eq 1 ] && echo 1 || echo 0)"
 }
@@ -209,6 +216,7 @@ run_tool_contract() {
   check_contains "TOOL-13: checker checks contrast" "$CHECKER" 'contrastRatio'
   check_contains "TOOL-14: checker checks the heading outline" "$CHECKER" "'heading-skip'"
   check_contains "TOOL-19: checker checks each slide's tracker against its position" "$CHECKER" "'tracker'"
+  check_contains "TOOL-20: checker checks each slide's classification marking" "$CHECKER" "'marking'"
   check_contains "TOOL-17: checker compares tags case-insensitively (SVG reports lower case)" "$CHECKER" 'const tagOf'
   check "TOOL-18: the conversion extractor is gone" "$([ ! -e "$SKILL_DIR/scripts/extract_slides.js" ] && echo 1 || echo 0)"
   check_contains "TOOL-15: fetch script records upstream provenance" "$FETCH_SCRIPT" 'Commit'
@@ -262,7 +270,7 @@ run_lint_contract() {
     return
   fi
   check "LINT-00: lint fixtures exist" \
-    "$([ -f "$FIXTURE_DIR/structure.html" ] && [ -f "$FIXTURE_DIR/document.html" ] && [ -f "$FIXTURE_DIR/clean.html" ] && [ -f "$FIXTURE_DIR/tracker.html" ] && echo 1 || echo 0)"
+    "$([ -f "$FIXTURE_DIR/structure.html" ] && [ -f "$FIXTURE_DIR/document.html" ] && [ -f "$FIXTURE_DIR/clean.html" ] && [ -f "$FIXTURE_DIR/tracker.html" ] && [ -f "$FIXTURE_DIR/marking.html" ] && echo 1 || echo 0)"
   if "$python_bin" "$LINT_ASSERTS" "$python_bin" "$DECK_CLI" "$FIXTURE_DIR" >"$REPO_ROOT/.lint.log" 2>&1; then
     check "LINT: findings match each fixture" "1"
   else

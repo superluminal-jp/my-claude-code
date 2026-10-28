@@ -17,7 +17,9 @@
   --sld-w: 1280px;
   --sld-h: 720px;
   --sld-margin-x: 64px;
-  --sld-margin-top: 48px;
+  /* Clears the classification marking, which sits on the safe-area line
+     above the frame. */
+  --sld-margin-top: 80px;
   --sld-margin-bottom: 80px;
   /* Projector overscan and video framing eat the outer band of a slide. */
   --sld-safe: 32px;
@@ -162,6 +164,35 @@
   border-bottom-color: var(--sld-accent);
   color: var(--sld-accent);
   font-weight: bold;
+}
+
+/* How the information must be handled: its classification (機密性) and who
+   may see it (公開範囲). Every slide carries the same marking, so every
+   printed page does too. It sits on the safe-area line at the top right,
+   above the frame, so it never shares space with content. The level is stated
+   in words, never by colour. */
+.sld-marking {
+  display: flex;
+  position: absolute;
+  top: var(--sld-safe);
+  right: var(--sld-margin-x);
+  box-sizing: border-box;
+  margin: 0;
+  border: 2px solid var(--sld-ink);
+  background-color: var(--sld-surface);
+  color: var(--sld-ink);
+}
+
+.sld-marking > span {
+  padding: 4px 12px;
+}
+
+.sld-marking__level {
+  font-weight: bold;
+}
+
+.sld-marking__scope {
+  border-left: 2px solid var(--sld-ink);
 }
 
 /* --------------------------------------------------------------- cover ---- */

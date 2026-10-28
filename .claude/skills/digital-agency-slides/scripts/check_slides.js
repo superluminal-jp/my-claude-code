@@ -250,6 +250,54 @@
     });
   }
 
+  /*
+   * The classification marking states how the information must be handled.
+   * A page without it, or with a different one, can be handled wrongly once
+   * printed or forwarded on its own, so every slide carries the same marking
+   * at its top right. The level's meaning is the organisation's policy, not
+   * this checker's; only its form is checked.
+   */
+  const LEVELS = ['1', '2', '3'];
+  const FULL_WIDTH = { 1: '１', 2: '２', 3: '３' };
+
+  function checkMarkings(slideEls, report) {
+    const marks = slideEls.map((el) =>
+      Array.from(el.querySelectorAll('.sld-marking')).find((m) => isRendered(m)) || null,
+    );
+    if (marks.every((m) => m === null)) {
+      report(0, 'error', 'marking-missing', 'No slide carries a classification marking (機密性 and 公開範囲).', null);
+      return;
+    }
+    const normalise = (m) => (m.textContent || '').replace(/\s+/g, ' ').trim();
+    const first = marks.find((m) => m !== null);
+    marks.forEach((m, i) => {
+      const n = i + 1;
+      const slideEl = slideEls[i];
+      if (m === null) {
+        report(n, 'error', 'marking-missing', 'This slide carries no classification marking; every slide must.', slideEl);
+        return;
+      }
+      const level = m.getAttribute('data-level') || '';
+      const levelText = ((m.querySelector('.sld-marking__level') || {}).textContent || '').trim();
+      const scope = m.querySelector('.sld-marking__scope');
+      const origin = slideEl.getBoundingClientRect();
+      const box = m.getBoundingClientRect();
+      let problem = null;
+      if (!LEVELS.includes(level)) {
+        problem = `data-level="${level}" is not 1, 2 or 3.`;
+      } else if (!levelText.includes(level) && !levelText.includes(FULL_WIDTH[level])) {
+        problem = `The marking reads "${levelText}" but data-level is ${level}.`;
+      } else if (!scope || !hasText(scope)) {
+        problem = 'The marking states no 公開範囲.';
+      } else if (normalise(m) !== normalise(first) || level !== first.getAttribute('data-level')) {
+        problem = `The marking differs from the first slide's ("${normalise(first)}"); one deck carries one classification.`;
+      } else if (box.left - origin.left < origin.width / 2 || box.top - origin.top > 64) {
+        problem = 'The marking is not at the top right of the slide.';
+      }
+      if (problem) report(n, 'error', 'marking', problem, m);
+    });
+  }
+
   function checkSlide(slideEl, n, opts, report) {
     const origin = slideEl.getBoundingClientRect();
     const at = (level, code, message, el) => report(n, level, code, message, el);
@@ -431,7 +479,7 @@
         nontext_contrast: 3,
         slide_selector: '.sld-slide',
         secondary_selector:
-          'footer, figcaption, caption, small, .dads-heading__shoulder, .dads-chip-label, .sld-kpi__label, .sld-steps__index, .sld-tracker',
+          'footer, figcaption, caption, small, .dads-heading__shoulder, .dads-chip-label, .sld-kpi__label, .sld-steps__index, .sld-tracker, .sld-marking',
       },
       options || {},
     );
@@ -464,6 +512,7 @@
     const slides = slideEls.map((el, i) => checkSlide(el, i + 1, opts, report));
     checkStructure(slides, opts, report);
     checkTrackers(slideEls, slides, report);
+    checkMarkings(slideEls, report);
     findings.sort((a, b) => a.slide - b.slide);
 
     return {
