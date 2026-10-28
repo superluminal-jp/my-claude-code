@@ -153,6 +153,54 @@ the fastest way to lose an audience that is checking the arithmetic. Any
 quantity in the governing message must be computable from a figure the deck
 actually shows.
 
+## Making the structure visible
+
+A structure helps only an audience that can see it. Cues that show how the
+material is organised — headings, an outline, a marker of the current part —
+help an audience take it in (Mayer's signaling principle). A deck gives these
+cues on every slide.
+
+### Show where the slide sits
+
+Every main slide after the cover answers "where are we?" in three ways that
+agree with each other.
+
+| Cue | Where | What it says |
+|---|---|---|
+| Tracker (`sld-tracker`) | Top right, on the shoulder text's line | The parts of the main deck after the cover — 前提, 結論, 論点1 … 依頼 — with this slide's part in bold, underlined in the key colour, and marked `aria-current="step"` |
+| Shoulder text | Above the headline | This slide's part, in words |
+| Page number | Footer, right | `n / N` in the main deck; `付録 n` in the appendix |
+
+- The tracker's labels match the shoulder texts and the answer slide's branch
+  numbers, so the audience can match the map to the slide in front of them.
+- It lists the main deck only; the cover and the appendix carry none.
+- The current part is never marked by colour alone.
+- It takes no height from the body. If a shoulder text is long enough to
+  reach it, shorten the shoulder text.
+- `lint` checks every tracker against the slide's real position.
+
+### Make the tree visible
+
+Each level of the tree gets its own visual treatment, so the hierarchy can be
+seen before a word is read.
+
+| Tree level | Element | Visual treatment |
+|---|---|---|
+| The slide's node | The headline (`h2`) | 32 px bold, full width, above the body |
+| Its children | Block titles (`h3`) in tiles, cards, steps or tree branches | 20 px bold; each child in its own box of equal weight, side by side or in one list, in the order the answer slide named them |
+| Evidence for a child | Text inside that child's box | 18–20 px regular, inside the box it supports — never between boxes |
+| What the evidence means | The takeaway band | Key-colour rule on the left, at the foot of the body |
+| Detail | The footer source line, or the appendix | 14–16 px, outside the body |
+
+- Space follows relation: elements that belong together sit closer than
+  elements that do not, as the design system's spacing foundation sets out.
+  Inside a box 8 px, between boxes 24 px, and more than that between the body
+  and the footer.
+- Numbers carry across slides: branch 2 on the answer slide is 論点2 in the
+  tracker and in the shoulder text of its slide.
+- One treatment means one level throughout the deck. A child's title is never
+  bold on one slide and plain on another.
+
 ## Projected, distributed, or both
 
 The delivery context is established before the deck is written because the

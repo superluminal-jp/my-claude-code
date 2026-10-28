@@ -29,8 +29,9 @@ across projects while preserving unrelated user files.
   inference), authorization and safety (the enforced deny list lives in
   `settings.json`), reader-facing structure (the Pyramid Principle
   self-check; the parts of a research paper — summary, premises, method,
-  results, discussion, conclusion — in answer-first order; premises and
-  plain-word definitions for a newcomer; and no explanation by metaphor or
+  results, discussion, conclusion — in answer-first order; structure made
+  visible through numbered claim headings and bold supporting claims; premises
+  and plain-word definitions for a newcomer; and no explanation by metaphor or
   analogy), and model and effort routing (capability tiers, closed
   escalation conditions, subagent model and effort). None references
   another rule, a skill, or a config path. What each file deliberately
@@ -53,8 +54,9 @@ across projects while preserving unrelated user files.
   `digital-agency-frontend` (DADS-based accessible React/Tailwind
   public-service frontends and web dashboards), `digital-agency-slides`
   (DADS 16:9 slide decks delivered as HTML, built as a tree — premises, then
-  the answer, then one slide per supporting point — and checked by its own
-  bundled linter), `scrum-master` (Scrum
+  the answer, then one slide per supporting point — with a tracker on every
+  main slide showing where it sits, and checked by its own bundled linter),
+  `scrum-master` (Scrum
   Guide-only events, roles, impediments), `secure-logging` (implement and
   check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0
   V16, and CWE, and against the official logging practices of Python, React,

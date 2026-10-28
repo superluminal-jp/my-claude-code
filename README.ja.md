@@ -18,7 +18,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 - **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
   推論の完全性（6つの推論セルフチェック: 依存・分岐・反復・推論）、権限と安全性
-  （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の部（要旨・前提・方法・結果・考察・結論）、初学者向けの前提と平易な定義、比喩・類推による説明の禁止）、
+  （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の部（要旨・前提・方法・結果・考察・結論）、番号付きの主張の見出しと太字の論点による構造の可視化、初学者向けの前提と平易な定義、比喩・類推による説明の禁止）、
   モデルと労力のルーティング（能力層、閉じたエスカレーション条件、サブエージェントのモデルと労力））。他のルール・スキル・設定パスへの言及は持たない。
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック。中央ルーティング表なしに
@@ -39,7 +39,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
     React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
     （DADS 公式資材で 16:9 スライドを HTML として作成し、前提 → 結論 → 論点ごとの
-    スライドという木の構造で組み、同梱の検査ツールで確認する）、`scrum-master`（Scrumイベントの
+    スライドという木の構造で組み、本編の各スライドに全体の中の現在地を示し、同梱の検査ツールで確認する）、`scrum-master`（Scrumイベントの
     設計・ファシリテーション、障害除去、フロー指標）、`secure-logging`
     （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE と、Python・React・AWS Lambda と CDK・
     Google Cloud（Cloud Run functions を含む）・Azure（Azure Functions を含む）・各クラウドの

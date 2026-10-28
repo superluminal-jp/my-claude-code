@@ -100,6 +100,15 @@ def main(argv: list[str]) -> int:
     check("LINT-11 hidden notes are not checked, so one small text is reported", found["font-too-small"] == 1, str(found["font-too-small"]))
     check("LINT-12 a padded inline highlight is not reported as clipped", found["clipped"] == 1, str(found["clipped"]))
 
+    status, report = lint(python, deck_cli, fixture_dir / "tracker.html")
+    found = {(f["code"], f["slide"]) for f in report.get("findings", [])}
+    check(
+        "LINT-13 a tracker marking the wrong part, and a slide without one, are the only findings",
+        found == {("tracker", 4), ("tracker-missing", 5)},
+        str(sorted(found)),
+    )
+    check("LINT-14 a wrong tracker is an error", status != 0, f"exit {status}")
+
     print(f"\n{CHECKS - len(FAILURES)} passed, {len(FAILURES)} failed")
     return 1 if FAILURES else 0
 

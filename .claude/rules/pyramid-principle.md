@@ -33,7 +33,8 @@ Lay out a full answer in the order of a research paper, keeping the answer first
 6. Conclusion — what follows for the reader: the decision, action, or next step, not a repeat of the summary.
 
 - Omit a part with no content. In a short answer, keep the order and compress the parts into a few sentences.
-- Show the parts as headings only in long-form writing such as a report, an analysis, or a document; in an ordinary answer keep the order without headings.
+- Show the parts as headings only in long-form writing such as a report, an analysis, or a document, numbered by their place in the tree (1, 1.1) and phrased as claims; in an ordinary answer keep the order without headings.
+- Make each supporting point visible: lead with its claim in bold and nest its evidence beneath it. Use a numbered list for a sequence or rank, and a table for items compared on the same criteria.
 - Open each paragraph with its claim in the first sentence; the sentences after it support that claim.
 
 ## Vertical support

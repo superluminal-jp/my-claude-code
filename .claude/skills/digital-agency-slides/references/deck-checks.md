@@ -26,7 +26,7 @@ deck.py preview deck.html -o preview         # one PNG per slide, plus the findi
 | `--max-slides` | 9 | Slides in the main deck, appendix excluded: k + 4 with k = 5 key-line points |
 | `--safe-area` | 32 px | Tighter or looser edge band |
 | `--min-font` / `--body-font` | 14 / 18 px | The legibility floor and the body-copy warning |
-| `--secondary-selector` | footers, captions, shoulders, chip and figure labels | What is exempt from the body-copy warning |
+| `--secondary-selector` | footers, captions, shoulders, trackers, chip and figure labels | What is exempt from the body-copy warning |
 | `--max-list-items` | 5 | Items in any one list |
 | `--max-slide-items` | 10 | List items on a slide, pooled |
 | `--text-contrast` | 4.5 | Minimum ratio for text, at every size |
@@ -44,6 +44,8 @@ A finding on slide 0 is about the whole document.
 | `deck-long` | warn | The main deck is longer than `--max-slides`. Put evidence on its point's slide and detail in the appendix |
 | `late-answer` | warn | No slide has `data-layout="answer"`, or it comes after slide 3 |
 | `appendix-order` | warn | A main slide follows an appendix slide |
+| `tracker` | error | A tracker lists a different number of parts than the main deck has after the cover, or marks a part other than this slide's — it tells the audience they are somewhere they are not |
+| `tracker-missing` | warn | Other main slides carry a tracker and this one does not. A deck with no trackers at all is not reported |
 
 ### Document — can assistive technology navigate it?
 
@@ -71,7 +73,7 @@ A finding on slide 0 is about the whole document.
 | `font-small` | warn | Body copy below the comfortable projected size |
 | `nontext-contrast` | warn | A border or rule below 3:1 against its background |
 | `contrast-unknown` | warn | Text on a gradient or image, or in a colour that did not resolve: contrast has no single answer |
-| `dense` | warn | More list items than the per-list or per-slide threshold |
+| `dense` | warn | More list items than the per-list or per-slide threshold. The tracker is not counted: it states position, not content |
 
 Errors make `lint` exit non-zero. Warnings do not, but each one should be a
 decision: fix it, or say in the hand-off why it stays.

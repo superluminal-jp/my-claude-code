@@ -112,6 +112,8 @@ run_skill_contract() {
   check_contains "DSN-16: reference forbids explaining by metaphor or analogy" "$DESIGN_REFERENCE" '(metaphor|analogy)'
   check_contains "DSN-17: reference puts the paper's method on the premise slide" "$DESIGN_REFERENCE" '^\| Method.*premise'
   check_contains "DSN-18: reference puts the paper's discussion on the closing slide" "$DESIGN_REFERENCE" '^\| Discussion.*closing'
+  check_contains "DSN-19: reference shows where each slide sits in the deck" "$DESIGN_REFERENCE" 'sld-tracker'
+  check_contains "DSN-20: reference gives each tree level its own visual treatment" "$DESIGN_REFERENCE" '^### Make the tree visible'
 
   check "CON-01: authoring contract exists" "$([ -f "$CONTRACT_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "CON-02: contract uses the DADS heading with a shoulder" "$CONTRACT_REFERENCE" 'dads-heading__shoulder'
@@ -125,6 +127,7 @@ run_skill_contract() {
   check_contains "CHK-03: reference lists the structure findings" "$CHECKS_REFERENCE" 'late-answer'
   check_contains "CHK-04: reference lists the document findings" "$CHECKS_REFERENCE" 'heading-skip'
   check_contains "CHK-05: reference documents the slide budget option" "$CHECKS_REFERENCE" '--max-slides'
+  check_contains "CHK-06: reference lists the tracker findings" "$CHECKS_REFERENCE" 'tracker-missing'
 
   check "SRC-01: sourcing reference exists" "$([ -f "$SOURCING_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "SRC-02: reference links the official DADS site" "$SOURCING_REFERENCE" 'https://design\.digital\.go\.jp/dads/'
@@ -152,6 +155,7 @@ run_asset_contract() {
     "$([ -f "$SLIDE_CSS" ] && ! grep -Eq '^\.dads-' "$SLIDE_CSS" && echo 1 || echo 0)"
   check_contains "CSS-09: stylesheet prints one slide per page" "$SLIDE_CSS" '@page'
   check_contains "CSS-10: stylesheet draws the answer slide's tree" "$SLIDE_CSS" '^\.sld-tree'
+  check_contains "CSS-11: stylesheet draws the position tracker" "$SLIDE_CSS" '^\.sld-tracker'
 
   check "TPL-01: deck template exists" "$([ -f "$DECK_TEMPLATE" ] && echo 1 || echo 0)"
   check_contains "TPL-02: template links the fetched DADS global stylesheet" "$DECK_TEMPLATE" 'dads/global\.css'
@@ -167,6 +171,9 @@ run_asset_contract() {
     "$([ -f "$DECK_TEMPLATE" ] && ! grep -q 'data-layout="section"' "$DECK_TEMPLATE" && echo 1 || echo 0)"
   check_contains "TPL-13: template's premise slide states how the evidence was gathered" "$DECK_TEMPLATE" '調べ方：'
   check_contains "TPL-14: template's closing slide states the conclusion's limits" "$DECK_TEMPLATE" '限界：'
+  check_contains "TPL-15: template shows each slide's place in the deck" "$DECK_TEMPLATE" 'class="sld-tracker[ "]'
+  check_contains "TPL-16: the tracker marks the current part for assistive technology" "$DECK_TEMPLATE" 'aria-current="step"'
+  check_contains "TPL-17: main slides number themselves against the whole" "$DECK_TEMPLATE" '<span>4 / 7</span>'
   check "TPL-12: template has exactly one h1" \
     "$([ -f "$DECK_TEMPLATE" ] && [ "$(grep -o '<h1' "$DECK_TEMPLATE" | wc -l)" -eq 1 ] && echo 1 || echo 0)"
 }
@@ -201,6 +208,7 @@ run_tool_contract() {
   check_contains "TOOL-12: checker emits findings for clipped text" "$CHECKER" "'clipped'"
   check_contains "TOOL-13: checker checks contrast" "$CHECKER" 'contrastRatio'
   check_contains "TOOL-14: checker checks the heading outline" "$CHECKER" "'heading-skip'"
+  check_contains "TOOL-19: checker checks each slide's tracker against its position" "$CHECKER" "'tracker'"
   check_contains "TOOL-17: checker compares tags case-insensitively (SVG reports lower case)" "$CHECKER" 'const tagOf'
   check "TOOL-18: the conversion extractor is gone" "$([ ! -e "$SKILL_DIR/scripts/extract_slides.js" ] && echo 1 || echo 0)"
   check_contains "TOOL-15: fetch script records upstream provenance" "$FETCH_SCRIPT" 'Commit'
@@ -254,7 +262,7 @@ run_lint_contract() {
     return
   fi
   check "LINT-00: lint fixtures exist" \
-    "$([ -f "$FIXTURE_DIR/structure.html" ] && [ -f "$FIXTURE_DIR/document.html" ] && [ -f "$FIXTURE_DIR/clean.html" ] && echo 1 || echo 0)"
+    "$([ -f "$FIXTURE_DIR/structure.html" ] && [ -f "$FIXTURE_DIR/document.html" ] && [ -f "$FIXTURE_DIR/clean.html" ] && [ -f "$FIXTURE_DIR/tracker.html" ] && echo 1 || echo 0)"
   if "$python_bin" "$LINT_ASSERTS" "$python_bin" "$DECK_CLI" "$FIXTURE_DIR" >"$REPO_ROOT/.lint.log" 2>&1; then
     check "LINT: findings match each fixture" "1"
   else

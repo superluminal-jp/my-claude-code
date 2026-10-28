@@ -219,6 +219,37 @@
     });
   }
 
+  /*
+   * The tracker lists the main deck after the cover and marks the slide's own
+   * part. A tracker that marks the wrong part tells the audience they are
+   * somewhere they are not, so it is an error; a slide that drops a tracker
+   * the rest of the deck carries is a lapse in consistency.
+   */
+  function checkTrackers(slideEls, slides, report) {
+    if (!slideEls.some((el) => el.querySelector('.sld-tracker'))) return;
+    const tracked = slides.filter((s) => s.layout !== 'title' && s.layout !== 'appendix');
+    const position = new Map(tracked.map((s, i) => [s.index, i]));
+    slideEls.forEach((el, i) => {
+      const n = i + 1;
+      if (!position.has(n)) return;
+      const tracker = el.querySelector('.sld-tracker');
+      if (!tracker) {
+        report(n, 'warn', 'tracker-missing', 'The other main slides show where they sit in the deck; this one does not.', el);
+        return;
+      }
+      const items = Array.from(tracker.querySelectorAll(':scope > li'));
+      const marked = items
+        .map((li, k) => (li.hasAttribute('aria-current') && li.getAttribute('aria-current') !== 'false' ? k : -1))
+        .filter((k) => k >= 0);
+      if (items.length !== tracked.length) {
+        report(n, 'error', 'tracker', `The tracker lists ${items.length} parts, but the main deck after the cover has ${tracked.length} slides.`, tracker);
+      } else if (marked.length !== 1 || marked[0] !== position.get(n)) {
+        const said = marked.length === 1 ? `part ${marked[0] + 1}` : `${marked.length} parts`;
+        report(n, 'error', 'tracker', `The tracker marks ${said} as current, but this slide is part ${position.get(n) + 1}.`, tracker);
+      }
+    });
+  }
+
   function checkSlide(slideEl, n, opts, report) {
     const origin = slideEl.getBoundingClientRect();
     const at = (level, code, message, el) => report(n, level, code, message, el);
@@ -364,15 +395,18 @@
     });
 
     /* Two groups of five can be compared; one list of ten cannot. So the
-       per-list limit and the pooled per-slide limit are separate checks. */
+       per-list limit and the pooled per-slide limit are separate checks. The
+       tracker states position, not content to hold in mind, so it is not
+       counted. */
+    const content = (el) => isRendered(el) && !el.closest('.sld-tracker');
     slideEl.querySelectorAll('ul, ol').forEach((list) => {
-      if (!isRendered(list)) return;
+      if (!content(list)) return;
       const own = Array.from(list.children).filter((kid) => tagOf(kid) === 'LI').length;
       if (own > opts.max_list_items) {
         at('warn', 'dense', `${own} items in one list exceeds the ${opts.max_list_items}-item limit.`, list);
       }
     });
-    const listItems = Array.from(slideEl.querySelectorAll('li')).filter(isRendered).length;
+    const listItems = Array.from(slideEl.querySelectorAll('li')).filter(content).length;
     if (listItems > opts.max_slide_items) {
       at('warn', 'dense', `${listItems} list items on one slide exceeds the ${opts.max_slide_items}-item limit.`, slideEl);
     }
@@ -397,7 +431,7 @@
         nontext_contrast: 3,
         slide_selector: '.sld-slide',
         secondary_selector:
-          'footer, figcaption, caption, small, .dads-heading__shoulder, .dads-chip-label, .sld-kpi__label, .sld-steps__index',
+          'footer, figcaption, caption, small, .dads-heading__shoulder, .dads-chip-label, .sld-kpi__label, .sld-steps__index, .sld-tracker',
       },
       options || {},
     );
@@ -429,6 +463,7 @@
     });
     const slides = slideEls.map((el, i) => checkSlide(el, i + 1, opts, report));
     checkStructure(slides, opts, report);
+    checkTrackers(slideEls, slides, report);
     findings.sort((a, b) => a.slide - b.slide);
 
     return {

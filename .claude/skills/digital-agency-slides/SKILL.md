@@ -87,7 +87,13 @@ This is the order of a research paper's parts — summary, introduction,
 method, results, discussion, conclusion — with the answer first, and with the
 method and the discussion folded into existing slides rather than given their
 own. A slide is one node of the tree with its direct children, never one leaf.
-The main deck is at most k + 4 slides for k key-line points. Details, the layout
+The main deck is at most k + 4 slides for k key-line points.
+
+Make the structure visible on every slide: a tracker at the top right lists
+the main deck's parts and marks the current one, the shoulder text names it,
+and the footer counts `n / N`. Each level of the tree has its own visual
+treatment — headline, block titles, the evidence inside each block, the
+takeaway band. Details, the layout
 catalogue and the density limits: `references/slide-design.md`.
 
 ### 3. Set up the workspace
@@ -120,7 +126,8 @@ contract is in `references/authoring-contract.md`.
 .venv/bin/python "$CLAUDE_SKILL_DIR/scripts/deck.py" preview deck.html -o preview
 ```
 
-`lint` reports a broken tree order or an over-long deck, document-level
+`lint` reports a broken tree order, an over-long deck, a tracker that marks
+the wrong part, document-level
 accessibility faults, clipped or off-slide content, type below the legibility
 floor, insufficient contrast, and missing text alternatives. Drive errors to
 zero and account for every warning. Then **look at the preview images** — a

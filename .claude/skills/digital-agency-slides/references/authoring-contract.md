@@ -47,9 +47,12 @@ relative path.
         <p class="dads-heading__shoulder">論点1</p>
         <h2 class="dads-heading__heading" id="s4-title">…one assertion…</h2>
       </hgroup>
+      <ol class="sld-tracker dads-u-dns-16N-130" aria-label="資料の構成">
+        <li>前提</li><li>結論</li><li aria-current="step">論点1</li>…<li>依頼</li>
+      </ol>
       <div class="sld-slide__body">…the evidence…</div>
     </div>
-    <footer class="sld-slide__footer dads-u-dns-14N-130">…source…<span>4</span></footer>
+    <footer class="sld-slide__footer dads-u-dns-14N-130">…source…<span>4 / 7</span></footer>
     <div class="sld-notes">…speaker notes…</div>
   </section>
 </main>
@@ -68,7 +71,13 @@ relative path.
   slide with the role `custom`.
 - `.sld-slide__frame` is the safe content area; `.sld-slide__footer` is
   positioned separately so it sits on the safe-area line at the foot of the
-  slide.
+  slide, with the page number as `n / N` in the main deck and `付録 n` in the
+  appendix.
+- Every main slide after the cover carries an `ol.sld-tracker` after its
+  heading: one item per main slide after the cover, in order, with
+  `aria-current="step"` on this slide's item and no other. The cover and the
+  appendix carry none. The linter checks the item count and the marked item
+  against the slide's position.
 - Speaker notes live in `.sld-notes`, next to the slide they belong to. They
   are never rendered — not on screen, not in print — so nothing a reader needs
   goes there.
@@ -133,6 +142,7 @@ these blocks are this skill's own, built on the tokens.
 
 | Class | What it is |
 |---|---|
+| `sld-tracker` | Where the slide sits in the deck. The design system's step navigation also marks a current step, but at about 90 px tall it does not fit on every slide; the tracker follows its `aria-current` convention in one line |
 | `sld-tree`, `sld-tree__node` | The answer slide's key line: an `<ol>` whose items hang from the headline's rule |
 | `sld-index` | A position number, as text inside the heading it numbers |
 | `sld-card`, `sld-card__head` | A static panel; `data-tone="accent"` or `"sub"` |
@@ -162,6 +172,8 @@ spacing is left as published.
 - [ ] `<html lang>` and `<title>` are set; the `<title>` subject matches the `h1`.
 - [ ] One `h1`, one `h2` per slide, no skipped level.
 - [ ] The answer slide is slide 3 or earlier; the main deck fits k + 4 slides.
+- [ ] Every main slide after the cover has a tracker marking its own part, and
+      a page number `n / N`.
 - [ ] Every slide states one assertion in its `h2`.
 - [ ] Nothing crosses the safe area; nothing is clipped.
 - [ ] Every image has `alt`; every SVG has a `<title>`, `aria-label`, or

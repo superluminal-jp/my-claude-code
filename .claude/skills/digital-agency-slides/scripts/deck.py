@@ -38,7 +38,7 @@ DEFAULTS: dict[str, Any] = {
     "slide_selector": ".sld-slide",
     "secondary_selector": (
         "footer, figcaption, caption, small, .dads-heading__shoulder, .dads-chip-label, "
-        ".sld-kpi__label, .sld-steps__index"
+        ".sld-kpi__label, .sld-steps__index, .sld-tracker"
     ),
 }
 
