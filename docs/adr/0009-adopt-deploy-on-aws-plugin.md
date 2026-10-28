@@ -103,5 +103,6 @@ plugin skill invoking a mutating `aws` CLI command.
   when no such upstream exists (the opposite call in
   [ADR 0003](0003-vendor-scrum-master-skill.md), where the source skill had
   neither).
-- [`.claude/skills/drawio/SKILL.md`](../../.claude/skills/drawio/SKILL.md) —
-  the non-AWS diagram path this decision leaves unchanged.
+- [`.claude/skills/drawio/SKILL.md`](https://github.com/superluminal-jp/my-claude-code/blob/95fc2f6702cb56e7d42b664fc8dc2b6d98a22fda/.claude/skills/drawio/SKILL.md) —
+  the non-AWS diagram path this decision leaves unchanged (permalink to the
+  last commit that had it; removed in `12e3f23`).
