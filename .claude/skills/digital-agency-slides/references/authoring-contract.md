@@ -32,7 +32,7 @@ relative path.
 <body class="sld-deck">
 <main>
   <section class="sld-slide" data-layout="title" aria-labelledby="s1-title">
-    <p class="sld-marking dads-u-dns-16N-130" data-level="2"><span class="sld-marking__level">機密性2</span><span class="sld-marking__scope">公開範囲：△△課のみ</span></p>
+    <p class="sld-marking dads-u-dns-16N-130" data-level="2"><span class="sld-marking__level">機密性2情報</span><span class="sld-marking__scope">公開範囲：△△課のみ</span></p>
     <div class="sld-slide__frame">
       <hgroup class="dads-heading" data-size="45" data-rule="8">
         <p class="dads-heading__shoulder">…organisation…</p>
@@ -76,7 +76,8 @@ relative path.
   slide, with the page number as `n / N` in the main deck and `付録 n` in the
   appendix.
 - Every slide opens with the same `p.sld-marking`: `data-level` is the
-  機密性 level (1, 2 or 3), `.sld-marking__level` states it in words, and
+  機密性 level (1, 2 or 3), `.sld-marking__level` states it as 機密性1情報,
+  機密性2情報 or 機密性3情報, and
   `.sld-marking__scope` states the 公開範囲. It is the section's first child,
   so it is read first, and it is positioned at the top right of the slide,
   outside the frame. The linter checks that every slide carries it, that all

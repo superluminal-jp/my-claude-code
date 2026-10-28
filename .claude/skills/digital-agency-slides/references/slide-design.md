@@ -204,7 +204,8 @@ seen before a word is read.
 ## The classification marking
 
 Every slide carries a box at its top right stating how the information must
-be handled: its 機密性 (1, 2 or 3) and its 公開範囲 (for example 「△△課のみ」).
+be handled, such as 「機密性2情報｜公開範囲：△△課のみ」: the classification
+(機密性1情報, 機密性2情報 or 機密性3情報) and who may see it.
 
 - **Every slide, the same marking.** The cover and the appendix included. A
   slide is printed, photographed and forwarded on its own; a page without the
@@ -214,8 +215,8 @@ be handled: its 機密性 (1, 2 or 3) and its 公開範囲 (for example 「△�
   security policy defines them and may prescribe its own wording. Take the
   level and the scope from the author or that policy; never guess them, and
   never copy a definition of the levels into the deck.
-- **Stated in words.** The box says 機密性2 in text; colour never carries the
-  level.
+- **Stated in words.** The box says 機密性2情報 in text; colour never carries
+  the level.
 - **Outside the content.** It sits on the safe-area line above the frame, so
   it never shares space with the headline, the tracker or the body.
 

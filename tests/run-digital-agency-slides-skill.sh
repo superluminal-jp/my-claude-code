@@ -179,6 +179,8 @@ run_asset_contract() {
   check_contains "TPL-15: template shows each slide's place in the deck" "$DECK_TEMPLATE" 'class="sld-tracker[ "]'
   check_contains "TPL-16: the tracker marks the current part for assistive technology" "$DECK_TEMPLATE" 'aria-current="step"'
   check_contains "TPL-17: main slides number themselves against the whole" "$DECK_TEMPLATE" '<span>4 / 7</span>'
+  check "TPL-19: the marking writes the level as 機密性n情報" \
+    "$([ -f "$DECK_TEMPLATE" ] && grep -q 'sld-marking__level">機密性[123]情報<' "$DECK_TEMPLATE" && ! grep -q 'sld-marking__level">機密性[123]<' "$DECK_TEMPLATE" && echo 1 || echo 0)"
   check "TPL-18: every slide carries the classification marking" \
     "$([ -f "$DECK_TEMPLATE" ] && [ "$(grep -c 'class="sld-marking' "$DECK_TEMPLATE")" -eq "$(grep -c 'class="sld-slide"' "$DECK_TEMPLATE")" ] && echo 1 || echo 0)"
   check "TPL-12: template has exactly one h1" \
