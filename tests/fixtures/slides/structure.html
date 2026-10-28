@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A deck that breaks only the structure rules</title>
+<!-- Ten main slides, the answer on slide 6, and main slides after an appendix:
+     the checker must report deck-long, late-answer and appendix-order, and
+     nothing else. -->
+<style>
+  body { margin: 0; background: #f2f2f2; font-family: sans-serif; }
+  .sld-slide { position: relative; box-sizing: border-box; width: 1280px; height: 720px; margin: 0 auto 24px; overflow: hidden; background: #ffffff; color: #1a1a1a; }
+  .frame { position: absolute; inset: 48px 64px 72px; display: flex; flex-direction: column; gap: 24px; }
+  h1, h2, h3, p, ul { margin: 0; }
+  h1 { font-size: 45px; } h2 { font-size: 32px; } h3 { font-size: 20px; }
+  p, li, dt, dd, th, td { font-size: 20px; line-height: 1.5; }
+  .sld-marking { position: absolute; top: 32px; right: 64px; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+<section class="sld-slide" data-layout="title" aria-labelledby="s1">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h1 id="s1">Slide 1 states one assertion</h1></div>
+</section>
+<section class="sld-slide" data-layout="point" aria-labelledby="s2">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s2">Slide 2 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="point" aria-labelledby="s3">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s3">Slide 3 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="point" aria-labelledby="s4">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s4">Slide 4 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="point" aria-labelledby="s5">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s5">Slide 5 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="answer" aria-labelledby="s6">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s6">Slide 6 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="appendix" aria-labelledby="s7">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s7">Slide 7 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="point" aria-labelledby="s8">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s8">Slide 8 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="point" aria-labelledby="s9">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s9">Slide 9 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="point" aria-labelledby="s10">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s10">Slide 10 states one assertion</h2></div>
+</section>
+<section class="sld-slide" data-layout="closing" aria-labelledby="s11">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2 id="s11">Slide 11 states one assertion</h2></div>
+</section>
+</main>
+</body>
+</html>

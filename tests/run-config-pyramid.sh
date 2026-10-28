@@ -106,6 +106,12 @@ thinking-lenses.md"
     "$([ ! -e "$RULE_DIR/git-workflow.md" ] && [ ! -e "$RULE_DIR/mcp.md" ] && [ ! -e "$RULE_DIR/skill-routing.md" ] && echo 1 || echo 0)"
 
   check_contains "RULE-11: routing owns capability tiers and effort" "$RULE_DIR/model-routing.md" 'tier|capabilit|effort'
+  check_contains "RULE-12: presentation defines terms for a newcomer" "$RULE_DIR/pyramid-principle.md" 'newcomer.*(term|defin)|(term|defin).*newcomer'
+  check_contains "RULE-13: presentation forbids explaining by metaphor or analogy" "$RULE_DIR/pyramid-principle.md" '[Nn]ever explain by (metaphor|analogy)'
+  check_contains "RULE-14: presentation orders the parts of a research paper, answer first" "$RULE_DIR/pyramid-principle.md" 'summary.*premises.*method.*results.*discussion.*conclusion'
+  check_contains "RULE-15: presentation opens each paragraph with its claim" "$RULE_DIR/pyramid-principle.md" 'paragraph.*first sentence|first sentence.*paragraph'
+  check_contains "RULE-16: presentation makes each supporting claim visible" "$RULE_DIR/pyramid-principle.md" 'claim.*bold|bold.*claim'
+  check_contains "RULE-17: presentation matches the visual form to the relation" "$RULE_DIR/pyramid-principle.md" 'numbered list.*table|table.*numbered list'
 }
 
 run_skill_contract() {

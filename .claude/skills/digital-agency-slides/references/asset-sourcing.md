@@ -47,10 +47,9 @@ npm view @digital-go-jp/tailwind-theme-plugin version
 ```
 
 The HTML reference is the right substrate for a deck: it needs no build step,
-the browser can load it directly, and its `dads-*` classes are stable selectors
-for the converter. Use the React or Tailwind route only inside a project that
-already builds with them, render the deck to static HTML, and point the
-converter at that.
+the browser loads it directly, and its components are used with their
+published markup. Use the React or Tailwind route only inside a project that
+already builds with them, render the deck to static HTML, and check that.
 
 ## Restrict research to the official sources
 
@@ -104,8 +103,8 @@ carry their own licences.
 
 | Deliverable | Owes a notice |
 |---|---|
-| The deck workspace, which contains the fetched stylesheets verbatim | Yes — the code notice above, which the fetch script writes into `dads/SOURCE.md` |
-| The generated `.pptx` | No stylesheet is redistributed: the file contains measured geometry and the deck's own text. No code notice is owed for the code |
+| The delivered deck folder, which carries the fetched stylesheets verbatim | Yes — the code notice above. The fetch script writes it into `dads/SOURCE.md`, which travels with the folder |
+| A PDF printed from the deck | No stylesheet is redistributed: the file contains the rendered pages and the deck's own text. No code notice is owed for the code |
 | Any DADS wording, specification text or figure reproduced *inside* the deck | Yes — the documentation notice, on the slide that reproduces it |
 
 State which of these applies in the hand-off rather than leaving it to the

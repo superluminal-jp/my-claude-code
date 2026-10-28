@@ -7,7 +7,7 @@
 #   bash fetch-dads-assets.sh <deck-dir> [component ...]
 #
 #   <deck-dir>   Directory holding the deck. Assets land in <deck-dir>/dads/.
-#   component    Official component directory names (table, list, divider, ...).
+#   component    Official component directory names (heading, table, list, ...).
 #                Defaults to the set deck-template.html links.
 #
 # Writes:
@@ -23,7 +23,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/digital-go-jp/design-system-example-components-html.git"
 REPO_WEB="https://github.com/digital-go-jp/design-system-example-components-html"
-DEFAULT_COMPONENTS=(table list divider chip-label)
+DEFAULT_COMPONENTS=(heading list description-list table chip-label link)
 
 usage() {
   sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'

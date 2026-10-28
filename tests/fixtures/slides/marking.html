@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A deck whose classification marking goes wrong</title>
+<!-- Slide 1 sets the marking. Slide 2 differs from it, slide 3 has none,
+     slide 4 puts it at the bottom left, slide 5 claims level 4, and slide 6's
+     text says level 3 while data-level says 2. Each is reported; nothing
+     else is. -->
+<style>
+  body { margin: 0; background: #f2f2f2; font-family: sans-serif; }
+  .sld-slide { position: relative; box-sizing: border-box; width: 1280px; height: 720px; margin: 0 auto 24px; overflow: hidden; background: #ffffff; color: #1a1a1a; }
+  .frame { position: absolute; inset: 48px 64px 72px; display: flex; flex-direction: column; gap: 24px; }
+  h1, h2, h3, p, ul { margin: 0; }
+  h1 { font-size: 45px; } h2 { font-size: 32px; } h3 { font-size: 20px; }
+  p, li, dt, dd, th, td { font-size: 20px; line-height: 1.5; }
+  .sld-marking { position: absolute; top: 32px; right: 64px; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+<section class="sld-slide" data-layout="title">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h1>The staged option cuts staff hours</h1></div>
+</section>
+<section class="sld-slide" data-layout="premise">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Whole ministry</span></p>
+  <div class="frame"><h2>Paper forms are retyped before review</h2></div>
+</section>
+<section class="sld-slide" data-layout="answer">
+  <div class="frame"><h2>Start the staged option now</h2></div>
+</section>
+<section class="sld-slide" data-layout="point">
+  <p class="sld-marking" data-level="2" style="top: auto; right: auto; bottom: 40px; left: 64px;"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>The delay comes from retyping</h2></div>
+</section>
+<section class="sld-slide" data-layout="point">
+  <p class="sld-marking" data-level="4"><span class="sld-marking__level">Level 4</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>The staged option is cheaper</h2></div>
+</section>
+<section class="sld-slide" data-layout="closing">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 3</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>Approve the staged option by 20 January</h2></div>
+</section>
+</main>
+</body>
+</html>

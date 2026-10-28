@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title>
+<!-- Each slide breaks document or legibility rules; comments name the finding
+     the checker must report. Slide 5 is a different size on purpose. -->
+<style>
+  body { margin: 0; background: #f2f2f2; font-family: sans-serif; }
+  .sld-slide { position: relative; box-sizing: border-box; width: 1280px; height: 720px; margin: 0 auto 24px; overflow: hidden; background: #ffffff; color: #1a1a1a; }
+  .frame { position: absolute; inset: 48px 64px 72px; display: flex; flex-direction: column; gap: 24px; }
+  h1, h2, h3, p, ul { margin: 0; }
+  h1 { font-size: 45px; } h2 { font-size: 32px; } h3 { font-size: 20px; }
+  p, li, dt, dd, th, td { font-size: 20px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<main>
+<section class="sld-slide" data-layout="title">
+  <div class="frame">
+    <h1>First top-level heading</h1>
+    <h1>Second top-level heading (h1-count)</h1>
+  </div>
+</section>
+<section class="sld-slide" data-layout="answer">
+  <div class="frame">
+    <p>This slide has no heading (no-heading).</p>
+    <h4>A level-four heading straight after level one (heading-skip)</h4>
+    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" width="40" height="40">
+    <svg width="40" height="40"><rect width="40" height="40" fill="#1a1a1a"></rect></svg>
+    <svg width="40" height="40" aria-hidden="true"><rect width="40" height="40" fill="#1a1a1a"></rect></svg>
+  </div>
+</section>
+<section class="sld-slide" data-layout="point">
+  <div class="frame">
+    <h2>Legibility</h2>
+    <p style="color: #aaaaaa">Grey on white is 2.3:1 (contrast).</p>
+    <p style="font-size: 12px">Twelve pixels is below the floor (font-too-small).</p>
+    <p>A <span style="padding: 6px 10px; background: #e8f1fe;">padded highlight</span> overflows its line box but clips nothing.</p>
+    <div style="height: 30px; overflow: hidden;"><p>This box is one line high and the text runs to two lines because it is long enough to wrap past the edge of the slide frame, and then it keeps going for another full sentence so that no font fits it on a single line (clipped).</p></div>
+    <div style="display: none"><p style="font-size: 10px">Hidden notes are not checked.</p></div>
+  </div>
+</section>
+<section class="sld-slide" data-layout="point">
+  <div class="frame">
+    <h2>Layout</h2>
+    <table><tbody><tr><td>No header cell (table-no-header)</td><td>1</td></tr></tbody></table>
+    <ul><li>One</li><li>Two</li><li>Three</li><li>Four</li><li>Five</li><li>Six (dense)</li></ul>
+    <div style="height: 20px; border: 2px solid #dddddd;"></div>
+  </div>
+  <p style="position: absolute; left: 1200px; top: 300px; width: 200px;">Off the slide (off-slide)</p>
+  <p style="position: absolute; left: 400px; top: 8px;">Too near the edge (safe-area)</p>
+</section>
+<section class="sld-slide" data-layout="point" style="width: 1024px; height: 768px;">
+  <div class="frame"><h2>A 4:3 slide among 16:9 slides (size-mismatch)</h2></div>
+</section>
+</main>
+</body>
+</html>

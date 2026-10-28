@@ -22,7 +22,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 - **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
   推論の完全性（4つの推論セルフチェック: 依存と並行・条件と分岐・反復・推論）、権限と安全性
-  （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック）、
+  （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の部（要旨・前提・方法・結果・考察・結論）、番号付きの主張の見出しと太字の論点による構造の可視化、初学者向けの前提と平易な定義、比喩・類推による説明の禁止）、
   モデルと労力のルーティング（能力層、閉じたエスカレーション条件、サブエージェントのモデルと労力））。他のルール・スキル・設定パスへの言及は持たない。
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック。中央ルーティング表なしに
@@ -42,8 +42,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
     `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
     React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
-    （DADS 公式資材で 16:9 スライドを HTML として作成し、同梱ツールで編集可能な
-    PowerPoint に変換）、`scrum-master`（Scrum Guide 2020 だけを規範に、
+    （DADS 公式資材で 16:9 スライドを HTML として作成し、前提 → 結論 → 論点ごとの
+    スライドという木の構造で組み、本編の各スライドに全体の中の現在地を、全スライドの右上に機密性と公開範囲を示し、同梱の検査ツールで確認する）、`scrum-master`（Scrum Guide 2020 だけを規範に、
     Scrumイベント・作成物・アカウンタビリティ・逸脱を診断・改善）、`secure-logging`
     （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE と、Python・React・AWS Lambda と CDK・
     Google Cloud（Cloud Run functions を含む）・Azure（Azure Functions を含む）・各クラウドの
@@ -173,7 +173,7 @@ my-claude-code/
     │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
     │   ├── model-routing.md        # モデルと労力のルーティング: 足りる最小の層、閉じたエスカレーション条件
     │   ├── permissions.md          # 権限と安全性。強制される deny は settings.json
-    │   └── pyramid-principle.md    # 実質的な出力に対する読み手本位の構造セルフチェック
+    │   └── pyramid-principle.md    # 読み手本位の構造: ピラミッド、論文の部の順序、前提と用語
     └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型
         ├── coder/SKILL.md          # 変更手順 + TDD + SDD + 品質 + 安全 + 型安全性 + ドキュメント
         ├── minto-pyramid/          # 取り込んだプラグイン: 全実質タスクに Minto 構造(ローカル変更: Stop フックなし)
@@ -187,11 +187,11 @@ my-claude-code/
         ├── git-workflow/SKILL.md   # ブランチ/コミット/プッシュ/PR 運用
         ├── aws-research/SKILL.md   # AWS 公式ドキュメントの最新調査
         ├── digital-agency-frontend/ # DADS React/Tailwind の手順 + 出典付きの参考資料(ドメインオーバーレイ)
-        ├── digital-agency-slides/  # DADS 16:9 デッキを HTML で作り編集可能な .pptx へ(ドメインオーバーレイ)
+        ├── digital-agency-slides/  # DADS 16:9 HTML デッキを 前提 -> 結論 -> 論点 で組む(ドメインオーバーレイ)
         │   ├── SKILL.md            #   プレイブック
-        │   ├── references/         #   スライド設計、マークアップ契約、変換、資材の出典
+        │   ├── references/         #   スライド設計、マークアップ契約、検査、資材の出典
         │   ├── assets/             #   1280x720 のレイアウト CSS + 注釈付きデッキテンプレート
-        │   └── scripts/            #   セットアップ、公式資材の取得、DOM 抽出、デッキ CLI
+        │   └── scripts/            #   セットアップ、公式資材の取得、ブラウザ内の検査、デッキ CLI
         ├── scrum-master/           # Scrum Guide (2020) だけを規範に、イベント・作成物・アカウンタビリティを診断(ドメインオーバーレイ)
         │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   必要時に読む参考文書3件 + Scrum Guide の PDF
@@ -285,11 +285,12 @@ bash tests/run-readme-skill-index.sh
 python3 -B -m unittest discover -s tests -v
 ```
 
-`run-digital-agency-slides-skill.sh` の末尾は、公式 DADS スタイルシートを取得して
-同梱のデッキテンプレートを変換する end-to-end セクションです。ネットワーク接続と、
-`python-pptx` および `playwright` を備えた Python 環境が必要です — `DECK_PYTHON` で
-その環境を指定してください。指定がない場合、このセクションは失敗ではなく
-スキップとして報告されます。
+`run-digital-agency-slides-skill.sh` は、`tests/fixtures/slides/` の自己完結した
+fixture に対してデッキの検査ツールを実行し、最後に公式 DADS スタイルシートを取得して
+同梱のデッキテンプレートを検査・プレビューする end-to-end セクションを実行します。
+どちらも `playwright` を備えた Python 環境が必要です — `DECK_PYTHON` でその環境を
+指定してください。指定がない場合、これらは失敗ではなくスキップとして報告されます。
+end-to-end セクションはさらにネットワーク接続を必要とします。
 
 `run-removed-guardrails.sh` は特定の変更に紐づかない、常設の回帰防止チェックです —
 `.claude/hooks/`・`scripts/` が再導入されたら失敗し
