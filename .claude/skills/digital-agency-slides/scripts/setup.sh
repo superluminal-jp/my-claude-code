@@ -35,5 +35,5 @@ cat >&2 <<MSG
 setup: ready.
   Deck tooling:  $VENV/bin/python $(dirname "$0")/deck.py --help
   Japanese text renders and measures correctly only if Noto Sans JP is
-  installed on this machine; otherwise pass --font to remap it.
+  available to the browser; the deck template loads it from Google Fonts.
 MSG
