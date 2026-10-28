@@ -28,8 +28,10 @@ across projects while preserving unrelated user files.
   completeness (six self-checks: dependency, branching, iteration,
   inference), authorization and safety (the enforced deny list lives in
   `settings.json`), reader-facing structure (the Pyramid Principle
-  self-check, plus premises and plain-word definitions for a newcomer and no
-  explanation by metaphor or analogy), and model and effort routing (capability tiers, closed
+  self-check; the parts of a research paper — summary, premises, method,
+  results, discussion, conclusion — in answer-first order; premises and
+  plain-word definitions for a newcomer; and no explanation by metaphor or
+  analogy), and model and effort routing (capability tiers, closed
   escalation conditions, subagent model and effort). None references
   another rule, a skill, or a config path. What each file deliberately
   omits, and where that content went, is recorded in
@@ -169,7 +171,7 @@ my-claude-code/
     │   ├── thinking-lenses.md      # Reasoning completeness: six self-checks applied every task
     │   ├── model-routing.md        # Model and effort routing: lowest sufficient tier, closed escalation conditions
     │   ├── permissions.md          # Authorization and safety; enforced deny → settings.json
-    │   └── pyramid-principle.md    # Reader-facing structure self-check; premises and terms for a newcomer
+    │   └── pyramid-principle.md    # Reader-facing structure: pyramid, paper-part order, premises and terms
     └── skills/                     # On-demand: body loaded when relevant, self-describing
         ├── coder/SKILL.md          # Change workflow + TDD + SDD + code quality + security + type safety + docs
         ├── minto-pyramid/          # Vendored plugin: Minto structure for every substantive task (locally modified: no Stop hook)

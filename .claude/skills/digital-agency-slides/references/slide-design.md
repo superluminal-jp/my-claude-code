@@ -55,10 +55,10 @@ four — or some of them are detail, which moves down a level.
 | # | Role (`data-layout`) | The slide | Test |
 |---|---|---|---|
 | 1 | `title` | The governing message as the title | A reader who sees only this slide knows the answer |
-| 2 | `premise` | What the audience must share before the answer makes sense: the situation they already accept, what has gone wrong, the terms they need, and the question this raises | Every fact on it is undisputed; every term the deck relies on is defined |
+| 2 | `premise` | What the audience must share before the answer makes sense: the situation they already accept, what has gone wrong, the terms they need, how the evidence was gathered, and the question this raises | Every fact on it is undisputed; every term the deck relies on is defined |
 | 3 | `answer` | The governing message, the key line drawn as a tree, and the ask | A reader who stops here has the answer, its reasons, and what is asked of them |
 | 4 … k+3 | `point` | One key-line point and its evidence | The body proves the headline without help from another slide |
-| k+4 | `closing` | The decision, the actions, the owners, the dates | Who does what by when |
+| k+4 | `closing` | The decision, the actions, the owners, the dates, and where the conclusion stops holding | Who does what by when, and under what condition the answer would change |
 | after | `appendix` | Detail a reader may look up | Nothing on it is needed to follow the main deck |
 
 The answer comes by slide 3. An audience that learns on slide 9 what is being
@@ -70,6 +70,25 @@ when the audience already shares its facts and terms, and the closing slide
 only when the deck asks for nothing. There is no agenda slide and no section
 divider: the answer slide's tree is the map, and each point slide's shoulder
 text (`論点2`) names its branch.
+
+### The parts of a research paper, on slides
+
+The deck follows the order of a research paper's parts while keeping the
+answer first, and fits them into the same slide budget: the method and the
+discussion each take one line on an existing slide, not a slide of their own.
+
+| Paper part | Slide | What it carries |
+|---|---|---|
+| Summary | `title`, then `answer` | The governing message; the answer slide adds the key line and the ask |
+| Introduction | `premise` | The background, the problem, the terms, the question |
+| Method | `premise`, one line | How the evidence was gathered — sources, period, procedure — so the audience can judge how far to trust it |
+| Results | `point` | One key-line point and its evidence per slide |
+| Discussion | `closing`, one line | The conclusion's limits: where it stops holding, and what would change it |
+| Conclusion | `closing` | The decision asked for, and who does what by when |
+| Appendix | `appendix` | Detail a reader may look up |
+
+Any paragraph on a slide opens with its claim in the first sentence; the
+sentences after it support that claim.
 
 A single key-line point is not a tree. Put its evidence directly on the answer
 slide. More than five points means the key line is at the wrong level:
@@ -92,6 +111,8 @@ deck.
   rest wrongly. Explain the thing itself: its definition, its parts, and a
   concrete instance of it. An instance of the subject is an example, not a
   comparison, and is welcome.
+- State in one line how the evidence was gathered: its sources, the period
+  it covers, and how it was measured or estimated.
 - End with the question the deck answers, so the answer slide reads as its
   reply.
 

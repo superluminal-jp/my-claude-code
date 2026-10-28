@@ -168,5 +168,7 @@ spacing is left as published.
       `aria-hidden="true"`.
 - [ ] Every table has `<th>` cells with `scope`.
 - [ ] Every term a newcomer would not know is defined, without metaphor.
+- [ ] The premise slide states how the evidence was gathered; the closing
+      slide states where the conclusion stops holding.
 - [ ] No meaning is carried by colour or position alone.
 - [ ] Reading order matches document order.

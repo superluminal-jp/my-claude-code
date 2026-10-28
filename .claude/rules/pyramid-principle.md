@@ -21,6 +21,21 @@ Assume the reader is new to the subject unless the user's own messages show othe
 - Prefer the plain word when it is exact. When precision needs the standard term, keep it and define it.
 - Never explain by metaphor or analogy: a comparison with something else carries only some of the subject's properties, and the reader infers the rest wrongly. Explain the thing itself — its definition, its parts, and how they relate — and illustrate with a concrete instance of the subject, which is an example, not a comparison.
 
+## Parts
+
+Lay out a full answer in the order of a research paper, keeping the answer first: summary, premises, method, results, discussion, conclusion.
+
+1. Summary — the answer and its main supports in one paragraph, with whatever context it cannot be read without.
+2. Premises — the background, the problem, the question, and the terms, as above.
+3. Method — how the support was obtained: sources, procedure, and assumptions, so the reader can judge how far to trust it. If the answer rests only on reasoning from the request, say so.
+4. Results — the support, grouped by the points that answer the question.
+5. Discussion — what the results mean, where they stop holding, and alternative explanations not ruled out.
+6. Conclusion — what follows for the reader: the decision, action, or next step, not a repeat of the summary.
+
+- Omit a part with no content. In a short answer, keep the order and compress the parts into a few sentences.
+- Show the parts as headings only in long-form writing such as a report, an analysis, or a document; in an ordinary answer keep the order without headings.
+- Open each paragraph with its claim in the first sentence; the sentences after it support that claim.
+
 ## Vertical support
 
 - Every child point must answer the question naturally raised by its parent and must support—not merely relate to—the parent's claim.
@@ -41,5 +56,8 @@ Assume the reader is new to the subject unless the user's own messages show othe
 ## References
 
 - Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987.
+- International Committee of Medical Journal Editors, *Recommendations for the Conduct, Reporting, Editing, and Publication of Scholarly Work in Medical Journals*, "Preparing a Manuscript for Submission to a Medical Journal" — original research is divided into Introduction, Methods, Results, and Discussion (Parts): <https://icmje.org/recommendations/browse/manuscript-preparation/preparing-for-submission.html>
+- L. B. Sollaci and M. G. Pereira, "The introduction, methods, results, and discussion (IMRAD) structure: a fifty-year survey," *Journal of the Medical Library Association* 92(3), 2004 (Parts).
+- 木下是雄『理科系の作文技術』中公新書, 1981 — putting the main point first, and the topic sentence that opens each paragraph (Parts).
 - ISO 24495-1:2023, *Plain language — Part 1: Governing principles and guidelines* — principle 3, readers can easily understand what they find, and its guideline 5.3.2, choose familiar words (Premises and terms).
 - R. J. Spiro, P. J. Feltovich, R. L. Coulson, and D. K. Anderson, "Multiple analogies for complex concepts: antidotes for analogy-induced misconception in advanced knowledge acquisition," in S. Vosniadou and A. Ortony (eds.), *Similarity and Analogical Reasoning*, Cambridge University Press, 1989 — a single analogy leads learners to carry properties of the source into the subject where they do not hold (Premises and terms).

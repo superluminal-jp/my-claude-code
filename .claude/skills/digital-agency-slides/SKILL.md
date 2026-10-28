@@ -71,18 +71,23 @@ and under each point the evidence that proves it. Then lay it out in this
 order — **premise, answer, points**:
 
 1. **Cover** — the governing message as the title.
-2. **Premise** — the situation the audience accepts, what has gone wrong, and
-   the terms a newcomer needs, defined in plain words. It ends in the question
-   the deck answers. Omit it only when the audience already shares all three.
+2. **Premise** — the situation the audience accepts, what has gone wrong, the
+   terms a newcomer needs, defined in plain words, and one line on how the
+   evidence was gathered. It ends in the question the deck answers. Omit it
+   only when the audience already shares all of it.
 3. **Answer** — the governing message again, with the key line drawn as a tree,
    and the ask. This slide replaces an agenda and section dividers.
 4. **One slide per key-line point** — the point as the headline, its evidence
    in the body.
-5. **Closing** — who does what by when, when the deck asks for a decision.
+5. **Closing** — who does what by when, when the deck asks for a decision,
+   and one line on where the conclusion stops holding.
 6. **Appendix** — detail a reader may look up, after the main deck.
 
-A slide is one node of the tree with its direct children, never one leaf. The
-main deck is at most k + 4 slides for k key-line points. Details, the layout
+This is the order of a research paper's parts — summary, introduction,
+method, results, discussion, conclusion — with the answer first, and with the
+method and the discussion folded into existing slides rather than given their
+own. A slide is one node of the tree with its direct children, never one leaf.
+The main deck is at most k + 4 slides for k key-line points. Details, the layout
 catalogue and the density limits: `references/slide-design.md`.
 
 ### 3. Set up the workspace

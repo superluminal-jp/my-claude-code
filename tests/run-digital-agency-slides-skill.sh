@@ -110,6 +110,8 @@ run_skill_contract() {
   check_contains "DSN-14: reference derives the slide budget from the tree" "$DESIGN_REFERENCE" 'k \+ 4'
   check_contains "DSN-15: reference sets premises and definitions before the answer" "$DESIGN_REFERENCE" 'premise'
   check_contains "DSN-16: reference forbids explaining by metaphor or analogy" "$DESIGN_REFERENCE" '(metaphor|analogy)'
+  check_contains "DSN-17: reference puts the paper's method on the premise slide" "$DESIGN_REFERENCE" '^\| Method.*premise'
+  check_contains "DSN-18: reference puts the paper's discussion on the closing slide" "$DESIGN_REFERENCE" '^\| Discussion.*closing'
 
   check "CON-01: authoring contract exists" "$([ -f "$CONTRACT_REFERENCE" ] && echo 1 || echo 0)"
   check_contains "CON-02: contract uses the DADS heading with a shoulder" "$CONTRACT_REFERENCE" 'dads-heading__shoulder'
@@ -163,6 +165,8 @@ run_asset_contract() {
   check_contains "TPL-10: template carries an answer slide with the tree" "$DECK_TEMPLATE" 'class="sld-tree"'
   check "TPL-11: template has no section divider slides" \
     "$([ -f "$DECK_TEMPLATE" ] && ! grep -q 'data-layout="section"' "$DECK_TEMPLATE" && echo 1 || echo 0)"
+  check_contains "TPL-13: template's premise slide states how the evidence was gathered" "$DECK_TEMPLATE" '調べ方：'
+  check_contains "TPL-14: template's closing slide states the conclusion's limits" "$DECK_TEMPLATE" '限界：'
   check "TPL-12: template has exactly one h1" \
     "$([ -f "$DECK_TEMPLATE" ] && [ "$(grep -o '<h1' "$DECK_TEMPLATE" | wc -l)" -eq 1 ] && echo 1 || echo 0)"
 }

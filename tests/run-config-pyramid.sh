@@ -108,6 +108,8 @@ thinking-lenses.md"
   check_contains "RULE-11: routing owns capability tiers and effort" "$RULE_DIR/model-routing.md" 'tier|capabilit|effort'
   check_contains "RULE-12: presentation defines terms for a newcomer" "$RULE_DIR/pyramid-principle.md" 'newcomer.*(term|defin)|(term|defin).*newcomer'
   check_contains "RULE-13: presentation forbids explaining by metaphor or analogy" "$RULE_DIR/pyramid-principle.md" '[Nn]ever explain by (metaphor|analogy)'
+  check_contains "RULE-14: presentation orders the parts of a research paper, answer first" "$RULE_DIR/pyramid-principle.md" 'summary.*premises.*method.*results.*discussion.*conclusion'
+  check_contains "RULE-15: presentation opens each paragraph with its claim" "$RULE_DIR/pyramid-principle.md" 'paragraph.*first sentence|first sentence.*paragraph'
 }
 
 run_skill_contract() {
