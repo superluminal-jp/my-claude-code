@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""Unit assertions for deck.py that need no browser.
-
-Each case is a failure mode that produced either a corrupt file python-pptx
-would happily reopen, or a traceback where a warning was the contract.
+"""Unit assertions for deck.py's command line and reporting.
 
 Usage: assert_deck_units.py <path to deck.py>
 """
@@ -10,9 +7,9 @@ Usage: assert_deck_units.py <path to deck.py>
 from __future__ import annotations
 
 import importlib.util
+import io
 import sys
 import tempfile
-import zipfile
 from pathlib import Path
 
 FAILURES: list[str] = []
@@ -37,98 +34,61 @@ def load(path: str):
     return module
 
 
+def exits_with_usage_error(deck, argv: list[str]) -> bool:
+    stderr, sys.stderr = sys.stderr, io.StringIO()
+    try:
+        deck.build_parser().parse_args(argv)
+    except SystemExit as exc:
+        return exc.code == 2
+    finally:
+        sys.stderr = stderr
+    return False
+
+
 def main(argv: list[str]) -> int:
     deck = load(argv[1])
-    from lxml import etree
 
-    # The geometry invariant the whole pipeline rests on.
-    check("UNIT-01 one px is exactly 9525 EMU", deck.EMU_PER_PX == 9525)
-    check("UNIT-02 one px is exactly 0.75 pt", deck.PT_PER_PX == 0.75)
-    check("UNIT-03 the canvas is exactly a 16:9 slide",
-          deck.px_to_emu(1280) == 12192000 and deck.px_to_emu(720) == 6858000)
+    # PowerPoint conversion and its debugging dump were removed (ADR-0018).
+    check("UNIT-01 the removed pptx subcommand is rejected", exits_with_usage_error(deck, ["pptx", "deck.html"]))
+    check("UNIT-02 the removed ir subcommand is rejected", exits_with_usage_error(deck, ["ir", "deck.html"]))
 
-    # A font name with XML metacharacters must not corrupt the theme, and a
-    # backslash in it must not be read as a regex group reference.
-    for hostile in ("P&G Sans", "O'Hara Gothic", "Foo\\1Bar"):
-        tokens = {"--font-family-sans": hostile}
-        try:
-            clr, font, _ = deck._theme_xml(tokens, {})
-            etree.fromstring(font.encode("utf-8"))
-            ok, detail = True, ""
-        except Exception as exc:  # noqa: BLE001 - the assertion is that it survives
-            ok, detail = False, f"{type(exc).__name__}: {exc}"
-        check(f"UNIT-04 a theme font named {hostile!r} produces well-formed XML", ok, detail)
+    # The slide budget is derived from the tree: cover, premise, answer, up to
+    # five key-line points and a closing.
+    check("UNIT-03 the default main-deck budget is nine slides", deck.DEFAULTS["max_slides"] == 9)
+    args = deck.build_parser().parse_args(["lint", "deck.html", "--max-slides", "6"])
+    check("UNIT-04 --max-slides reaches the checker's options", deck._options(args)["max_slides"] == 6)
 
-    # An unresolved token must leave the default scheme alone rather than
-    # substituting a remembered palette.
-    clr, _, warnings = deck._theme_xml({"--color-key-900": "0017C1"}, {})
-    check("UNIT-05 an unresolved token leaves the colour scheme alone", clr is None and bool(warnings))
+    findings = [
+        {"slide": 2, "level": "warn", "code": "dense", "message": "m"},
+        {"slide": 1, "level": "error", "code": "contrast", "message": "m"},
+        {"slide": 0, "level": "error", "code": "no-lang", "message": "m"},
+    ]
+    stream = io.StringIO()
+    check("UNIT-05 report_findings counts errors, not warnings", deck.report_findings(findings, stream) == 2)
+    check("UNIT-06 the summary line states both counts", "2 error(s), 1 warning(s)" in stream.getvalue(), stream.getvalue())
 
-    # The package rewrite must not damage the zip.
-    from pptx import Presentation
+    # A missing deck is a usage mistake, not a traceback.
+    try:
+        code = deck.main(["lint", "/nonexistent/deck.html"])
+        ok, detail = code != 0, f"returned {code}"
+    except SystemExit as exc:
+        ok, detail = exc.code not in (0, None), f"exited {exc.code}"
+    except Exception as exc:  # noqa: BLE001 - the assertion is that it does not raise
+        ok, detail = False, f"{type(exc).__name__}: {exc}"
+    check("UNIT-07 a missing deck reports instead of crashing", ok, detail)
 
-    with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / "t.pptx"
-        Presentation().save(path)
-        with zipfile.ZipFile(path) as before:
-            names, kinds = before.namelist(), {i.filename: i.compress_type for i in before.infolist()}
-        deck._patch_package(path, {}, {}, "ja-JP")
-        with zipfile.ZipFile(path) as after:
-            check("UNIT-06 the package rewrite preserves every entry", after.namelist() == names)
-            check("UNIT-07 it preserves each entry's compression",
-                  {i.filename: i.compress_type for i in after.infolist()} == kinds)
-            check("UNIT-08 the rewritten zip is intact", after.testzip() is None)
-            themes_ok = True
-            for name in after.namelist():
-                if name.startswith("ppt/theme/") and name.endswith(".xml"):
-                    try:
-                        etree.fromstring(after.read(name))
-                    except Exception:  # noqa: BLE001
-                        themes_ok = False
-            check("UNIT-09 every rewritten theme part parses", themes_ok)
-            check("UNIT-10 the presentation language is rewritten",
-                  b'lang="ja-JP"' in after.read("ppt/presentation.xml"))
-        check("UNIT-11 the rewritten package still opens", Presentation(path) is not None)
-
-    # A broken image reference is an authoring mistake, not a crash.
-    with tempfile.TemporaryDirectory() as tmp:
-        base = Path(tmp)
-        cases = [
-            ("a missing file", f"file://{base}/nope.png"),
-            ("a non-base64 data URI", "data:image/svg+xml,%3Csvg%3E%3C/svg%3E"),
-            ("an unreachable host", "http://127.0.0.1:9/none.png"),
-            ("a relative path that does not exist", "nope.png"),
-        ]
-        for label, src in cases:
-            try:
-                result = deck._load_image_bytes(src, base)
-                ok = result is None or isinstance(result, bytes)
-                detail = ""
-            except Exception as exc:  # noqa: BLE001 - the assertion is that it does not raise
-                ok, detail = False, f"{type(exc).__name__}: {exc}"
-            check(f"UNIT-12 {label} degrades instead of raising", ok, detail)
-
-    # Slack widens a box away from the edge its text is anchored to.
-    rect = {"x": 100.0, "y": 0.0, "w": 800.0, "h": 50.0}
-    x, w = deck._slack_rect(rect, "left", 6)
-    check("UNIT-13 slack keeps a left-aligned box's left edge", x == 100.0 and w == 806.0)
-    x, w = deck._slack_rect(rect, "right", 6)
-    check("UNIT-14 slack keeps a right-aligned box's right edge", x + w == 900.0)
-    x, w = deck._slack_rect(rect, "center", 6)
-    check("UNIT-15 slack keeps a centred box's centre", x + w / 2 == 500.0)
-
-    # A deck with no slides must report, not raise.
+    # A page with no slides must report, not raise.
     with tempfile.TemporaryDirectory() as tmp:
         empty = Path(tmp) / "empty.html"
-        empty.write_text("<!DOCTYPE html><html lang='ja'><body><p>no slides</p></body></html>", encoding="utf-8")
+        empty.write_text("<!DOCTYPE html><html lang='ja'><title>t</title><body><p>no slides</p></body></html>", encoding="utf-8")
         try:
-            code = deck.main(["pptx", str(empty), "-o", str(Path(tmp) / "o.pptx"), "--allow-findings"])
+            code = deck.main(["lint", str(empty)])
             ok, detail = code != 0, f"returned {code}"
         except SystemExit as exc:
-            ok, detail = exc.code != 0, f"exited {exc.code}"
+            ok, detail = exc.code not in (0, None), f"exited {exc.code}"
         except Exception as exc:  # noqa: BLE001
             ok, detail = False, f"{type(exc).__name__}: {exc}"
-        check("UNIT-16 a deck with no slides reports instead of crashing", ok, detail)
+        check("UNIT-08 a page with no slides reports instead of crashing", ok, detail)
 
     print(f"\n{CHECKS - len(FAILURES)} passed, {len(FAILURES)} failed")
     return 1 if FAILURES else 0

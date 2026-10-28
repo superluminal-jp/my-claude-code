@@ -106,6 +106,8 @@ thinking-lenses.md"
     "$([ ! -e "$RULE_DIR/git-workflow.md" ] && [ ! -e "$RULE_DIR/mcp.md" ] && [ ! -e "$RULE_DIR/skill-routing.md" ] && echo 1 || echo 0)"
 
   check_contains "RULE-11: routing owns capability tiers and effort" "$RULE_DIR/model-routing.md" 'tier|capabilit|effort'
+  check_contains "RULE-12: presentation defines terms for a newcomer" "$RULE_DIR/pyramid-principle.md" 'newcomer.*(term|defin)|(term|defin).*newcomer'
+  check_contains "RULE-13: presentation forbids explaining by metaphor or analogy" "$RULE_DIR/pyramid-principle.md" '[Nn]ever explain by (metaphor|analogy)'
 }
 
 run_skill_contract() {

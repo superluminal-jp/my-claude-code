@@ -3,52 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>デッキタイトル</title>
-<!-- Noto Sans JP is the DADS sans family. Install it on the machine that will
-     open the .pptx as well, or pass --font to remap it at conversion time. -->
+<!-- The design system's heading guidance: <title> states the page's subject,
+     and the cover's h1 states the same subject. -->
+<title>段階的オンライン化により、申請処理の作業時間を年間4,620時間削減できる｜〇〇省 △△課</title>
+<!-- Noto Sans JP is the DADS sans family. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
 <!-- Official Digital Agency assets, fetched by scripts/fetch-dads-assets.sh. -->
 <link rel="stylesheet" href="dads/global.css">
-<link rel="stylesheet" href="dads/components/table/table.css">
+<link rel="stylesheet" href="dads/components/heading/heading.css">
 <link rel="stylesheet" href="dads/components/list/list.css">
+<link rel="stylesheet" href="dads/components/description-list/description-list.css">
+<link rel="stylesheet" href="dads/components/table/table.css">
+<link rel="stylesheet" href="dads/components/chip-label/chip-label.css">
+<link rel="stylesheet" href="dads/components/link/link.css">
 <!-- This skill's slide layout. -->
 <link rel="stylesheet" href="slide.css">
 </head>
 <body class="sld-deck">
+<main>
+
+<!-- The deck's tree, written before any slide:
+
+     Governing message: 段階的オンライン化（案A）により作業時間を年間4,620時間削減できる
+       → raises: なぜこの案なのか
+          1. 遅延の原因は受付・転記の二重入力にある          (slide 4)
+          2. 案Aは全面刷新（案B）より安く、早く効果が出る      (slide 5)
+          3. 3か年で段階的に実施し、初年度に効果の8割を得る    (slide 6)
+
+     Main deck = cover + premises + answer + 3 points + closing = 7 slides.
+     The supports of each point sit on that point's slide; detail a reader may
+     look up goes to the appendix. -->
 
 <!-- =============================================================== title ==
-     One cover slide. The title is the deck's single governing message, not a
-     topic label: a reader who sees only this slide should know the answer. -->
-<section class="sld-slide" data-layout="title">
+     The cover. Its h1 is the governing message, not a topic label: a reader
+     who sees only this slide knows the answer. -->
+<section class="sld-slide" data-layout="title" aria-labelledby="s1-title">
   <div class="sld-slide__frame">
-    <p class="sld-eyebrow dads-u-std-20N-150"><span>〇〇省 △△課</span><span class="sld-rule"></span></p>
-    <h1 class="sld-message dads-u-dsp-48B-140">申請オンライン化により職員の作業時間を年間4,620時間削減できる</h1>
+    <hgroup class="dads-heading" data-size="45" data-rule="8">
+      <p class="dads-heading__shoulder">〇〇省 △△課</p>
+      <h1 class="dads-heading__heading" id="s1-title">段階的オンライン化により、申請処理の作業時間を年間4,620時間削減できる</h1>
+    </hgroup>
     <p class="dads-u-std-24N-150">2026年度 第2四半期 検討報告</p>
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>作成：デジタル推進チーム</span>
     <span>2026-01-01</span>
   </footer>
-  <div class="sld-notes" data-pptx="notes">表紙。所属・報告種別・日付を口頭で補足する。</div>
+  <div class="sld-notes">表紙。所属・報告の種類・日付を口頭で補う。</div>
 </section>
 
-<!-- ============================================================== agenda ==
-     A list slide. The list itself is one native PowerPoint text box with real
-     bullets, so it stays editable after conversion. -->
-<section class="sld-slide" data-layout="bullets">
+<!-- ============================================================= premise ==
+     The premises the answer depends on: the situation the audience already
+     accepts, what has gone wrong, and the terms a newcomer needs, defined in
+     plain words by what they are — never by comparison with something else.
+     The takeaway states the question the rest of the deck answers. -->
+<section class="sld-slide" data-layout="premise" aria-labelledby="s2-title">
   <div class="sld-slide__frame">
-    <header class="sld-slide__header">
-      <p class="sld-eyebrow dads-u-dns-16N-130"><span>本日の結論</span><span class="sld-rule"></span></p>
-      <h2 class="sld-message dads-u-std-32B-150">段階的オンライン化（案A）の着手をお願いしたい</h2>
-    </header>
-    <div class="sld-slide__body" data-fill="center">
-      <ul data-spacing="12" class="dads-list dads-u-std-24N-150">
-        <li>結論：2026年度から案A（段階的オンライン化）に着手する</li>
-        <li>根拠：遅延は二重入力に起因し、受付の電子化で年間4,620時間を削減できる</li>
-        <li>実施計画：3か年で受付・審査・交付の順に電子化する（初期費用0.8億円）</li>
-      </ul>
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">前提</p>
+      <h2 class="dads-heading__heading" id="s2-title">紙で受け付けた申請を職員が転記しており、処理の遅れが続いている</h2>
+    </hgroup>
+    <div class="sld-slide__body">
+      <div class="sld-cols" data-cols="2">
+        <div class="sld-stack">
+          <div class="dads-heading" data-size="20">
+            <h3 class="dads-heading__heading">いま起きていること</h3>
+          </div>
+          <ul class="dads-list dads-u-std-20N-150" data-spacing="4">
+            <li>申請は紙の申請書で受け付けている</li>
+            <li>職員が申請書の内容を基幹システムに入力し直している</li>
+            <li>申請から結果の通知までの日数が延び続けている</li>
+          </ul>
+        </div>
+        <div class="sld-stack">
+          <div class="dads-heading" data-size="20">
+            <h3 class="dads-heading__heading">この資料で使う言葉</h3>
+          </div>
+          <dl class="dads-description-list dads-u-std-18N-160">
+            <div class="dads-description-list__item">
+              <dt>転記</dt>
+              <dd>紙の申請書に書かれた内容を、職員が基幹システムに手で入力し直すこと</dd>
+            </div>
+            <div class="dads-description-list__item">
+              <dt>形式審査</dt>
+              <dd>記入漏れや必要書類の有無を確かめる審査。内容の当否は判断しない</dd>
+            </div>
+            <div class="dads-description-list__item">
+              <dt>オンライン化</dt>
+              <dd>申請者がウェブの申請フォームで申請し、その内容がそのまま基幹システムに登録される仕組みにすること</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+      <p class="sld-takeaway sld-push dads-u-std-20N-150">
+        この資料の問い：処理の遅れを、どの方法で、いつまでに解消するか。
+      </p>
     </div>
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
@@ -57,24 +108,58 @@
   </footer>
 </section>
 
-<!-- ============================================================= section ==
-     A divider. Use one per top-level group of the argument, never more. -->
-<section class="sld-slide" data-layout="section">
+<!-- ============================================================== answer ==
+     The conclusion first, with the key line that supports it. The headline is
+     the root of the tree; each item below is one key-line point and gets one
+     slide of its own. This slide replaces an agenda and section dividers. -->
+<section class="sld-slide" data-layout="answer" aria-labelledby="s3-title">
   <div class="sld-slide__frame">
-    <p class="sld-eyebrow dads-u-std-20N-150"><span>1</span><span class="sld-rule"></span></p>
-    <h2 class="sld-message dads-u-dsp-48B-140">現状と原因</h2>
+    <hgroup class="dads-heading" data-size="32" data-rule="4">
+      <p class="dads-heading__shoulder">結論</p>
+      <h2 class="dads-heading__heading" id="s3-title">案Aに着手すれば、申請処理の作業時間を年間4,620時間削減できる</h2>
+    </hgroup>
+    <div class="sld-slide__body">
+      <ol class="sld-tree">
+        <li class="sld-tree__node">
+          <div class="dads-heading" data-size="20">
+            <h3 class="dads-heading__heading"><span class="sld-index">1</span>遅延の原因は受付・転記の二重入力にある</h3>
+          </div>
+          <p class="dads-u-std-18N-160">受付・転記が年間工数の59%を占め、受付件数は横ばいである。</p>
+        </li>
+        <li class="sld-tree__node">
+          <div class="dads-heading" data-size="20">
+            <h3 class="dads-heading__heading"><span class="sld-index">2</span>案Aは全面刷新より安く、早く効果が出る</h3>
+          </div>
+          <p class="dads-u-std-18N-160">初期費用は0.8億円（案Bは4.2億円）、効果が出るまで9か月（同30か月）。</p>
+        </li>
+        <li class="sld-tree__node">
+          <div class="dads-heading" data-size="20">
+            <h3 class="dads-heading__heading"><span class="sld-index">3</span>3か年で段階的に進め、初年度に効果の8割を得る</h3>
+          </div>
+          <p class="dads-u-std-18N-160">受付、審査、交付の順に電子化する。</p>
+        </li>
+      </ol>
+      <p class="sld-takeaway sld-push dads-u-std-20N-150">
+        お願いしたい判断：案Aの着手を、2026年1月20日までにご承認いただきたい。
+      </p>
+    </div>
   </div>
+  <footer class="sld-slide__footer dads-u-dns-14N-130">
+    <span>〇〇省 △△課</span>
+    <span>3</span>
+  </footer>
 </section>
 
-<!-- ================================================================= kpi ==
-     Numbers first. Each tile pairs a value with what it measures; the unit is
-     part of the text, so nothing depends on the reader inferring it. -->
-<section class="sld-slide" data-layout="kpi">
+<!-- ======================================================== point (kpi) ==
+     One key-line point: its headline restates the point as an assertion, and
+     its body carries the supports — here three measured values and the figure
+     that shows where the double entry happens. -->
+<section class="sld-slide" data-layout="point" aria-labelledby="s4-title">
   <div class="sld-slide__frame">
-    <header class="sld-slide__header">
-      <p class="sld-eyebrow dads-u-dns-16N-130"><span>現状</span><span class="sld-rule"></span></p>
-      <h2 class="sld-message dads-u-std-32B-150">処理の遅延は受付件数ではなく二重入力に起因する</h2>
-    </header>
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">論点1</p>
+      <h2 class="dads-heading__heading" id="s4-title">処理の遅延は受付件数ではなく、受付・転記の二重入力に起因する</h2>
+    </hgroup>
     <div class="sld-slide__body">
       <div class="sld-cols" data-cols="3">
         <div class="sld-kpi">
@@ -86,12 +171,32 @@
           <p class="sld-kpi__label dads-u-std-18N-160">年間工数に占める受付・転記工程</p>
         </div>
         <div class="sld-kpi">
-          <p class="sld-kpi__value dads-u-dsp-48B-140">4,800時間</p>
-          <p class="sld-kpi__label dads-u-std-18N-160">受付・転記工程の年間工数</p>
+          <p class="sld-kpi__value dads-u-dsp-48B-140">横ばい</p>
+          <p class="sld-kpi__label dads-u-std-18N-160">過去3年間の受付件数</p>
         </div>
       </div>
+      <figure class="sld-figure">
+        <!-- The viewBox is cropped to the artwork: empty space inside it becomes
+             empty space on the slide, and strands the caption away from the figure. -->
+        <svg viewBox="0 100 1000 100" role="img" aria-labelledby="flow-title">
+          <title id="flow-title">申請処理の流れ図。窓口受付、転記、形式審査、交付の順に進み、転記が重複作業である。</title>
+          <rect x="10" y="110" width="200" height="80" rx="8" style="fill: var(--color-neutral-solid-gray-100)"></rect>
+          <text x="110" y="156" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">窓口受付</text>
+          <rect x="270" y="110" width="200" height="80" rx="8" style="fill: var(--color-primitive-orange-100)"></rect>
+          <text x="370" y="148" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">転記</text>
+          <text x="370" y="176" text-anchor="middle" font-size="18" style="fill: var(--color-primitive-orange-900)">重複作業</text>
+          <rect x="530" y="110" width="200" height="80" rx="8" style="fill: var(--color-neutral-solid-gray-100)"></rect>
+          <text x="630" y="156" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">形式審査</text>
+          <rect x="790" y="110" width="200" height="80" rx="8" style="fill: var(--color-neutral-solid-gray-100)"></rect>
+          <text x="890" y="156" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">交付</text>
+          <path d="M210 150 h60 M470 150 h60 M730 150 h60" style="stroke: var(--color-neutral-solid-gray-700)" stroke-width="3"></path>
+        </svg>
+        <figcaption class="sld-figure__caption dads-u-dns-16N-130">
+          図1：現行の申請処理の流れ。受付と審査の間で、同じ内容を二度入力している。
+        </figcaption>
+      </figure>
       <p class="sld-takeaway sld-push dads-u-std-20N-150">
-        受付件数は3年間ほぼ横ばいであり、遅延の要因は処理量ではなく作業構造にある。
+        処理量は増えていない。遅れの原因は、同じ内容を二度入力する作業の構造にある。
       </p>
     </div>
   </div>
@@ -99,81 +204,102 @@
     <span>出典：△△課 業務量調査（2025年度）</span>
     <span>4</span>
   </footer>
-  <div class="sld-notes" data-pptx="notes">3つの数値はいずれも2025年度の実測値。件数横ばいの折れ線は補足資料p.12。</div>
+  <div class="sld-notes">3つの数値はいずれも2025年度の実測値。受付件数の推移は付録の表とあわせて説明する。</div>
 </section>
 
-<!-- ============================================================= compare ==
-     Two comparable options, described on the same dimensions in the same
-     order, so the reader can compare row by row. -->
-<section class="sld-slide" data-layout="compare">
+<!-- ==================================================== point (compare) ==
+     Two options judged on the same criteria, in the same order on both sides,
+     so the reader compares line by line. The chip label states the
+     recommendation in words, not by colour alone. -->
+<section class="sld-slide" data-layout="point" aria-labelledby="s5-title">
   <div class="sld-slide__frame">
-    <header class="sld-slide__header">
-      <p class="sld-eyebrow dads-u-dns-16N-130"><span>対策の比較</span><span class="sld-rule"></span></p>
-      <h2 class="sld-message dads-u-std-32B-150">段階的なオンライン化は費用・期間の両面で全面刷新を下回る</h2>
-    </header>
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">論点2</p>
+      <h2 class="dads-heading__heading" id="s5-title">段階的オンライン化（案A）は、費用と期間の両面で全面刷新（案B）を下回る</h2>
+    </hgroup>
     <div class="sld-slide__body">
       <div class="sld-cols" data-cols="2">
         <div class="sld-card" data-tone="accent">
-          <p class="sld-card__label dads-u-dns-16B-130">案A：段階的オンライン化（推奨）</p>
-          <p class="dads-u-std-20N-150">初年度に申請受付のみを電子化し、翌年度に審査を自動化する。</p>
-          <ul data-spacing="8" class="dads-list dads-u-std-18N-160">
-            <li>初期費用 0.8億円</li>
-            <li>効果発現まで 9か月</li>
-            <li>既存システムの改修は限定的</li>
+          <div class="sld-card__head">
+            <div class="dads-heading" data-size="20">
+              <h3 class="dads-heading__heading">案A：段階的オンライン化</h3>
+            </div>
+            <span class="dads-chip-label" data-style="outlined" data-color="blue">推奨</span>
+          </div>
+          <p class="dads-u-std-18N-160">初年度に受付だけを電子化し、翌年度に審査を自動化する。</p>
+          <ul class="dads-list dads-u-std-18N-160" data-spacing="4">
+            <li>初期費用：0.8億円</li>
+            <li>効果が出るまで：9か月</li>
+            <li>既存システムの改修：一部に限られる</li>
           </ul>
         </div>
         <div class="sld-card" data-tone="sub">
-          <p class="sld-card__label dads-u-dns-16B-130">案B：基幹システム全面刷新</p>
-          <p class="dads-u-std-20N-150">申請から交付までを単一システムで再構築する。</p>
-          <ul data-spacing="8" class="dads-list dads-u-std-18N-160">
-            <li>初期費用 4.2億円</li>
-            <li>効果発現まで 30か月</li>
-            <li>全業務の同時移行が必要</li>
+          <div class="sld-card__head">
+            <div class="dads-heading" data-size="20">
+              <h3 class="dads-heading__heading">案B：基幹システムの全面刷新</h3>
+            </div>
+          </div>
+          <p class="dads-u-std-18N-160">申請から交付までを、一つの新しいシステムで作り直す。</p>
+          <ul class="dads-list dads-u-std-18N-160" data-spacing="4">
+            <li>初期費用：4.2億円</li>
+            <li>効果が出るまで：30か月</li>
+            <li>既存システムの改修：全業務を同時に移行する</li>
           </ul>
         </div>
       </div>
       <p class="sld-takeaway sld-push dads-u-std-20N-150">
-        案Bは効果発現まで30か月を要し、課題の解消が2029年度以降になる。
+        案Bでは効果が出るまで30か月かかり、遅れの解消は2029年度以降になる。
       </p>
     </div>
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
-    <span>費用は概算。詳細は別紙2。</span>
+    <span>費用は概算。積算の内訳は別紙2。</span>
     <span>5</span>
   </footer>
 </section>
 
-<!-- =============================================================== steps ==
-     A sequence. Keep it to three to five steps; more than that is a table. -->
-<section class="sld-slide" data-layout="steps">
+<!-- ====================================================== point (steps) ==
+     A sequence in time: three to five steps; more than that is a table. Each
+     step carries the figure that supports the point, so the point is proven
+     on its own slide; the full breakdown waits in the appendix. -->
+<section class="sld-slide" data-layout="point" aria-labelledby="s6-title">
   <div class="sld-slide__frame">
-    <header class="sld-slide__header">
-      <p class="sld-eyebrow dads-u-dns-16N-130"><span>実施計画</span><span class="sld-rule"></span></p>
-      <h2 class="sld-message dads-u-std-32B-150">3か年で受付・審査・交付の順に電子化する</h2>
-    </header>
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">論点3</p>
+      <h2 class="dads-heading__heading" id="s6-title">3か年で受付・審査・交付の順に電子化し、初年度に削減効果の8割を得る</h2>
+    </hgroup>
     <div class="sld-slide__body">
       <div class="sld-steps-axis">
         <div class="sld-steps__track"></div>
         <ol class="sld-steps">
           <li>
-            <p class="sld-steps__index dads-u-dns-16B-130"><span class="sld-steps__num">1</span><span>2026年度</span></p>
-            <p class="dads-u-std-22B-150">オンライン受付の開始</p>
-            <p class="dads-u-std-18N-160">申請フォームを公開し、紙申請と併行運用する。</p>
+            <p class="sld-steps__index dads-u-dns-16B-130"><span class="sld-index">1</span><span>2026年度</span></p>
+            <div class="dads-heading" data-size="20">
+              <h3 class="dads-heading__heading">オンライン受付を始める</h3>
+            </div>
+            <p class="dads-u-std-18N-160">申請フォームを公開し、紙の申請と並行して受け付ける。</p>
+            <p class="sld-accent dads-u-std-24B-150">年間3,840時間の削減</p>
           </li>
           <li>
-            <p class="sld-steps__index dads-u-dns-16B-130"><span class="sld-steps__num">2</span><span>2027年度</span></p>
-            <p class="dads-u-std-22B-150">審査の自動判定導入</p>
-            <p class="dads-u-std-18N-160">形式審査を自動化し、職員は例外処理に専念する。</p>
+            <p class="sld-steps__index dads-u-dns-16B-130"><span class="sld-index">2</span><span>2027年度</span></p>
+            <div class="dads-heading" data-size="20">
+              <h3 class="dads-heading__heading">形式審査を自動化する</h3>
+            </div>
+            <p class="dads-u-std-18N-160">記入漏れの確認をシステムが行い、職員は例外の処理に専念する。</p>
+            <p class="sld-accent dads-u-std-24B-150">年間630時間の削減</p>
           </li>
           <li>
-            <p class="sld-steps__index dads-u-dns-16B-130"><span class="sld-steps__num">3</span><span>2028年度</span></p>
-            <p class="dads-u-std-22B-150">電子交付への全面移行</p>
-            <p class="dads-u-std-18N-160">交付物を電子化し、紙申請の受付を終了する。</p>
+            <p class="sld-steps__index dads-u-dns-16B-130"><span class="sld-index">3</span><span>2028年度</span></p>
+            <div class="dads-heading" data-size="20">
+              <h3 class="dads-heading__heading">交付を電子化する</h3>
+            </div>
+            <p class="dads-u-std-18N-160">結果の通知を電子化し、紙の申請の受付を終える。</p>
+            <p class="sld-accent dads-u-std-24B-150">年間150時間の削減</p>
           </li>
         </ol>
       </div>
       <p class="sld-takeaway sld-push dads-u-std-20N-150">
-        初年度の受付電子化だけで、削減効果の8割が実現する。
+        初年度の削減（年間3,840時間）が、削減効果全体（年間4,620時間）の8割を占める。工程別の内訳は付録1。
       </p>
     </div>
   </div>
@@ -183,15 +309,50 @@
   </footer>
 </section>
 
-<!-- =============================================================== table ==
-     The official DADS table component. It converts to a native PowerPoint
-     table, so the numbers stay selectable and editable. -->
-<section class="sld-slide" data-layout="table">
+<!-- ============================================================= closing ==
+     What happens next: the decision asked for, who acts, and by when. -->
+<section class="sld-slide" data-layout="closing" aria-labelledby="s7-title">
   <div class="sld-slide__frame">
-    <header class="sld-slide__header">
-      <p class="sld-eyebrow dads-u-dns-16N-130"><span>効果の内訳</span><span class="sld-rule"></span></p>
-      <h2 class="sld-message dads-u-std-32B-150">削減効果の8割は受付段階で生じる</h2>
-    </header>
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">お願いしたい判断</p>
+      <h2 class="dads-heading__heading" id="s7-title">案Aの着手について、2026年1月20日までにご承認いただきたい</h2>
+    </hgroup>
+    <div class="sld-slide__body">
+      <div class="sld-cols" data-cols="2-1">
+        <ul class="dads-list dads-u-std-20N-150" data-spacing="8">
+          <li>2026年1月中：要件定義の委託契約を結ぶ（△△課）</li>
+          <li>2026年3月末：オンライン受付の要件定義を終える（受託事業者）</li>
+          <li>2026年4月：試行運用を始める（△△課・窓口担当）</li>
+        </ul>
+        <div class="sld-card" data-tone="accent">
+          <div class="dads-heading" data-size="20">
+            <h3 class="dads-heading__heading">必要な予算措置</h3>
+          </div>
+          <p class="dads-u-std-28B-150">0.8億円</p>
+          <p class="dads-u-std-18N-160">2026年度当初予算に計上する</p>
+        </div>
+      </div>
+      <p class="sld-takeaway sld-push dads-u-std-20N-150">
+        1月20日を過ぎると、2026年度当初予算に計上できない。
+      </p>
+    </div>
+  </div>
+  <footer class="sld-slide__footer dads-u-dns-14N-130">
+    <span>〇〇省 △△課</span>
+    <span>7</span>
+  </footer>
+  <div class="sld-notes">承認が得られない場合の代替案は別紙3。</div>
+</section>
+
+<!-- ============================================================ appendix ==
+     Detail a reader may look up. It follows the main deck and is not counted
+     in its slide budget. The table is the official DADS component. -->
+<section class="sld-slide" data-layout="appendix" aria-labelledby="s8-title">
+  <div class="sld-slide__frame">
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">付録1</p>
+      <h2 class="dads-heading__heading" id="s8-title">削減効果の8割は受付段階で生じる</h2>
+    </hgroup>
     <div class="sld-slide__body">
       <div class="dads-table sld-fill-width dads-u-std-18N-160">
         <table class="dads-table__table" data-border="hidden" data-cell-border="bottom">
@@ -200,7 +361,7 @@
               <th class="dads-table__col-header" scope="col">工程</th>
               <th class="dads-table__col-header sld-num" scope="col">現状（時間/年）</th>
               <th class="dads-table__col-header sld-num" scope="col">導入後（時間/年）</th>
-              <th class="dads-table__col-header sld-num" scope="col">削減</th>
+              <th class="dads-table__col-header sld-num" scope="col">削減（時間/年）</th>
             </tr>
           </thead>
           <tbody>
@@ -214,83 +375,11 @@
     </div>
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
-    <span>出典：△△課 業務量調査（2025年度）をもとに試算。削減率57%。</span>
-    <span>7</span>
-  </footer>
-</section>
-
-<!-- ============================================================== figure ==
-     Anything the converter cannot express as native shapes — an SVG diagram,
-     a chart, a screenshot — is marked data-pptx="raster". It is captured at
-     the rendered size and placed as one picture, so nothing is silently lost.
-     Give it a text alternative: alt on <img>, or <title> inside <svg>. -->
-<section class="sld-slide" data-layout="figure">
-  <div class="sld-slide__frame">
-    <header class="sld-slide__header">
-      <p class="sld-eyebrow dads-u-dns-16N-130"><span>処理の流れ</span><span class="sld-rule"></span></p>
-      <h2 class="sld-message dads-u-std-32B-150">二重入力が生じているのは受付と審査の境界である</h2>
-    </header>
-    <div class="sld-slide__body">
-      <figure class="sld-figure">
-        <!-- The viewBox is cropped to the artwork: empty space inside it becomes
-           empty space on the slide, and strands the caption away from the figure. -->
-        <svg data-pptx="raster" viewBox="0 100 1000 100" role="img" aria-labelledby="flow-title">
-          <title id="flow-title">紙申請の受付からシステム入力までの流れ図。受付と審査の間で転記が発生している。</title>
-          <rect x="10" y="110" width="200" height="80" rx="8" style="fill: var(--color-neutral-solid-gray-100)"></rect>
-          <text x="110" y="156" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">窓口受付</text>
-          <rect x="270" y="110" width="200" height="80" rx="8" style="fill: var(--color-primitive-orange-100)"></rect>
-          <text x="370" y="148" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">転記</text>
-          <text x="370" y="174" text-anchor="middle" font-size="18" style="fill: var(--color-primitive-orange-900)">重複作業</text>
-          <rect x="530" y="110" width="200" height="80" rx="8" style="fill: var(--color-neutral-solid-gray-100)"></rect>
-          <text x="630" y="156" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">形式審査</text>
-          <rect x="790" y="110" width="200" height="80" rx="8" style="fill: var(--color-neutral-solid-gray-100)"></rect>
-          <text x="890" y="156" text-anchor="middle" font-size="22" style="fill: var(--color-neutral-solid-gray-900)">交付</text>
-          <path d="M210 150 h60 M470 150 h60 M730 150 h60" style="stroke: var(--color-neutral-solid-gray-700)" stroke-width="3"></path>
-        </svg>
-        <figcaption class="sld-figure__caption dads-u-dns-16N-130">
-          図1：現行の申請処理フロー。受付と審査の間で同じ内容を二度入力している。
-        </figcaption>
-      </figure>
-    </div>
-  </div>
-  <footer class="sld-slide__footer dads-u-dns-14N-130">
-    <span>〇〇省 △△課</span>
+    <span>出典：<a class="dads-link" href="https://example.com/">△△課 業務量調査（2025年度）</a>をもとに試算。削減率57%。</span>
     <span>8</span>
   </footer>
 </section>
 
-<!-- ============================================================= closing ==
-     Close on what happens next: the decision asked for, who acts, and when. -->
-<section class="sld-slide" data-layout="closing">
-  <div class="sld-slide__frame">
-    <header class="sld-slide__header">
-      <p class="sld-eyebrow dads-u-dns-16N-130"><span>お願いしたい判断</span><span class="sld-rule"></span></p>
-      <h2 class="sld-message dads-u-std-32B-150">案Aの着手について本日ご承認いただきたい</h2>
-    </header>
-    <div class="sld-slide__body">
-      <div class="sld-cols" data-cols="2-1">
-        <ul data-spacing="8" class="dads-list dads-u-std-22N-150">
-          <li>2026年1月中：要件定義の委託契約を締結（△△課）</li>
-          <li>2026年3月末：オンライン受付の要件定義完了（受託事業者）</li>
-          <li>2026年4月：試行運用開始（△△課・窓口担当）</li>
-        </ul>
-        <div class="sld-card" data-tone="accent">
-          <p class="sld-card__label dads-u-dns-16B-130">必要な予算措置</p>
-          <p class="dads-u-std-28B-150">0.8億円</p>
-          <p class="dads-u-std-18N-160">2026年度当初予算での計上</p>
-        </div>
-      </div>
-      <p class="sld-takeaway sld-push dads-u-std-20N-150">
-        ご判断の期限は2026年1月20日。これを過ぎると2026年度当初予算での計上ができない。
-      </p>
-    </div>
-  </div>
-  <footer class="sld-slide__footer dads-u-dns-14N-130">
-    <span>〇〇省 △△課</span>
-    <span>9</span>
-  </footer>
-  <div class="sld-notes" data-pptx="notes">承認が得られない場合の代替案は別紙3。</div>
-</section>
-
+</main>
 </body>
 </html>

@@ -1,46 +1,41 @@
 ---
 name: digital-agency-slides
-description: Build 16:9 presentation slides from the Digital Agency Design System's official HTML and CSS reference assets, and convert them into an editable PowerPoint file through the bundled deck tooling. Use for slide decks, briefing material, and presentation documents that must follow DADS and be delivered as .pptx. Do not use for web pages, application interfaces, or dashboards that stay in a browser, and do not use to edit an existing .pptx that was not authored in this deck format. Apply alongside every independently matching requirements, document-structure, implementation, or review operation; this capability owns the slide authoring surface and the HTML-to-PowerPoint conversion.
+description: Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down — shared premises first, then the conclusion, then one slide per supporting point — so the slide count stays bounded. Use for slide decks, briefing material, and presentation documents that must follow DADS and are delivered as HTML (or printed from it). Do not use for web pages, application interfaces, or dashboards that are not slides, and do not use to create or edit PowerPoint (.pptx) files. Apply alongside every independently matching requirements, document-structure, implementation, or review operation; this capability owns the slide authoring surface.
 ---
 
 # Digital Agency Slides
 
-Author a deck as one HTML file on a fixed 16:9 canvas, styled by the Digital
-Agency's own stylesheets, and convert it to PowerPoint as native, editable
-shapes. PowerPoint is the delivery format, so the authoring surface is shaped
-by what PowerPoint can represent — not the other way round.
+Author a deck as one HTML document on a fixed 16:9 canvas, styled by the
+Digital Agency's own stylesheets. The HTML is the deliverable: it is presented
+in a browser, read in a browser, or printed from one. Nothing is converted to
+another format, so the deck uses the official components exactly as the design
+system publishes them.
 
 ## The invariant everything rests on
 
-A slide is **1280 x 720 CSS pixels**. At 96 px/in that is exactly 13.333 x 7.5
-inches, which is PowerPoint's standard 16:9 slide. So:
-
-```
-1 CSS px = 0.75 pt = 9525 EMU        exactly, no rounding, no scaling
-```
-
-A 32 px heading becomes a 24 pt heading; an element 64 px from the left edge
-lands 0.667 in from the left edge. Nothing in the pipeline rescales anything.
-Break the canvas size and every guarantee below goes with it.
+A slide is **1280 x 720 CSS pixels**, and printing gives one 1280 x 720 page
+per slide. Every layout value, every density limit and every check below is
+stated against that canvas. Break the canvas size and they stop holding.
 
 ## Scope
 
-- Presentation slides and their conversion to `.pptx`. Browser-resident pages,
-  application UI, and interactive dashboards are out of scope.
+- Presentation slides delivered as HTML. Browser-resident pages that are not
+  slides, application UI, and interactive dashboards are out of scope.
 - The deck's own content is the deliverable. Do not restructure the
   surrounding project or introduce a build system it does not already have.
-- Resolve material ambiguity before building: who the audience is, what
-  decision the deck asks for, the governing message, the slide budget, and how
-  the file will be presented. Ask when two reasonable readings would produce
-  different decks; otherwise proceed on a stated assumption.
+- Resolve material ambiguity before building: who the audience is and what
+  they already know, what decision the deck asks for, the governing message,
+  and how the deck will be used (projected, read alone, or both). Ask when two
+  reasonable readings would produce different decks; otherwise proceed on a
+  stated assumption.
 
 ## Load references progressively
 
 | Read | When |
 |---|---|
-| `references/slide-design.md` | Planning the deck's argument, choosing a layout, setting type and colour |
-| `references/authoring-contract.md` | Writing or editing slide HTML — the markup contract the converter reads |
-| `references/pptx-conversion.md` | Running the conversion, reading its findings, or explaining a fidelity limit |
+| `references/slide-design.md` | Planning the deck's tree, choosing a layout, setting type and colour |
+| `references/authoring-contract.md` | Writing or editing slide HTML — the markup contract the checker reads |
+| `references/deck-checks.md` | Running `lint` and `preview`, or reading a finding |
 | `references/asset-sourcing.md` | Fetching or refreshing official assets, or writing attribution |
 
 Never quote a DADS version, token name, component class, or package API from
@@ -52,11 +47,11 @@ official source.
 | Path | What it is |
 |---|---|
 | `assets/slide.css` | This skill's own 16:9 layout layer, built only on DADS token custom properties. Not a DADS component library. |
-| `assets/deck-template.html` | A working nine-slide deck covering every layout. Copy it; do not edit it in place. |
-| `scripts/setup.sh` | Installs the Python dependencies and Chromium into a project-local virtual environment |
+| `assets/deck-template.html` | A working deck: seven main slides and one appendix slide, covering every slide role and body pattern. Copy it; do not edit it in place. |
+| `scripts/setup.sh` | Installs Playwright and Chromium into a project-local virtual environment |
 | `scripts/fetch-dads-assets.sh` | Resolves the official DADS stylesheets into a deck workspace at task time |
-| `scripts/deck.py` | `lint`, `preview`, `pptx`, `ir` — the whole pipeline |
-| `scripts/extract_slides.js` | Measures the laid-out deck in the browser and emits the conversion IR |
+| `scripts/deck.py` | `lint` and `preview` |
+| `scripts/check_slides.js` | Measures the laid-out deck in the browser and returns the findings |
 
 No official Digital Agency code is vendored here. It is fetched when a deck is
 built, so a deck always uses the current upstream reference implementation.
@@ -65,19 +60,30 @@ built, so a deck always uses the current upstream reference implementation.
 
 ### 1. Define the deck before opening an editor
 
-Establish the audience, the decision or action being asked for, the single
-governing message, the slide budget, and the delivery context (projected,
-printed, read alone). Confirm that PowerPoint is genuinely required — if the
-deck will only ever be read in a browser, the conversion constraints below buy
-nothing.
+Establish the audience and what they already know, the decision or action
+being asked for, the single governing message, and the delivery context.
 
-### 2. Write the storyline, not the slides
+### 2. Write the tree, then derive the slides from it
 
-Give every slide one assertion, written as a full sentence that could stand
-alone. Order and group them so each section's slides together support that
-section's claim, and the sections together support the deck's governing
-message. A slide whose headline is a topic label ("現状について") has no
-assertion yet. Details and the layout catalogue: `references/slide-design.md`.
+Write the deck as a tree before writing any slide: the governing message at
+the root, the two to four key-line points that answer the question it raises,
+and under each point the evidence that proves it. Then lay it out in this
+order — **premise, answer, points**:
+
+1. **Cover** — the governing message as the title.
+2. **Premise** — the situation the audience accepts, what has gone wrong, and
+   the terms a newcomer needs, defined in plain words. It ends in the question
+   the deck answers. Omit it only when the audience already shares all three.
+3. **Answer** — the governing message again, with the key line drawn as a tree,
+   and the ask. This slide replaces an agenda and section dividers.
+4. **One slide per key-line point** — the point as the headline, its evidence
+   in the body.
+5. **Closing** — who does what by when, when the deck asks for a decision.
+6. **Appendix** — detail a reader may look up, after the main deck.
+
+A slide is one node of the tree with its direct children, never one leaf. The
+main deck is at most k + 4 slides for k key-line points. Details, the layout
+catalogue and the density limits: `references/slide-design.md`.
 
 ### 3. Set up the workspace
 
@@ -85,73 +91,55 @@ assertion yet. Details and the layout catalogue: `references/slide-design.md`.
 mkdir -p my-deck && cd my-deck
 cp "$CLAUDE_SKILL_DIR/assets/deck-template.html" deck.html
 cp "$CLAUDE_SKILL_DIR/assets/slide.css" .
-bash "$CLAUDE_SKILL_DIR/scripts/fetch-dads-assets.sh" . table list divider
+bash "$CLAUDE_SKILL_DIR/scripts/fetch-dads-assets.sh" .
 bash "$CLAUDE_SKILL_DIR/scripts/setup.sh"
 ```
 
-Add the official component stylesheets the deck actually uses; the fetch script
-lists what is available upstream when a name does not resolve.
+Without arguments the fetch script takes the components the template links.
+Name more components to add them; the script lists what is available upstream
+when a name does not resolve.
 
 ### 4. Build the slides
 
-Work from the layout catalogue in the template rather than inventing layout.
-Use official `dads-*` classes and the DADS type and colour tokens for anything
-DADS already defines, and this skill's `sld-*` classes for slide geometry.
-Keep every slide inside the canvas and the safe area. The markup contract —
-including what converts natively, what is rasterized, and the `data-pptx`
-overrides — is in `references/authoring-contract.md`.
+Work from the template rather than inventing layout. Use official `dads-*`
+components with their published markup for anything DADS already defines —
+headings, lists, description lists, tables, links, chip labels — and this
+skill's `sld-*` classes only for slide geometry and the blocks DADS does not
+publish. Keep every slide inside the canvas and the safe area. The markup
+contract is in `references/authoring-contract.md`.
 
-### 5. Check before converting
+### 5. Check, then look
 
 ```sh
 .venv/bin/python "$CLAUDE_SKILL_DIR/scripts/deck.py" lint deck.html
 .venv/bin/python "$CLAUDE_SKILL_DIR/scripts/deck.py" preview deck.html -o preview
 ```
 
-`lint` reports clipped text, content off the slide or inside the safe-area
-band, type below the legibility floor, insufficient contrast, missing text
-alternatives, and decoration the converter cannot reach. Drive errors to zero
-and account for every warning. Then **look at the preview images** — a linter
-cannot tell you a slide is unreadable.
+`lint` reports a broken tree order or an over-long deck, document-level
+accessibility faults, clipped or off-slide content, type below the legibility
+floor, insufficient contrast, and missing text alternatives. Drive errors to
+zero and account for every warning. Then **look at the preview images** — a
+linter cannot tell you a slide is unreadable. Findings and options:
+`references/deck-checks.md`.
 
-### 6. Convert and inspect the result
+### 6. Close out
 
-```sh
-.venv/bin/python "$CLAUDE_SKILL_DIR/scripts/deck.py" pptx deck.html -o deck.pptx
-```
-
-The command refuses to convert a deck with errors unless `--allow-findings` is
-given, and reports how many shapes were emitted natively versus rasterized.
-Add `--wrap reflow` when the recipient will edit the file rather than only
-present it: text then wraps inside its box instead of running off the slide. A
-deck that is mostly rasterized has lost the point: find out why and fix the
-markup. Open the `.pptx` and confirm text is selectable, the table is a real
-table, and the speaker notes arrived. `references/pptx-conversion.md` covers
-the mapping, the options, and the known limits.
-
-### 7. Close out
-
-Report: the governing message and how the deck supports it; lint findings and
-what was done about each; the native-versus-rasterized shape count; which
-official assets were fetched and at which commit; and anything a reader must
-install — above all the deck's font — to see the file as intended. Apply the
-attribution rules in `references/asset-sourcing.md`.
+Report: the governing message and the tree that supports it; the main-deck
+slide count against its budget; lint findings and what was done about each;
+which official assets were fetched and at which commit; and what the reader
+needs to see the deck as intended — a current browser and, offline, the Noto
+Sans JP font. Apply the attribution rules in `references/asset-sourcing.md`.
 
 ## Guardrails
 
-- **Fonts decide fidelity.** Geometry is measured with the browser's font
-  metrics; PowerPoint re-lays the same text with its own. Install the deck's
-  font on the machine that opens the file, or remap it with `--font` at
-  conversion time, and say which was done.
-- **The converted file does not reflow.** Absolute geometry is what makes it
-  faithful, and it is also why nothing moves down when something above it grows.
-  Layout changes belong in the HTML, followed by another conversion — not in
-  PowerPoint.
-- **Never rasterize a whole slide** to dodge a conversion problem. A picture of
-  a slide cannot be edited, searched, translated, or read aloud. Rasterize the
-  smallest element that genuinely needs it, and give it a text alternative.
-- **Decoration drawn in `::before` or `::after` does not convert.** Pseudo-
-  elements have no DOM node and no measurable box. Use a real element.
+- **Never split a node across slides** to make each slide shorter. A slide
+  that cannot hold its children has children that are not one group: regroup
+  them into at most four, or move detail to the appendix.
+- **Never explain by metaphor or analogy** on a slide. Define a term by what it
+  is; illustrate with an instance of the thing itself.
+- **Fonts decide line breaks.** The deck is checked with the font the browser
+  loaded. A viewer without Noto Sans JP gets a fallback with different widths,
+  and a line that fitted may wrap or clip. Say how the font reaches the viewer.
 - Never let colour, position, or a graphic alone carry meaning that the text
   does not also state.
 - Never claim a deck is a Digital Agency product or is endorsed by the Digital

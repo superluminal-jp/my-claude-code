@@ -1,35 +1,99 @@
 # Designing the deck
 
-Load this when planning a deck's argument, choosing a layout, or setting type,
+Load this when planning a deck's tree, choosing a layout, or setting type,
 colour and density.
 
-## The deck is an argument, not a container
+## The deck is a tree, not a stack of slides
 
-A deck exists to move an audience to a decision. Design it top down.
+A deck exists to move an audience to a decision or an understanding. Design it
+top down, as one tree.
 
 1. **Governing message.** One sentence that is the answer. Everything else
    exists to support it. If you cannot write it, the deck is not ready.
-2. **Sections.** Three to five groups that together support the governing
-   message, each covering a different part of it and no two covering the same
-   part.
-3. **Slides.** One assertion per slide, supporting its section's claim.
+2. **Key line.** Two to four points (five at most) that together answer the
+   question the governing message raises, each covering a different part of it
+   and no two covering the same part.
+3. **Evidence.** Under each point, the facts, figures, comparisons or steps
+   that prove it.
 
 ### Write the question each slide answers
 
-The pyramid holds when each slide answers exactly the question its parent
-raises. Write that question down before writing the slide, and keep it in the
-slide's HTML comment so a later reader can check the chain.
+The tree holds when each node answers exactly the question its parent raises.
+Write that question down before writing the slides, and keep the tree in an
+HTML comment at the top of the deck so a later reader can check the chain.
 
 ```
 Governing message: 案Aに着手すべきである
-  → raises: なぜ今なのか / 他の案ではだめなのか / いくらかかるのか
-     Section 1 answers なぜ今なのか
-       → raises: 遅延の原因は何か
-          Slide 4 answers 遅延は二重入力に起因する
+  → raises: なぜ案Aなのか
+     Point 1 answers 遅延の原因は二重入力にある      → evidence: 3 figures, 1 flow figure
+     Point 2 answers 案Aは案Bより安く早い            → evidence: the two options compared
+     Point 3 answers 初年度に効果の8割が出る          → evidence: the steps and their savings
 ```
 
-A slide whose question nothing above it raises is orphaned: cut it, or send it
-to an appendix. A question no slide answers is a hole the audience will find.
+A point whose question nothing above it raises is orphaned: cut it, or send it
+to the appendix. A question no point answers is a hole the audience will find.
+
+### One slide is one node
+
+A slide carries one node of the tree **and its direct children**: the
+headline states the node, the body states its children. Evidence is never
+given a slide of its own; it sits on the slide of the point it proves.
+
+| Tree level | Where it goes |
+|---|---|
+| Governing message | The cover's title, and the answer slide's headline |
+| Key-line point | One `point` slide each, and one branch of the answer slide's tree |
+| Evidence for a point | The body of that point's slide |
+| Detail behind the evidence | The appendix, the footer's source line, or the speaker notes |
+
+This is what keeps the deck short. A slide that feels crowded is not split
+into two: either its children are not one group — regroup them into at most
+four — or some of them are detail, which moves down a level.
+
+### The order: premises, then the answer, then the tree
+
+| # | Role (`data-layout`) | The slide | Test |
+|---|---|---|---|
+| 1 | `title` | The governing message as the title | A reader who sees only this slide knows the answer |
+| 2 | `premise` | What the audience must share before the answer makes sense: the situation they already accept, what has gone wrong, the terms they need, and the question this raises | Every fact on it is undisputed; every term the deck relies on is defined |
+| 3 | `answer` | The governing message, the key line drawn as a tree, and the ask | A reader who stops here has the answer, its reasons, and what is asked of them |
+| 4 … k+3 | `point` | One key-line point and its evidence | The body proves the headline without help from another slide |
+| k+4 | `closing` | The decision, the actions, the owners, the dates | Who does what by when |
+| after | `appendix` | Detail a reader may look up | Nothing on it is needed to follow the main deck |
+
+The answer comes by slide 3. An audience that learns on slide 9 what is being
+asked of them spent eight slides not evaluating it.
+
+**The slide budget is k + 4** for k key-line points, appendix excluded: at
+most eight slides with four points, nine with five. Omit the premise slide only
+when the audience already shares its facts and terms, and the closing slide
+only when the deck asks for nothing. There is no agenda slide and no section
+divider: the answer slide's tree is the map, and each point slide's shoulder
+text (`論点2`) names its branch.
+
+A single key-line point is not a tree. Put its evidence directly on the answer
+slide. More than five points means the key line is at the wrong level:
+regroup the points under fewer, broader ones.
+
+### Set the premises for a newcomer
+
+The premise slide is where an audience new to the subject gets what the
+answer depends on. Write it for the least-informed person who must act on the
+deck.
+
+- State only the premises the answer depends on: the situation, the change or
+  problem, and the scope. Nothing on it is an argument yet.
+- Define every term the deck uses that a newcomer would not know, in plain
+  words, by what the thing is and what it does here. Use the description list,
+  which is the design system's component for a term paired with its
+  explanation.
+- Never explain by metaphor or analogy — a comparison with something else
+  carries only some of the subject's properties, and the audience infers the
+  rest wrongly. Explain the thing itself: its definition, its parts, and a
+  concrete instance of it. An instance of the subject is an example, not a
+  comparison, and is welcome.
+- End with the question the deck answers, so the answer slide reads as its
+  reply.
 
 ### One grouping basis per group
 
@@ -44,19 +108,6 @@ than an argument. Within a group, siblings are either like-kind evidence for a
 generalisation (inductive) or premises leading to a conclusion (deductive) —
 not both.
 
-### SCQA, as slides
-
-| Part | The slide | Test |
-|---|---|---|
-| Situation | A fact the audience already accepts | If they could dispute it, it is not the situation |
-| Complication | What changed, or what is now wrong | This is the slide that earns their attention |
-| Question | Usually not a slide — what the complication forces | Write it down anyway; it decides every later slide |
-| Answer | The governing message, on the cover and again at the close | An action or a judgement, never a topic |
-
-For a decision deck, state the answer **and the ask** by the second slide. An
-audience that learns on slide 9 what is being asked of them spent eight slides
-not evaluating it.
-
 ### Every headline is an assertion
 
 The headline is the slide. A reader who skims only the headlines must get the
@@ -68,31 +119,28 @@ whole argument.
 | 費用比較 | 全面刷新より段階的なオンライン化が費用対効果で優る |
 | まとめ | 案Aの着手について本日ご承認いただきたい |
 
-Write it as a complete sentence. If the slide's content does not prove the
-headline, one of the two is wrong.
+Write it as a complete sentence that fits on one line at the headline size. If
+the slide's content does not prove the headline, one of the two is wrong.
 
-### Every number appears once, meaning one thing
+### Every number means one thing
 
-Before converting, list every figure in the deck with the slide it appears on
-and what it measures. A figure that means the current cost on one slide and the
-saving on another is the fastest way to lose an audience that is checking the
-arithmetic. Any quantity in the governing message must be computable from a
-figure the deck actually shows.
-
-### One slide, one job
-
-If a slide needs two headlines, it is two slides. If it needs none, cut it.
-Section dividers are the exception: one per top-level group, never more.
+Before delivering, list every figure in the deck with the slide it appears on
+and what it measures. A figure may recur — on the cover, on the answer slide,
+on the point that proves it — but it must measure the same thing each time. A
+figure that means the current cost on one slide and the saving on another is
+the fastest way to lose an audience that is checking the arithmetic. Any
+quantity in the governing message must be computable from a figure the deck
+actually shows.
 
 ## Projected, distributed, or both
 
-The delivery context is established before the deck is written because the three
+The delivery context is established before the deck is written because the
 modes need different slides. Decide once, say which you chose, and build to it.
 
 | Mode | The slide carries | The notes carry |
 |---|---|---|
 | Projected, with a presenter | The assertion and the evidence that proves it, in as few words as will do it | Everything the presenter says: reasoning, caveats, the numbers behind a figure |
-| Read alone (配布資料・審議会資料) | The assertion, the evidence, and the sentence or two a reader needs to interpret the evidence with nobody there to explain it | Nothing a reader needs — notes are a separate print and are often not circulated at all |
+| Read alone (配布資料・審議会資料) | The assertion, the evidence, and the sentence or two a reader needs to interpret the evidence with nobody there to explain it | Nothing a reader needs — notes are never rendered |
 | Both | Build it for reading alone, and rely on the presenter not to read the slide aloud | The presenter's own additions only |
 
 Whatever the decision-maker must act on — the ask, the deadline, the owner, the
@@ -117,70 +165,70 @@ coherence principle). Cutting is design work, not tidying. On each slide:
 2. Delete each block in turn. If the headline is still proven without it, it
    does not belong on the slide.
 3. Send what you removed somewhere, never nowhere: the speaker notes (what the
-   presenter says), an `appendix` slide after the closing (detail a reader will
-   look up), or the footer source line (provenance).
-
-If nothing can be deleted and the slide is still crowded, it is making two
-claims. Split it.
+   presenter says), the appendix (detail a reader will look up), or the footer
+   source line (provenance).
 
 ## Geometry
 
 | | Value | Why |
 |---|---|---|
-| Canvas | 1280 x 720 px | Exactly 13.333 x 7.5 in — PowerPoint's 16:9 slide |
-| Side margin | 64 px | 5% of the width; the frame every non-cover layout sits in |
-| Top / bottom margin | 48 / 40 px | Leaves the footer band clear of the content |
-| Safe area | 32 px minimum | Projector overscan, video framing and PowerPoint themes eat the outer band |
+| Canvas | 1280 x 720 px | 16:9; prints as one 1280 x 720 page |
+| Side margin | 64 px | 5% of the width; the frame every slide sits in |
+| Top / bottom margin | 48 / 80 px | Leaves the footer band clear of the content |
+| Safe area | 32 px | Projector overscan and video framing eat the outer band; the footer sits on its line |
 | Column gap | 24 px | Wide enough that columns read as separate |
 
 Content never crosses the safe area. The linter reports anything that does.
 
 ## The layout catalogue
 
-`assets/deck-template.html` implements all of these. Copy the one that matches
-the slide's job rather than building layout from scratch.
+A slide has a **role**, which is its place in the tree (`data-layout`), and a
+**body pattern**, which is how its evidence is shown. Choose them
+independently. `assets/deck-template.html` implements all of them; copy the
+one that matches rather than building layout from scratch.
 
-| Layout | Use it when | Keep to |
+| Role | Use it for | Keep to |
 |---|---|---|
 | `title` | The deck's cover | Governing message as the title, not the project name |
-| `section` | Opening a top-level group | One per group |
-| `bullets` | Listing parallel items of the same kind | 5 items, one line each |
-| `kpi` | Two to four numbers carry the point | Value and what it measures, together |
-| `compare` | Two options judged on the same criteria | Same criteria, same order, both sides |
-| `steps` | A sequence in time or dependency | 3–5 steps; more is a table |
-| `table` | Values must be looked up or compared precisely | 5 rows and 5 columns |
-| `figure` | A relationship a picture shows better than prose | One figure, with a caption that states the finding |
+| `premise` | Shared facts, terms and the question | Facts the audience accepts; every term defined |
+| `answer` | The governing message and its key line | Two to four branches in `sld-tree`, plus the ask |
+| `point` | One key-line point and its evidence | One body pattern, or two that prove different parts of the point |
 | `closing` | The decision, the actions, the owners, the dates | Who does what by when |
+| `appendix` | Detail a reader may look up | After the closing; not counted in the budget |
 
-Anything that does not fit is usually two slides.
+| Body pattern | Use it when | Keep to |
+|---|---|---|
+| List (`dads-list`) | Parallel items of the same kind | 5 items, one line each |
+| Definitions (`dads-description-list`) | Terms paired with explanations | The terms the deck relies on |
+| Figures (`sld-kpi`) | Two to four numbers carry the point | Value and what it measures, together |
+| Comparison (`sld-card`) | Options judged on the same criteria | Same criteria, same order, both sides |
+| Steps (`sld-steps`) | A sequence in time or dependency | 3–5 steps; more is a table |
+| Table (`dads-table`) | Values must be looked up or compared precisely | 5 rows and 5 columns |
+| Figure (`sld-figure`) | A relationship a picture shows better than prose | One figure, with a caption that states the finding |
 
 ## Type
 
-Slide type comes from the DADS type scale. These are the classes the official
-stylesheet defines; do not invent sizes between them.
+Headings use the design system's heading component, which sets size, weight,
+line height and the shoulder text together. Everything else uses the type
+utilities the official stylesheet defines; do not invent sizes between them.
 
-| Role | Class | px | pt in PowerPoint |
-|---|---|---|---|
-| Deck title, section divider | `dads-u-dsp-48B-140` | 48 | 36 |
-| KPI value | `dads-u-dsp-48B-140` | 48 | 36 |
-| Slide message | `dads-u-std-32B-150` | 32 | 24 |
-| Figure headline in a card | `dads-u-std-28B-150` | 28 | 21 |
-| Card title, sub-head | `dads-u-std-24B-150` / `dads-u-std-22B-150` | 24 / 22 | 18 / 16.5 |
-| Lead sentence, agenda item | `dads-u-std-24N-150` / `dads-u-std-22N-150` | 24 / 22 | 18 / 16.5 |
-| Body | `dads-u-std-20N-150` | 20 | 15 |
-| Body in a column | `dads-u-std-18N-160` | 18 | 13.5 |
-| Tile label, eyebrow, caption | `dads-u-dns-16N-130` / `dads-u-dns-16B-130` | 16 | 12 |
-| Footer, page number | `dads-u-dns-14N-130` | 14 | 10.5 |
+| Role | Markup | px |
+|---|---|---|
+| Deck title (cover, `h1`) | `dads-heading` with `data-size="45"` | 45, shoulder 22 |
+| Slide headline (`h2`) | `dads-heading` with `data-size="32"` | 32, shoulder 18 |
+| Block title — tree branch, card, step (`h3`) | `dads-heading` with `data-size="20"` | 20 |
+| Figure value | `dads-u-dsp-48B-140` | 48 |
+| Lead sentence | `dads-u-std-24N-150` | 24 |
+| Body | `dads-u-std-20N-150` | 20 |
+| Body in a column | `dads-u-std-18N-160` | 18 |
+| Label, caption | `dads-u-dns-16N-130` / `dads-u-dns-16B-130` | 16 |
+| Footer, page number | `dads-u-dns-14N-130` | 14 |
 
-The display scale is documented for headline copy that needs visual impact. A
-KPI value is exactly that, so it is used there and nowhere else — not for a
-sub-head that merely wants to be large.
-
-The pt column holds because one CSS px is 1/96 in at a 16 px root font size,
-which is what the official stylesheet's `calc(N / 16 * 1rem)` sizes assume. The
-converter measures the laid-out result rather than trusting the arithmetic, so a
-project that changes the root size stays correct — but its slides stop matching
-this table.
+The heading size is chosen separately from the heading level: the design
+system defines them independently and leaves the mapping to the style guide.
+This table is that mapping for slides. The display scale is for copy that
+needs visual impact; a figure value is exactly that, so it is used there and
+nowhere else.
 
 Rules the linter enforces:
 
@@ -190,11 +238,12 @@ Rules the linter enforces:
   constrained. 16 px and up is the baseline for body and UI text.
 - On a slide, body copy at 18 px or larger. 16 px is legal but small at
   projection distance, so the linter warns — except on the secondary content
-  the foundation's exception covers: footers, captions, eyebrows, tile labels.
+  the foundation's exception covers: footers, captions, shoulder text, chip
+  labels, figure labels.
 - Body text, lists and takeaway bands span the full width of their container,
-  so their right edge lines up with the headline and the table. `slide.css`
-  sets no measure cap; if a line runs long, shorten the sentence or split the
-  content into columns rather than narrowing the text box.
+  so their right edge lines up with the headline and the table. If a line runs
+  long, shorten the sentence or split the content into columns rather than
+  narrowing the text box.
 - A headline that has to shrink to fit means the headline is too long.
 
 ## Colour
@@ -205,6 +254,7 @@ raw hex value, and never a colour invented for this deck.
 - `--color-key-900` is the primary action and emphasis colour; the `key` ramp
   runs 50 to 1200.
 - `--color-neutral-solid-gray-900` for body text, `-700` for secondary text.
+  The official heading sets its own text colour; leave it.
 - Semantic colours are `--color-semantic-success-1|2`, `-error-1|2`,
   `-warning-yellow-1|2` and `-warning-orange-1|2`. They are pairs, not a 50–1200
   ramp, and they mean what they say — do not use them decoratively.
@@ -220,22 +270,21 @@ against the composited background.
 Borders, rules and anything else that separates content need **3:1** (WCAG
 1.4.11). This is why the greys stop where they do: `solid-gray-420` is the
 lightest grey that reaches 3:1 on white, and `solid-gray-536` the lightest that
-reaches 4.5:1. Anything lighter is below a threshold the system chose
-deliberately. The linter warns on a border that misses it.
+reaches 4.5:1. The linter warns on a border that misses it.
 
-Never let colour be the only carrier of meaning. A red tile and a green tile
-must also say which is which.
+Never let colour be the only carrier of meaning. A recommended option says so
+in words — a chip label reading 推奨 — not only by its tint.
 
 **Icons are never used alone.** The icon foundation requires every icon to be
 paired with a label, and the icon itself to clear 4.5:1. A label-paired icon
-takes `alt=""` and no `aria-label`, so the label is announced once rather than
-twice.
+takes `alt=""` or `aria-hidden="true"`, so the label is announced once rather
+than twice.
 
 ## Density
 
 | Limit | Value |
 |---|---|
-| Ideas the reader must hold **at once** to get the point | 4. This is the binding limit: working memory holds about four chunks (Cowan, 2001), not the seven usually quoted from Miller — whose result measures recall of unrelated items and does not describe a slide the reader can look back at |
+| Ideas the reader must hold **at once** to get the point | 4. This is the binding limit: working memory holds about four chunks (Cowan, 2001), not the seven usually quoted from Miller — whose result measures recall of unrelated items and does not describe a slide the reader can look back at. It is also why a key line and a slide's children stop at four |
 | Items in any one list | 5. The linter warns above this |
 | List items on a slide, across every list | 10. Two groups of five compare; one list of ten does not |
 | Words per item | Enough for one line at the slide's body size |
@@ -247,34 +296,37 @@ how many items must be held simultaneously to see the relationship (Sweller).
 Seven rows looked up one at a time are fine; five bullets that must be
 cross-compared are not.
 
-Blocks size to their content and stack from the top of the body; leftover space
-stays empty. Three items in a row should read as three items, not as three
-panels stretched to fill the slide. Use `sld-grow` only where filling the
+Blocks size to their content and stack from the top of the body; leftover
+space stays empty. Three items in a row should read as three items, not as
+three panels stretched to fill the slide. Use `sld-grow` only where filling the
 remaining height is the point, and `sld-push` to send a closing band to the
 foot of the body.
 
 ## Accessibility
 
-A deck that will be distributed is a document, not just a projection.
+The deck is a web document, so the design system's web accessibility guidance
+applies to it as a whole, not only to each slide's appearance.
 
-- **Reading order is DOM order.** The converter emits shapes in document order,
-  and PowerPoint reads them in that order. Write the markup in the order a
-  person should hear it.
+- **Reading order is document order.** Write the markup in the order a person
+  should hear it; never reorder visually what the source orders differently.
+- **One `h1`, no skipped levels.** The cover's `h1` states the deck's subject,
+  as `<title>` does. Each slide's headline is an `h2`, and a block title inside
+  a slide is an `h3`. A level is never skipped: screen-reader users move by
+  heading level, and a gap makes them think they missed a section.
 - **Every non-text element needs a text alternative**: `alt` on an image, a
-  `<title>` or `aria-label` on an SVG. The converter copies it into the
-  PowerPoint shape description; the linter fails an image without one.
-- **Headings are headings.** The governing message in an `h1`/`h2` (or
-  `.sld-message`) becomes the converted slide's title placeholder, which is what
-  puts it in PowerPoint's outline, in the reading-order pane and in front of a
-  screen reader. A slide without one converts untitled, so the linter treats it
-  as an error.
+  `<title>` or `aria-label` on an SVG. A decorative image takes `alt=""`; a
+  decorative SVG takes `aria-hidden="true"`.
+- **A list is a list, a term and its explanation are a description list.** Do
+  not imitate either with headings and paragraphs.
 - **Crop a figure's `viewBox` to its artwork.** Empty space inside the viewBox
   becomes empty space on the slide and strands the caption away from the thing
   it captions.
-- **State the finding in the caption.** "図1：現行の申請処理フロー" names the
+- **State the finding in the caption.** "図1：現行の申請処理の流れ" names the
   figure; "受付と審査の間で同じ内容を二度入力している" states what it shows.
   Write both.
 - **Label in place, not in a legend.** Put each label on or beside the thing it
   names. A legend makes the reader hold a colour-to-meaning mapping in working
   memory while scanning the figure — the split-attention effect — and it makes
   colour the sole carrier of meaning, which the contrast rules above forbid.
+- **Link text names its target.** A source cited as a link uses the design
+  system's link component, and its text says what the reader will get.

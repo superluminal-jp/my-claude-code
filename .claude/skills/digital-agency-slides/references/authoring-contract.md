@@ -1,7 +1,8 @@
 # The deck markup contract
 
-Load this when writing or editing slide HTML. The converter reads the laid-out
-document, so this contract is what makes a slide convertible.
+Load this when writing or editing slide HTML. The deck is a web document as
+well as a set of slides, so this contract covers both what makes a slide lay
+out correctly and what makes the document accessible.
 
 ## Workspace layout
 
@@ -17,146 +18,155 @@ my-deck/
 └── preview/               generated PNGs (regenerated, not edited)
 ```
 
+Deliver the whole folder: `deck.html` loads `slide.css` and `dads/` by
+relative path.
+
 ## The document
 
 ```html
+<html lang="ja">
+<head>
+  <title>…the governing message…｜…organisation…</title>
+  …dads/global.css, the component stylesheets, slide.css…
+</head>
 <body class="sld-deck">
-  <section class="sld-slide" data-layout="kpi">
+<main>
+  <section class="sld-slide" data-layout="title" aria-labelledby="s1-title">
     <div class="sld-slide__frame">
-      <header class="sld-slide__header">
-        <p class="sld-eyebrow" data-role="meta"><span>現状</span><span class="sld-rule"></span></p>
-        <h2 class="sld-message dads-u-std-32B-150">…one assertion…</h2>
-      </header>
-      <div class="sld-slide__body">…</div>
+      <hgroup class="dads-heading" data-size="45" data-rule="8">
+        <p class="dads-heading__shoulder">…organisation…</p>
+        <h1 class="dads-heading__heading" id="s1-title">…the governing message…</h1>
+      </hgroup>
     </div>
     <footer class="sld-slide__footer dads-u-dns-14N-130">…</footer>
-    <div class="sld-notes" data-pptx="notes">…speaker notes…</div>
   </section>
+
+  <section class="sld-slide" data-layout="point" aria-labelledby="s4-title">
+    <div class="sld-slide__frame">
+      <hgroup class="dads-heading" data-size="32">
+        <p class="dads-heading__shoulder">論点1</p>
+        <h2 class="dads-heading__heading" id="s4-title">…one assertion…</h2>
+      </hgroup>
+      <div class="sld-slide__body">…the evidence…</div>
+    </div>
+    <footer class="sld-slide__footer dads-u-dns-14N-130">…source…<span>4</span></footer>
+    <div class="sld-notes">…speaker notes…</div>
+  </section>
+</main>
 </body>
+</html>
 ```
 
-- One `.sld-slide` per slide, in presentation order. Override the selector with
-  `--selector` if a project uses different markup.
-- `data-layout` names the layout for the catalogue and for the converted
-  deck's per-slide record. It does not change conversion.
+- One `.sld-slide` per slide, in presentation order, inside one `<main>`.
+  `aria-labelledby` on each section names it by its headline, so the slides
+  are listed as regions in a screen reader's landmark list. Override the
+  selector with `--selector` if a project uses different markup.
+- `data-layout` names the slide's role in the tree: one of `title`,
+  `premise`, `answer`, `point`, `closing`, `appendix`. The linter reads it to
+  check that `data-layout="answer"` comes by slide 3, that the appendix comes
+  last, and to count the slide budget. A slide without it counts as a main
+  slide with the role `custom`.
 - `.sld-slide__frame` is the safe content area; `.sld-slide__footer` is
-  positioned separately so it sits at the foot of the slide.
-- Speaker notes live in `[data-pptx="notes"]` or `.sld-notes` (which is
-  `display: none`), or in a `data-notes` attribute on the slide.
+  positioned separately so it sits on the safe-area line at the foot of the
+  slide.
+- Speaker notes live in `.sld-notes`, next to the slide they belong to. They
+  are never rendered — not on screen, not in print — so nothing a reader needs
+  goes there.
+
+### Headings
+
+The design system's heading guidance decides the outline, and the linter
+enforces it.
+
+- **Exactly one `h1`**, on the cover. It states the deck's subject, which is
+  the governing message, and `<title>` states the same subject followed by the
+  organisation.
+- **One `h2` per slide**: the slide's headline, in the heading component with
+  its shoulder text. The shoulder names the slide's place in the tree (`前提`,
+  `結論`, `論点2`, `付録1`). It is a `<p>` inside the `<hgroup>`, never a
+  heading itself.
+- **An `h3` for a block title** inside a slide — a tree branch, a card, a step.
+- **Never skip a level.** An `h4` straight after an `h2` is an error.
 
 ### Two class families, one namespace each
 
 | Prefix | Owner | Rule |
 |---|---|---|
-| `dads-*` | Digital Agency | Use as published. Never redefine one; never invent one. |
-| `sld-*` | This skill | Slide geometry and slide-only blocks. Not DADS, and never described as DADS. |
+| `dads-*` | Digital Agency | Use as published, with the published markup and `data-*` attributes. Never redefine one; never invent one. |
+| `sld-*` | This skill | Slide geometry, and the slide blocks DADS does not publish. Not DADS, and never described as DADS. |
 
 Everything `sld-*` paints is expressed in DADS token custom properties, so a
 token update reaches the slides without editing `slide.css`.
 
-## How the converter classifies an element
+## Official components used as published
 
-The walk is automatic; `data-pptx` only overrides it.
+Fetch the component's stylesheet and copy the markup from its official
+example. `scripts/fetch-dads-assets.sh` without arguments fetches the set the
+template uses.
 
-| The element is | Becomes |
-|---|---|
-| `<img>` | A picture, positioned at its measured rectangle |
-| `<table>` | A native PowerPoint table — real rows, cells, fills and borders |
-| `<svg>`, `<canvas>`, `<video>` | A picture, captured at 2x from the rendered element |
-| A block whose subtree is only text | One text box, one paragraph per text-leaf block — including bare text sitting beside block children |
-| An absolutely positioned or floated child | Its own shape at its own measured rectangle; out-of-flow boxes are never folded into a parent's paragraph flow |
-| A block with a background, border or radius | A rectangle, emitted before its contents |
-| Anything else | Recursed into |
-
-### Grouping, and why a flex gap splits a box
-
-Consecutive text blocks in normal flow become **one** text box, with margins
-and padding carried over as paragraph spacing — so a `<ul>` is one editable
-list, and a stack of `<p>` is one editable paragraph run.
-
-A flex or grid container with more than one child is **not** grouped. Its
-`gap` is not a margin, and PowerPoint has no way to reproduce it inside a
-single text box. Each child is emitted at its own measured rectangle instead,
-which is exact. This is why the layouts use flex and grid for structure and
-normal flow for prose.
-
-### `data-pptx` overrides
-
-| Value | Effect |
-|---|---|
-| `raster` | Screenshot this element and place it as one picture. The escape hatch for charts, SVG diagrams, and anything too intricate to map. |
-| `text` | Force one text box, even if the walk would have recursed |
-| `image` / `table` / `shape` | Force that treatment |
-| `notes` | Speaker notes for the slide |
-| `ignore` | Drop entirely — decoration that carries no meaning |
-
-Reach for `raster` deliberately and at the smallest scope that works. A
-rasterized element cannot be edited, searched, translated or restyled in
-PowerPoint, and it needs its own text alternative.
-
-## What does not convert
-
-- **`::before` and `::after`.** They have no DOM node and no measurable box, so
-  the walk cannot see them. `slide.css` uses a real `.sld-rule` element rather
-  than an `::after` rule for exactly this reason. The linter warns when a
-  pseudo-element paints something.
-- **CSS gradients, filters, blend modes, transforms and animation.** Put the
-  result in a rasterized element if it matters.
-- **Anything scrolled out of view.** A slide is `overflow: hidden`; what
-  overflows is clipped in the browser and lost in the file. The linter reports
-  it as an error.
-- **Interactive behaviour.** Hover, focus, and JavaScript state have no meaning
-  in a slide. Render the state you want to show.
-- **A `transform` or `zoom` on a slide.** It scales the measured geometry but
-  not the type size, which silently breaks the px-to-point mapping the whole
-  pipeline rests on. The linter reports it as an error; author at 1:1 and scale
-  the browser window instead.
-
-## Working with official DADS components
-
-Fetch the component's stylesheet, copy the markup from the official example,
-and keep its classes and `data-*` attributes intact:
+| Need | Component | Markup |
+|---|---|---|
+| Any heading | Heading | `hgroup.dads-heading[data-size]` with `p.dads-heading__shoulder` and `h1`–`h3.dads-heading__heading`; a `div.dads-heading` when there is no shoulder. `data-rule` adds the key-colour rule: `8` on the cover, `4` on the answer slide, whose rule the tree hangs from |
+| Parallel items | List | `ul.dads-list` (or `ol`) with `data-spacing` |
+| A term and its explanation | Description list | `dl.dads-description-list` > `div.dads-description-list__item` > `dt` + `dd` |
+| Values to compare or look up | Table | `div.dads-table` > `table.dads-table__table`, with `<th scope>` cells |
+| A status stated in words | Chip label | `span.dads-chip-label[data-style][data-color]` |
+| A cited source | Link | `a.dads-link` whose text names the target |
 
 ```html
-<link rel="stylesheet" href="dads/components/table/table.css">
-
-<div class="dads-table sld-fill-width">
-  <table class="dads-table__table" data-border="hidden" data-cell-border>
-    <thead><tr><th class="dads-table__col-header" scope="col">工程</th>…</tr></thead>
-    <tbody><tr><td>受付・転記</td>…</tr></tbody>
-  </table>
-</div>
+<dl class="dads-description-list dads-u-std-18N-160">
+  <div class="dads-description-list__item">
+    <dt>転記</dt>
+    <dd>紙の申請書に書かれた内容を、職員が基幹システムに手で入力し直すこと</dd>
+  </div>
+</dl>
 ```
 
 Components built for a page rather than a slide — navigation, drawers, modals,
 form controls, anything whose point is interaction — do not belong on a slide.
 
-Some static components are re-implemented as `sld-*` rather than used as
-published, and the reason is always slide geometry rather than taste: a card
-here has to be a fixed-height grid cell, a step has to sit on a shared axis, a
-callout has to anchor to the foot of the body. Where a DADS component does fit
-unchanged — the table, lists, dividers, the type and colour foundations — use
-it. If you re-implement one, say so in the deck and keep the tokens.
+## This skill's slide blocks
 
-## Text that must not re-wrap
+The design system publishes no static, non-interactive panel for a slide: its
+cards are linked examples, and its step navigation is a navigation control. So
+these blocks are this skill's own, built on the tokens.
 
-The converter records how many lines the browser laid out. A text box whose
-paragraphs all fit on one line is emitted with wrapping switched off, so
-PowerPoint cannot break a label in two under slightly different font metrics.
-A wrapping box gets a few pixels of slack on the side its text is not anchored
-to, for the same reason. Neither is a substitute for having the deck's font
-installed where the file is opened.
+| Class | What it is |
+|---|---|
+| `sld-tree`, `sld-tree__node` | The answer slide's key line: an `<ol>` whose items hang from the headline's rule |
+| `sld-index` | A position number, as text inside the heading it numbers |
+| `sld-card`, `sld-card__head` | A static panel; `data-tone="accent"` or `"sub"` |
+| `sld-kpi`, `sld-kpi__value`, `sld-kpi__label` | One figure and what it measures |
+| `sld-steps-axis`, `sld-steps`, `sld-steps__track`, `sld-steps__index` | A sequence on one shared axis |
+| `sld-takeaway` | The band that states what the evidence means |
+| `sld-figure`, `sld-figure__caption` | A figure and the caption that states its finding |
+| `sld-cols[data-cols]`, `sld-stack`, `sld-grow`, `sld-push` | Layout within the body |
+| `sld-num`, `sld-total`, `sld-fill-width` | Numeric columns, a total row, a full-width table |
 
-## Checklist before converting
+The outer margin of every element on a slide is zeroed, components included:
+on a slide the spacing between blocks is the layout's gap. A component's inner
+spacing is left as published.
 
-- [ ] Every slide states one assertion in an `h1`/`h2` or `.sld-message`.
+## What the linter cannot see
+
+- **Anything scrolled out of view.** A slide is `overflow: hidden`; what
+  overflows is clipped. The linter reports text clipped by its own box and
+  content that crosses the slide's edge, but not a block that slides under the
+  footer — look at the preview.
+- **Interactive state.** Hover and focus have no meaning on a projected slide.
+  Render the state you want to show. A link keeps the design system's focus
+  style, because a reader of the HTML can still tab to it.
+
+## Checklist before delivering
+
+- [ ] `<html lang>` and `<title>` are set; the `<title>` subject matches the `h1`.
+- [ ] One `h1`, one `h2` per slide, no skipped level.
+- [ ] The answer slide is slide 3 or earlier; the main deck fits k + 4 slides.
+- [ ] Every slide states one assertion in its `h2`.
 - [ ] Nothing crosses the safe area; nothing is clipped.
-- [ ] Every image has `alt`; every SVG has a `<title>` or `aria-label`. A
-      decorative image takes `alt=""`, which marks it decorative in the file
-      rather than letting its filename be read aloud.
-- [ ] Every table has `<th>` cells, so the converted table can carry a header
-      row. Without it a screen reader reads a value and never names its column.
+- [ ] Every image has `alt`; every SVG has a `<title>`, `aria-label`, or
+      `aria-hidden="true"`.
+- [ ] Every table has `<th>` cells with `scope`.
+- [ ] Every term a newcomer would not know is defined, without metaphor.
 - [ ] No meaning is carried by colour or position alone.
-- [ ] Decorative flourishes are real elements, not pseudo-elements.
-- [ ] `data-pptx="raster"` appears only where it is genuinely needed.
 - [ ] Reading order matches document order.

@@ -1,17 +1,16 @@
 /*
- * 16:9 slide layout for decks that are converted to PowerPoint.
+ * 16:9 slide layout for HTML decks built on the Digital Agency Design System.
  *
  * These `sld-*` classes are this skill's own layout primitives. They are NOT
  * Digital Agency Design System components and must not be described as such.
  * Every value they use is either a DADS design token custom property
- * (`--color-*`, `--font-family-*`, `--elevation-*`, supplied by the official
- * token stylesheet) or slide geometry defined below. Official DADS components
- * keep their own `dads-*` classes and their own official stylesheets.
+ * (`--color-*`, `--font-family-*`, supplied by the official token stylesheet)
+ * or slide geometry defined below. Official DADS components — the heading,
+ * lists, the description list, the table, links, chip labels — keep their own
+ * `dads-*` classes and their own official stylesheets, used as published.
  *
- * Geometry contract (see references/pptx-conversion.md):
- *   1 CSS px = 1/96 in = 0.75 pt = 9525 EMU.
- *   A 1280 x 720 px slide is therefore exactly 13.333 x 7.5 in — PowerPoint's
- *   standard 16:9 slide — with no scaling anywhere in the pipeline.
+ * Geometry: a slide is a fixed 1280 x 720 CSS px canvas, and printing gives
+ * one 1280 x 720 page per slide.
  */
 
 :root {
@@ -19,9 +18,11 @@
   --sld-h: 720px;
   --sld-margin-x: 64px;
   --sld-margin-top: 48px;
-  --sld-margin-bottom: 72px;
+  --sld-margin-bottom: 80px;
+  /* Projector overscan and video framing eat the outer band of a slide. */
+  --sld-safe: 32px;
   --sld-gap: 24px;
-  --sld-cover-anchor: 256px;
+  --sld-cover-anchor: 200px;
   --sld-ink: var(--color-neutral-solid-gray-900);
   --sld-ink-muted: var(--color-neutral-solid-gray-700);
   --sld-accent: var(--color-key-900);
@@ -37,15 +38,14 @@
 
 .sld-deck {
   margin: 0;
-  padding: 0;
+  padding: 24px 0 0;
   background-color: var(--color-neutral-solid-gray-100);
   color: var(--sld-ink);
   font-family: var(--font-family-sans);
 }
 
-/* One slide = one fixed-size canvas. Never let a slide scroll or reflow:
-   the converter reads laid-out geometry, so what overflows here is lost there.
-   The linter reports overflow rather than hiding it silently. */
+/* One slide = one fixed-size canvas. Never let a slide scroll or reflow: what
+   overflows is clipped, and the linter reports it rather than hiding it. */
 .sld-slide {
   position: relative;
   box-sizing: border-box;
@@ -61,10 +61,6 @@
   line-break: strict;
 }
 
-.sld-slide + .sld-slide {
-  margin-top: 0;
-}
-
 /* Print / PDF: one slide per page, no browser margins. */
 @page {
   size: 1280px 720px;
@@ -73,6 +69,7 @@
 
 @media print {
   .sld-deck {
+    padding: 0;
     background-color: transparent;
   }
 
@@ -84,17 +81,14 @@
 }
 
 /* The official DADS stylesheet ships without a CSS reset, so user-agent
-   margins on headings, paragraphs and lists would otherwise appear as gaps the
-   author never wrote — and the converter would faithfully reproduce them.
-   `:where()` keeps specificity at zero, so every DADS component stylesheet
-   still wins over this. */
+   margins would otherwise appear as gaps nobody wrote. `.sld-slide` gives this
+   rule one class of specificity, the same as a component's own class, and this
+   stylesheet loads last, so it also zeroes a component's *outer* margin: on a
+   slide the spacing between blocks is the layout's gap, not a margin each
+   component brings with it. A component's inner spacing is untouched. */
 .sld-slide :where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, pre, ul, ol) {
   margin: 0;
 }
-
-/* A list's left padding is the strip its markers are drawn in — it is layout,
-   not a user-agent default to reset, and the converter reads it to place the
-   PowerPoint bullet. */
 
 .sld-slide :where(img, svg) {
   max-width: 100%;
@@ -102,48 +96,14 @@
 
 /* ------------------------------------------------------------ structure ---- */
 
-/* The content frame every non-cover layout sits in. Its inset is the safe
-   area: PowerPoint themes, projector overscan and video framing all eat the
-   outer band, so nothing meaningful is placed outside it. */
+/* The content frame every slide sits in. Its inset lies inside the safe area,
+   so nothing meaningful is placed in the outer band. */
 .sld-slide__frame {
   display: flex;
   position: absolute;
   inset: var(--sld-margin-top) var(--sld-margin-x) var(--sld-margin-bottom);
   flex-direction: column;
   gap: var(--sld-gap);
-}
-
-.sld-slide__header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* The eyebrow names where the slide sits in the deck's argument. */
-.sld-eyebrow {
-  display: flex;
-  align-items: center;
-  column-gap: 12px;
-  color: var(--sld-ink-muted);
-}
-
-/* A real element, not ::after: pseudo-elements have no DOM node and therefore
-   no shape in the converted deck. */
-.sld-rule {
-  flex: 1;
-  align-self: center;
-  border-top: 2px solid var(--sld-border);
-  height: 0;
-}
-
-/* The governing message: one assertion, written as a full sentence. */
-.sld-message {
-  margin: 0;
-  color: var(--sld-ink);
-}
-
-.sld-message--accent {
-  color: var(--sld-accent);
 }
 
 .sld-slide__body {
@@ -156,8 +116,7 @@
 }
 
 /* A body that ends in the upper half with nothing below it reads as
-   unfinished. Either anchor a closing band with `sld-push`, or centre the
-   body. Both survive conversion: each child is placed at its own rectangle. */
+   unfinished. Either anchor a closing band with `sld-push`, or centre it. */
 .sld-slide__body[data-fill="center"] {
   justify-content: center;
 }
@@ -166,9 +125,10 @@
   display: flex;
   position: absolute;
   right: var(--sld-margin-x);
-  /* Clearance from the frame must exceed the largest gap inside it (24px),
-     or proximity makes the footer read as the last line of the content. */
-  bottom: 24px;
+  /* The footer sits on the safe-area line. Its clearance from the frame
+     (80px - 32px - one 14px line) must exceed the largest gap inside the frame
+     (24px), or proximity makes it read as the last line of the content. */
+  bottom: var(--sld-safe);
   left: var(--sld-margin-x);
   align-items: baseline;
   justify-content: space-between;
@@ -176,35 +136,13 @@
   color: var(--sld-ink-muted);
 }
 
-/* -------------------------------------------------------------- covers ---- */
+/* --------------------------------------------------------------- cover ---- */
 
-.sld-slide[data-layout="title"],
-.sld-slide[data-layout="section"] {
-  background-color: var(--color-key-900);
-  color: var(--color-neutral-white);
-}
-
-/* Centring two blocks of different height gives them different anchors. The
-   cover and the section divider use the same idiom, so they share a top edge. */
-.sld-slide[data-layout="title"] .sld-slide__frame,
-.sld-slide[data-layout="section"] .sld-slide__frame {
+/* The cover keeps the white surface, so the official heading is used exactly
+   as published; the key colour arrives through its own rule. */
+.sld-slide[data-layout="title"] .sld-slide__frame {
   justify-content: flex-start;
   padding-top: calc(var(--sld-cover-anchor) - var(--sld-margin-top));
-}
-
-.sld-slide[data-layout="title"] .sld-message,
-.sld-slide[data-layout="section"] .sld-message,
-.sld-slide[data-layout="title"] .sld-eyebrow,
-.sld-slide[data-layout="section"] .sld-eyebrow,
-.sld-slide[data-layout="title"] .sld-slide__footer,
-.sld-slide[data-layout="section"] .sld-slide__footer {
-  color: var(--color-neutral-white);
-}
-
-.sld-slide[data-layout="title"] .sld-rule,
-.sld-slide[data-layout="section"] .sld-rule {
-  /* key-500 on key-900 is 2.82:1 and fails 1.4.11; key-400 is 3.91:1. */
-  border-top-color: var(--color-key-400);
 }
 
 /* ---------------------------------------------------------------- grid ---- */
@@ -254,8 +192,10 @@
   min-height: 0;
 }
 
-/* -------------------------------------------------------------- blocks ---- */
+/* --------------------------------------------------------------- blocks ---- */
 
+/* A static content panel. The design system publishes cards only as linked
+   examples, so a non-interactive slide panel is this skill's own. */
 .sld-card {
   display: flex;
   flex-direction: column;
@@ -278,8 +218,59 @@
   background-color: var(--color-key-50);
 }
 
-.sld-card__label {
-  color: var(--sld-ink-muted);
+/* A heading row that carries a chip label beside the title. */
+.sld-card__head {
+  display: flex;
+  align-items: center;
+  column-gap: 12px;
+}
+
+/* A number that names a node's position in the deck's tree. It is text, so it
+   is read aloud with the heading it belongs to. */
+.sld-index {
+  display: inline-block;
+  box-sizing: border-box;
+  margin-right: 0.5em;
+  border-radius: 50%;
+  background-color: var(--sld-accent);
+  width: 1.5em;
+  height: 1.5em;
+  color: var(--color-neutral-white);
+  line-height: 1.5em;
+  text-align: center;
+  vertical-align: 0.05em;
+}
+
+/* The answer slide's tree: the headline above is the root, each item is one
+   key-line point. The connectors are decoration; the list carries the order. */
+.sld-tree {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: var(--sld-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sld-tree__node {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  box-sizing: border-box;
+  gap: 8px;
+  border-top: 4px solid var(--sld-accent);
+  background-color: var(--sld-surface-sub);
+  padding: 16px 20px 20px;
+}
+
+.sld-tree__node::before {
+  position: absolute;
+  top: calc(-1 * var(--sld-gap) - 4px);
+  left: 32px;
+  border-left: 2px solid var(--sld-accent);
+  height: var(--sld-gap);
+  content: "";
 }
 
 /* A KPI tile states one number and what it measures. */
@@ -291,7 +282,7 @@
   gap: 4px;
   border-radius: 8px;
   background-color: var(--sld-surface-sub);
-  padding: 20px 24px;
+  padding: 16px 24px;
 }
 
 .sld-kpi__value {
@@ -302,8 +293,7 @@
   color: var(--sld-ink-muted);
 }
 
-/* Process steps. The number is text, not a graphic, so it survives
-   conversion as editable text and is announced by a screen reader. */
+/* Process steps on one shared axis. */
 .sld-steps-axis {
   display: flex;
   flex-direction: column;
@@ -311,8 +301,7 @@
 }
 
 /* One rule spanning all the steps, not one bar per step: continuity turns
-   three tiles into a single axis, and three identical bars would be ink that
-   does not change when the data does. */
+   three tiles into a single axis. */
 .sld-steps__track {
   border-top: 4px solid var(--sld-border);
   height: 0;
@@ -344,20 +333,7 @@
   color: var(--sld-ink-muted);
 }
 
-/* The ordinal is what encodes direction, so it carries the key colour. */
-.sld-steps__num {
-  flex: none;
-  box-sizing: border-box;
-  border-radius: 12px;
-  background-color: var(--sld-accent);
-  width: 24px;
-  height: 24px;
-  color: var(--color-neutral-white);
-  line-height: 24px;
-  text-align: center;
-}
-
-/* A takeaway band. Meaning is carried by the words, not by the color. */
+/* A takeaway band. Meaning is carried by the words, not by the colour. */
 .sld-takeaway {
   box-sizing: border-box;
   border-left: 8px solid var(--sld-accent);
@@ -365,34 +341,28 @@
   padding: 16px 24px;
 }
 
-/* A figure the converter rasterizes as one picture (charts, SVG diagrams). */
+/* A figure with a caption that states its finding. */
 .sld-figure {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  justify-content: center;
   gap: 8px;
   margin: 0;
   min-height: 0;
 }
 
 /* The viewBox supplies the ratio, so the box is the drawing and the caption
-   sits against it. `object-fit` only ever applied to <img>. */
+   sits against it. */
 .sld-figure > img,
 .sld-figure > svg {
-  flex: 0 1 auto;
   width: 100%;
   height: auto;
-  max-height: 100%;
-  min-height: 0;
-  object-fit: contain;
 }
 
 .sld-figure__caption {
   color: var(--sld-ink-muted);
 }
 
-/* ------------------------------------------------------------- utility ---- */
+/* -------------------------------------------------------------- utility ---- */
 
 .sld-grow {
   flex: 1;
@@ -406,9 +376,7 @@
 }
 
 /* A column of figures is only comparable when it aligns on place value.
-   `tabular-nums` keeps the digit widths equal; the converter carries the
-   alignment through as the paragraph's alignment. */
-/* `.dads-table__table :is(td, th)` sets `text-align: left` at (0,1,1), so the
+   `.dads-table__table :is(td, th)` sets `text-align: left` at (0,1,1), so the
    element-qualified selector is what it takes to match it without redefining a
    DADS class. The table component's own guidance sanctions right-aligning
    numeric columns. */
@@ -435,12 +403,7 @@ th.sld-num {
   color: var(--sld-accent);
 }
 
-.sld-on-accent {
-  color: var(--color-neutral-white);
-}
-
-/* Speaker notes live in the document but never render. The converter reads
-   them into the PowerPoint notes pane. */
+/* Speaker notes live in the source next to their slide and never render. */
 .sld-notes {
   display: none;
 }

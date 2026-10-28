@@ -28,7 +28,8 @@ across projects while preserving unrelated user files.
   completeness (six self-checks: dependency, branching, iteration,
   inference), authorization and safety (the enforced deny list lives in
   `settings.json`), reader-facing structure (the Pyramid Principle
-  self-check), and model and effort routing (capability tiers, closed
+  self-check, plus premises and plain-word definitions for a newcomer and no
+  explanation by metaphor or analogy), and model and effort routing (capability tiers, closed
   escalation conditions, subagent model and effort). None references
   another rule, a skill, or a config path. What each file deliberately
   omits, and where that content went, is recorded in
@@ -49,8 +50,9 @@ across projects while preserving unrelated user files.
   (current AWS documentation lookup) — and domain overlays —
   `digital-agency-frontend` (DADS-based accessible React/Tailwind
   public-service frontends and web dashboards), `digital-agency-slides`
-  (DADS 16:9 slide decks authored as HTML and converted to editable
-  PowerPoint by its own bundled tooling), `scrum-master` (Scrum
+  (DADS 16:9 slide decks delivered as HTML, built as a tree — premises, then
+  the answer, then one slide per supporting point — and checked by its own
+  bundled linter), `scrum-master` (Scrum
   Guide-only events, roles, impediments), `secure-logging` (implement and
   check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0
   V16, and CWE, and against the official logging practices of Python, React,
@@ -167,7 +169,7 @@ my-claude-code/
     │   ├── thinking-lenses.md      # Reasoning completeness: six self-checks applied every task
     │   ├── model-routing.md        # Model and effort routing: lowest sufficient tier, closed escalation conditions
     │   ├── permissions.md          # Authorization and safety; enforced deny → settings.json
-    │   └── pyramid-principle.md    # Reader-facing structure self-check for substantive outputs
+    │   └── pyramid-principle.md    # Reader-facing structure self-check; premises and terms for a newcomer
     └── skills/                     # On-demand: body loaded when relevant, self-describing
         ├── coder/SKILL.md          # Change workflow + TDD + SDD + code quality + security + type safety + docs
         ├── minto-pyramid/          # Vendored plugin: Minto structure for every substantive task (locally modified: no Stop hook)
@@ -181,11 +183,11 @@ my-claude-code/
         ├── git-workflow/SKILL.md   # Branch/commit/push/PR conventions
         ├── aws-research/SKILL.md # Current AWS doc lookup
         ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references (domain overlay)
-        ├── digital-agency-slides/  # DADS 16:9 decks in HTML -> editable .pptx (domain overlay)
+        ├── digital-agency-slides/  # DADS 16:9 HTML decks built as premise -> answer -> points (domain overlay)
         │   ├── SKILL.md            #   playbook
-        │   ├── references/         #   slide design, markup contract, conversion, sourcing
+        │   ├── references/         #   slide design, markup contract, checks, sourcing
         │   ├── assets/             #   1280x720 layout CSS + annotated deck template
-        │   └── scripts/            #   setup, official-asset fetch, DOM extractor, deck CLI
+        │   └── scripts/            #   setup, official-asset fetch, in-browser checker, deck CLI
         ├── scrum-master/           # Scrum Guide (2020)-only events, roles, impediments (domain overlay)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
@@ -233,11 +235,13 @@ It checks the bundle's files against each other without network access. How
 the bundle behaves inside Claude Code is checked by hand with the procedure
 in its [README](team/package-safety/README.md#check-that-it-is-in-force).
 
-`run-digital-agency-slides-skill.sh` ends with an end-to-end section that
-fetches the official DADS stylesheets and converts the bundled deck template.
-It needs network access and a Python environment carrying `python-pptx` and
-`playwright` — point `DECK_PYTHON` at one, or the section reports itself as
-skipped rather than failing.
+`run-digital-agency-slides-skill.sh` runs the deck linter against
+self-contained fixtures in `tests/fixtures/slides/`, then ends with an
+end-to-end section that fetches the official DADS stylesheets and lints and
+previews the bundled deck template. Both need a Python environment carrying
+`playwright` — point `DECK_PYTHON` at one, or they report themselves as
+skipped rather than failing — and the end-to-end section also needs network
+access.
 
 `run-removed-guardrails.sh` is a standing regression guard, not tied to any
 particular change — it fails if `.claude/hooks/` or `scripts/` are ever
