@@ -115,6 +115,14 @@ class HeadingChecks(unittest.TestCase):
         self.assertIn("M2", msgs)
         self.assertIn("R3", msgs)
 
+    def test_multiline_html_comment_is_ignored(self) -> None:
+        md = "# T\n\nlead\n\n<!--\n## Hidden\n- x\n-->\n\n## A\n\nx\n\n## B\n\nx\n"
+        self.assertEqual(check.check_md(md), [])
+
+    def test_single_line_html_comment_does_not_open_the_document(self) -> None:
+        md = "<!-- note -->\nAnswer.\n\n- a holds\n- b holds\n"
+        self.assertEqual(check.check_md(md), [])
+
     def test_headings_inside_code_fence_are_ignored(self) -> None:
         md = "# T\n\nlead\n\n## A\n\n```\n#### not a heading\n```\n\n## B\n\nbody\n"
         self.assertEqual(check.check_md(md), [])

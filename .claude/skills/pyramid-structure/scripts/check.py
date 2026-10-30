@@ -151,7 +151,6 @@ class Doc:
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
 _FENCE = re.compile(r"^\s*(```|~~~)")
-_COMMENT = re.compile(r"^\s*<!--.*-->\s*$")
 _LIST = re.compile(r"^(\s*)(?:[-*+]|\d+[.)])\s+(.*)$")
 
 
@@ -170,7 +169,11 @@ def parse_md(text: str) -> Doc:
     fence, opening, opening_line = "", "none", 0
     group: list[Item] | None = None
     istack: list[Item] = []
+    in_comment = False  # inside an HTML comment that spans lines
     for i, raw in enumerate(lines[start:], start + 1):
+        if in_comment:
+            in_comment = "-->" not in raw
+            continue
         m_fence = _FENCE.match(raw)
         if m_fence or fence:
             if m_fence and not fence:
@@ -183,6 +186,11 @@ def parse_md(text: str) -> Doc:
                 fence = ""
             stack[-1].body += 1
             continue
+        stripped = raw.lstrip()
+        if stripped.startswith("<!--"):
+            # Comments are not content; plain string search, since this only skips them and sanitizes nothing.
+            in_comment = "-->" not in stripped[4:]
+            continue
         m = _HEADING.match(raw)
         if m:
             sec = Section(len(m.group(1)), m.group(2), i)
@@ -193,7 +201,7 @@ def parse_md(text: str) -> Doc:
             flat.append(sec)
             group, istack = None, []
             continue
-        if not raw.strip() or _COMMENT.match(raw):
+        if not raw.strip():
             continue
         m_list = _LIST.match(raw)
         if opening == "none":
