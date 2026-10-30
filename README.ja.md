@@ -126,6 +126,10 @@ bash path/to/my-claude-code/install.sh
   - `commands/`
   - `CLAUDE.md`
   - `install.sh`
+- 例外として、`skills/` 内の `~/.claude/skills/synced/` は置換しません。ここは
+  Claude アプリが自身のスキルを同期する場所なので、`skills/` を置き換える間だけ
+  退避し、そのまま元の場所に戻します。途中で実行が止まった場合は
+  `~/.claude/.install-keep.*/synced` に残ります。
 - `settings.json` は置換ではなく **マージ同期** されます: このリポジトリが宣言する
   キー（`model`、`permissions`、`hooks` など）は常にリポジトリ側の値が優先されます
   （`permissions` のような共有オブジェクトの内部まで再帰的にマージするため、例えば

@@ -71,6 +71,14 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   # cleanup paths for artifacts managed by earlier repository versions;
   # everything else already under ~/.claude remains user-owned and untouched.
   # settings.json is handled separately below: it is merged, not replaced.
+  # skills/synced/ lies inside a managed path but is not this repository's:
+  # the Claude app syncs its own skills there. Move it aside while skills/ is
+  # replaced, then put it back. If the run stops in between, it survives in
+  # the .install-keep.* directory rather than being lost.
+  keep_dir="$(mktemp -d "$TARGET_DIR/.install-keep.XXXXXX")"
+  if [ -e "$TARGET_DIR/skills/synced" ]; then
+    mv "$TARGET_DIR/skills/synced" "$keep_dir/synced"
+  fi
   for managed_path in \
     rules \
     skills \
@@ -79,6 +87,11 @@ if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
     CLAUDE.md; do
     sync_path "$managed_path"
   done
+  if [ -e "$keep_dir/synced" ]; then
+    mkdir -p "$TARGET_DIR/skills"
+    mv "$keep_dir/synced" "$TARGET_DIR/skills/synced"
+  fi
+  rmdir "$keep_dir"
   sync_settings_json
 
   # speckit-* skills are generated locally per-project by `specify init`

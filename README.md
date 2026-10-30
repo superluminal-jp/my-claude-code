@@ -150,6 +150,10 @@ Re-running is safe: it re-syncs managed paths and re-checks the plugins.
 
 - Installer-managed paths are synchronized by replacement: `rules/`,
   `skills/`, `agents/`, `commands/`, `CLAUDE.md`, and `install.sh`.
+- One exception inside `skills/`: `~/.claude/skills/synced/`, where the Claude
+  app syncs its own skills, is moved aside while `skills/` is replaced and put
+  back unchanged. If a run stops in between, it is left in
+  `~/.claude/.install-keep.*/synced`.
 - `settings.json` is synchronized by **merge**, not replacement: for any key
   this repo declares (`model`, `permissions`, `hooks`, ...), the repository's
   value wins — recursing into shared objects, so e.g. `permissions.deny`
