@@ -56,13 +56,18 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     スクリプトで Notes.app を読み書き。上書きと削除は SHA-256 ハッシュのゲート付き）、
     `apple-reminders`（Swift ファイル1つからビルドする小さな EventKit CLI で
     Reminders.app を読み書き。[ADR-0013](docs/adr/0013-eventkit-for-reminders-automation.md) 参照）
-  - skills ディレクトリ型プラグイン2件を上流のパッケージから取り込んでいる:
+  - `pyramid-structure` は、あらゆる実質的タスクに Minto のピラミッドを適用する。
+    回答・計画・意思決定・レビュー・文書を構成し、実質的な下書きは送る前に、同梱の
+    標準ライブラリだけで動く Python の検査スクリプト（見出し・箇条書き・冒頭の文）で
+    検査する。依頼があれば、文書の主張の木について演繹の妥当性と宣言された MECE も
+    検査する（[spec 055](specs/055-pyramid-structure-always-on/spec.md)）
+  - skills ディレクトリ型プラグイン1件を上流のパッケージから取り込んでいる:
     `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
-    フックなし）、`minto-pyramid`
-    （あらゆる実質的タスクに Minto 構造を助言的ガイダンスとして適用。`Stop`
-    フックの検査はない）。どちらのローカルコピーも上流のフックを削除している
-    （`maintaining-living-documentation` は `hooks/hooks.json`、`minto-pyramid` は `Stop` フック）。上流からそのまま再コピーするとフックが復活する。
-    オプションは各パッケージの `README.md` を参照。従来の Minto スイート
+    フックなし）。ローカルコピーは上流の `hooks/hooks.json` を削除しており、
+    上流からそのまま再コピーするとフックが復活する。オプションはパッケージの
+    `README.md` を参照。取り込んでいた `minto-pyramid` プラグインは
+    `pyramid-structure` に置き換え、同期対象外の
+    [`archive/minto-pyramid/`](archive/minto-pyramid/) に退避した。従来の Minto スイート
     （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
     [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
@@ -176,7 +181,7 @@ my-claude-code/
     │   └── pyramid-principle.md    # 読み手本位の構造: ピラミッド、論文の部の順序、前提と用語
     └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型
         ├── coder/SKILL.md          # 変更手順 + TDD + SDD + 品質 + 安全 + 型安全性 + ドキュメント
-        ├── minto-pyramid/          # 取り込んだプラグイン: 全実質タスクに Minto 構造(ローカル変更: Stop フックなし)
+        ├── pyramid-structure/      # 全実質タスクに Minto のピラミッド + 同梱の構成検査(scripts/check.py)
         ├── maintaining-living-documentation/ # 取り込んだプラグイン: 変更とドキュメントの整合(ローカル変更: フックなし)
         ├── clarifier/              # 意図の共通認識を形成し、その後に形式的要件へ
         │   ├── SKILL.md            #   二段構成のプレイブック
@@ -277,9 +282,10 @@ bash tests/run-readme-skill-index.sh
 生成物の `speckit-*` を除くスキルのディレクトリが、`README.md` と `README.ja.md` の
 両方に `` `<name>` `` または `<name>/` のパスとして書かれていなければ失敗する。
 
-取り込んだプラグイン（[`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
-または [`minto-pyramid`](.claude/skills/minto-pyramid/)）を変更したら、その README の
-とおり、そのフォルダで単体テストを実行する:
+取り込んだプラグイン [`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
+または自作スキル [`pyramid-structure`](.claude/skills/pyramid-structure/)（検査スクリプト
+`scripts/check.py` を含む）を変更したら、その README のとおり、そのフォルダで単体テストを
+実行する。`pyramid-structure` の場合は `bash tests/run-config-pyramid.sh` も実行する:
 
 ```sh
 python3 -B -m unittest discover -s tests -v
