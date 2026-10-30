@@ -86,6 +86,16 @@ printf '%s\n' stale >"$TARGET/commands/stale.md"
 
 # These paths are user-owned because the installer does not declare them.
 printf '%s\n' preserve >"$TARGET/user-owned.txt"
+
+# skills/synced/ sits inside a managed path but is written by the Claude app,
+# which syncs its own skills there; the installer must leave it as it was.
+synced_bucket="$TARGET/skills/synced/bucket-id"
+mkdir -p "$synced_bucket/app-skill"
+printf '%s\n' app-owned >"$synced_bucket/app-skill/SKILL.md"
+printf '%s\n' '{"app":true}' >"$synced_bucket/manifest.json"
+: >"$TARGET/skills/synced/.bucket-id"
+synced_snapshot="$TEST_ROOT/synced-snapshot"
+cp -R "$TARGET/skills/synced" "$synced_snapshot"
 printf '%s\n' '{"local":true}' >"$TARGET/settings.local.json"
 
 git_config="$REPO_ROOT/.specify/extensions/git/git-config.yml"
@@ -115,9 +125,16 @@ pass "rules directory matches the repository"
 expected_skills="$TEST_ROOT/expected-skills"
 cp -R "$REPO_ROOT/.claude/skills" "$expected_skills"
 rm -rf "$expected_skills"/speckit-* "$expected_skills/.DS_Store"
-diff -r "$expected_skills" "$TARGET/skills" >/dev/null ||
-  fail "skills contain only repository-managed shared skills"
-pass "skills contain only repository-managed shared skills"
+diff -r -x synced "$expected_skills" "$TARGET/skills" >/dev/null ||
+  fail "skills contain only repository-managed shared skills besides synced/"
+pass "skills contain only repository-managed shared skills besides synced/"
+
+diff -r "$synced_snapshot" "$TARGET/skills/synced" >/dev/null ||
+  fail "the Claude app's skills/synced/ is preserved unchanged"
+pass "the Claude app's skills/synced/ is preserved unchanged"
+[ -z "$(find "$TARGET" -maxdepth 1 -name '.install-keep.*')" ] ||
+  fail "no temporary keep directory is left behind"
+pass "no temporary keep directory is left behind"
 
 assert_absent "$TARGET/agents" "absent managed agents are removed"
 assert_absent "$TARGET/commands" "retired commands are removed"
@@ -240,6 +257,10 @@ pass "install.sh is idempotent on a second run"
 diff -r "$REPO_ROOT/.claude/rules" "$TARGET/rules" >/dev/null ||
   fail "rules directory still matches the repository after a second run"
 pass "rules directory still matches the repository after a second run"
+
+diff -r "$synced_snapshot" "$TARGET/skills/synced" >/dev/null ||
+  fail "skills/synced/ is still preserved after a second run"
+pass "skills/synced/ is still preserved after a second run"
 
 repo_model="$(jq -r '.model' "$REPO_ROOT/.claude/settings.json")"
 [ "$(jq -r '.model' "$TARGET/settings.json")" = "$repo_model" ] ||
