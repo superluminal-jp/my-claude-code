@@ -81,7 +81,10 @@ projects while preserving unrelated user files.
   bundled standard-library Python checker (headings, lists, opening
   sentence) before it is sent, and on request checks a document's claim tree
   for deductive validity and declared MECE
-  ([spec 055](specs/055-pyramid-structure-always-on/spec.md)). One vendored
+  ([spec 055](specs/055-pyramid-structure-always-on/spec.md)). It is also
+  packaged as an authored skills-directory plugin
+  (`.claude-plugin/plugin.json`, no hooks) with a `claude plugin eval` suite;
+  see its `README.md` for the recommended models. One vendored
   skills-directory plugin — `maintaining-living-documentation`
   (documentation consistency workflow) — is vendored from its upstream
   package; the local copy removes its `hooks/hooks.json` (no `SessionStart`

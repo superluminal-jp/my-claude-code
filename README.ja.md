@@ -60,7 +60,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     回答・計画・意思決定・レビュー・文書を構成し、実質的な下書きは送る前に、同梱の
     標準ライブラリだけで動く Python の検査スクリプト（見出し・箇条書き・冒頭の文）で
     検査する。依頼があれば、文書の主張の木について演繹の妥当性と宣言された MECE も
-    検査する（[spec 055](specs/055-pyramid-structure-always-on/spec.md)）
+    検査する（[spec 055](specs/055-pyramid-structure-always-on/spec.md)）。自作の skills ディレクトリ型
+    プラグイン（`.claude-plugin/plugin.json`、フックなし）としてもパッケージ化しており、
+    `claude plugin eval` 用の評価ケースを持つ。推奨するモデルはパッケージの `README.md` を参照
   - skills ディレクトリ型プラグイン1件を上流のパッケージから取り込んでいる:
     `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
     フックなし）。ローカルコピーは上流の `hooks/hooks.json` を削除しており、
