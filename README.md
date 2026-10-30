@@ -75,15 +75,22 @@ projects while preserving unrelated user files.
   built from one Swift file; see
   [ADR-0013](docs/adr/0013-eventkit-for-reminders-automation.md)). `secure-logging` is also
   packaged as an authored skills-directory plugin (`.claude-plugin/plugin.json`,
-  no hooks); see its `README.md`. Two vendored skills-directory
-  plugins — `maintaining-living-documentation` (documentation consistency
-  workflow) and
-  `minto-pyramid` (Minto structure applied to every substantive task as
-  advisory guidance, with no `Stop`-hook check) — are vendored from their
-  upstream packages. The local copy of `maintaining-living-documentation`
-  removes its `hooks/hooks.json` (no `SessionStart` rule, no `Stop` gate) and
-  the local copy of `minto-pyramid` removes the upstream `Stop` hook, so a
-  verbatim re-copy would restore them. See their own `README.md` for options. The former Minto suite (`minto-builder`,
+  no hooks); see its `README.md`. `pyramid-structure` applies the Minto
+  pyramid to every substantive task: it structures answers, plans,
+  decisions, reviews, and documents, checks each substantive draft with a
+  bundled standard-library Python checker (headings, lists, opening
+  sentence) before it is sent, and on request checks a document's claim tree
+  for deductive validity and declared MECE
+  ([spec 055](specs/055-pyramid-structure-always-on/spec.md)). It is also
+  packaged as an authored skills-directory plugin
+  (`.claude-plugin/plugin.json`, no hooks) with a `claude plugin eval` suite;
+  see its `README.md` for the recommended models. One vendored
+  skills-directory plugin — `maintaining-living-documentation`
+  (documentation consistency workflow) — is vendored from its upstream
+  package; the local copy removes its `hooks/hooks.json` (no `SessionStart`
+  rule, no `Stop` gate), so a verbatim re-copy would restore it. See its own
+  `README.md` for options. The vendored `minto-pyramid` plugin (replaced by
+  `pyramid-structure`), the former Minto suite (`minto-builder`,
   `minto-reviewer`, `minto-rewriter`) and the `adr` skill (its rules merged
   into `maintaining-living-documentation`) are retired to
   [`archive/`](archive/), which is not synced. Spec Kit's `speckit-*`
@@ -199,7 +206,7 @@ my-claude-code/
     │   └── pyramid-principle.md    # Reader-facing structure: pyramid, paper-part order, premises and terms
     └── skills/                     # On-demand: body loaded when relevant, self-describing
         ├── coder/SKILL.md          # Change workflow + TDD + SDD + code quality + security + type safety + docs
-        ├── minto-pyramid/          # Vendored plugin: Minto structure for every substantive task (locally modified: no Stop hook)
+        ├── pyramid-structure/      # Minto pyramid for every substantive task + bundled structure checker (scripts/check.py)
         ├── maintaining-living-documentation/ # Vendored plugin: docs kept consistent with changes (locally modified: no hooks)
         ├── clarifier/              # Shared understanding of intent, then formal requirements
         │   ├── SKILL.md            #   two-stage playbook
@@ -303,10 +310,12 @@ It fails when a skill directory (other than the generated `speckit-*`) is not
 named in both `README.md` and `README.ja.md`, as `` `<name>` `` or as a
 `<name>/` path.
 
-After changing one of the vendored plugins
-([`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
-or [`minto-pyramid`](.claude/skills/minto-pyramid/)), run its own unit tests
-from its folder, as its README describes:
+After changing the vendored plugin
+[`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
+or the authored skill [`pyramid-structure`](.claude/skills/pyramid-structure/)
+(its checker in `scripts/check.py`), run its own unit tests from its folder,
+as its README describes, and for `pyramid-structure` also
+`bash tests/run-config-pyramid.sh`:
 
 ```sh
 python3 -B -m unittest discover -s tests -v

@@ -52,6 +52,7 @@ authored_skills=(
   meta-spec
   problem-definition
   product-strategy
+  pyramid-structure
   scrum-master
   secure-logging
 )
@@ -135,10 +136,9 @@ run_skill_contract() {
   check "SKILL-02: standard description is the only trigger metadata" "$([ "$bad_metadata" -eq 0 ] && echo 1 || echo 0)"
   check "SKILL-03: every authored description states an exclusion boundary" "$([ "$bad_description" -eq 0 ] && echo 1 || echo 0)"
 
-  # Vendored upstream plugins (maintaining-living-documentation, vendored with
-  # its hooks/hooks.json removed; minto-pyramid, vendored with its Stop hook
-  # removed) reference their own
-  # packaged paths, so only authored skills are checked.
+  # The vendored upstream plugin (maintaining-living-documentation, vendored
+  # with its hooks/hooks.json removed) references its own packaged paths, so
+  # only authored skills are checked.
   local authored_entry_points=() entry_skill
   for entry_skill in "${authored_skills[@]}"; do
     authored_entry_points+=("$SKILL_DIR/$entry_skill/SKILL.md")
@@ -163,11 +163,11 @@ run_skill_contract() {
   check "SKILL-05: authored packages do not name siblings" "$([ "$failed" -eq 0 ] && echo 1 || echo 0)"
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|scrum-master|secure-logging)' \
+    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging)' \
     "$SKILL_DIR/clarifier" "$SKILL_DIR/aws-research" "$SKILL_DIR/coder" \
     "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" "$SKILL_DIR/meta-spec" \
     "$SKILL_DIR/problem-definition" \
-    "$SKILL_DIR/product-strategy" "$SKILL_DIR/scrum-master" \
+    "$SKILL_DIR/product-strategy" "$SKILL_DIR/pyramid-structure" "$SKILL_DIR/scrum-master" \
     "$SKILL_DIR/secure-logging"
 }
 

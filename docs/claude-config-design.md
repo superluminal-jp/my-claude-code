@@ -41,7 +41,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `permissions.md` | 資格情報パスの列挙 | `settings.json` の `permissions.deny` が正本 |
 | `permissions.md` | 部分一致をグロブ化しない理由 | [ADR-0014](adr/0014-restore-credential-deny-rules.md) |
 | `clarifier.md` | 意図の共通認識を形成する手順、判断基準の接地先となる枠組みの在庫、曖昧性パターン目録、品質ゲート、出典 | `.claude/skills/clarifier/SKILL.md` と同パッケージの `references/` |
-| `pyramid-principle.md` | Minto の4条件の詳述そのもの | `minto-pyramid` スキルが全タスク向けに持つ（従来の対話・診断・書き直し向け Minto スキル3件は `archive/minto-suite/` へ退避済み） |
+| `pyramid-principle.md` | Minto の4条件の詳述そのもの、および構成の機械検査 | `pyramid-structure` スキルが全タスク向けに持つ（spec 055 で取り込みプラグイン `minto-pyramid` を置き換えて `archive/minto-pyramid/` へ退避。従来の対話・診断・書き直し向け Minto スキル3件は `archive/minto-suite/` へ退避済み） |
 | `model-routing.md` | モデルID・価格・コンテキスト上限、モデルや労力を設定する構文 | ハーネスとベンダーのモデル文書が正本。ルールは能力層とエイリアス、労力レベルだけを持つため、モデルの世代交代でルーティングの論理は古くならない |
 | `thinking-lenses.md` | 4つのセルフチェック（依存と並行・条件と分岐・反復・推論）を出力へ強制する書式 | 自然な置き場がある成果物（`clarifier`/`coder` の Given/When/Then、Spec Kit の依存順タスクリストなど）にだけ表出させる |
 
@@ -84,7 +84,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `.claude/rules/*.md`（5件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
 | `.claude/skills/*/SKILL.md` | `CLAUDE.md` と、自身が支える品質の関心事 | ライフサイクル操作軸／ドメインオーバーレイ軸 | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源 | 他スキルへの名指し・パス参照、`.claude/` 配下の絶対パスのハードコード |
 
-対象スキルは `tests/run-config-pyramid.sh` の `authored_skills` に列挙した10件で、この一覧が正本である — `clarifier`、`aws-research`、`coder`、`digital-agency-frontend`、`git-workflow`、`meta-spec`、`problem-definition`、`product-strategy`、`scrum-master`、`secure-logging`。このうち `git-workflow` と `aws-research` は §3.2 で常時ロードから移した先である。spec 036 の改訂時点の対象には `adr` と Minto スイート3件（`minto-builder`、`minto-reviewer`、`minto-rewriter`）も含まれていたが、いずれも `archive/` へ退避した（`adr` の規則は `maintaining-living-documentation` へ統合）。自作スキルのうち `digital-agency-slides`、`apple-notes`、`apple-reminders` は現在この一覧に入っておらず、入れていない理由は記録されていない。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流から取り込んだ2つのプラグイン（`hooks/hooks.json` を削除するローカル変更を加えた `maintaining-living-documentation` と、`Stop` フックを削除するローカル変更を加えた `minto-pyramid`）、Spec Kit の生成物はこの対象スキル一覧に含めない。
+対象スキルは `tests/run-config-pyramid.sh` の `authored_skills` に列挙した11件で、この一覧が正本である — `clarifier`、`aws-research`、`coder`、`digital-agency-frontend`、`git-workflow`、`meta-spec`、`problem-definition`、`product-strategy`、`pyramid-structure`、`scrum-master`、`secure-logging`。このうち `git-workflow` と `aws-research` は §3.2 で常時ロードから移した先である。spec 036 の改訂時点の対象には `adr` と Minto スイート3件（`minto-builder`、`minto-reviewer`、`minto-rewriter`）も含まれていたが、いずれも `archive/` へ退避した（`adr` の規則は `maintaining-living-documentation` へ統合）。自作スキルのうち `digital-agency-slides`、`apple-notes`、`apple-reminders` は現在この一覧に入っておらず、入れていない理由は記録されていない。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流から取り込んだプラグイン（`hooks/hooks.json` を削除するローカル変更を加えた `maintaining-living-documentation`。`minto-pyramid` は spec 055 で退避）、Spec Kit の生成物はこの対象スキル一覧に含めない。
 
 同一階層にしかない情報が必要になったら、参照を足すのではなく、次のどちらかを行う。
 

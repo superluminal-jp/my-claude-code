@@ -1,0 +1,15 @@
+{
+  "name": "pyramid-structure",
+  "description": "Structure every substantive answer, plan, decision, review and document as a Minto pyramid, show how each answer was reached, and check the structure mechanically before sending: headings, list trees and the opening sentence on every draft, and on request a claim tree's deductive validity and declared MECE.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Taiki Ogihara"
+  },
+  "keywords": [
+    "minto",
+    "pyramid-principle",
+    "structured-writing",
+    "document-review",
+    "imrad"
+  ]
+}
