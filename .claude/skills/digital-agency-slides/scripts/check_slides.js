@@ -189,12 +189,12 @@
   function checkStructure(slides, opts, report) {
     const roles = slides.map((s) => s.layout);
     const main = roles.filter((role) => role !== 'appendix');
-    if (main.length > opts.max_slides) {
+    if (opts.max_slides && main.length > opts.max_slides) {
       report(
         0,
         'warn',
         'deck-long',
-        `The main deck has ${main.length} slides, above the ${opts.max_slides}-slide budget. Put supports on their parent's slide and detail in the appendix.`,
+        `The main deck has ${main.length} slides, above the ${opts.max_slides}-slide limit set for this occasion. Cut a branch of the tree or move it to the appendix.`,
         null,
       );
     }
@@ -220,15 +220,21 @@
   }
 
   /*
-   * The tracker lists the main deck after the cover and marks the slide's own
-   * part. A tracker that marks the wrong part tells the audience they are
+   * The tracker lists the main deck's parts after the cover and marks the
+   * slide's own part. A slide with data-continues carries on the part of the
+   * slide before it, so a point that runs over several slides is one part. A tracker that marks the wrong part tells the audience they are
    * somewhere they are not, so it is an error; a slide that drops a tracker
    * the rest of the deck carries is a lapse in consistency.
    */
   function checkTrackers(slideEls, slides, report) {
     if (!slideEls.some((el) => el.querySelector('.sld-tracker'))) return;
     const tracked = slides.filter((s) => s.layout !== 'title' && s.layout !== 'appendix');
-    const position = new Map(tracked.map((s, i) => [s.index, i]));
+    const position = new Map();
+    let parts = 0;
+    tracked.forEach((s) => {
+      if (!(s.continues && parts > 0)) parts += 1;
+      position.set(s.index, parts - 1);
+    });
     slideEls.forEach((el, i) => {
       const n = i + 1;
       if (!position.has(n)) return;
@@ -241,8 +247,8 @@
       const marked = items
         .map((li, k) => (li.hasAttribute('aria-current') && li.getAttribute('aria-current') !== 'false' ? k : -1))
         .filter((k) => k >= 0);
-      if (items.length !== tracked.length) {
-        report(n, 'error', 'tracker', `The tracker lists ${items.length} parts, but the main deck after the cover has ${tracked.length} slides.`, tracker);
+      if (items.length !== parts) {
+        report(n, 'error', 'tracker', `The tracker lists ${items.length} parts, but the main deck after the cover has ${parts}.`, tracker);
       } else if (marked.length !== 1 || marked[0] !== position.get(n)) {
         const said = marked.length === 1 ? `part ${marked[0] + 1}` : `${marked.length} parts`;
         report(n, 'error', 'tracker', `The tracker marks ${said} as current, but this slide is part ${position.get(n) + 1}.`, tracker);
@@ -462,6 +468,7 @@
     return {
       index: n,
       layout: slideEl.getAttribute('data-layout') || 'custom',
+      continues: slideEl.hasAttribute('data-continues'),
       title: heading ? (heading.textContent || '').trim().replace(/\s+/g, ' ') : '',
     };
   }
@@ -474,7 +481,7 @@
         body_font_px: 18,
         max_list_items: 5,
         max_slide_items: 10,
-        max_slides: 9,
+        max_slides: null,
         text_contrast: 4.5,
         nontext_contrast: 3,
         slide_selector: '.sld-slide',

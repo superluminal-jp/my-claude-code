@@ -43,11 +43,13 @@ given a slide of its own; it sits on the slide of the point it proves.
 |---|---|
 | Governing message | The cover's title, and the answer slide's headline |
 | Key-line point | One `point` slide each, and one branch of the answer slide's tree |
+| Support that is itself a claim with its own evidence | A continuation slide (`data-continues`) after its point's slide, one per support |
 | Evidence for a point | The body of that point's slide |
 | Detail behind the evidence | The appendix, the footer's source line, or the speaker notes |
 
-This is what keeps the deck short. A slide that feels crowded is not split
-into two: either its children are not one group — regroup them into at most
+A continuation slide is still one node with its children — the support as the
+headline, its evidence in the body — so it is not a split. A slide that feels
+crowded is not split into two: either its children are not one group — regroup them into at most
 four — or some of them are detail, which moves down a level.
 
 ### The order: premises, then the answer, then the tree
@@ -57,25 +59,34 @@ four — or some of them are detail, which moves down a level.
 | 1 | `title` | The governing message as the title | A reader who sees only this slide knows the answer |
 | 2 | `premise` | What the audience must share before the answer makes sense: the situation they already accept, what has gone wrong, the terms they need, how the evidence was gathered, and the question this raises | Every fact on it is undisputed; every term the deck relies on is defined |
 | 3 | `answer` | The governing message, the key line drawn as a tree, and the ask | A reader who stops here has the answer, its reasons, and what is asked of them |
-| 4 … k+3 | `point` | One key-line point and its evidence | The body proves the headline without help from another slide |
-| k+4 | `closing` | The decision, the actions, the owners, the dates, and where the conclusion stops holding | Who does what by when, and under what condition the answer would change |
+| 4 … | `point` | One key-line point and its evidence | The body proves the headline without help from another slide |
+| last | `closing` | The decision, the actions, the owners, the dates, and where the conclusion stops holding | Who does what by when, and under what condition the answer would change |
 | after | `appendix` | Detail a reader may look up | Nothing on it is needed to follow the main deck |
 
 The answer comes by slide 3. An audience that learns on slide 9 what is being
 asked of them spent eight slides not evaluating it.
 
-**The slide budget is k + 4** for k key-line points, appendix excluded: at
-most eight slides with four points, nine with five. Omit the premise slide only
+**Slide count follows the tree.** The main deck is the cover, the premises,
+the answer, one slide per key-line point plus one per continued support, and
+the closing — however many that is. Do not pad a thin argument to fill a slot,
+and do not crowd two nodes onto one slide to save a page. If the deck is too
+long for the occasion, cut a branch or move it to the appendix; `lint
+--max-slides N` checks a limit the occasion sets. Omit the premise slide only
 when the audience already shares its facts and terms, and the closing slide
-only when the deck asks for nothing. There is no agenda slide and no section
-divider: the answer slide's tree is the map, and each point slide's shoulder
-text (`論点2`) names its branch.
+only when the deck asks for nothing.
+
+Because the count is free, a reader must never lose their place. There is no
+agenda slide and no section divider: the answer slide's tree is the map, every
+main slide's tracker marks its part, and the shoulder text names it —
+`論点2` on the point's slide, `論点2-1` on its first continuation. A
+continuation carries `data-continues`, so its tracker marks the same part as
+the point it continues.
 
 ### The parts of a research paper, on slides
 
 The deck follows the order of a research paper's parts while keeping the
-answer first, and fits them into the same slide budget: the method and the
-discussion each take one line on an existing slide, not a slide of their own.
+answer first, without adding slides for them: the method and the discussion
+each take one line on an existing slide, not a slide of their own.
 
 | Paper part | Slide | What it carries |
 |---|---|---|
@@ -177,7 +188,8 @@ agree with each other.
 - The current part is never marked by colour alone.
 - It takes no height from the body. If a shoulder text is long enough to
   reach it, shorten the shoulder text.
-- `lint` checks every tracker against the slide's real position.
+- `lint` checks every tracker against the slide's real part. Parts, not
+  slides, are listed: a point continued over three slides is one entry.
 
 ### Make the tree visible
 
@@ -285,8 +297,9 @@ one that matches rather than building layout from scratch.
 | `premise` | Shared facts, terms and the question | Facts the audience accepts; every term defined |
 | `answer` | The governing message and its key line | Two to four branches in `sld-tree`, plus the ask |
 | `point` | One key-line point and its evidence | One body pattern, or two that prove different parts of the point |
+| `point` with `data-continues` | One support of the point before it, when that support is a claim with its own evidence | Same tracker part as its point; shoulder `論点n-m` |
 | `closing` | The decision, the actions, the owners, the dates | Who does what by when |
-| `appendix` | Detail a reader may look up | After the closing; not counted in the budget |
+| `appendix` | Detail a reader may look up | After the closing; outside the tracker and the `n / N` count |
 
 | Body pattern | Use it when | Keep to |
 |---|---|---|
@@ -297,6 +310,8 @@ one that matches rather than building layout from scratch.
 | Steps (`sld-steps`) | A sequence in time or dependency | 3–5 steps; more is a table |
 | Table (`dads-table`) | Values must be looked up or compared precisely | 5 rows and 5 columns |
 | Figure (`sld-figure`) | A relationship a picture shows better than prose | One figure, with a caption that states the finding |
+| Caveat (`dads-notification-banner`) | A risk or condition the point depends on | One banner, close and action buttons removed; its heading states the risk in words |
+| Quotation (`dads-blockquote`) | A passage the argument rests on — a policy, a statute, a minute | Verbatim, with its source; never a paraphrase inside it |
 
 ## Type
 

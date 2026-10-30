@@ -52,9 +52,9 @@ def main(argv: list[str]) -> int:
     check("UNIT-01 the removed pptx subcommand is rejected", exits_with_usage_error(deck, ["pptx", "deck.html"]))
     check("UNIT-02 the removed ir subcommand is rejected", exits_with_usage_error(deck, ["ir", "deck.html"]))
 
-    # The slide budget is derived from the tree: cover, premise, answer, up to
-    # five key-line points and a closing.
-    check("UNIT-03 the default main-deck budget is nine slides", deck.DEFAULTS["max_slides"] == 9)
+    # Slide count follows the tree, so there is no budget unless one is asked
+    # for: a point may continue onto further slides.
+    check("UNIT-03 the main deck has no slide budget by default", deck.DEFAULTS["max_slides"] is None)
     args = deck.build_parser().parse_args(["lint", "deck.html", "--max-slides", "6"])
     check("UNIT-04 --max-slides reaches the checker's options", deck._options(args)["max_slides"] == 6)
 
