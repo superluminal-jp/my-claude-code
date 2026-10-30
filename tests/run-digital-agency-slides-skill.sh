@@ -108,7 +108,7 @@ run_skill_contract() {
   check_contains "DSN-11: reference branches on delivery mode" "$DESIGN_REFERENCE" 'Projected, distributed, or both'
   check_contains "DSN-12: reference gives a procedure for the argument, not just its vocabulary" "$DESIGN_REFERENCE" 'Write the question each slide answers'
   check_contains "DSN-13: reference maps slides to nodes of the tree" "$DESIGN_REFERENCE" 'one node'
-  check_contains "DSN-14: reference derives the slide budget from the tree" "$DESIGN_REFERENCE" 'k \+ 4'
+  check_contains "DSN-14: reference lets the slide count follow the tree" "$DESIGN_REFERENCE" '[Ss]lide count follows the tree'
   check_contains "DSN-15: reference sets premises and definitions before the answer" "$DESIGN_REFERENCE" 'premise'
   check_contains "DSN-16: reference forbids explaining by metaphor or analogy" "$DESIGN_REFERENCE" '(metaphor|analogy)'
   check_contains "DSN-17: reference puts the paper's method on the premise slide" "$DESIGN_REFERENCE" '^\| Method.*premise'
@@ -178,7 +178,13 @@ run_asset_contract() {
   check_contains "TPL-14: template's closing slide states the conclusion's limits" "$DECK_TEMPLATE" '限界：'
   check_contains "TPL-15: template shows each slide's place in the deck" "$DECK_TEMPLATE" 'class="sld-tracker[ "]'
   check_contains "TPL-16: the tracker marks the current part for assistive technology" "$DECK_TEMPLATE" 'aria-current="step"'
-  check_contains "TPL-17: main slides number themselves against the whole" "$DECK_TEMPLATE" '<span>4 / 7</span>'
+  check_contains "TPL-21: template continues a point onto a further slide" "$DECK_TEMPLATE" 'data-layout="point" data-continues'
+  check_contains "TPL-22: template uses the official notification banner" "$DECK_TEMPLATE" 'class="dads-notification-banner'
+  check_contains "TPL-23: template uses the official blockquote" "$DECK_TEMPLATE" 'class="dads-blockquote'
+  check "TPL-24: template keeps no interactive banner controls" \
+    "$([ -f "$DECK_TEMPLATE" ] && ! grep -Eq 'dads-notification-banner__(close|actions)|<button' "$DECK_TEMPLATE" && echo 1 || echo 0)"
+  check_contains "CON-12: contract documents data-continues" "$CONTRACT_REFERENCE" 'data-continues'
+  check_contains "TPL-17: main slides number themselves against the whole" "$DECK_TEMPLATE" '<span>4 / 8</span>'
   check "TPL-19: the marking writes the level as 機密性n情報" \
     "$([ -f "$DECK_TEMPLATE" ] && grep -q 'sld-marking__level">機密性[123]情報<' "$DECK_TEMPLATE" && ! grep -q 'sld-marking__level">機密性[123]<' "$DECK_TEMPLATE" && echo 1 || echo 0)"
   check "TPL-18: every slide carries the classification marking" \
@@ -272,7 +278,7 @@ run_lint_contract() {
     return
   fi
   check "LINT-00: lint fixtures exist" \
-    "$([ -f "$FIXTURE_DIR/structure.html" ] && [ -f "$FIXTURE_DIR/document.html" ] && [ -f "$FIXTURE_DIR/clean.html" ] && [ -f "$FIXTURE_DIR/tracker.html" ] && [ -f "$FIXTURE_DIR/marking.html" ] && echo 1 || echo 0)"
+    "$([ -f "$FIXTURE_DIR/structure.html" ] && [ -f "$FIXTURE_DIR/document.html" ] && [ -f "$FIXTURE_DIR/clean.html" ] && [ -f "$FIXTURE_DIR/tracker.html" ] && [ -f "$FIXTURE_DIR/marking.html" ] && [ -f "$FIXTURE_DIR/continues.html" ] && echo 1 || echo 0)"
   if "$python_bin" "$LINT_ASSERTS" "$python_bin" "$DECK_CLI" "$FIXTURE_DIR" >"$REPO_ROOT/.lint.log" 2>&1; then
     check "LINT: findings match each fixture" "1"
   else
@@ -315,13 +321,13 @@ assert report["findings"] == [], report["findings"]
 PY
 )"
   [ -s "$work/lint.txt" ] && sed 's/^/      /' "$work/lint.txt" >&2
-  check "E2E-03: the template's main deck is seven slides with the answer third" \
+  check "E2E-03: the template's main deck is eight slides, one a continuation, with the answer third" \
     "$("$python_bin" - "$work/lint.json" <<'PY' >/dev/null 2>&1 && echo 1 || echo 0
 import json, sys
 slides = json.load(open(sys.argv[1], encoding="utf-8"))["slides"]
 layouts = [s["layout"] for s in slides]
 main = [l for l in layouts if l != "appendix"]
-assert len(main) == 7, layouts
+assert len(main) == 8, layouts
 assert layouts[2] == "answer", layouts
 assert layouts[0] == "title" and layouts[1] == "premise", layouts
 PY

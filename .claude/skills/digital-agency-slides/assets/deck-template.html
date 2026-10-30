@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="dads/components/table/table.css">
 <link rel="stylesheet" href="dads/components/chip-label/chip-label.css">
 <link rel="stylesheet" href="dads/components/link/link.css">
+<link rel="stylesheet" href="dads/components/notification-banner/notification-banner.css">
+<link rel="stylesheet" href="dads/components/blockquote/blockquote.css">
 <!-- This skill's slide layout. -->
 <link rel="stylesheet" href="slide.css">
 </head>
@@ -31,10 +33,14 @@
           1. 遅延の原因は受付・転記の二重入力にある          (slide 4)
           2. 案Aは全面刷新（案B）より安く、早く効果が出る      (slide 5)
           3. 3か年で段階的に実施し、初年度に効果の8割を得る    (slide 6)
+             3-1. 初年度の窓口負荷の増加は半年で収まる         (slide 7, continued)
 
-     Main deck = cover + premises + answer + 3 points + closing = 7 slides.
-     The supports of each point sit on that point's slide; detail a reader may
-     look up goes to the appendix. -->
+     Main deck = cover + premises + answer + 3 points + 1 continuation +
+     closing = 8 slides. The count follows the tree, not a budget. Supports
+     that are plain evidence sit on their point's slide; a support that is a
+     claim with its own evidence continues onto its own slide, marked
+     data-continues, and keeps its point's part in the tracker. Detail a reader
+     may look up goes to the appendix. -->
 
 <!-- =============================================================== title ==
      The cover. Its h1 is the governing message, not a topic label: a reader
@@ -120,7 +126,7 @@
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>〇〇省 △△課</span>
-    <span>2 / 7</span>
+    <span>2 / 8</span>
   </footer>
 </section>
 
@@ -173,7 +179,7 @@
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>〇〇省 △△課</span>
-    <span>3 / 7</span>
+    <span>3 / 8</span>
   </footer>
 </section>
 
@@ -238,7 +244,7 @@
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>出典：△△課 業務量調査（2025年度）</span>
-    <span>4 / 7</span>
+    <span>4 / 8</span>
   </footer>
   <div class="sld-notes">3つの数値はいずれも2025年度の実測値。受付件数の推移は付録の表とあわせて説明する。</div>
 </section>
@@ -299,7 +305,7 @@
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>費用は概算。積算の内訳は別紙2。</span>
-    <span>5 / 7</span>
+    <span>5 / 8</span>
   </footer>
 </section>
 
@@ -359,7 +365,59 @@
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>〇〇省 △△課</span>
-    <span>6 / 7</span>
+    <span>6 / 8</span>
+  </footer>
+</section>
+
+<!-- =========================================== point (continued, caveat) ==
+     A continuation: one support of 論点3 that is a claim with its own
+     evidence, so it takes its own slide rather than crowding the point's.
+     data-continues keeps 論点3 marked in the tracker, and the shoulder text
+     numbers it 論点3-1. The caveat is the official DADS notification banner
+     with its close and action buttons removed, since nothing on a slide is
+     dismissed or clicked; its heading states the risk in words, so neither the
+     colour nor the icon carries it alone. -->
+<section class="sld-slide" data-layout="point" data-continues aria-labelledby="s6b-title">
+  <p class="sld-marking dads-u-dns-16N-130" data-level="2"><span class="sld-marking__level">機密性2情報</span><span class="sld-marking__scope">公開範囲：△△課のみ</span></p>
+  <div class="sld-slide__frame">
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">論点3-1</p>
+      <h2 class="dads-heading__heading" id="s6b-title">初年度に窓口の作業は一時的に増えるが、紙との並行受付を半年に限れば吸収できる</h2>
+    </hgroup>
+    <ol class="sld-tracker dads-u-dns-16N-130" aria-label="資料の構成">
+      <li>前提</li>
+      <li>結論</li>
+      <li>論点1</li>
+      <li>論点2</li>
+      <li aria-current="step">論点3</li>
+      <li>依頼</li>
+    </ol>
+    <div class="sld-slide__body">
+      <div class="dads-notification-banner" data-style="standard" data-type="warning">
+        <h3 class="dads-notification-banner__heading">
+          <svg class="dads-notification-banner__icon" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="警告">
+            <path d="M1 21 12 2l11 19H1Z" fill="currentcolor"/>
+            <path d="M13 15h-2v-5h2v5Z" fill="Canvas"/>
+            <circle cx="12" cy="17" r="1" fill="Canvas"/>
+          </svg>
+          <span class="dads-notification-banner__heading-text">紙と電子の並行受付の間は、受付・転記の作業が最大1割増える</span>
+        </h3>
+        <div class="dads-notification-banner__body">
+          <p class="dads-u-std-20N-150">2026年度上期は紙の申請も受け付けるため、転記の作業がなくならないまま、オンライン受付の確認作業が加わる。</p>
+        </div>
+      </div>
+      <ul class="dads-list dads-u-std-20N-150" data-spacing="8">
+        <li>並行受付は2026年度上期の6か月に限り、下期からはオンライン申請を原則とする</li>
+        <li>増える作業は窓口担当2名の応援で吸収し、追加の予算は求めない</li>
+      </ul>
+      <p class="sld-takeaway sld-push dads-u-std-20N-150">
+        作業が増えるのは上期の半年だけで、下期からは年間3,840時間の削減が始まる。
+      </p>
+    </div>
+  </div>
+  <footer class="sld-slide__footer dads-u-dns-14N-130">
+    <span>〇〇省 △△課</span>
+    <span>7 / 8</span>
   </footer>
 </section>
 
@@ -406,14 +464,14 @@
   </div>
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>〇〇省 △△課</span>
-    <span>7 / 7</span>
+    <span>8 / 8</span>
   </footer>
   <div class="sld-notes">承認が得られない場合の代替案は別紙3。</div>
 </section>
 
 <!-- ============================================================ appendix ==
      Detail a reader may look up. It follows the main deck and is not counted
-     in its slide budget. The table is the official DADS component. -->
+     in the tracker or the n / N count. The table is the official DADS component. -->
 <section class="sld-slide" data-layout="appendix" aria-labelledby="s8-title">
   <p class="sld-marking dads-u-dns-16N-130" data-level="2"><span class="sld-marking__level">機密性2情報</span><span class="sld-marking__scope">公開範囲：△△課のみ</span></p>
   <div class="sld-slide__frame">
@@ -445,6 +503,30 @@
   <footer class="sld-slide__footer dads-u-dns-14N-130">
     <span>出典：<a class="dads-link" href="https://example.com/">△△課 業務量調査（2025年度）</a>をもとに試算。削減率57%。</span>
     <span>付録 1</span>
+  </footer>
+</section>
+
+<!-- ======================================================= appendix (quote) ==
+     A passage the argument rests on, quoted verbatim in the official DADS
+     blockquote, with its source in the citation line and the footer. Quote
+     only text that exists; never paraphrase inside a quotation. -->
+<section class="sld-slide" data-layout="appendix" aria-labelledby="s9-title">
+  <p class="sld-marking dads-u-dns-16N-130" data-level="2"><span class="sld-marking__level">機密性2情報</span><span class="sld-marking__scope">公開範囲：△△課のみ</span></p>
+  <div class="sld-slide__frame">
+    <hgroup class="dads-heading" data-size="32">
+      <p class="dads-heading__shoulder">付録2</p>
+      <h2 class="dads-heading__heading" id="s9-title">本事業は、省の業務改革方針が定める受付の原則電子化を具体化する</h2>
+    </hgroup>
+    <div class="sld-slide__body" data-fill="center">
+      <blockquote class="dads-blockquote">
+        <p class="dads-u-std-24N-150">（ここに、根拠となる方針・計画・法令の該当箇所を原文のまま引用する。）</p>
+        <p class="sld-muted dads-u-std-18N-160">〇〇省 業務改革方針（2025年3月）第2章</p>
+      </blockquote>
+    </div>
+  </div>
+  <footer class="sld-slide__footer dads-u-dns-14N-130">
+    <span>出典：〇〇省 業務改革方針（2025年3月）</span>
+    <span>付録 2</span>
   </footer>
 </section>
 

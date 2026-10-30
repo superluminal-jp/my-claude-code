@@ -23,7 +23,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/digital-go-jp/design-system-example-components-html.git"
 REPO_WEB="https://github.com/digital-go-jp/design-system-example-components-html"
-DEFAULT_COMPONENTS=(heading list description-list table chip-label link)
+DEFAULT_COMPONENTS=(heading list description-list table chip-label link notification-banner blockquote)
 
 usage() {
   sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A deck whose first point continues onto a second slide</title>
+<!-- Point one runs over slides 4 and 5: slide 5 carries data-continues, so
+     both mark Point one and the tracker still lists four parts. Slide 7
+     continues point two but marks point one. The checker must report only
+     slide 7's tracker. -->
+<style>
+  body { margin: 0; background: #f2f2f2; font-family: sans-serif; }
+  .sld-slide { position: relative; box-sizing: border-box; width: 1280px; height: 720px; margin: 0 auto 24px; overflow: hidden; background: #ffffff; color: #1a1a1a; }
+  .frame { position: absolute; inset: 48px 64px 72px; display: flex; flex-direction: column; gap: 24px; }
+  h1, h2, h3, p, ul { margin: 0; }
+  h1 { font-size: 45px; } h2 { font-size: 32px; } h3 { font-size: 20px; }
+  p, li, dt, dd, th, td { font-size: 20px; line-height: 1.5; }
+  .sld-marking { position: absolute; top: 32px; right: 64px; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+<section class="sld-slide" data-layout="title">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h1>The staged option cuts staff hours</h1></div>
+</section>
+<section class="sld-slide" data-layout="premise">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>Paper forms are retyped before review</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li aria-current="step">Premise</li><li>Answer</li><li>Point one</li><li>Point two</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="answer">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>Start the staged option now</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Premise</li><li aria-current="step">Answer</li><li>Point one</li><li>Point two</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="point">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>The delay comes from retyping</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Premise</li><li>Answer</li><li aria-current="step">Point one</li><li>Point two</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="point" data-continues>
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>Retyping happens at the review boundary</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Premise</li><li>Answer</li><li aria-current="step">Point one</li><li>Point two</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="point">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>The staged option is cheaper</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Premise</li><li>Answer</li><li>Point one</li><li aria-current="step">Point two</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="point" data-continues>
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>It also takes effect sooner</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Premise</li><li>Answer</li><li aria-current="step">Point one</li><li>Point two</li></ol>
+  </div>
+</section>
+</main>
+</body>
+</html>

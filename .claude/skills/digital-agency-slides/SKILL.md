@@ -1,6 +1,6 @@
 ---
 name: digital-agency-slides
-description: Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down — shared premises first, then the conclusion, then one slide per supporting point — so the slide count stays bounded. Use for slide decks, briefing material, and presentation documents that must follow DADS and are delivered as HTML (or printed from it). Do not use for web pages, application interfaces, or dashboards that are not slides, and do not use to create or edit PowerPoint (.pptx) files. Apply alongside every independently matching requirements, document-structure, implementation, or review operation; this capability owns the slide authoring surface.
+description: Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down — shared premises first, then the conclusion, then the supporting points, with every slide showing where it sits in that structure, so the slide count can follow the argument. Use for slide decks, briefing material, and presentation documents that must follow DADS and are delivered as HTML (or printed from it). Do not use for web pages, application interfaces, or dashboards that are not slides, and do not use to create or edit PowerPoint (.pptx) files. Apply alongside every independently matching requirements, document-structure, implementation, or review operation; this capability owns the slide authoring surface.
 ---
 
 # Digital Agency Slides
@@ -48,7 +48,7 @@ official source.
 | Path | What it is |
 |---|---|
 | `assets/slide.css` | This skill's own 16:9 layout layer, built only on DADS token custom properties. Not a DADS component library. |
-| `assets/deck-template.html` | A working deck: seven main slides and one appendix slide, covering every slide role and body pattern. Copy it; do not edit it in place. |
+| `assets/deck-template.html` | A working deck: eight main slides — one of them a point continued onto a second slide — and two appendix slides, covering every slide role and body pattern. Copy it; do not edit it in place. |
 | `scripts/setup.sh` | Installs Playwright and Chromium into a project-local virtual environment |
 | `scripts/fetch-dads-assets.sh` | Resolves the official DADS stylesheets into a deck workspace at task time |
 | `scripts/deck.py` | `lint` and `preview` |
@@ -81,7 +81,8 @@ order — **premise, answer, points**:
 3. **Answer** — the governing message again, with the key line drawn as a tree,
    and the ask. This slide replaces an agenda and section dividers.
 4. **One slide per key-line point** — the point as the headline, its evidence
-   in the body.
+   in the body. A point whose supports are themselves claims with their own
+   evidence continues onto one further slide per support.
 5. **Closing** — who does what by when, when the deck asks for a decision,
    and one line on where the conclusion stops holding.
 6. **Appendix** — detail a reader may look up, after the main deck.
@@ -90,10 +91,12 @@ This is the order of a research paper's parts — summary, introduction,
 method, results, discussion, conclusion — with the answer first, and with the
 method and the discussion folded into existing slides rather than given their
 own. A slide is one node of the tree with its direct children, never one leaf.
-The main deck is at most k + 4 slides for k key-line points.
+Slide count follows the tree, not a budget: never pad a slide to fill a slot
+or crowd two nodes onto one to save a page.
 
-Make the structure visible on every slide: a tracker at the top right lists
-the main deck's parts and marks the current one, the shoulder text names it,
+Because the count is free, orientation is designed in. Make the structure
+visible on every slide: a tracker at the top right lists the main deck's parts
+and marks the current one — a continued point keeps its part marked — the shoulder text names it,
 and the footer counts `n / N`. Each level of the tree has its own visual
 treatment — headline, block titles, the evidence inside each block, the
 takeaway band. Details, the layout
@@ -141,7 +144,7 @@ linter cannot tell you a slide is unreadable. Findings and options:
 ### 6. Close out
 
 Report: the governing message and the tree that supports it; the main-deck
-slide count against its budget; lint findings and what was done about each;
+slide count and the parts the tracker groups it into; lint findings and what was done about each;
 which official assets were fetched and at which commit; and what the reader
 needs to see the deck as intended — a current browser and, offline, the Noto
 Sans JP font. Apply the attribution rules in `references/asset-sourcing.md`.

@@ -23,7 +23,7 @@ deck.py preview deck.html -o preview         # one PNG per slide, plus the findi
 | Option | Default | Use |
 |---|---|---|
 | `--selector` | `.sld-slide` | A project whose slides use different markup |
-| `--max-slides` | 9 | Slides in the main deck, appendix excluded: k + 4 with k = 5 key-line points |
+| `--max-slides` | none | A limit on main-deck slides, appendix excluded, when the occasion sets one. Without it, length is not checked: slide count follows the tree |
 | `--safe-area` | 32 px | Tighter or looser edge band |
 | `--min-font` / `--body-font` | 14 / 18 px | The legibility floor and the body-copy warning |
 | `--secondary-selector` | footers, captions, shoulders, trackers, markings, chip and figure labels | What is exempt from the body-copy warning |
@@ -41,10 +41,10 @@ A finding on slide 0 is about the whole document.
 
 | Code | Level | Means |
 |---|---|---|
-| `deck-long` | warn | The main deck is longer than `--max-slides`. Put evidence on its point's slide and detail in the appendix |
+| `deck-long` | warn | The main deck is longer than the `--max-slides` limit given. Cut a branch or move it to the appendix |
 | `late-answer` | warn | No slide has `data-layout="answer"`, or it comes after slide 3 |
 | `appendix-order` | warn | A main slide follows an appendix slide |
-| `tracker` | error | A tracker lists a different number of parts than the main deck has after the cover, or marks a part other than this slide's — it tells the audience they are somewhere they are not |
+| `tracker` | error | A tracker lists a different number of parts than the main deck has after the cover — a `data-continues` slide shares its point's part — or marks a part other than this slide's — it tells the audience they are somewhere they are not |
 | `tracker-missing` | warn | Other main slides carry a tracker and this one does not. A deck with no trackers at all is not reported |
 
 ### Document — can assistive technology navigate it?

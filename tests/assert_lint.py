@@ -31,9 +31,9 @@ def check(name: str, ok: bool, detail: str = "") -> None:
         print(f"FAIL {name}{f' — {detail}' if detail else ''}")
 
 
-def lint(python: str, deck_cli: str, deck: Path) -> tuple[int, dict]:
+def lint(python: str, deck_cli: str, deck: Path, *extra: str) -> tuple[int, dict]:
     result = subprocess.run(
-        [python, deck_cli, "lint", str(deck), "--json"],
+        [python, deck_cli, "lint", str(deck), "--json", *extra],
         capture_output=True,
         text=True,
         check=False,
@@ -61,9 +61,15 @@ def main(argv: list[str]) -> int:
     status, report = lint(python, deck_cli, fixture_dir / "structure.html")
     found = codes(report)
     check(
-        "LINT-04 structure breaches are reported as deck-long, late-answer and appendix-order only",
-        set(found) == {"deck-long", "late-answer", "appendix-order"},
+        "LINT-04 structure breaches are reported as late-answer and appendix-order only; length is not a breach",
+        set(found) == {"late-answer", "appendix-order"},
         str(dict(found)),
+    )
+    _, report = lint(python, deck_cli, fixture_dir / "structure.html", "--max-slides", "9")
+    check(
+        "LINT-04b a budget asked for with --max-slides is reported as deck-long",
+        "deck-long" in codes(report),
+        str(dict(codes(report))),
     )
     check("LINT-05 structure findings are warnings, so lint exits zero", status == 0, f"exit {status}")
 
@@ -108,6 +114,14 @@ def main(argv: list[str]) -> int:
         str(sorted(found)),
     )
     check("LINT-14 a wrong tracker is an error", status != 0, f"exit {status}")
+
+    status, report = lint(python, deck_cli, fixture_dir / "continues.html")
+    found = {(f["code"], f["slide"]) for f in report.get("findings", [])}
+    check(
+        "LINT-17 a continued point shares its part; only the continuation marking the wrong part is reported",
+        found == {("tracker", 7)},
+        str(sorted(found)),
+    )
 
     status, report = lint(python, deck_cli, fixture_dir / "marking.html")
     found = sorted((f["code"], f["slide"]) for f in report.get("findings", []))

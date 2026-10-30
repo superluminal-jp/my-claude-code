@@ -29,8 +29,9 @@ DEFAULTS: dict[str, Any] = {
     "body_font_px": 18,
     "max_list_items": 5,
     "max_slide_items": 10,
-    # Cover, premises, answer, at most five key-line points, and a closing.
-    "max_slides": 9,
+    # Slide count follows the tree: a point may continue onto further slides,
+    # so there is no budget unless the occasion sets one with --max-slides.
+    "max_slides": None,
     # The Digital Agency's colour foundation removes WCAG's large-text
     # relaxation: all text clears 4.5:1 whatever its size.
     "text_contrast": 4.5,
@@ -129,7 +130,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--max-slide-items", type=int, default=DEFAULTS["max_slide_items"], help="list items on a slide, pooled"
     )
     parser.add_argument(
-        "--max-slides", type=int, default=DEFAULTS["max_slides"], help="slides in the main deck, appendix excluded"
+        "--max-slides", type=int, default=DEFAULTS["max_slides"], help="optional limit on main-deck slides, appendix excluded (default: none)"
     )
     parser.add_argument(
         "--text-contrast", type=float, default=DEFAULTS["text_contrast"], help="minimum contrast ratio for text"

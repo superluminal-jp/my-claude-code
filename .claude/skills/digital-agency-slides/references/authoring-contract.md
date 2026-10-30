@@ -69,7 +69,7 @@ relative path.
 - `data-layout` names the slide's role in the tree: one of `title`,
   `premise`, `answer`, `point`, `closing`, `appendix`. The linter reads it to
   check that `data-layout="answer"` comes by slide 3, that the appendix comes
-  last, and to count the slide budget. A slide without it counts as a main
+  last, and to group the main deck into the tracker's parts. A slide without it counts as a main
   slide with the role `custom`.
 - `.sld-slide__frame` is the safe content area; `.sld-slide__footer` is
   positioned separately so it sits on the safe-area line at the foot of the
@@ -82,6 +82,10 @@ relative path.
   so it is read first, and it is positioned at the top right of the slide,
   outside the frame. The linter checks that every slide carries it, that all
   of them are identical, and where it sits.
+- `data-continues` on a `point` slide makes it a continuation of the slide
+  before it: one support of that point, given its own slide because it is a
+  claim with its own evidence. It takes the same tracker part as the point it
+  continues; its shoulder text is `論点n-m`.
 - Every main slide after the cover carries an `ol.sld-tracker` after its
   heading: one item per main slide after the cover, in order, with
   `aria-current="step"` on this slide's item and no other. The cover and the
@@ -183,7 +187,8 @@ spacing is left as published.
       the 公開範囲 the author or the organisation's policy set.
 - [ ] `<html lang>` and `<title>` are set; the `<title>` subject matches the `h1`.
 - [ ] One `h1`, one `h2` per slide, no skipped level.
-- [ ] The answer slide is slide 3 or earlier; the main deck fits k + 4 slides.
+- [ ] The answer slide is slide 3 or earlier; every continuation carries
+      `data-continues` and follows its point.
 - [ ] Every main slide after the cover has a tracker marking its own part, and
       a page number `n / N`.
 - [ ] Every slide states one assertion in its `h2`.
