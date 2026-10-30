@@ -26,6 +26,6 @@ python3 -B -m unittest discover -s tests -v
 
 ## Provenance
 
-This skill replaces the vendored `minto-pyramid` plugin (archived under `archive/minto-pyramid/`; see spec 055). Its reasoning-privacy rule, completion check and answer, decision and document templates were carried over in condensed form, and its four eval cases (`lead-with-answer`, `avoid-topic-only-headings`, `no-chain-of-thought`, `respect-user-format`) were copied with `Bash` added to their allowed tools so the checker can run. `review-finds-structure-gaps` is new.
+This skill replaces the vendored `minto-pyramid` plugin (archived under `archive/minto-pyramid/`; see spec 055). Its completion check and answer, decision and document templates were carried over in condensed form. Its rule against revealing chain-of-thought was reversed into a reasoning-disclosure rule: the skill shows how each answer was reached as a structured, checkable account, and marks any account of its internal process as a reconstruction. Three of its eval cases (`lead-with-answer`, `avoid-topic-only-headings`, `respect-user-format`) were copied with `Bash` added to their allowed tools so the checker can run; the fourth, `no-chain-of-thought`, became `explains-reasoning` with graders for the reversed rule. `review-finds-structure-gaps` is new.
 
 Sources for the rules: Minto, *The Minto Pyramid Principle* (1987/2009); Mensh & Kording 2017, *PLoS Comput Biol* 13(9):e1005619; Gopen & Swan 1990, *American Scientist* 78(6):550–558; ICMJE Recommendations; Swales 1990; Hopewell et al. 2025 (CONSORT 2025).

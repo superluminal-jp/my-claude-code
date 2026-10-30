@@ -16,7 +16,7 @@ Priority: user instructions, then safety and system constraints, then the reques
 - Key line: prefer inductive. Use deductive only when the reader would reject the answer or cannot follow it without the premises, and record that reason. A deductive group has at most 4 points and at most 2 "therefore" points; deduction below the key line is fine.
 - Off the tree, placed where they serve: context (at most 2 sentences the reader accepts, right before any claim; lift sibling duplicates to the parent; anything contestable is a claim), history (intro or appendix), records and details (appendix), significance (apex).
 - Inside a sentence: known or linking information first, new information last (Gopen & Swan 1990).
-- Reasoning privacy: the pyramid shapes reasoning but does not expose it. Show only the answer, decisive reasons, evidence, assumptions, uncertainty, material trade-offs and verification results.
+- Reasoning disclosure: show how the answer was reached, so the reader can check it. Give the premises and sources used, the inference (deductive or inductive) and its steps, the alternatives considered and why each was rejected, assumptions, uncertainty and verification results, each placed under the claim it supports. Present this as a structured account, not as the raw stream of deliberation; when asked for the full internal process, give the most complete step-by-step account and say it is a reconstruction, because a model's stated reasoning can omit what actually drove its answer.
 
 ## Per-document choices (decide and state them)
 - Paragraph type: claim-first by default; context-content-conclusion only in a document whose genre or reader calls for it; one type per document.

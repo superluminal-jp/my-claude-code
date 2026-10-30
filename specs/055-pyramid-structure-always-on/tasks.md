@@ -13,4 +13,5 @@ description: "Task list for 055: 常時適用の構成スキル pyramid-structur
 - [X] T006 `minto-pyramid` を `archive/minto-pyramid/` へ `git mv` し、評価ケース4件を移して `allowed_tools` に `Bash` を加える。`review-finds-structure-gaps` を加える
 - [X] T007 `authored_skills` と SKILL-06 の一覧に `pyramid-structure` を加え、取り込みプラグインの説明から `minto-pyramid` を外す
 - [X] T008 README(英・日)、`docs/claude-config-design.md`、スキルと退避先の README を更新する
+- [X] T010 利用者の指示により、`SKILL.md` の思考過程の規則を「出さない」から「構造化して示す」へ反転し、評価ケース `no-chain-of-thought` を `explains-reasoning` に書き換える。スキルと退避先の README、本仕様を更新する
 - [X] T009 全テストを実行する: `run-config-pyramid` 42件、`run-readme-skill-index` 31件、`run-removed-guardrails` 4件、`run-install`、`run-package-safety-bundle` 21件、`run-secure-logging-skill` 40件、`run-digital-agency-frontend-skill` 74件がすべて通る。`run-mcp-startup` はネットワークを要し、変更対象外のため実行していない

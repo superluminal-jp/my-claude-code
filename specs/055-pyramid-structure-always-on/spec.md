@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "今回作成したスキルを常時適用する方針" 確認のうえ、次の2点で合意した: (1) 取り込みプラグイン `minto-pyramid` は外して `pyramid-structure` に置き換え、`minto-pyramid` にしかない機能(思考過程の非開示、完了前チェック、回答・意思決定・文書のテンプレート、評価ケース)を移す、(2) 機械検査スクリプトは実質的な回答すべてで実行する。
+**Input**: User description: "今回作成したスキルを常時適用する方針" 確認のうえ、次の2点で合意した: (1) 取り込みプラグイン `minto-pyramid` は外して `pyramid-structure` に置き換え、`minto-pyramid` にしかない機能(思考過程の扱いの規則、完了前チェック、回答・意思決定・文書のテンプレート、評価ケース)を移す、(2) 機械検査スクリプトは実質的な回答すべてで実行する。その後の指示 "どのように考えて回答しているかは積極的にユーザーに提供した方が良い" により、思考過程の規則は「出さない」から「どう答えに至ったかを構造化して示す」へ反転した。
 
 **Authority**: 本仕様が正である。spec 052 の制約「外部から取り込んだ `minto-pyramid` スキルは編集しない」は、本仕様で `minto-pyramid` を退避するため対象がなくなる。spec 051・052 が常時ロードの規則 `pyramid-principle.md` に定めた内容(結論先行、前提と用語、部の順序、段落の先頭文)は変えない。
 
@@ -29,19 +29,19 @@
 
 ---
 
-### User Story 2 - 置き換えても `minto-pyramid` の機能を失わない (Priority: P1)
+### User Story 2 - 置き換えても `minto-pyramid` の機能を失わず、推論はむしろ示す (Priority: P1)
 
-利用者は `minto-pyramid` が担っていた常時適用の振る舞い(思考過程を出さない、完了前に自己点検する、意思決定を推奨から示す)を引き続き受ける。
+利用者は `minto-pyramid` が担っていた常時適用の振る舞い(完了前に自己点検する、意思決定を推奨から示す)を引き続き受ける。加えて、どう考えて答えに至ったか(前提と情報源、推論の種類と手順、退けた選択肢とその理由、前提条件、不確かさ)を、答えを支える位置に構造化して受け取る。
 
-**Why this priority**: 置き換えで機能が欠けると、常時の振る舞いが後退する。
+**Why this priority**: 置き換えで機能が欠けると、常時の振る舞いが後退する。推論が見えれば、利用者は答えをどこまで信頼するかを自分で判断できる。
 
-**Independent Test**: `SKILL.md` が思考過程の非開示と完了前チェックを持ち、`references/templates.md` が回答・意思決定・長い文書の形を持ち、評価ケース4件が移っている。
+**Independent Test**: `SKILL.md` が推論の開示と完了前チェックを持ち、`references/templates.md` が回答・意思決定・長い文書の形を持ち、評価ケース4件(うち1件は推論の開示向けに書き換え)が移っている。
 
 **Acceptance Scenarios**:
 
 1. **Given** `SKILL.md`、**When** 読む、**Then** 説明文が実質的なタスクすべてでの使用を求め、除外の境界(単一の事実、短い直接の答え、機械の出力)を述べている。
-2. **Given** `SKILL.md`、**When** 読む、**Then** 優先順位(利用者の指示、安全とシステムの制約、求められた書式、このスキル)と思考過程の非開示が書かれている。
-3. **Given** `evals/`、**When** 一覧する、**Then** `lead-with-answer`、`avoid-topic-only-headings`、`no-chain-of-thought`、`respect-user-format` と新しい `review-finds-structure-gaps` がある。
+2. **Given** `SKILL.md`、**When** 読む、**Then** 優先順位(利用者の指示、安全とシステムの制約、求められた書式、このスキル)と推論の開示が書かれている。推論は検討の生の流れではなく構造化した説明として示し、内部の過程を説明するときは再構成であると明記する。
+3. **Given** `evals/`、**When** 一覧する、**Then** `lead-with-answer`、`avoid-topic-only-headings`、`respect-user-format`、`no-chain-of-thought` を書き換えた `explains-reasoning`、新しい `review-finds-structure-gaps` がある。
 
 ---
 
@@ -72,6 +72,9 @@
 - **SC-002**: スキルの単体テスト(`python3 -B -m unittest discover -s tests -v`)がすべて通り、ruff と `mypy --strict` が所見0件である。
 
 ## Alternatives considered
+
+- **思考過程を出さない(`minto-pyramid` の規則のまま)**: 利用者の指示に反し、答えの信頼性を利用者が判断する材料を減らすため採らない。
+- **検討の生の流れをそのまま貼る**: 構造がなく読み手が検証しにくい。また、推論モデルが述べる推論は、実際に答えを左右した要因を省くことがある(Anthropic, "Reasoning models don't always say what they think", 2025: Claude 3.7 Sonnet が使ったヒントに言及したのは平均25%)。そのため構造化した説明を示し、再構成であることを明記する。
 
 - **併存(両方を常時適用)**: 変更は小さいが、毎回 Minto の指示が二重に読み込まれ、用語のずれ(`inductive`・`ranked` と `comparative`)が残るため採らない。
 - **新スキルを依頼時のみにする**: 常時適用という利用者の方針に反するため採らない。
