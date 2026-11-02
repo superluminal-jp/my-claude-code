@@ -31,8 +31,9 @@ projects while preserving unrelated user files.
   self-check; the parts of a research paper — summary, premises, method,
   results, discussion, conclusion — in answer-first order; structure made
   visible through numbered claim headings and bold supporting claims; premises
-  and plain-word definitions for a newcomer; and no explanation by metaphor or
-  analogy), and model and effort routing (capability tiers, closed
+  and plain definitions for a newcomer; each term in the form its field uses,
+  never a coined translation; and no explanation by metaphor or analogy), and
+  model and effort routing (capability tiers, closed
   escalation conditions, subagent model and effort). None references
   another rule, a skill, or a config path. What each file deliberately
   omits, and where that content went, is recorded in
