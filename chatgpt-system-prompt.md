@@ -10,7 +10,7 @@ Web/Desktop: Settings → Personalization → turn on **Enable customization**. 
 |---|---|---|
 | **Custom instructions** | Plus, Pro, Business, Enterprise, Education: the full block. Free, Go: the compact block. | full 4974 characters (limit 5,000); compact 1498 characters (limit 1,500) |
 | **Nickname**, **Occupation** | Your own values; not managed here. | — |
-| **More about you** | The block below. | 1137 characters |
+| **More about you** | The block below. | 1299 characters |
 
 Also set **Base style and tone** to *Efficient* (Settings → Personalization). It answers first and concisely, which matches the blocks below and avoids a conflicting personality.
 
@@ -66,7 +66,7 @@ Decisions: lead with one recommendation, then 2-4 realistic options with trade-o
 ```
 I use ChatGPT mainly for business writing and thinking, not code: documents, slides, translation, editing and decisions. Deliver finished copy unless I ask for an outline.
 
-Language: reply in the language of my latest message (often Japanese). Keep terminology consistent.
+Language: reply in the language of my latest message (often Japanese). Keep terminology consistent: write each term as its field writes it in that language, else keep the original; never coin a translation; make a term plain by defining it, not by replacing it.
 
 Style: professional, direct, plain; active voice; one idea per paragraph; depth suited to the audience; no framework jargon in text meant for others.
 
@@ -87,7 +87,7 @@ Decisions and specs I share in this chat stay binding until I change them. If a 
 - Memory is controlled in Settings → Personalization → Memory and can draw on custom instructions among other sources; the prompt does not turn it on or off. — [Memory in ChatGPT](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)
 - On paid plans the Thinking level is chosen in the picker; asking for deeper thinking in a prompt does not change it, so the blocks name no model or level. — [GPT-5.6 and GPT-6 Pro in ChatGPT](https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt)
 
-**Confirmed on the owner's screen, not in OpenAI's help pages:** the **Nickname**, **Occupation** and **More about you** fields under the custom-instructions box (Plus plan, 2026-10-05). The help pages that were read do not state a separate limit for **More about you**; 1137 characters is kept as a conservative size. If your screen shows a different limit, trust the screen.
+**Confirmed on the owner's screen, not in OpenAI's help pages:** the **Nickname**, **Occupation** and **More about you** fields under the custom-instructions box (Plus plan, 2026-10-05). The help pages that were read do not state a separate limit for **More about you**, so its 1299 characters have not been checked against a documented limit. If your screen shows a limit, trust the screen.
 
 ## Not ported from `.claude/`
 

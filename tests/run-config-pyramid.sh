@@ -113,6 +113,8 @@ thinking-lenses.md"
   check_contains "RULE-15: presentation opens each paragraph with its claim" "$RULE_DIR/pyramid-principle.md" 'paragraph.*first sentence|first sentence.*paragraph'
   check_contains "RULE-16: presentation makes each supporting claim visible" "$RULE_DIR/pyramid-principle.md" 'claim.*bold|bold.*claim'
   check_contains "RULE-17: presentation matches the visual form to the relation" "$RULE_DIR/pyramid-principle.md" 'numbered list.*table|table.*numbered list'
+  check_contains "RULE-18: presentation takes each term's form from its field" "$RULE_DIR/pyramid-principle.md" 'term.*form.*field'
+  check_contains "RULE-19: presentation never coins a translation" "$RULE_DIR/pyramid-principle.md" 'never coin a translation'
 }
 
 run_skill_contract() {
