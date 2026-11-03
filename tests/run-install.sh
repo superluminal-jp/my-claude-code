@@ -198,8 +198,10 @@ if HOME="$TEST_ROOT/unused-home" PATH="$EMPTY_BIN" bash "$REPO_ROOT/install.sh" 
   >"$preflight_output" 2>&1; then
   fail "install.sh exits non-zero when claude/jq are missing"
 fi
-grep -q 'Missing required command: claude' "$preflight_output" ||
+grep -q 'Missing required command: claude' "$preflight_output" || {
+  sed 's/^/    | /' "$preflight_output" >&2
   fail "install.sh names the missing command in its preflight error"
+}
 pass "install.sh fails fast with a clear message when claude/jq are missing"
 
 # jq specifically: put claude on PATH but not jq (nor uvx, which the installer
@@ -213,8 +215,10 @@ if HOME="$TEST_ROOT/unused-home-jq" PATH="$JQLESS_BIN" bash "$REPO_ROOT/install.
   >"$jq_preflight_output" 2>&1; then
   fail "install.sh exits non-zero when jq is missing"
 fi
-grep -q 'Missing required command: jq' "$jq_preflight_output" ||
+grep -q 'Missing required command: jq' "$jq_preflight_output" || {
+  sed 's/^/    | /' "$jq_preflight_output" >&2
   fail "install.sh names jq specifically when it is the missing command"
+}
 pass "install.sh fails fast with a clear message when jq is missing"
 
 # --- settings.json merge: a user's own keys survive a reinstall ------------
