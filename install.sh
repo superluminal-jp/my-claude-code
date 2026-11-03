@@ -14,6 +14,17 @@
 
 set -euo pipefail
 
+# 0. Preflight checks, before anything that runs an external command: with
+# claude or jq missing, the run must stop with this message rather than with
+# whatever fails first (newer bash rejects the `cd ""` that a missing
+# `dirname` would leave below).
+for cmd in claude jq; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Missing required command: $cmd" >&2
+    exit 1
+  fi
+done
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$SCRIPT_DIR/.claude"
 TARGET_DIR="$HOME/.claude"
@@ -55,14 +66,6 @@ sync_settings_json() {
   merged="$(jq -s '.[0] * .[1]' "$dst" "$src")"
   printf '%s\n' "$merged" >"$dst"
 }
-
-# 0. Preflight checks
-for cmd in claude jq; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    echo "Missing required command: $cmd" >&2
-    exit 1
-  fi
-done
 
 # 1. Sync managed .claude paths (prevents stale skills/rules)
 if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
