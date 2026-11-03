@@ -115,6 +115,11 @@ thinking-lenses.md"
   check_contains "RULE-17: presentation matches the visual form to the relation" "$RULE_DIR/pyramid-principle.md" 'numbered list.*table|table.*numbered list'
   check_contains "RULE-18: presentation takes each term's form from its field" "$RULE_DIR/pyramid-principle.md" 'term.*form.*field'
   check_contains "RULE-19: presentation never coins a translation" "$RULE_DIR/pyramid-principle.md" 'never coin a translation'
+  check_contains "RULE-20: presentation assumes a reader without the conversation, code, or documents" "$RULE_DIR/pyramid-principle.md" 'seen none of the conversation, code, or documents'
+  check_contains "RULE-21: presentation names the referent of a word with several referents" "$RULE_DIR/pyramid-principle.md" 'several referents.*(environment|account)'
+  check_contains "RULE-22: presentation resolves pointers into unseen context" "$RULE_DIR/pyramid-principle.md" 'pointer.*option B'
+  check_absent_pattern "RULE-23: presentation defines a term even when the user has used it" \
+    'skip the definition only for a term the user' "$RULE_DIR/pyramid-principle.md"
 }
 
 run_skill_contract() {
@@ -163,6 +168,9 @@ run_skill_contract() {
     done
   done
   check "SKILL-05: authored packages do not name siblings" "$([ "$failed" -eq 0 ] && echo 1 || echo 0)"
+
+  check_contains "SKILL-07: deliverables are read by a subagent that has not seen the conversation" \
+    "$SKILL_DIR/pyramid-structure/SKILL.md" 'subagent.*(not|never|none).*(conversation)'
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
     '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|meta-spec|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging)' \
