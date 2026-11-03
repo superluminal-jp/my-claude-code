@@ -10,7 +10,7 @@ Web/Desktop: Settings → Personalization → turn on **Enable customization**. 
 |---|---|---|
 | **Custom instructions** | Plus, Pro, Business, Enterprise, Education: the full block. Free, Go: the compact block. | full 4974 characters (limit 5,000); compact 1498 characters (limit 1,500) |
 | **Nickname**, **Occupation** | Your own values; not managed here. | — |
-| **More about you** | The block below. | 1299 characters |
+| **More about you** | The block below. | 1530 characters |
 
 Also set **Base style and tone** to *Efficient* (Settings → Personalization). It answers first and concisely, which matches the blocks below and avoids a conflicting personality.
 
@@ -68,6 +68,8 @@ I use ChatGPT mainly for business writing and thinking, not code: documents, sli
 
 Language: reply in the language of my latest message (often Japanese). Keep terminology consistent: write each term as its field writes it in that language, else keep the original; never coin a translation; make a term plain by defining it, not by replacing it.
 
+Readers: write so someone who has not seen this chat or my files can follow: say which one a word with several meanings refers to (which environment, which account) and what a pointer such as "that file" or "option B" stands for.
+
 Style: professional, direct, plain; active voice; one idea per paragraph; depth suited to the audience; no framework jargon in text meant for others.
 
 Documents: open each section with its point; group support so points do not overlap; frame problems as situation, complication, question, answer; quantify instead of using vague intensifiers.
@@ -87,7 +89,7 @@ Decisions and specs I share in this chat stay binding until I change them. If a 
 - Memory is controlled in Settings → Personalization → Memory and can draw on custom instructions among other sources; the prompt does not turn it on or off. — [Memory in ChatGPT](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)
 - On paid plans the Thinking level is chosen in the picker; asking for deeper thinking in a prompt does not change it, so the blocks name no model or level. — [GPT-5.6 and GPT-6 Pro in ChatGPT](https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt)
 
-**Confirmed on the owner's screen, not in OpenAI's help pages:** the **Nickname**, **Occupation** and **More about you** fields under the custom-instructions box (Plus plan, 2026-10-05). The help pages that were read do not state a separate limit for **More about you**, so its 1299 characters have not been checked against a documented limit. If your screen shows a limit, trust the screen.
+**Confirmed on the owner's screen, not in OpenAI's help pages:** the **Nickname**, **Occupation** and **More about you** fields under the custom-instructions box (Plus plan, 2026-10-05). The help pages that were read do not state a separate limit for **More about you**, so its 1530 characters have not been checked against a documented limit. If your screen shows a limit, trust the screen.
 
 ## Not ported from `.claude/`
 
@@ -97,4 +99,5 @@ Decisions and specs I share in this chat stay binding until I change them. If a 
 | Skills (git, specs, decision records, Apple apps, design system, Scrum) | Procedures that need tools and files ChatGPT does not have here. |
 | Full coder skill (types, doc sync, quality gates) | Reduced to one line: the owner uses ChatGPT for business writing, not code. |
 | Living-documentation and repository rules | Apply only inside a code repository. |
+| Context-free read of deliverables by a subagent | ChatGPT has no subagents; the obligation to name what each word refers to is kept in More about you. |
 | Memory conventions | ChatGPT manages memory itself. |

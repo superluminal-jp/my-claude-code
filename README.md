@@ -31,8 +31,11 @@ projects while preserving unrelated user files.
   self-check; the parts of a research paper — summary, premises, method,
   results, discussion, conclusion — in answer-first order; structure made
   visible through numbered claim headings and bold supporting claims; premises
-  and plain definitions for a newcomer; each term in the form its field uses,
-  never a coined translation; and no explanation by metaphor or analogy), and
+  and plain definitions for a newcomer, even for a term the user has used;
+  a reader who has seen none of the conversation, code, or documents, so
+  every ambiguous word and pointer names what it refers to; each term in the
+  form its field uses, never a coined translation; and no explanation by
+  metaphor or analogy), and
   model and effort routing (capability tiers, closed
   escalation conditions, subagent model and effort). None references
   another rule, a skill, or a config path. What each file deliberately
@@ -80,8 +83,11 @@ projects while preserving unrelated user files.
   pyramid to every substantive task: it structures answers, plans,
   decisions, reviews, and documents, checks each substantive draft with a
   bundled standard-library Python checker (headings, lists, opening
-  sentence) before it is sent, and on request checks a document's claim tree
-  for deductive validity and declared MECE
+  sentence) before it is sent, has each deliverable (a document, PR body, or
+  published page) read by a new subagent that has seen none of the
+  conversation and fixes every word whose referent it could not identify
+  ([spec 057](specs/057-context-free-reader/spec.md)), and on request checks
+  a document's claim tree for deductive validity and declared MECE
   ([spec 055](specs/055-pyramid-structure-always-on/spec.md)). It is also
   packaged as an authored skills-directory plugin
   (`.claude-plugin/plugin.json`, no hooks) with a `claude plugin eval` suite;

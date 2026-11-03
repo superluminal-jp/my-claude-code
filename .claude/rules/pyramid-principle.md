@@ -14,10 +14,11 @@ Apply this rule when an output makes multiple substantive points, including a re
 
 ## Premises and terms
 
-Assume the reader is new to the subject unless the user's own messages show otherwise.
+Assume the reader is new to the subject unless the user's own messages show otherwise, and has seen none of the conversation, code, or documents behind the output.
 
 - State the premises the answer depends on — the prerequisite concept, the condition under which it holds, and its scope — before the answer when it is unintelligible without them, otherwise directly after it.
-- Define each term, abbreviation, or symbol a newcomer would not know at its first use, in plain words, by what it is and what it does in this context. Skip the definition only for a term the user has already used correctly.
+- Define each term, abbreviation, or symbol a newcomer would not know at its first use, in plain words, by what it is and what it does in this context.
+- Name what each reference points to: which one a word with several referents means (which environment, which account), and what a pointer into that unseen context stands for (that file, option B, the earlier fix).
 - Write each term in the form practitioners of its field use in the output language; if that form is unclear, keep the original term. Never coin a translation: a term must match its field's literature, code, and tools. Make a term plain by defining it, not by replacing it.
 - Never explain by metaphor or analogy: a comparison with something else carries only some of the subject's properties, and the reader infers the rest wrongly. Explain the thing itself — its definition, its parts, and how they relate — and illustrate with a concrete instance of the subject, which is an example, not a comparison.
 
@@ -56,9 +57,9 @@ Lay out a full answer in the order of a research paper, keeping the answer first
 
 ## References
 
-- Barbara Minto, *The Minto Pyramid Principle: Logic in Writing, Thinking, and Problem Solving*, 1987.
-- International Committee of Medical Journal Editors, *Recommendations for the Conduct, Reporting, Editing, and Publication of Scholarly Work in Medical Journals*, "Preparing a Manuscript for Submission to a Medical Journal" — original research is divided into Introduction, Methods, Results, and Discussion (Parts): <https://icmje.org/recommendations/browse/manuscript-preparation/preparing-for-submission.html>
+- Barbara Minto, *The Minto Pyramid Principle*, 1987.
+- International Committee of Medical Journal Editors, *Recommendations*, "Preparing a Manuscript for Submission to a Medical Journal" — original research is divided into Introduction, Methods, Results, and Discussion (Parts): <https://icmje.org/recommendations/browse/manuscript-preparation/preparing-for-submission.html>
 - L. B. Sollaci and M. G. Pereira, "The introduction, methods, results, and discussion (IMRAD) structure: a fifty-year survey," *Journal of the Medical Library Association* 92(3), 2004 (Parts).
 - 木下是雄『理科系の作文技術』中公新書, 1981 — putting the main point first, and the topic sentence that opens each paragraph (Parts).
 - ISO 24495-1:2023, *Plain language — Part 1: Governing principles and guidelines* — principle 3, readers can easily understand what they find, and its guideline 5.3.2, choose familiar words (Premises and terms).
-- R. J. Spiro, P. J. Feltovich, R. L. Coulson, and D. K. Anderson, "Multiple analogies for complex concepts: antidotes for analogy-induced misconception in advanced knowledge acquisition," in S. Vosniadou and A. Ortony (eds.), *Similarity and Analogical Reasoning*, Cambridge University Press, 1989 — a single analogy leads learners to carry properties of the source into the subject where they do not hold (Premises and terms).
+- R. J. Spiro et al., "Multiple analogies for complex concepts: antidotes for analogy-induced misconception in advanced knowledge acquisition," in S. Vosniadou and A. Ortony (eds.), *Similarity and Analogical Reasoning*, Cambridge University Press, 1989 — a single analogy leads learners to carry properties of the source into the subject where they do not hold (Premises and terms).
