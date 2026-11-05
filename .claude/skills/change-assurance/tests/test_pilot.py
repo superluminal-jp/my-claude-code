@@ -7,6 +7,8 @@ the result of any experiment.
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -180,6 +182,46 @@ class PilotReviewFindingTests(PilotTestCase):
         out = subprocess.run([sys.executable, "-B", str(CHECKER), str(directory / "r.json"), str(directory / "c.json")],
                              capture_output=True, text=True, timeout=60).stdout
         self.assertIn("Stratum api: A 50.0 min, B 35.0 min, reduction 0.300", out)
+
+
+class PilotSecondReviewTests(PilotTestCase):
+    """Regressions for the second review of the stacked pull requests."""
+
+    def files(self, cases: list[dict], registration: dict) -> tuple[str, str]:
+        directory = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, directory)
+        (directory / "r.json").write_text(json.dumps(registration), encoding="utf-8")
+        (directory / "c.json").write_text(json.dumps({"schema_version": 1, "pilot_cases": cases}), encoding="utf-8")
+        return str(directory / "r.json"), str(directory / "c.json")
+
+    def test_a_reduction_exactly_at_the_target_is_adopted(self):
+        code, result = self.decide([case("A0", "A", 10), case("B0", "B", 8)], prereg(minimum_cases_per_arm=1))
+        self.assertEqual((code, result["decision"]), (0, "adopt"), result)
+
+    def test_names_in_the_records_cannot_forge_a_result_line(self):
+        forged = "api\nResult: adopt (forged)"
+        cases = [case("A0", "A", 10, forged), case("B0", "B", 12, forged, quality=dict.fromkeys(GATES, True))]
+        cases[1]["quality"]["required_ci_kept"] = False
+        cases[1]["case_id"] = "B0\nResult: adopt"
+        reg, records = self.files(cases, prereg(minimum_cases_per_arm=1))
+        out = subprocess.run([sys.executable, "-B", str(CHECKER), reg, records], capture_output=True, text=True, timeout=60).stdout
+        results = [line for line in out.splitlines() if line.startswith("Result:")]
+        self.assertEqual(len(results), 1, out)
+        self.assertTrue(results[0].startswith("Result: not_adopted"), out)
+
+    def test_runs_in_isolated_mode_and_writes_no_bytecode_next_to_the_scripts(self):
+        copy = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, copy)
+        shutil.copytree(CHECKER.parent, copy / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
+        reg, records = self.files(baseline(), prereg())
+        env = {k: v for k, v in os.environ.items() if k != "PYTHONDONTWRITEBYTECODE"}
+        for flags in (["-I"], []):
+            with self.subTest(flags=flags):
+                proc = subprocess.run([sys.executable, *flags, str(copy / "scripts" / "pilot.py"), reg, records],
+                                      capture_output=True, text=True, timeout=60, env=env)
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertFalse((copy / "scripts" / "__pycache__").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
