@@ -4,18 +4,27 @@
     "problem_id": "PRB-001",
     "reviewer": "read-only subagent (Explore), 2026-11-06",
     "context_given": [
-      "problem card",
+      "problem card without proposed_solutions",
       "requirements graph"
     ],
     "findings": [
       {
         "id": "CH-01",
-        "kind": "counterexample",
+        "kind": "missing_child",
         "target": "REQ-ROOT",
         "severity": "high",
-        "statement": "counterexample on REQ-ROOT",
+        "statement": "現状の欄が挙げる一覧の API(GET /orders?owner=)を扱う子がなく、読み取りとエクスポートが拒否しても一覧から取得できる",
         "disposition": "accepted",
-        "resolution": "REQ-LIST と親の統合試験を加えた"
+        "resolution": "子 REQ-LIST と受け入れ条件 TEST-LEAF-003 を加え、親の統合試験を3つの API に広げた"
+      },
+      {
+        "id": "CH-02",
+        "kind": "alternative_cause",
+        "target": "PRB-001",
+        "severity": "low",
+        "statement": "テストの利用者 B が管理者の役割を持つなら、200 は正当な応答かもしれない",
+        "disposition": "rejected",
+        "resolution": "テストの利用者 B は一般の役割だけを持つ(フィクスチャの定義で確かめた)"
       }
     ]
   }

@@ -18,7 +18,7 @@ Give exactly one of the three. The kind of a `FILE` is read from its top-level k
 | 1 | one or more violations (for `--gate`: `blocked`) |
 | 2 | the input cannot be interpreted — bad arguments, a file that is unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON, a repeated key, nesting too deep, or a wrong top level — or the checker itself failed |
 
-With `--format json` the result is one object: `output_version`, `input_file`, `graph` (the kind), `status` (`passed`, `failed`, `error`), `rules_checked`, `violations` (`{rule_id, node_id, message}`), and `error`; the gate adds `decision`, `challenge` (`recorded` or `not_run`), and `reasons` (`{rule_id, message}`). `passed` means the structure follows the rules listed in `rules_checked`, nothing more.
+With `--format json` the result is one object: `output_version`, `input_file`, `graph` (the kind), `status` (`passed`, `failed`, `error`), `rules_checked`, `violations` (`{rule_id, node_id, message}`), and `error`; the gate adds `decision`, `challenge` (`recorded` or `not_run`), and `reasons` (`{rule_id, message}`), gives `input_file` as the list of its paths, and adds to each violation `input` (`card`, `graph`, or `report`), which the text output shows as `[card]` and so on. Its `rules_checked` lists the rules of every input it checked as well as G-01 to G-04. `passed` means the structure follows the rules listed in `rules_checked`, nothing more.
 
 ## Declarations
 
@@ -50,7 +50,7 @@ Each node: `id`, `permission` (`read_only`, `workspace_write` — reversible cha
 | Rule | Passes when |
 |---|---|
 | R-00 | required fields are present, every value has the right type, and no field is undefined |
-| R-01 | finding ids are non-empty and unique; `kind`, `severity`, and `disposition` have defined values |
+| R-01 | finding ids are non-empty and unique; `kind`, `severity`, and `disposition` have defined values (a missing or non-string field is R-00) |
 | R-02 | every `accepted` or `rejected` finding has a resolution |
 | R-03 | (gate only) every target is the problem card or a node of the requirements graph |
 
