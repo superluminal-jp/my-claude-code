@@ -62,10 +62,10 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 
 - [X] T019 [P] 例 `tools/refinement-checker/examples/requirements-graph.example.json` と `tools/refinement-checker/examples/skills-graph.example.json` を、spec の FR-009 のとおりに作る。受け入れテストに、2つが合格することを確かめるテストを先に書き、失敗を確かめてから作る。結果: 2件が失敗した後、例を置いて通った
 - [X] T020 受け入れテストに、人が読む形式の出力で ID の中の改行と ESC がエスケープされること(spec の FR-013)と、同じ入力の2回の出力が一致すること(SC-003)のテストを先に書き、失敗を確かめてから検査器を直す。結果: エスケープは T008 でテストより先に実装していたため、このテストは実装の不足では失敗しなかった(TDD からの逸脱)。最初のテストは期待するエスケープの形を誤っており(理由の中の ID は JSON の形 `\n` でエスケープされる)、行頭の ID の経路を通るよう直した。エスケープを外した複製の検査器でこのテストが失敗することを確かめ、退行を検出できることを示した。決定性のテストは JSON と人が読む形式の両方で通った
-- [ ] T021 `.github/workflows/ci.yml` のジョブ `test` に、`bash tests/run-refinement-checker.sh` のステップを加える(spec の D9、SC-004)
-- [ ] T022 [P] 検査器の README を `tools/refinement-checker/README.md`(英語)と `tools/refinement-checker/README.ja.md`(日本語)に書く。同じ見出しの構成で、用途、実行主体、配布先、使い方、宣言の形式、規則、終了コード、限界を書く(spec の FR-011)
-- [ ] T023 `README.md` と `README.ja.md` の「What this provides」、ファイル構成の図、「Verification」、「Repository security automation」(CI の検査スクリプトの数を6から7に)の節を、変更後の内容に合わせる
-- [ ] T024 ネットワークを使わないローカルの検査をすべて実行し、spec の SC-002 の件数と比べる(P1-12)。あわせて `git diff --stat origin/main -- .claude install.sh tests/run-config-pyramid.sh` が空であることを確かめる(FR-012)
+- [X] T021 `.github/workflows/ci.yml` のジョブ `test` に、`bash tests/run-refinement-checker.sh` のステップを加える(spec の D9、SC-004)
+- [X] T022 [P] 検査器の README を `tools/refinement-checker/README.md`(英語)と `tools/refinement-checker/README.ja.md`(日本語)に書く。同じ見出しの構成で、用途、実行主体、配布先、使い方、宣言の形式、規則、終了コード、限界を書く(spec の FR-011)
+- [X] T023 `README.md` と `README.ja.md` の「What this provides」、ファイル構成の図、「Verification」、「Repository security automation」(CI の検査スクリプトの数を6から7に)の節を、変更後の内容に合わせる
+- [X] T024 ネットワークを使わないローカルの検査をすべて実行し、spec の SC-002 の件数と比べる(P1-12)。あわせて `git diff --stat origin/main -- .claude install.sh tests/run-config-pyramid.sh` が空であることを確かめる(FR-012)。結果: SC-002 の件数と一致し、失敗はなかった(`run-digital-agency-slides-skill` の3件の省略は変更前と同じ)。`run-refinement-checker` は4件が通り、4件が `NOT RUN`。差分は空だった。`run-mcp-startup` はネットワークを要するため実行していない
 - [ ] T025 変更の差分を `/code-review` でレビューし、確かめた指摘を直す。指摘と対応を本ファイルに記録する。あわせて、検査器がファイルを開く呼び出しが読み取りだけで、ネットワーク・サブプロセス・動的なコードの評価(`eval`、`exec`、`pickle` など)を使わないことを、コードを読んで確かめる(FR-007)
 - [ ] T026 README と PR に使う説明を、会話を見ていないサブエージェントに読ませ、指す先の分からない語を直す
 

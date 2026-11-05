@@ -84,12 +84,12 @@ python3 tools/refinement-checker/check_graph.py [--format text|json] --skills-di
 |---|---|
 | 0 | 違反がない |
 | 1 | 規則 S-00〜S-11 のどれかに違反がある |
-| 2 | 入力を解釈できない: 引数の誤り、読めないファイルやディレクトリ、5 MiB を超える入力、UTF-8 でない入力、JSON の構文の誤り、同じキーの重複、JSON の読み込みが扱えない深い入れ子、最上位がオブジェクトでない、`schema_version` が整数 1 でない、`requirements` と `skills` のちょうど一方を配列として持たない、最上位に定義していない欄がある |
+| 2 | 入力を解釈できない: 引数の誤り、読めないファイルやディレクトリ、5 MiB を超える入力、UTF-8 でない入力、JSON の構文の誤り、同じキーの重複、JSON の読み込みが扱えない深い入れ子、最上位がオブジェクトでない、`schema_version` が整数 1 でない、`requirements` と `skills` のちょうど一方を配列として持たない、最上位に定義していない欄がある。検査器自身の異常(終了コード 1 と区別するため)も 2 とする |
 
 ## 5. 人が読む形式の出力
 
 ```text
-S-02 REQ-ROOT: child 'REQ-MISSING' is not defined
+S-02 REQ-ROOT: child "REQ-MISSING" is not defined
 Result: failed (requirements; 1 violation; checked S-00 S-01 S-02 S-03 S-04 S-05 S-06 S-07 S-08 S-11; structural rules only)
 ```
 

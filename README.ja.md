@@ -82,6 +82,14 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   テンプレートからなる。`install.sh` の同期対象ではなく、このリポジトリ自身の設定も変えない。
   詳細は[バンドルの README](team/package-safety/README.ja.md) と
   [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md) を参照
+- **`tools/refinement-checker/`**: 要求の論理グラフ(AND/OR/LEAF の分解。各ノードが
+  水準 L1・L2・L3 の固有の受け入れ条件を持つ)とスキル合成グラフ(多段。各スキルが
+  権限と役割を宣言する)の宣言を、読み取りだけで検査する検査器。
+  [spec 058](specs/058-parent-skill-references/spec.md) の一段の「`## Child skills`」
+  宣言を読む互換モードも持つ。合格は構造が規則に合うことだけを意味し、分解の十分性や
+  安全性を保証しない。`install.sh` の同期対象ではない。詳細は
+  [検査器の README](tools/refinement-checker/README.ja.md) と
+  [spec 059](specs/059-refinement-graph-checker/spec.md) を参照
 - **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md)・
   [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)**: この設定の作業原則を
   ChatGPT と Claude.ai のカスタム指示欄へ持ち込むための、貼り付け用のポータブル
@@ -171,9 +179,10 @@ my-claude-code/
 ├── .specify/                       # このリポジトリの Spec Kit プロジェクトファイル(テンプレート、スクリプト、git 拡張)
 ├── archive/                        # 参照用に残した退役スキル(同期対象外)
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
+├── tools/refinement-checker/       # 要求とスキルのグラフを読み取りだけで検査する検査器(同期対象外, spec 059)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち6本を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち7本を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── .claude/                        # インストーラーが管理する Claude パスの正本
@@ -254,6 +263,17 @@ bash tests/run-package-safety-bundle.sh
 振る舞いは、[バンドルの README](team/package-safety/README.ja.md#適用されたことの確認)
 の手順で手で確認する。
 
+[`tools/refinement-checker/`](tools/refinement-checker/) を変更したら:
+
+```sh
+bash tests/run-refinement-checker.sh
+```
+
+検査器の受け入れテスト(Python の標準ライブラリだけを使う)を実行し、2つの例の宣言を
+検査し、このリポジトリの `.claude/skills/` を互換モードで読む。
+[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送ったテストを
+4行の `NOT RUN` として表示し、合格の件数には数えない。
+
 [`.claude/CLAUDE.md`](.claude/CLAUDE.md)・[`.claude/rules/`](.claude/rules/)・
 自作スキルを変更したら:
 
@@ -320,10 +340,10 @@ end-to-end セクションはさらにネットワーク接続を必要としま
 
 ## リポジトリのセキュリティ自動化
 
-上記のうち6本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+上記のうち7本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
 自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
 `run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、
-`run-readme-skill-index.sh`、`run-mcp-startup.sh`。
+`run-readme-skill-index.sh`、`run-refinement-checker.sh`、`run-mcp-startup.sh`。
 それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
 する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
 
