@@ -44,10 +44,10 @@ python3 <skill-dir>/scripts/pilot.py [--format text|json] preregistration.json c
 
 | Decision | When | Exit |
 |---|---|---|
-| `adopt` | the median reduction of completed cases is at least the target, and no quality gate failed in arm B | 0 |
-| `not_adopted` | the reduction is below the target, or any quality gate failed in arm B | 1 |
+| `adopt` | the median reduction of completed cases is at least the target, no quality gate failed in arm B, and arm B is not slower than arm A in any stratum | 0 |
+| `not_adopted` | the reduction is below the target, any quality gate failed in arm B, or arm B is slower in some stratum (a pooled median can improve while every stratum gets slower when cases are spread unevenly over strata) | 1 |
 | `insufficient` | the preregistration is later than the first case, an arm has fewer completed cases than the preregistered minimum, a stratum has completed cases in one arm only, or arm A's median is 0 | 1 |
 
-Records that break the format give violations instead of a decision (exit 1): E-00 for missing or wrongly typed fields, time items or quality gates that differ from the preregistration, and E-01 for a `case_id` used twice or an original request counted twice in one arm. Unreadable input exits 2.
+Records that break the format give violations instead of a decision (exit 1): E-00 for missing or wrongly typed fields (minutes must be finite numbers, so `Infinity` and `NaN` are refused; `schema_version` must be the integer 1), time items or quality gates that differ from the preregistration, and E-01 for a `case_id` used twice or an original request counted twice in one arm. Unreadable input exits 2.
 
 The result shows, per arm, the completed and incomplete counts, the median of completed cases, and the median with incomplete cases included (their minutes as lower bounds); per stratum, both medians, the reduction, and whether arm B was slower; and every failed quality gate with its case. It does not run a statistical test: with this sample size a reduction above the target does not establish the true size of the effect, so report the distribution and the strata along with the decision, and keep watching rework, incidents, and vulnerabilities after adoption.

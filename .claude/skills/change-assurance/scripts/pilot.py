@@ -16,12 +16,13 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import math
 import statistics
 import sys
 import traceback
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from assure import FORMATS, InputError, Report, is_text, load_json, requested_format, show
+from assure import FORMATS, InputError, Report, _Parser, is_text, load_json, requested_format, show
 
 EXIT_ADOPT, EXIT_NOT_ADOPT, EXIT_INPUT_ERROR = 0, 1, 2
 ARMS = ("A", "B")
@@ -39,12 +40,13 @@ def parse_date(value: Any) -> Optional[datetime.date]:
 
 
 def is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and value == value
+    """A finite number; JSON's non-standard NaN and Infinity are not."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def load_body(path: str, key: str, what: str, kind: type) -> Any:
     document = load_json(path, what)
-    if not isinstance(document, dict) or set(document) != {"schema_version", key} or document["schema_version"] != 1:
+    if not isinstance(document, dict) or set(document) != {"schema_version", key} or type(document["schema_version"]) is not int or document["schema_version"] != 1:
         raise InputError(f"{what} must have exactly schema_version 1 and {key}")
     if not isinstance(document[key], kind):
         raise InputError(f"{key} must be {'an object' if kind is dict else 'an array'}")
@@ -67,8 +69,9 @@ def check_records(reg: Dict[str, Any], cases: List[Any]) -> List[Dict[str, Any]]
         values = reg.get(name)
         if not isinstance(values, list) or not values or not all(is_text(v) for v in values) or len(set(values)) != len(values):
             report.add("E-00", -1, None, f"{name} must be a non-empty array of distinct strings")
-    items = set(reg.get("time_items") or []) if isinstance(reg.get("time_items"), list) else set()
-    gates = set(reg.get("quality_gates") or []) if isinstance(reg.get("quality_gates"), list) else set()
+    # Only string entries go into the sets; anything else is reported above.
+    items = {v for v in reg.get("time_items", []) if isinstance(v, str)} if isinstance(reg.get("time_items"), list) else set()
+    gates = {v for v in reg.get("quality_gates", []) if isinstance(v, str)} if isinstance(reg.get("quality_gates"), list) else set()
     case_ids, requests = set(), set()
     for position, entry in enumerate(cases):
         if not isinstance(entry, dict):
@@ -87,7 +90,8 @@ def check_records(reg: Dict[str, Any], cases: List[Any]) -> List[Dict[str, Any]]
         if parse_date(entry.get("started_at")) is None:
             report.add("E-00", position, node, "started_at must be a date (YYYY-MM-DD)")
         minutes = entry.get("minutes")
-        if not isinstance(minutes, dict) or set(minutes) != items or not all(is_number(v) and v >= 0 for v in minutes.values()):
+        if (not isinstance(minutes, dict) or set(minutes) != items or not all(is_number(v) and v >= 0 for v in minutes.values())
+                or not math.isfinite(sum(minutes.values()))):
             report.add("E-00", position, node, "minutes must give a non-negative number for exactly the preregistered time items")
         quality = entry.get("quality")
         needs_quality = entry.get("arm") == "B" and entry.get("completed") is True
@@ -95,13 +99,17 @@ def check_records(reg: Dict[str, Any], cases: List[Any]) -> List[Dict[str, Any]]
             not isinstance(quality, dict) or set(quality) != gates or not all(isinstance(v, bool) for v in quality.values())
         ):
             report.add("E-00", position, node, "quality must give true or false for exactly the preregistered gates")
-        if node in case_ids:
-            report.add("E-01", position, node, "case_id is used twice")
-        case_ids.add(node)
-        request = (entry.get("arm"), entry.get("request_id"))
-        if request in requests:
-            report.add("E-01", position, node, f"request {show(entry.get('request_id'))} is counted twice in arm {entry.get('arm')}; one original request is one sample")
-        requests.add(request)
+        # Only valid values are compared, so a missing id is not reported as a
+        # duplicate and an unhashable value cannot crash the check.
+        if node is not None:
+            if node in case_ids:
+                report.add("E-01", position, node, "case_id is used twice")
+            case_ids.add(node)
+        if entry.get("arm") in ARMS and is_text(entry.get("request_id")):
+            request = (entry["arm"], entry["request_id"])
+            if request in requests:
+                report.add("E-01", position, node, f"request {show(entry['request_id'])} is counted twice in arm {entry['arm']}; one original request is one sample")
+            requests.add(request)
     return report.violations()
 
 
@@ -151,6 +159,11 @@ def decide(reg: Dict[str, Any], cases: List[Dict[str, Any]]) -> Dict[str, Any]:
             reasons.append(("not_adopted", f"{len(quality_failures)} quality gate result(s) failed in arm B; time saved does not offset them"))
         if reduction is not None and reduction < reg["target_reduction"]:
             reasons.append(("not_adopted", f"the median reduction {reduction:.3f} is below the preregistered target {reg['target_reduction']}"))
+        # A pooled median can improve while every stratum gets slower when
+        # cases are spread unevenly over strata, so a slower stratum blocks adoption.
+        for stratum in strata:
+            if stratum["b_slower"]:
+                reasons.append(("not_adopted", f"arm B is slower than arm A in stratum {show(stratum['stratum'])}"))
     kinds = {kind for kind, _ in reasons}
     decision = "insufficient" if "insufficient" in kinds else ("not_adopted" if kinds else "adopt")
     return {"decision": decision, "reduction": reduction, "target_reduction": reg["target_reduction"], "arms": arms,
@@ -175,7 +188,8 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
               f"(with incomplete {data['median_with_incomplete']} min)")
     for stratum in result["strata"]:
         mark = "  <- B slower" if stratum["b_slower"] else ""
-        print(f"Stratum {stratum['stratum']}: A {stratum['median_A']} min, B {stratum['median_B']} min{mark}")
+        cut = "n/a" if stratum["reduction"] is None else f"{stratum['reduction']:.3f}"
+        print(f"Stratum {stratum['stratum']}: A {stratum['median_A']} min, B {stratum['median_B']} min, reduction {cut}{mark}")
     for failure in result["quality_failures"]:
         print(f"Quality gate failed: {failure['case_id']} {failure['gate']}")
     for reason in result["reasons"]:
@@ -185,16 +199,14 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
 
 
 def run(argv: Sequence[str], output_format: str) -> int:
-    parser = argparse.ArgumentParser(prog="pilot.py", description="Decide a pilot from its preregistration (read-only).")
+    # The same parser as assure.py: an argument error is reported in the
+    # requested format with argparse's message; --help exits 0 with help only.
+    _Parser.output_format = output_format
+    parser = _Parser(prog="pilot.py", description="Decide a pilot from its preregistration (read-only).")
     parser.add_argument("--format", choices=FORMATS, default="text")
     parser.add_argument("preregistration")
     parser.add_argument("cases")
-    try:
-        args = parser.parse_args(argv)
-    except SystemExit as exc:
-        if output_format == "json":
-            emit({"status": "error", "error": "invalid arguments"}, output_format)
-        return EXIT_INPUT_ERROR if exc.code else EXIT_ADOPT
+    args = parser.parse_args(argv)
     base = {"output_version": 1, "input_file": [args.preregistration, args.cases], "status": "error", "error": None}
     try:
         reg = load_body(args.preregistration, "pilot_preregistration", "the preregistration", dict)

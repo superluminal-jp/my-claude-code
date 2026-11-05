@@ -121,5 +121,65 @@ class SampleTests(PilotTestCase):
         self.assertEqual(result["arms"]["A"]["median_with_incomplete"], 55)
 
 
+
+class PilotReviewFindingTests(PilotTestCase):
+    """Regressions for review findings on the pilot decision."""
+
+    def raw(self, registration: str, cases: str) -> subprocess.CompletedProcess:
+        directory = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: ([p.unlink() for p in directory.iterdir()], directory.rmdir()))
+        (directory / "r.json").write_text(registration, encoding="utf-8")
+        (directory / "c.json").write_text(cases, encoding="utf-8")
+        return subprocess.run([sys.executable, "-B", str(CHECKER), "--format", "json", str(directory / "r.json"), str(directory / "c.json")],
+                              capture_output=True, text=True, timeout=60)
+
+    def test_b_slower_in_every_stratum_is_not_adopted_whatever_the_pooled_median(self):
+        cases = ([case(f"A{i}", "A", 100, "api") for i in range(3)] + [case("A9", "A", 10, "iac")]
+                 + [case("B0", "B", 120, "api")] + [case(f"B{i}", "B", 12, "iac") for i in range(1, 4)])
+        code, result = self.decide(cases)
+        self.assertEqual((code, result["decision"]), (1, "not_adopted"), result)
+
+    def test_infinite_minutes_are_a_format_violation(self):
+        records = json.dumps({"schema_version": 1, "pilot_cases": baseline()}).replace('"review": 40', '"review": Infinity')
+        proc = self.raw(json.dumps(prereg()), records)
+        result = json.loads(proc.stdout)
+        self.assertEqual((proc.returncode, {v["rule_id"] for v in result["violations"]}), (1, {"E-00"}))
+
+    def test_unhashable_values_are_format_violations_not_crashes(self):
+        cases = baseline()
+        cases[0]["request_id"] = ["x"]
+        cases[1]["arm"] = {}
+        code, result = self.decide(cases)
+        self.assertEqual(code, 1)
+        self.assertEqual({v["rule_id"] for v in result["violations"]}, {"E-00"})
+        proc = self.raw(json.dumps(prereg(time_items=[["a"]])), json.dumps({"schema_version": 1, "pilot_cases": baseline()}))
+        self.assertEqual((proc.returncode, json.loads(proc.stdout)["violations"][0]["rule_id"]), (1, "E-00"))
+
+    def test_schema_version_must_be_the_integer_1(self):
+        proc = self.raw(json.dumps({"schema_version": 1.0, "pilot_preregistration": prereg()["pilot_preregistration"]}),
+                        json.dumps({"schema_version": 1, "pilot_cases": baseline()}))
+        self.assertEqual(proc.returncode, 2)
+
+    def test_missing_case_ids_are_not_reported_as_duplicates(self):
+        cases = baseline()
+        cases[0].pop("case_id")
+        cases[1].pop("case_id")
+        code, result = self.decide(cases)
+        self.assertNotIn("E-01", {v["rule_id"] for v in result["violations"]})
+
+    def test_help_prints_no_error_object(self):
+        proc = subprocess.run([sys.executable, "-B", str(CHECKER), "--format", "json", "--help"], capture_output=True, text=True, timeout=60)
+        self.assertEqual(proc.returncode, 0)
+        self.assertNotIn('"error"', proc.stdout)
+
+    def test_text_output_shows_the_reduction_of_each_stratum(self):
+        directory = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: ([p.unlink() for p in directory.iterdir()], directory.rmdir()))
+        (directory / "r.json").write_text(json.dumps(prereg()), encoding="utf-8")
+        (directory / "c.json").write_text(json.dumps({"schema_version": 1, "pilot_cases": baseline()}), encoding="utf-8")
+        out = subprocess.run([sys.executable, "-B", str(CHECKER), str(directory / "r.json"), str(directory / "c.json")],
+                             capture_output=True, text=True, timeout=60).stdout
+        self.assertIn("Stratum api: A 50.0 min, B 35.0 min, reduction 0.300", out)
+
 if __name__ == "__main__":
     unittest.main()
