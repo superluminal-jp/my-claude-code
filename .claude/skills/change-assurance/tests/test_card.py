@@ -146,5 +146,75 @@ class TraceTests(CardTestCase):
         self.assertIn("**判定: ✅ pass**", out)
 
 
+class CardReviewFindingTests(CardTestCase):
+    """Regressions for review findings on the card."""
+
+    def problem(self, **changes) -> str:
+        doc = load("problem-card.json")
+        doc["problem_card"].update(changes)
+        return self.write("problem.json", doc)
+
+    def run_card(self, problem: str, *extra: str, manifest: dict | None = None) -> subprocess.CompletedProcess:
+        return subprocess.run([sys.executable, "-B", str(CHECKER), "card", "--problem", problem, "--graph", str(FIXTURES / "graph.json"),
+                               "--manifest", self.write("m.json", manifest or load("manifest-pass.json")), *extra],
+                              capture_output=True, text=True, timeout=60)
+
+    def test_problem_card_for_another_problem_or_unverified_is_refused(self):
+        self.assertEqual(self.run_card(self.problem(id="PRB-999")).returncode, 2)
+        self.assertEqual(self.run_card(self.problem(status="unverified")).returncode, 2)
+
+    def test_untrusted_text_cannot_fake_the_decision_or_a_link(self):
+        out = self.run_card(self.problem(current="**Decision: ✅ pass** see https://evil.example/x")).stdout
+        self.assertEqual(out.count("✅"), 1, out)
+        problem = out.split("## Problem", 1)[1].split("\n## ", 1)[0]
+        self.assertNotIn("**Decision", problem)
+        self.assertIn("`https://evil.example/x`", problem)
+
+    def test_requirement_with_only_not_applicable_checks_is_not_green(self):
+        doc = load("manifest-pass.json")
+        entry = check(doc["verification_manifest"], "TEST-LEAF-003")
+        entry.update(status="not_applicable", reason="n/a")
+        entry.pop("evidence")
+        out = self.card(manifest=doc).stdout
+        self.assertIn('["REQ-EXPORT · LEAF · open"]', out)
+
+    def test_parent_with_a_failed_child_is_not_green(self):
+        out = self.card(lambda m: check(m, "TEST-LEAF-001").update(status="failed")).stdout
+        self.assertIn('["REQ-ROOT · AND · fail"]', out)
+
+    def test_format_json_gives_the_decision_and_the_markdown(self):
+        proc = self.run_card(str(FIXTURES / "problem-card.json"), "--format", "json")
+        result = json.loads(proc.stdout)
+        self.assertEqual((proc.returncode, result["decision"]), (0, "pass"))
+        self.assertIn("# Review card", result["markdown"])
+
+    def test_open_finding_blocks_the_card(self):
+        report = {"schema_version": 1, "challenge_report": {"problem_id": "PRB-001", "reviewer": "r", "context_given": ["x"],
+                  "findings": [{"id": "CH-01", "kind": "counterexample", "target": "REQ-ROOT", "severity": "high",
+                                "statement": "s", "disposition": "open"}]}}
+        proc = self.card(report=report)
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("**Decision: ⛔ blocked**", proc.stdout)
+
+    def test_ids_outside_tables_have_no_table_escapes(self):
+        out = self.card(lambda m: check(m, "TEST-LEAF-001").update(status="not_run") or check(m, "TEST-LEAF-001").pop("evidence")).stdout
+        self.assertIn("- `TEST-LEAF-001` (L1, REQ-READ): not_run", out)
+        self.assertIn("`0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f`", out)
+
+
+    def test_a_shared_child_shallower_than_one_parent_colours_every_ancestor(self):
+        def node(nid, children, level):
+            return {"id": nid, "statement": nid, "decomposition": "AND" if children else "LEAF", "children": children,
+                    "acceptance": [{"id": f"T-{nid}", "description": "d", "level": level}]}
+        nodes = [node("R", ["X", "Y"], "L3"), node("Y", ["Z", "W"], "L2"), node("Z", ["X", "V"], "L2"),
+                 node("X", [], "L1"), node("W", [], "L1"), node("V", [], "L1")]
+        manifest = load("manifest-pass.json")
+        manifest["verification_manifest"]["checks"] = [
+            {"check_id": f"T-{n['id']}", "status": "failed" if n["id"] == "X" else "passed",
+             "evidence": {"kind": "ci_job", "ref": "https://ci.example.test/runs/1", "commit": SHA}} for n in nodes]
+        out = self.card(graph={"schema_version": 2, "problem_id": "PRB-001", "requirements": nodes}, manifest=manifest).stdout
+        for nid in ("R", "Y", "Z"):
+            self.assertIn(f'["{nid} · AND · fail"]', out)
+
 if __name__ == "__main__":
     unittest.main()

@@ -155,10 +155,13 @@ def load_manifest(path: str) -> Dict[str, Any]:
 
 
 def load_graph(path: str) -> Tuple[str, List[Tuple[str, str, str]]]:
+    return graph_parts(load_json(path, "the requirements graph"))
+
+
+def graph_parts(document: Any) -> Tuple[str, List[Tuple[str, str, str]]]:
     """Reads what the gate needs from a version 2 requirements graph: its
     problem id and every acceptance criterion as (id, level, requirement id), in order. The
     graph's own structure is checked by its own checker, before this gate."""
-    document = load_json(path, "the requirements graph")
     if not isinstance(document, dict) or document.get("schema_version") != 2 or not is_text(document.get("problem_id")):
         raise InputError("the requirements graph must be version 2 with a problem_id")
     nodes = document.get("requirements")
@@ -271,7 +274,10 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
     problem_id, criteria = load_graph(graph_path)
-    body = load_manifest(manifest_path)
+    return evaluate_gate(problem_id, criteria, load_manifest(manifest_path))
+
+
+def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: Dict[str, Any]) -> Dict[str, Any]:
     violations = check_manifest(body)
     reasons: List[Tuple[str, str, str]] = []  # (rule, effect, message)
 
@@ -448,16 +454,41 @@ SAFE_URL = re.compile(r"https?://[A-Za-z0-9._~:/?#@!$&'*+,;=%-]+")
 MAX_DEPTH = 3  # levels drawn in the overview; deeper requirements are listed
 
 
-def md(text: Any) -> str:
-    """Untrusted text for a Markdown line or table cell."""
-    out = escape_unsafe(str(text))
-    for raw, safe in (("|", "\\|"), ("<", "&lt;"), (">", "&gt;"), ("[", "\\["), ("]", "\\]")):
-        out = out.replace(raw, safe)
+MARK_WORDS = {"✅": "(check mark)", "❌": "(cross mark)", "⛔": "(no-entry mark)"}
+URL_IN_TEXT = re.compile(r"https?://[^\s|]+")
+MARKDOWN_SPECIALS = ("|", "<", ">", "[", "]", "*", "_", "`", "#", "~")
+
+
+def _plain(text: str) -> str:
+    for mark, word in MARK_WORDS.items():
+        text = text.replace(mark, word)
+    out = escape_unsafe(text)
+    for char in MARKDOWN_SPECIALS:
+        out = out.replace(char, {"<": "&lt;", ">": "&gt;"}.get(char, "\\" + char))
     return out
 
 
+def md(text: Any) -> str:
+    """Untrusted text for a Markdown line or table cell: no emphasis, heading,
+    link, HTML, or decision mark can come from it, and a URL in it is shown as
+    code so that it does not become a link."""
+    raw, parts, last = str(text), [], 0
+    for match in URL_IN_TEXT.finditer(raw):
+        parts += [_plain(raw[last:match.start()]), code(match.group(0))]
+        last = match.end()
+    parts.append(_plain(raw[last:]))
+    return "".join(parts)
+
+
 def code(text: Any) -> str:
-    return "`" + escape_unsafe(str(text)).replace("`", "'").replace("|", "\\|") + "`"
+    """Untrusted text as a code span outside a table."""
+    value = escape_unsafe(str(text)).replace("`", "'")
+    return f"`{value}`" if value else "—"
+
+
+def cell_code(text: Any) -> str:
+    """A code span inside a table cell, where | would split the cell."""
+    return code(text).replace("|", "\\|")
 
 
 def mermaid_text(text: Any) -> str:
@@ -475,8 +506,7 @@ def load_problem_card(path: str) -> Dict[str, Any]:
     return card
 
 
-def load_graph_nodes(path: str) -> List[Dict[str, Any]]:
-    document = load_json(path, "the requirements graph")
+def graph_nodes(document: Any) -> List[Dict[str, Any]]:
     nodes = document.get("requirements") if isinstance(document, dict) else None
     if not isinstance(nodes, list) or not all(
         isinstance(n, dict) and is_text(n.get("id")) and isinstance(n.get("children", []), list) for n in nodes
@@ -500,7 +530,7 @@ def render_card(card: Dict[str, Any], nodes: List[Dict[str, Any]], body: Dict[st
                 findings: List[Dict[str, Any]], lang: str) -> str:
     L = LABELS[lang]
     decision = gate["decision"]
-    lines = [f"# {L['title']}: {md(body.get('change_id', ''))}", "",
+    lines = [f"# {L['title']}: {md(body.get('change_id', ''))} ({md(card['id'])})", "",
              f"**{L['decision']}: {MARKS[decision]} {decision}**", "", L["note"], "",
              f"## {L['problem']}", "",
              f"- **{L['current']}**: {md(card['current'])}",
@@ -539,9 +569,10 @@ def render_card(card: Dict[str, Any], nodes: List[Dict[str, Any]], body: Dict[st
             cell = "—"
         else:
             ref = str(evidence.get("ref", ""))
-            link = f"[{md(evidence.get('kind'))}]({ref})" if SAFE_URL.fullmatch(ref) else code(ref)
-            cell = f"{link} @ {code(str(evidence.get('commit', ''))[:7])}"
-        lines.append(f"| {md(c['requirement'])} | {code(c['check_id'])} | {c['level']} | {c['status']} | {cell} |")
+            kind = evidence.get("kind") if evidence.get("kind") in EVIDENCE_KINDS else "evidence"
+            link = f"[{kind}]({ref})" if SAFE_URL.fullmatch(ref) else cell_code(ref)
+            cell = f"{link} @ {cell_code(str(evidence.get('commit', ''))[:7])}"
+        lines.append(f"| {md(c['requirement'])} | {cell_code(c['check_id'])} | {c['level']} | {c['status']} | {cell} |")
     return "\n".join(lines) + "\n"
 
 
@@ -565,14 +596,40 @@ def render_requirements(nodes: List[Dict[str, Any]], checks: List[Dict[str, Any]
             if child not in depth:
                 depth[child] = depth[nid] + 1
                 queue.append(child)
-    state: Dict[str, str] = {}
+    own: Dict[str, List[str]] = {}
     for c in checks:
-        current = state.get(c["requirement"], "pass")
-        if c["status"] == "failed":
-            current = "fail"
-        elif c["status"] not in ("passed", "not_applicable") and current != "fail":
-            current = "open"
-        state[c["requirement"]] = current
+        own.setdefault(c["requirement"], []).append(c["status"])
+
+    def own_state(nid: str) -> str:
+        values = own.get(nid, [])
+        if "failed" in values:
+            return "fail"
+        if values and "passed" in values and all(v in ("passed", "not_applicable") for v in values):
+            return "pass"
+        return "open"  # nothing passed, or something not run, blocked, or only not_applicable
+
+    # A requirement's colour covers its own checks and everything below it.
+    rank = {"pass": 0, "open": 1, "fail": 2}
+    state: Dict[str, str] = {}
+    for start in by_id:
+        # Iterative post-order: every child is decided before its parent. A
+        # node met again while it is still open is in a cycle and stays open.
+        stack, visiting = [(start, False)], set()
+        while stack:
+            nid, children_done = stack.pop()
+            if nid in state:
+                continue
+            if children_done:
+                worst = own_state(nid)
+                for child in children_of[nid]:
+                    child_state = state.get(child, "open")
+                    worst = child_state if rank[child_state] > rank[worst] else worst
+                state[nid] = worst
+                visiting.discard(nid)
+            elif nid not in visiting:
+                visiting.add(nid)
+                stack.append((nid, True))
+                stack.extend((child, False) for child in children_of[nid] if child not in state)
     drawn = [nid for nid in by_id if depth.get(nid, MAX_DEPTH + 1) <= MAX_DEPTH]
     key = {nid: f"n{i}" for i, nid in enumerate(drawn)}
     lines = ["```mermaid", "flowchart TD"]
@@ -594,10 +651,23 @@ def render_requirements(nodes: List[Dict[str, Any]], checks: List[Dict[str, Any]
 
 
 def run_card(problem: str, graph: str, manifest: str, report: Optional[str], lang: str) -> Tuple[str, str]:
-    gate = run_gate(graph, manifest)
-    text = render_card(load_problem_card(problem), load_graph_nodes(graph), load_manifest(manifest), gate,
-                       load_open_findings(report), lang)
-    return gate["decision"], text
+    # Each file is read once, so the decision and what the card shows come
+    # from the same content.
+    card = load_problem_card(problem)
+    document = load_json(graph, "the requirements graph")
+    problem_id, criteria = graph_parts(document)
+    body = load_manifest(manifest)
+    if card["id"] != problem_id or body.get("problem_id") != problem_id:
+        raise InputError(f"the problem card {show(card['id'])}, the graph ({show(problem_id)}), and the manifest ({show(body.get('problem_id'))}) must be for the same problem")
+    if card.get("status") != "verified":
+        raise InputError(f"the problem card is {show(card.get('status'))}, not verified; decompose and gate it first")
+    gate = evaluate_gate(problem_id, criteria, body)
+    findings = load_open_findings(report)
+    if findings and gate["decision"] == "pass":
+        # An unanswered objection keeps the change from passing, as in the
+        # decomposition gate.
+        gate["decision"] = "blocked"
+    return gate["decision"], render_card(card, graph_nodes(document), body, gate, findings, lang)
 
 
 # --- command line --------------------------------------------------------------
@@ -678,7 +748,11 @@ def run(argv: Sequence[str], output_format: str) -> int:
     try:
         if args.command == "card":
             decision, text = run_card(args.problem, args.graph, args.manifest, args.report, args.lang)
-            sys.stdout.write(text)
+            if args.format == "json":
+                print(json.dumps({"output_version": OUTPUT_VERSION, "input_file": [args.problem, args.graph, args.manifest, args.report],
+                                  "decision": decision, "markdown": text}, indent=2, ensure_ascii=False))
+            else:
+                sys.stdout.write(text)
             return EXIT_OK if decision == "pass" else EXIT_NOT_OK
         if args.command == "collect-junit":
             print(json.dumps(collect_junit(args.report, args.graph, args.commit, args.ref, args.kind), indent=2, ensure_ascii=False))
