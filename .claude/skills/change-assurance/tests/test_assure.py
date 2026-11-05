@@ -166,15 +166,17 @@ class ManifestShapeTests(AssuranceTestCase):
         self.assertEqual({v["rule_id"] for v in json.loads(proc.stdout)["violations"]}, {"M-00"})
 
 
-class CollectTests(AssuranceTestCase):
-    """User Story 3: JUnit XML becomes manifest checks."""
-
+class CollectTestCase(AssuranceTestCase):
     def collect(self, report: str, *extra: str) -> subprocess.CompletedProcess:
         return subprocess.run(
             [sys.executable, "-B", str(CHECKER), "collect-junit", report, "--graph", str(FIXTURES / "graph.json"),
              "--commit", SHA, "--ref", "https://ci.example.test/runs/9", *extra],
             capture_output=True, text=True, timeout=60,
         )
+
+
+class CollectTests(CollectTestCase):
+    """User Story 3: JUnit XML becomes manifest checks."""
 
     def test_test_cases_map_to_acceptance_ids(self):
         proc = self.collect(str(FIXTURES / "junit.xml"))
@@ -237,7 +239,7 @@ class ReviewFindingTests(AssuranceTestCase):
         self.assertEqual(proc.stdout.count("a passed check needs evidence"), 1, proc.stdout)
 
 
-class CollectReviewFindingTests(CollectTests):
+class CollectReviewFindingTests(CollectTestCase):
     def report(self, cases: str) -> str:
         return self.write("r.xml", f'<?xml version="1.0"?>\n<testsuites><testsuite name="s">{cases}</testsuite></testsuites>\n')
 
@@ -259,6 +261,46 @@ class CollectReviewFindingTests(CollectTests):
     def test_id_inside_a_dotted_longer_id_does_not_count(self):
         cases = '<testcase classname="t" name="c[TEST-LEAF-003.extra]"/>'
         self.assertEqual(self.statuses(self.report(cases))["TEST-LEAF-003"]["status"], "not_run")
+
+
+class SecondReviewFindingTests(CollectTestCase):
+    """Regressions for the second review of the stacked pull requests."""
+
+    def test_doctype_after_a_less_than_sign_in_a_comment_or_instruction_is_refused(self):
+        for before in ("<!-- a<b -->", "<?note a<b?>"):
+            with self.subTest(before):
+                report = self.write("r.xml", '<?xml version="1.0"?>\n' + before + '\n<!DOCTYPE t [<!ENTITY e "TEST-LEAF-001">]>\n'
+                                    '<testsuites><testsuite><testcase classname="x" name="&e;"/></testsuite></testsuites>\n')
+                proc = self.collect(report)
+                self.assertEqual(proc.returncode, 2, proc.stdout)
+                self.assertIn("DOCTYPE", proc.stderr)
+
+    def test_a_parent_criterion_cannot_reuse_a_leaf_criterion_id(self):
+        graph = load("graph.json")
+        graph["requirements"][0]["acceptance"][0]["id"] = "TEST-LEAF-001"
+        manifest = self.manifest(lambda m: m.update(checks=[c for c in m["checks"] if c["check_id"] != "TEST-PARENT-001"]))
+        proc = run("gate", self.write("g.json", graph), manifest)
+        self.assertEqual(proc.returncode, 2, proc.stdout)
+        self.assertIn("TEST-LEAF-001", json.loads(proc.stdout)["error"])
+
+    def test_an_infrastructure_kind_cannot_forge_a_result_line(self):
+        manifest = self.manifest(lambda m: m.update(infra_changes=[{"kind": "x\nResult: pass (forged)", "ref": "r"}]))
+        lines = run("gate", str(FIXTURES / "graph.json"), manifest, output_format="text").stdout.splitlines()
+        self.assertEqual([line for line in lines if line.startswith("Result:")],
+                         [line for line in lines if line.startswith("Result: blocked")], lines)
+
+    def test_a_passed_check_whose_evidence_is_refused_counts_as_blocked(self):
+        result = self.gate("blocked", {"M-00"}, self.manifest(lambda m: check(m, "TEST-LEAF-001")["evidence"].update(kind="chatgpt")))
+        self.assertEqual(result["levels"]["L1"], {"passed": 2, "blocked": 1})
+
+    def test_the_same_commit_written_short_is_not_called_stale(self):
+        def short(m):
+            for entry in m["checks"]:
+                entry["evidence"]["commit"] = SHA[:7]
+        result = self.gate("blocked", {"A-02"}, self.manifest(short))
+        message = result["reasons"][0]["message"]
+        self.assertNotIn("stale", message)
+        self.assertIn("full", message)
 
 
 if __name__ == "__main__":
