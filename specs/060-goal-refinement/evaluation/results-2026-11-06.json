@@ -1,0 +1,253 @@
+{
+  "run": "2026-11-06, 4 read-only Explore subagents, prompt references/challenger.md unchanged",
+  "cases": {
+    "p2-03": {
+      "expected": "solution_as_problem",
+      "findings": [
+        {
+          "id": "CH-01",
+          "kind": "false_positive",
+          "target": "PRB-203",
+          "severity": "high"
+        },
+        {
+          "id": "CH-02",
+          "kind": "missing_evidence",
+          "target": "PRB-203",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-03",
+          "kind": "solution_as_problem",
+          "target": "PRB-203",
+          "severity": "high"
+        },
+        {
+          "id": "CH-04",
+          "kind": "other",
+          "target": "PRB-203",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-05",
+          "kind": "solution_as_problem",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-06",
+          "kind": "counterexample",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-07",
+          "kind": "missing_child",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-08",
+          "kind": "missing_child",
+          "target": "REQ-ROOT",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-09",
+          "kind": "counterexample",
+          "target": "REQ-BUMP",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-10",
+          "kind": "other",
+          "target": "REQ-TESTS",
+          "severity": "low"
+        }
+      ]
+    },
+    "p2-04": {
+      "expected": "missing_child or counterexample on REQ-ROOT (GET /orders list)",
+      "findings": [
+        {
+          "id": "CH-01",
+          "kind": "false_positive",
+          "target": "PRB-204",
+          "severity": "high"
+        },
+        {
+          "id": "CH-02",
+          "kind": "alternative_cause",
+          "target": "PRB-204",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-03",
+          "kind": "missing_evidence",
+          "target": "PRB-204",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-04",
+          "kind": "missing_child",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-05",
+          "kind": "counterexample",
+          "target": "REQ-ROOT",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-06",
+          "kind": "counterexample",
+          "target": "REQ-EXPORT",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-07",
+          "kind": "other",
+          "target": "REQ-ROOT",
+          "severity": "medium"
+        }
+      ]
+    },
+    "p2-05": {
+      "expected": "or_overlap",
+      "findings": [
+        {
+          "id": "CH-01",
+          "kind": "false_positive",
+          "target": "PRB-205",
+          "severity": "high"
+        },
+        {
+          "id": "CH-02",
+          "kind": "missing_evidence",
+          "target": "PRB-205",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-03",
+          "kind": "mixed_statement",
+          "target": "PRB-205",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-04",
+          "kind": "counterexample",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-05",
+          "kind": "missing_child",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-06",
+          "kind": "or_overlap",
+          "target": "REQ-ROOT",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-07",
+          "kind": "counterexample",
+          "target": "REQ-WAF",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-08",
+          "kind": "counterexample",
+          "target": "REQ-APP",
+          "severity": "medium"
+        }
+      ]
+    },
+    "p2-06": {
+      "expected": "mixed_statement",
+      "findings": [
+        {
+          "id": "CH-01",
+          "kind": "mixed_statement",
+          "target": "PRB-206",
+          "severity": "high"
+        },
+        {
+          "id": "CH-02",
+          "kind": "mixed_statement",
+          "target": "PRB-206",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-03",
+          "kind": "false_positive",
+          "target": "PRB-206",
+          "severity": "high"
+        },
+        {
+          "id": "CH-04",
+          "kind": "alternative_cause",
+          "target": "PRB-206",
+          "severity": "high"
+        },
+        {
+          "id": "CH-05",
+          "kind": "missing_evidence",
+          "target": "PRB-206",
+          "severity": "high"
+        },
+        {
+          "id": "CH-06",
+          "kind": "other",
+          "target": "PRB-206",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-07",
+          "kind": "counterexample",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-08",
+          "kind": "counterexample",
+          "target": "REQ-ROOT",
+          "severity": "high"
+        },
+        {
+          "id": "CH-09",
+          "kind": "missing_child",
+          "target": "REQ-ROOT",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-10",
+          "kind": "other",
+          "target": "REQ-LIMIT",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-11",
+          "kind": "other",
+          "target": "REQ-LOCK",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-12",
+          "kind": "other",
+          "target": "REQ-ROOT",
+          "severity": "medium"
+        },
+        {
+          "id": "CH-13",
+          "kind": "other",
+          "target": "PRB-206",
+          "severity": "low"
+        }
+      ]
+    }
+  }
+}

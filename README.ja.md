@@ -31,6 +31,11 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （まず意図の共通認識を形成し——AIが自分の理解・前提・スコープを述べ、
     ユーザーが却下できる形にする——その後、形式的要件へ変換。INVEST/Gherkin）、`problem-definition`
     （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
+    `goal-refinement`(合意済みの問題を、根拠・原因の仮説・解決策を分けた問題カードに記録し、
+    親が固有の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、読み取り専用の反証役の
+    サブエージェントに異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
+    (ready か blocked)を決める。[spec 059](specs/059-refinement-graph-checker/spec.md)、
+    [spec 060](specs/060-goal-refinement/spec.md))、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
     開発着手前に整理）、
@@ -82,14 +87,6 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   テンプレートからなる。`install.sh` の同期対象ではなく、このリポジトリ自身の設定も変えない。
   詳細は[バンドルの README](team/package-safety/README.ja.md) と
   [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md) を参照
-- **`tools/refinement-checker/`**: 要求の論理グラフ(AND/OR/LEAF の分解。各ノードが
-  水準 L1・L2・L3 の固有の受け入れ条件を持つ)とスキル合成グラフ(多段。各スキルが
-  権限と役割を宣言する)の宣言を、読み取りだけで検査する検査器。
-  [spec 058](specs/058-parent-skill-references/spec.md) の一段の「`## Child skills`」
-  宣言を読む互換モードも持つ。合格は構造が規則に合うことだけを意味し、分解の十分性や
-  安全性を保証しない。`install.sh` の同期対象ではない。詳細は
-  [検査器の README](tools/refinement-checker/README.ja.md) と
-  [spec 059](specs/059-refinement-graph-checker/spec.md) を参照
 - **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md)・
   [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)**: この設定の作業原則を
   ChatGPT と Claude.ai のカスタム指示欄へ持ち込むための、貼り付け用のポータブル
@@ -179,7 +176,6 @@ my-claude-code/
 ├── .specify/                       # このリポジトリの Spec Kit プロジェクトファイル(テンプレート、スクリプト、git 拡張)
 ├── archive/                        # 参照用に残した退役スキル(同期対象外)
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
-├── tools/refinement-checker/       # 要求とスキルのグラフを読み取りだけで検査する検査器(同期対象外, spec 059)
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち7本を実行(必須チェック)
@@ -201,6 +197,11 @@ my-claude-code/
         │   ├── SKILL.md            #   二段構成のプレイブック
         │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
         ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
+        ├── goal-refinement/        # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定
+        │   ├── SKILL.md            #   手順
+        │   ├── references/         #   検査器の形式と規則、反証役への指示文
+        │   ├── scripts/            #   check_graph.py(読み取り専用、標準ライブラリのみ)
+        │   └── tests/              #   受け入れテストとフィクスチャ
         ├── product-strategy/SKILL.md # 開発着手前のビジョン・ユーザー・提供価値・指標
         ├── git-workflow/SKILL.md   # ブランチ/コミット/プッシュ/PR 運用
         ├── aws-research/SKILL.md   # AWS 公式ドキュメントの最新調査
@@ -263,14 +264,16 @@ bash tests/run-package-safety-bundle.sh
 振る舞いは、[バンドルの README](team/package-safety/README.ja.md#適用されたことの確認)
 の手順で手で確認する。
 
-[`tools/refinement-checker/`](tools/refinement-checker/) を変更したら:
+[`.claude/skills/goal-refinement/`](.claude/skills/goal-refinement/) を変更したら:
 
 ```sh
 bash tests/run-refinement-checker.sh
+bash tests/run-config-pyramid.sh
 ```
 
-検査器の受け入れテスト(Python の標準ライブラリだけを使う)を実行し、2つの例の宣言を
-検査し、このリポジトリの `.claude/skills/` を互換モードで読む。
+前者は、同梱の検査器の受け入れテスト(Python の標準ライブラリだけを使う)を実行し、例の宣言と、
+例の問題カード・要求グラフ・反証の記録が判定に合格することを確かめ、このリポジトリの
+`.claude/skills/` を互換モードで読む。
 [spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送ったテストを
 4行の `NOT RUN` として表示し、合格の件数には数えない。
 

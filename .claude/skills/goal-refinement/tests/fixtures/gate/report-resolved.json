@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "PRB-001",
+    "reviewer": "read-only subagent (Explore), 2026-11-06",
+    "context_given": [
+      "problem card",
+      "requirements graph"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "alternative_cause",
+        "target": "PRB-001",
+        "severity": "high",
+        "statement": "alternative_cause on PRB-001",
+        "disposition": "rejected",
+        "resolution": "テストの記録が、所有者の検証が欠けていることを示す"
+      },
+      {
+        "id": "CH-02",
+        "kind": "missing_child",
+        "target": "REQ-ROOT",
+        "severity": "medium",
+        "statement": "missing_child on REQ-ROOT",
+        "disposition": "accepted",
+        "resolution": "エクスポートの子を加えた"
+      }
+    ]
+  }
+}

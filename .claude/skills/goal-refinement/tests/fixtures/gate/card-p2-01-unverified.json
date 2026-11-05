@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-001",
+    "ideal": "利用者は、閲覧を許可されたデータにしかアクセスできない",
+    "current": "AI のレビューが認可の脆弱性があると報告した(出典なし)",
+    "evidence": [],
+    "counter_evidence": [],
+    "gap": "注文の取得 API で、オブジェクト単位の認可の要件が満たされていない",
+    "significance": "他人の個人情報が漏れる",
+    "hypotheses": [
+      "API が所有者を検証していない"
+    ],
+    "proposed_solutions": [
+      "所有者の検証を加える"
+    ],
+    "out_of_scope": [
+      "管理者向け API"
+    ],
+    "status": "unverified",
+    "status_rationale": ""
+  }
+}

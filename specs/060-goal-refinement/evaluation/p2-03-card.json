@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-203",
+    "ideal": "依存ライブラリの既知の脆弱性を、本番の経路から悪用できない",
+    "current": "本番の API は requests 2.25.1 を使っている",
+    "evidence": [
+      {
+        "source": "Dependabot alert #31 (CVE-2023-32681)",
+        "observation": "requests 2.25.1 が影響を受ける版として報告された"
+      }
+    ],
+    "counter_evidence": [],
+    "gap": "requests を 2.32 に更新する",
+    "significance": "外部へのリクエストで認証情報が漏れるおそれがある",
+    "hypotheses": [],
+    "proposed_solutions": [
+      "requests を 2.32 に更新する"
+    ],
+    "out_of_scope": [],
+    "status": "verified",
+    "status_rationale": ""
+  }
+}

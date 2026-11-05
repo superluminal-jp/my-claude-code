@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-206",
+    "ideal": "ログイン API への総当たりが成功しない",
+    "current": "ログイン API にレート制限がないため総当たりされている。nginx で limit_req を設定すべきである",
+    "evidence": [
+      {
+        "source": "nginx access log (2026-11-05)",
+        "observation": "同一の IP から1分あたり 3,000 件の 401 が記録された"
+      }
+    ],
+    "counter_evidence": [],
+    "gap": "ログイン API で、総当たりを防ぐ要件が満たされていない",
+    "significance": "利用者のアカウントが乗っ取られる",
+    "hypotheses": [
+      "ログに1分あたり 3,000 件の失敗が記録されている"
+    ],
+    "proposed_solutions": [],
+    "out_of_scope": [],
+    "status": "verified",
+    "status_rationale": ""
+  }
+}

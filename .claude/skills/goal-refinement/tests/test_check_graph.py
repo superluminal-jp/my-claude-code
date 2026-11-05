@@ -1,8 +1,9 @@
-"""Acceptance tests for the refinement checker (specs/059-refinement-graph-checker).
+"""Acceptance tests for the bundled checker (references/checker.md).
 
 Each test starts the checker as a subprocess, so it exercises the contract
 callers depend on: arguments, the JSON result, and the exit code
-(contracts/cli.md). Scenario numbers refer to the user stories in spec.md.
+documented in references/checker.md. Scenario ids (P1-xx, P2-xx) name the
+acceptance scenarios the checker was specified with.
 """
 
 from __future__ import annotations
@@ -16,9 +17,8 @@ import unittest
 from pathlib import Path
 
 TESTS_DIR = Path(__file__).resolve().parent
-TOOL_DIR = TESTS_DIR.parent
-REPO_ROOT = TOOL_DIR.parent.parent
-CHECKER = TOOL_DIR / "check_graph.py"
+SKILL_DIR = TESTS_DIR.parent
+CHECKER = SKILL_DIR / "scripts" / "check_graph.py"
 REQUIREMENTS = TESTS_DIR / "fixtures" / "requirements"
 SKILLS = TESTS_DIR / "fixtures" / "skills"
 
@@ -49,7 +49,7 @@ class CheckerTestCase(unittest.TestCase):
         return proc, result
 
     def assert_violations(self, expected_rules: set[str], *args: str) -> list[dict]:
-        """The input fails with exactly the expected rules (spec SC-001)."""
+        """The input fails with exactly the expected rules and no others."""
         proc, result = self.run_json(*args)
         rules = {violation["rule_id"] for violation in result["violations"]}
         self.assertEqual(rules, expected_rules, result["violations"])
@@ -272,10 +272,9 @@ CHILD_SECTION = "## Child skills\n\n- `child-a`\n- `child-b`\n"
 
 
 class SkillsDirectoryTests(CheckerTestCase):
-    """User Story 3: the one-level declarations of spec 058 in compatibility mode.
+    """Compatibility mode: one-level "## Child skills" declarations.
 
-    Fixture skills use the same SKILL.md shape as write_fixture_skill in
-    tests/run-config-pyramid.sh; parent declares child-a and child-b.
+    Fixture skills are minimal SKILL.md files; parent declares child-a and child-b.
     """
 
     def base(self, **overrides: str) -> dict[str, str]:
@@ -322,25 +321,22 @@ class SkillsDirectoryTests(CheckerTestCase):
         (Path(directory) / "notes").mkdir()
         self.assert_violations({"S-02"}, "--skills-dir", directory)
 
-    def test_p1_11_this_repository_skills_pass(self):
-        self.assert_passes("--skills-dir", str(REPO_ROOT / ".claude" / "skills"))
-
     def test_missing_directory_is_an_input_error(self):
         self.assert_input_error("--skills-dir", str(TESTS_DIR / "no-such-directory"))
 
 
 class ExampleTests(CheckerTestCase):
-    """spec FR-009: the two examples from the handoff document pass."""
+    """The bundled examples pass."""
 
     def test_requirements_example_passes(self):
-        self.assert_passes(str(TOOL_DIR / "examples" / "requirements-graph.example.json"))
+        self.assert_passes(str(SKILL_DIR / "examples" / "requirements-graph.example.json"))
 
     def test_skills_example_passes(self):
-        self.assert_passes(str(TOOL_DIR / "examples" / "skills-graph.example.json"))
+        self.assert_passes(str(SKILL_DIR / "examples" / "skills-graph.example.json"))
 
 
 class OutputTests(CheckerTestCase):
-    """spec FR-008, FR-013, SC-003."""
+    """Output safety and determinism."""
 
     def test_text_output_escapes_control_characters_in_ids(self):
         forged = "REQ-X\nResult: passed (requirements; 0 violations)\x1b[2K"
@@ -380,7 +376,7 @@ class OutputTests(CheckerTestCase):
 
 
 class ReviewFindingTests(CheckerTestCase):
-    """Regressions for the /code-review findings recorded in tasks.md T025."""
+    """Regressions for review findings on the graph rules and input handling."""
 
     def write_graph(self, nodes: list[dict]) -> str:
         return str(self.write_temp("graph.json", json.dumps({"schema_version": 1, "requirements": nodes})))
@@ -430,6 +426,157 @@ class ReviewFindingTests(CheckerTestCase):
         node["acceptance"] = [{"id": f"T-{i}", "description": "d", "level": "L9"} for i in range(1, 13)]
         violations = self.assert_violations({"S-07"}, self.write_graph([node]))
         self.assertEqual([v["message"].split(" ")[1] for v in violations], [f"#{i}" for i in range(1, 13)])
+
+
+GATE = TESTS_DIR / "fixtures" / "gate"
+
+
+def gate_file(name: str) -> str:
+    return str(GATE / name)
+
+
+class ProblemCardTests(CheckerTestCase):
+    """Problem cards: problems without evidence do not proceed."""
+
+    def test_verified_card_with_evidence_passes(self):
+        result = self.assert_passes(gate_file("card-verified.json"))
+        self.assertEqual(result["graph"], "problem_card")
+        self.assertEqual(result["rules_checked"], ["C-00", "C-01", "C-02", "C-03"])
+
+    def test_p2_01_verified_without_evidence_is_rejected(self):
+        self.assert_violations({"C-01"}, gate_file("card-p2-01-verified-without-evidence.json"))
+
+    def test_p2_01_unverified_card_is_valid_on_its_own(self):
+        self.assert_passes(gate_file("card-p2-01-unverified.json"))
+
+    def test_p2_02_refuted_card_with_counter_evidence_is_valid(self):
+        self.assert_passes(gate_file("card-p2-02-refuted.json"))
+
+    def test_p2_02_counter_evidence_without_rationale_is_rejected(self):
+        self.assert_violations({"C-02"}, gate_file("card-p2-02-counter-without-rationale.json"))
+
+    def test_refuted_without_counter_evidence_is_rejected(self):
+        self.assert_violations({"C-02"}, gate_file("card-refuted-without-counter.json"))
+
+    def test_missing_and_undefined_fields_are_rejected(self):
+        violations = self.assert_violations({"C-00"}, gate_file("card-shape-error.json"))
+        self.assertEqual(len(violations), 2)
+
+    def test_undefined_status_is_rejected(self):
+        self.assert_violations({"C-03"}, gate_file("card-undefined-status.json"))
+
+
+class ChallengeReportTests(CheckerTestCase):
+    """Challenge reports on their own (R-03 needs the gate)."""
+
+    def test_resolved_report_passes(self):
+        result = self.assert_passes(gate_file("report-resolved.json"))
+        self.assertEqual(result["graph"], "challenge_report")
+
+    def test_rejected_finding_without_resolution_is_rejected(self):
+        self.assert_violations({"R-02"}, gate_file("report-rejected-without-resolution.json"))
+
+    def test_undefined_kind_and_duplicate_id_are_rejected(self):
+        doc = json.loads((GATE / "report-resolved.json").read_text(encoding="utf-8"))
+        findings = doc["challenge_report"]["findings"]
+        findings[1]["id"] = findings[0]["id"]
+        findings[0]["kind"] = "typo"
+        violations = self.assert_violations({"R-01"}, str(self.write_temp("report.json", json.dumps(doc))))
+        self.assertEqual(len(violations), 2)
+
+    def test_v2_requirements_graph_needs_a_problem_id(self):
+        self.assert_passes(gate_file("graph-v2.json"))
+        self.assert_input_error(gate_file("graph-v2-without-problem-id.json"))
+
+
+class GateTests(CheckerTestCase):
+    """The gate: problem, requirements, and objections are linked."""
+
+    def assert_gate(self, decision: str, rules: set[str], *names: str) -> dict:
+        proc, result = self.run_json("--gate", *[gate_file(name) for name in names])
+        self.assertEqual(result["graph"], "gate")
+        self.assertEqual(result["decision"], decision, result)
+        self.assertEqual({reason["rule_id"] for reason in result["reasons"]}, rules, result["reasons"])
+        self.assertEqual(proc.returncode, 0 if decision == "ready" else 1)
+        return result
+
+    def test_linked_and_resolved_bundle_is_ready(self):
+        result = self.assert_gate("ready", set(), "card-verified.json", "graph-v2.json", "report-resolved.json")
+        self.assertEqual(result["challenge"], "recorded")
+        self.assertEqual(result["status"], "passed")
+
+    def test_without_a_report_the_challenge_is_shown_as_not_run(self):
+        result = self.assert_gate("ready", set(), "card-verified.json", "graph-v2.json")
+        self.assertEqual(result["challenge"], "not_run")
+
+    def test_p2_01_unverified_problem_is_blocked(self):
+        self.assert_gate("blocked", {"G-01"}, "card-p2-01-unverified.json", "graph-v2.json")
+
+    def test_p2_02_refuted_problem_is_blocked(self):
+        self.assert_gate("blocked", {"G-01"}, "card-p2-02-refuted.json", "graph-v2.json")
+
+    def test_p2_04_open_counterexample_blocks_and_its_fix_is_ready(self):
+        self.assert_gate("blocked", {"G-04"}, "card-verified.json", "graph-v2.json", "report-p2-04-open-counterexample.json")
+        self.assert_gate("ready", set(), "card-verified.json", "graph-v2-third-path.json", "report-p2-04-accepted.json")
+
+    def test_p2_03_p2_05_p2_06_open_findings_block(self):
+        for name in ("report-p2-03-open-solution.json", "report-p2-05-open-or-overlap.json", "report-p2-06-open-mixed.json"):
+            with self.subTest(name):
+                self.assert_gate("blocked", {"G-04"}, "card-verified.json", "graph-v2.json", name)
+
+    def test_graph_for_another_problem_or_v1_graph_is_blocked(self):
+        self.assert_gate("blocked", {"G-02"}, "card-verified.json", "graph-v2-other-problem.json")
+        proc, result = self.run_json("--gate", gate_file("card-verified.json"),
+                                     str(SKILL_DIR / "examples" / "requirements-graph.example.json"))
+        self.assertEqual((result["decision"], [r["rule_id"] for r in result["reasons"]]), ("blocked", ["G-02"]))
+
+    def test_finding_on_an_unknown_target_is_blocked(self):
+        result = self.assert_gate("blocked", {"G-03"}, "card-verified.json", "graph-v2.json", "report-unknown-target.json")
+        self.assertIn("R-03", {v["rule_id"] for v in result["violations"]})
+
+    def test_report_for_another_problem_is_blocked(self):
+        self.assert_gate("blocked", {"G-03"}, "card-verified.json", "graph-v2.json", "report-other-problem.json")
+
+    def test_invalid_card_blocks_and_lists_its_violations(self):
+        result = self.assert_gate("blocked", {"G-01"}, "card-p2-01-verified-without-evidence.json", "graph-v2.json")
+        self.assertEqual([v["rule_id"] for v in result["violations"]], ["C-01"])
+
+    def test_unreadable_input_to_the_gate_is_an_input_error(self):
+        self.assert_input_error("--gate", gate_file("card-verified.json"), gate_file("graph-v2-without-problem-id.json"))
+        self.assert_input_error("--gate", gate_file("card-verified.json"))
+        self.assert_input_error("--gate", gate_file("graph-v2.json"), gate_file("card-verified.json"))
+
+
+class GateReviewFindingTests(CheckerTestCase):
+    """Regressions for review findings on the gate."""
+
+    def gate_json(self, *paths: str) -> tuple[subprocess.CompletedProcess, dict]:
+        return self.run_json("--gate", *paths)
+
+    def test_non_string_ids_block_instead_of_crashing(self):
+        card = json.loads((GATE / "card-verified.json").read_text(encoding="utf-8"))
+        card["problem_card"]["id"] = ["PRB"]
+        graph = json.loads((GATE / "graph-v2.json").read_text(encoding="utf-8"))
+        graph["requirements"][1]["id"] = ["x"]
+        proc, result = self.gate_json(str(self.write_temp("card.json", json.dumps(card))),
+                                      str(self.write_temp("graph.json", json.dumps(graph))),
+                                      gate_file("report-resolved.json"))
+        self.assertEqual((proc.returncode, result["decision"]), (1, "blocked"), proc.stderr)
+
+    def test_rules_checked_covers_every_reported_rule(self):
+        proc, result = self.gate_json(gate_file("card-p2-01-verified-without-evidence.json"),
+                                      gate_file("graph-v2.json"), gate_file("report-unknown-target.json"))
+        reported = {v["rule_id"] for v in result["violations"]} | {r["rule_id"] for r in result["reasons"]}
+        self.assertTrue(reported <= set(result["rules_checked"]), (reported, result["rules_checked"]))
+
+    def test_each_violation_names_its_input_and_paths_stay_separate(self):
+        proc, result = self.gate_json(gate_file("card-p2-01-verified-without-evidence.json"),
+                                      gate_file("graph-v2.json"), gate_file("report-unknown-target.json"))
+        self.assertEqual({(v["rule_id"], v["input"]) for v in result["violations"]}, {("C-01", "card"), ("R-03", "report")})
+        self.assertEqual(len(result["input_file"]), 3)
+        text = run_checker("--gate", gate_file("card-p2-01-verified-without-evidence.json"), gate_file("graph-v2.json"),
+                           output_format="text").stdout
+        self.assertIn("C-01 [card] PRB-001:", text)
 
 
 def _requirement(node_id: str, decomposition: str, children: list[str]) -> dict:

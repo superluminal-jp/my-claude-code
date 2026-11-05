@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-205",
+    "ideal": "/admin の画面は、認証された管理者だけが使える",
+    "current": "外部のネットワークから /admin へのリクエストが、認証なしで 200 を返した。社内のバッチは WAF を通らずにアプリへ直接つながる",
+    "evidence": [
+      {
+        "source": "curl -i https://staging.example.test/admin (2026-11-06)",
+        "observation": "200 が返った"
+      }
+    ],
+    "counter_evidence": [],
+    "gap": "/admin に、管理者の認証の要件が満たされていない",
+    "significance": "管理者の操作を誰でも行える",
+    "hypotheses": [],
+    "proposed_solutions": [],
+    "out_of_scope": [],
+    "status": "verified",
+    "status_rationale": ""
+  }
+}

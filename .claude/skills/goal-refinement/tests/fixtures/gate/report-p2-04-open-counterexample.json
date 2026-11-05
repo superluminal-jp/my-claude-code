@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "PRB-001",
+    "reviewer": "read-only subagent (Explore), 2026-11-06",
+    "context_given": [
+      "problem card",
+      "requirements graph"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "counterexample",
+        "target": "REQ-ROOT",
+        "severity": "high",
+        "statement": "counterexample on REQ-ROOT",
+        "disposition": "open"
+      }
+    ]
+  }
+}

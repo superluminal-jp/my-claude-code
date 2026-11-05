@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "PRB-999",
+    "reviewer": "read-only subagent (Explore), 2026-11-06",
+    "context_given": [
+      "problem card",
+      "requirements graph"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "other",
+        "target": "PRB-001",
+        "severity": "high",
+        "statement": "other on PRB-001",
+        "disposition": "rejected",
+        "resolution": "理由"
+      }
+    ]
+  }
+}

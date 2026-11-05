@@ -1,0 +1,52 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-205",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "/admin を認証された管理者だけに限る",
+      "decomposition": "OR",
+      "children": [
+        "REQ-WAF",
+        "REQ-APP"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "外部と社内の両方から /admin を認証なしで使えない",
+          "level": "L2"
+        }
+      ],
+      "selection": {
+        "REQ-WAF": "WAF を前段に置ける環境",
+        "REQ-APP": "アプリで認証を確認できる環境"
+      }
+    },
+    {
+      "id": "REQ-WAF",
+      "statement": "WAF で未認証の /admin を拒否する",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-WAF",
+          "description": "WAF が未認証の /admin を拒否する",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-APP",
+      "statement": "アプリで未認証の /admin を拒否する",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-APP",
+          "description": "アプリが未認証の /admin を拒否する",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

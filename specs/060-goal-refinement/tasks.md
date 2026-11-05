@@ -1,0 +1,47 @@
+---
+description: "Task list for 060: 問題カード・要求グラフ・反証の記録を結び、実装へ進めるかを判定する"
+---
+
+# Tasks: 問題カード・要求グラフ・反証の記録を結び、実装へ進めるかを判定する
+
+背景、用語、既定 D1〜D8、規則 C・R・G は同じディレクトリの `spec.md`、欄の詳細は `contracts/declarations.md` にある。作業は、ブランチ `feat/refinement-graph-checker`(コミット 0f5a148)から作ったワークツリー `my-claude-code-worktrees/goal-refinement`(ブランチ `feat/goal-refinement`)で行う。「スキル」は `.claude/skills/goal-refinement/`、「検査器」はその `scripts/check_graph.py` を指す。
+
+## Phase 1: Setup
+
+- [X] T001 変更前の状態を記録する(spec 059 の最終の件数を基準にする)。結果: spec 059 の最終のコミット 0f5a148 で、検査器のテスト49件と既存のローカルの検査がすべて通っていた(spec 059 の tasks.md T024 と PR #112 の CI)
+- [X] T002 `git mv` で `tools/refinement-checker/` をスキルへ移す(`check_graph.py` → `scripts/`、`examples/`、`tests/`)。検査器の英語の README は `references/checker.md` へ移して T007 でスキルの文書に合わせ、日本語の README は削除する(スキルの参照文書は英語だけというリポジトリの慣例)。`tests/run-refinement-checker.sh` のパスを移した先へ変え、互換モードのテスト P1-11 をパッケージのテストから外す(まとめの検査の RC-04 が引き続き確かめる)。spec 059 の49件から P1-11 の1件を除いた48件が通ることを確かめる。結果: 48件が通った。まとめの検査の RC-01〜RC-04 も通った
+
+## Phase 2: User Story 1 - 根拠のない問題を止める (P1)
+
+- [X] T003 [US1] 問題カードの正例と負例(P2-01、P2-02、`refuted` で反対の根拠がない例、型の誤り)を `tests/fixtures/gate/` に作り、テストを書き、失敗を確かめる(Red)。結果: 新しい23件で24件の失敗(subTest を含む)。判定の入力の誤りのテストは、未実装の `--gate` が引数の誤り(終了コード 2)になるために通っていた
+- [X] T004 [US1] 検査器に問題カードの読み込みと C-00〜C-03 を加える(Green)。結果: T006 とあわせて71件が通った(Python 3.14.3 と 3.9.6)
+
+## Phase 3: User Story 2 - 3つを結び、未対応の異議で止める (P1)
+
+- [X] T005 [US2] v2 の要求グラフ、反証の記録、判定の正例と負例(spec の User Story 2 のシナリオ1〜7)を作り、テストを書き、失敗を確かめる(Red)。結果: T003 に含めて書いた
+- [X] T006 [US2] 検査器に v2 の要求グラフ、反証の記録(R-00〜R-03)、`--gate`(G-01〜G-04)を加える(Green)。結果: 71件が通った
+
+## Phase 4: User Story 3 - スキルの手順と反証役の評価 (P2)
+
+- [X] T007 [US3] `SKILL.md`、`references/challenger.md`、`references/declarations.md` を書く。`tests/run-config-pyramid.sh` の `authored_skills`、RULE-03、SKILL-06 のパターンに `goal-refinement` を加え、検査が通ることを確かめる。結果: `SKILL.md`、`references/challenger.md`、`references/checker.md`(検査器の README を移して書き直した。計画の `references/declarations.md` はこれに統合した)を書いた。`run-config-pyramid` は57件が通った
+- [X] T008 [US3] 判定が `ready` になる例の1組を `examples/` に置き、まとめの検査で確かめる。結果: 例の3つ(`problem-card.example.json`、`requirements-graph-v2.example.json`、`challenge-report.example.json`)を置き、まとめの検査に RC-05 として加えた。`ready` になった
+- [X] T009 [US3] 反証役の評価: P2-03〜P2-06 の入力を `tests/fixtures/challenger/` に置き、`references/challenger.md` の指示文で読み取り専用のサブエージェントを4件起動し、期待する種類の指摘が出たかを本ファイルに記録する。結果: 4件すべてで、期待した種類の指摘が出た(P2-03 は `solution_as_problem` の CH-03・CH-05、P2-04 は一覧 API の `missing_child` の CH-04、P2-05 は `or_overlap` の CH-06 と `counterexample` の CH-04、P2-06 は `mixed_statement` の CH-01・CH-02)。指摘の総数は 10・7・8・13 の計38件で、期待した指摘のほかに、根拠の不足(`false_positive`、`missing_evidence`)と、受け入れ条件の曖昧さ(`other`)が多かった。どれも入力の内容から読める妥当な指摘であり、明らかな誤検知はなかったが、1件あたり7〜13件の指摘に対応する負荷は、引き継ぎ書 §10 の8(重要度と再現根拠を優先し、軽微な指摘を大量に列挙しない)の懸念に当たる。指摘の数に上限を設けるなどの指示文の調整は、評価し直しが要るため本仕様では行わず、利用者の判断事項とする。指摘の ID・種類・対象・重大度を `specs/060-goal-refinement/evaluation/results-2026-11-06.json`(評価の入力も同じディレクトリ) に残した(指摘の文は残していない)。4件は Claude が作った入力であり、反証役も同じ系列のモデルである。検出の力の一般的な証拠ではない。評価は、問題カードの `proposed_solutions` を除かずに実行した(P2-03 と P2-04 の入力はこの欄を持つ)。その後、引き継ぎ書 §7.2 に合わせ、反証役にはこの欄を除いた写しを渡すよう手順を改めた。P2-03 の `solution_as_problem` は `gap` の文そのものから読めるため、除いても検出の手がかりは残ると推論するが、除いた条件では評価し直していない
+
+## Phase 5: Polish
+
+- [X] T010 README の英日(スキルの説明、構成、検証)を改め、`tests/run-readme-skill-index.sh` が通ることを確かめる。結果: `run-readme-skill-index` は31件が通った(`goal-refinement` の2件が増えた)
+- [X] T011 ローカルの検査をすべて実行し、件数を記録する。結果: 検査器のテスト74件(Python 3.14.3 と 3.9.6)、`run-refinement-checker` 5件、`run-config-pyramid` 57件、`run-readme-skill-index` 31件が通った
+- [X] T012 `/code-review` で差分をレビューし、確かめた指摘を直して記録する。仕様を会話を見ていないサブエージェントに読ませて直す。結果: 仕様を会話を見ていないサブエージェントに読ませ、12項目を直した(反証役に解決策の案を渡していた食い違いを含む)。`/code-review`(労力 medium、PR #113)は10件を指摘した。
+
+  | # | 指摘 | 対応 |
+  |---|---|---|
+  | 1 | 判定が、文字列でない ID で異常終了する | 受け入れた。対象の ID を文字列に限り、回帰テストを先に書いて直した |
+  | 2 | `.claude/` の下の検査器とテストが、このリポジトリ固有の事実(仕様の番号、検査スクリプト、作業記録)を参照する | 受け入れた。`CLAUDE.md` の規則(`.claude/` にリポジトリ固有の事実を入れない)に従って消した |
+  | 3 | 説明文が 1024 文字を超える | 受け入れた。921 文字に縮めた |
+  | 4 | 判定の `rules_checked` が G の規則だけで、違反の C・S・R を含まない | 受け入れた。調べたすべての規則を挙げるよう直した |
+  | 5 | 判定の違反がどの入力のものか分からず、`input_file` が空白区切りで曖昧 | 受け入れた。違反に `input` を加え、`input_file` を配列にした |
+  | 6 | `<skill-dir>` の置き換えを実行環境に任せていない | 一部を受け入れた。既存のスキルと同じ書き方を保ち、`<skill-dir>` がスキルの基準のディレクトリであることを書き足した。`${CLAUDE_SKILL_DIR}` の有無は確かめていない |
+  | 7 | テストと評価の記録が、インストールで利用者の設定に写される | 一部を受け入れた。評価の入力と結果は `specs/060-goal-refinement/evaluation/` へ移した。テストは、既存のスキルと同じくパッケージに残す |
+  | 8 | `checker.md` の R-01 の記述が実装と合わない | 受け入れた。欠けと型の誤りは R-00 と書いた |
+  | 9 | 例の中身が仮の文で、意味のない分解を教える | 受け入れた。認可の例を、意味のある文と指摘に書き直した |
+  | 10 | 移した README にあった `NOT RUN` の4件の説明が、スキルの文書から消えた | 却下した。4件はこのリポジトリの仕様の項目であり、スキルの文書に書くと指摘2に反する。リポジトリ直下の README が説明している |

@@ -1,0 +1,65 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-001",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "利用者は、閲覧を許可された注文にしかアクセスできない",
+      "decomposition": "AND",
+      "children": [
+        "REQ-READ",
+        "REQ-EXPORT",
+        "REQ-LIST"
+      ],
+      "assumptions": [
+        "注文を返す API は、読み取り・エクスポート・一覧の3つだけである(ルーティングの定義で確かめる)"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-PARENT-001",
+          "description": "3つの API を横断し、利用者 B が利用者 A の注文を1件も受け取らない統合認可試験",
+          "level": "L2"
+        }
+      ],
+      "counterexamples": [
+        "3つの API は拒否するが、キャッシュが認可の前の応答を返す"
+      ]
+    },
+    {
+      "id": "REQ-READ",
+      "statement": "GET /orders/{id} は、所有者でない利用者に 404 を返す",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-LEAF-001",
+          "description": "利用者 B の資格情報で利用者 A の注文 ID を指定すると 404 になる",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-EXPORT",
+      "statement": "GET /orders/export は、呼び出した利用者の注文だけを含む",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-LEAF-002",
+          "description": "利用者 B のエクスポートに利用者 A の注文が含まれない",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-LIST",
+      "statement": "GET /orders は、owner の指定にかかわらず、呼び出した利用者の注文だけを返す",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-LEAF-003",
+          "description": "利用者 B が owner=A を指定しても、利用者 A の注文が返らない",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}
