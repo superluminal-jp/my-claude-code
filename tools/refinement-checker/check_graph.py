@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import traceback
 import unicodedata
@@ -49,7 +50,13 @@ SKILL_FIELDS = frozenset({"id", "children", "permission", "role"})
 RULES_CHECKED: Dict[str, List[str]] = {
     "requirements": ["S-00", "S-01", "S-02", "S-03", "S-04", "S-05", "S-06", "S-07", "S-08", "S-11"],
     "skills": ["S-00", "S-01", "S-02", "S-03", "S-08", "S-09"],
+    "skills-dir": ["S-02", "S-03", "S-08", "S-10"],
 }
+
+# How spec 058 FR-001 declares a child, read exactly as declared_children in
+# tests/run-config-pyramid.sh does (spec FR-004, research R6).
+_CHILD_SECTION = re.compile(r"^## Child skills\s*$")
+_CHILD_DECLARATION = re.compile(r"^- `([A-Za-z0-9_-]+)`")
 
 # Characters that could forge or hide lines in the human-readable output
 # (spec FR-013, CWE-117): controls, format characters such as bidirectional
@@ -191,7 +198,9 @@ def parse_nodes(raw_nodes: Sequence[Any], allowed_fields: frozenset, report: Rep
     return nodes
 
 
-def check_references(nodes: List[Node], report: Report) -> Dict[str, List[str]]:
+def check_references(
+    nodes: List[Node], report: Report, undefined: str = "child {child} is not defined"
+) -> Dict[str, List[str]]:
     """Applies S-02 and returns the edges between defined nodes."""
     defined = {node.node_id for node in nodes}
     edges: Dict[str, List[str]] = {}
@@ -203,7 +212,7 @@ def check_references(nodes: List[Node], report: Report) -> Dict[str, List[str]]:
                 continue
             seen.append(child)
             if child not in defined:
-                report.add("S-02", node.position, node.node_id, f"child {show(child)} is not defined")
+                report.add("S-02", node.position, node.node_id, undefined.format(child=show(child)))
         node.children = seen
         edges[node.node_id] = [child for child in seen if child in defined]
     return edges
@@ -408,6 +417,59 @@ def check_skills(raw_nodes: Sequence[Any]) -> List[Violation]:
     return report.violations()
 
 
+# --- compatibility mode (spec 058) --------------------------------------------
+
+
+def declared_children(text: str) -> List[str]:
+    """The names a SKILL.md declares in its "## Child skills" section."""
+    names: List[str] = []
+    in_code = in_section = False
+    for line in text.split("\n"):
+        if line.startswith("```"):
+            in_code = not in_code
+            continue
+        if in_code:
+            continue
+        if line.startswith("## "):
+            in_section = bool(_CHILD_SECTION.match(line))
+            continue
+        match = _CHILD_DECLARATION.match(line) if in_section else None
+        if match:
+            names.append(match.group(1))
+    return names
+
+
+def check_skills_dir(directory: Path) -> Tuple[str, List[Violation]]:
+    if not directory.is_dir():
+        raise InputError(f"{directory} is not a readable directory")
+    try:
+        skills = sorted(
+            (entry for entry in directory.iterdir() if entry.is_dir() and (entry / "SKILL.md").is_file()),
+            key=lambda entry: entry.name,
+        )
+    except OSError as exc:
+        raise InputError(f"cannot read {directory}: {exc.strerror or exc}") from None
+    report = Report()
+    nodes = [
+        Node(position, entry.name, {}, declared_children(read_text(entry / "SKILL.md", f"{entry.name}/SKILL.md")))
+        for position, entry in enumerate(skills)
+    ]
+    edges = check_references(nodes, report, "declares {child}, which has no SKILL.md in the skills directory")
+    check_cycles(nodes, edges, report)
+    for node in nodes:
+        for child in edges[node.node_id]:
+            # A self-declaration is already a cycle (S-03); spec 058 reports it
+            # only once as well.
+            if child != node.node_id and edges[child]:
+                report.add(
+                    "S-10",
+                    node.position,
+                    node.node_id,
+                    f"declares {show(child)}, which declares children of its own (spec 058 allows one level)",
+                )
+    return "skills-dir", report.violations()
+
+
 # --- command line --------------------------------------------------------------
 
 
@@ -476,8 +538,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if (args.file is None) == (args.skills_dir is None):
             raise InputError("give exactly one of FILE or --skills-dir DIR")
         if args.skills_dir is not None:
-            raise InputError("--skills-dir is not supported yet")
-        kind, violations = check_file(Path(args.file))
+            kind, violations = check_skills_dir(Path(args.skills_dir))
+        else:
+            kind, violations = check_file(Path(args.file))
     except InputError as exc:
         result["error"] = str(exc)
         emit(result, args.format)

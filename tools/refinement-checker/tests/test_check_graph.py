@@ -257,6 +257,77 @@ class SkillsGraphTests(CheckerTestCase):
         self.assert_passes(str(path))
 
 
+CHILD_SECTION = "## Child skills\n\n- `child-a`\n- `child-b`\n"
+
+
+class SkillsDirectoryTests(CheckerTestCase):
+    """User Story 3: the one-level declarations of spec 058 in compatibility mode.
+
+    Fixture skills use the same SKILL.md shape as write_fixture_skill in
+    tests/run-config-pyramid.sh; parent declares child-a and child-b.
+    """
+
+    def make_skills(self, bodies: dict[str, str]) -> str:
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(_remove_tree, root)
+        for name, body in bodies.items():
+            (root / name).mkdir()
+            (root / name / "SKILL.md").write_text(
+                f"---\nname: {name}\ndescription: Fixture only. Do not use.\n---\n\n{body}\n", encoding="utf-8"
+            )
+        return str(root)
+
+    def base(self, **overrides: str) -> dict[str, str]:
+        bodies = {
+            "parent": "Apply `child-a` first.\n\n" + CHILD_SECTION,
+            "child-a": "Standalone.",
+            "child-b": "Standalone.",
+        }
+        bodies.update(overrides)
+        return bodies
+
+    def test_valid_one_level_declaration_passes(self):
+        result = self.assert_passes("--skills-dir", self.make_skills(self.base()))
+        self.assertEqual(result["graph"], "skills-dir")
+        self.assertEqual(result["rules_checked"], ["S-02", "S-03", "S-08", "S-10"])
+
+    def test_declared_child_without_skill_md_is_rejected(self):
+        directory = self.make_skills(self.base(parent=CHILD_SECTION + "- `ghost`\n"))
+        violations = self.assert_violations({"S-02"}, "--skills-dir", directory)
+        self.assertEqual(violations[0]["node_id"], "parent")
+        self.assertIn("ghost", violations[0]["message"])
+
+    def test_child_that_declares_children_is_rejected(self):
+        directory = self.make_skills(self.base(**{"child-a": "## Child skills\n\n- `child-b`\n"}))
+        violations = self.assert_violations({"S-10"}, "--skills-dir", directory)
+        self.assertEqual(violations[0]["node_id"], "parent")
+        self.assertIn("child-a", violations[0]["message"])
+
+    def test_skill_that_declares_itself_is_a_cycle(self):
+        directory = self.make_skills(self.base(parent=CHILD_SECTION + "- `parent`\n"))
+        violations = self.assert_violations({"S-03"}, "--skills-dir", directory)
+        self.assertIn("parent -> parent", violations[0]["message"])
+
+    def test_declarations_inside_a_code_block_do_not_count(self):
+        body = "```markdown\n## Child skills\n\n- `ghost`\n```\n"
+        self.assert_passes("--skills-dir", self.make_skills(self.base(parent=body)))
+
+    def test_section_ends_at_the_next_level_two_heading(self):
+        body = CHILD_SECTION + "\n## Notes\n\n- `ghost` is mentioned, not declared.\n"
+        self.assert_passes("--skills-dir", self.make_skills(self.base(parent=body)))
+
+    def test_directory_without_skill_md_is_not_a_skill(self):
+        directory = self.make_skills(self.base(parent=CHILD_SECTION + "- `notes`\n"))
+        (Path(directory) / "notes").mkdir()
+        self.assert_violations({"S-02"}, "--skills-dir", directory)
+
+    def test_p1_11_this_repository_skills_pass(self):
+        self.assert_passes("--skills-dir", str(REPO_ROOT / ".claude" / "skills"))
+
+    def test_missing_directory_is_an_input_error(self):
+        self.assert_input_error("--skills-dir", str(TESTS_DIR / "no-such-directory"))
+
+
 def _requirement(node_id: str, decomposition: str, children: list[str]) -> dict:
     return {
         "id": node_id,

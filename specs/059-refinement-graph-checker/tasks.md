@@ -53,10 +53,10 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 
 **Independent Test**: 一時ディレクトリに架空のスキルを作って互換モードの判定を確かめ、既存の検査スクリプトを実行して件数を比べる。
 
-- [ ] T015 [US3] 受け入れテストに、spec の User Story 3 のシナリオ3を確かめるテストを書く。架空のスキル `parent`、`child-a`、`child-b` を一時ディレクトリに作る(`tests/run-config-pyramid.sh` の関数 `write_fixture_skill` と同じ形の `SKILL.md`)。正しい宣言、`ghost` の宣言、`child-a` による `child-b` の宣言、`parent` による自分自身の宣言に加え、コードブロックの中の宣言が数えられないこと、`SKILL.md` のないディレクトリがスキルとして読まれないことを確かめる
-- [ ] T016 [US3] T015 のテストが失敗することを記録する(Red)
-- [ ] T017 [US3] 検査器に互換モードを加える。宣言の読み方は spec の FR-004 のとおりにし、`tests/run-config-pyramid.sh` の関数 `declared_children` と同じ結果になるようにする
-- [ ] T018 [US3] T015 のテストが通ること、`python3 tools/refinement-checker/check_graph.py --skills-dir .claude/skills` が終了コード 0 を返すこと、`tests/run-config-pyramid.sh` が変更前と同じ57件で通ることを確かめる(Green、P1-11)
+- [X] T015 [US3] 受け入れテストに、spec の User Story 3 のシナリオ3を確かめるテストを書く。架空のスキル `parent`、`child-a`、`child-b` を一時ディレクトリに作る(`tests/run-config-pyramid.sh` の関数 `write_fixture_skill` と同じ形の `SKILL.md`)。正しい宣言、`ghost` の宣言、`child-a` による `child-b` の宣言、`parent` による自分自身の宣言に加え、コードブロックの中の宣言が数えられないこと、`SKILL.md` のないディレクトリがスキルとして読まれないことを確かめる
+- [X] T016 [US3] T015 のテストが失敗することを記録する(Red)。結果: 新しい9件のうち8件が失敗した。残る1件(存在しないディレクトリが終了コード 2 になる)は、互換モードを拒む仮の実装が同じく終了コード 2 を返したために通っていた。互換モードの実装の後も通ることを T018 で確かめた
+- [X] T017 [US3] 検査器に互換モードを加える。宣言の読み方は spec の FR-004 のとおりにし、`tests/run-config-pyramid.sh` の関数 `declared_children` と同じ結果になるようにする
+- [X] T018 [US3] T015 のテストが通ること、`python3 tools/refinement-checker/check_graph.py --skills-dir .claude/skills` が終了コード 0 を返すこと、`tests/run-config-pyramid.sh` が変更前と同じ57件で通ることを確かめる(Green、P1-11)。結果: 38件が通った(Python 3.14.3 と 3.9.6)。互換モードは、このワークツリーの `.claude/skills` と、生成された `speckit-*` を含む元のチェックアウトの `.claude/skills` の両方で違反なし。`run-config-pyramid` は57件が通った
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
