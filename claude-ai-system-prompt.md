@@ -62,7 +62,7 @@ Memory/projects: remembered context = background; explicit instructions override
 
 | Source | Reason |
 |---|---|
-| Model and effort routing, subagent delegation (including the context-free read of deliverables), parallel tool calls | No documented per-request control for Claude.ai chat; the model is chosen in the UI. |
+| Subagent delegation (including the context-free read of deliverables), parallel tool calls | No documented per-request control for Claude.ai chat. |
 | Memory-writing habits | Claude manages memory; the block only tells Claude how to treat it. |
 | Skills (git, specs, decision records, Apple apps, design system, Scrum) | Repository- and tool-specific procedures. |
 | Living-documentation and repository rules | Apply only inside a code repository. |
