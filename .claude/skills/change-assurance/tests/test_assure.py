@@ -48,13 +48,16 @@ class AssuranceTestCase(unittest.TestCase):
             change(doc["verification_manifest"])
         return self.write("manifest.json", doc)
 
-    def gate(self, decision: str, rules: set[str], manifest: str, graph: str | None = None) -> dict:
-        proc = run("gate", graph or str(FIXTURES / "graph.json"), manifest)
+    def gate(self, decision: str, rules: set[str], manifest: str, graph: str | None = None, report: str | None = None) -> dict:
+        proc = run("gate", graph or str(FIXTURES / "graph.json"), manifest, *(["--report", report] if report else []))
         result = json.loads(proc.stdout)
         self.assertEqual(result["decision"], decision, result)
         self.assertEqual({r["rule_id"] for r in result["reasons"]}, rules, result["reasons"])
         self.assertEqual(proc.returncode, 0 if decision == "pass" else 1)
         return result
+
+
+REPORT = str(FIXTURES / "challenge-report.json")
 
 
 def check(doc: dict, check_id: str) -> dict:
@@ -105,7 +108,8 @@ class LevelTests(AssuranceTestCase):
             entry.update(status="not_applicable")
             entry.pop("evidence")
         self.gate("blocked", {"M-02"}, self.manifest(without_reason))
-        self.gate("pass", set(), self.manifest(lambda m: (without_reason(m), check(m, "TEST-SYSTEM-001").update(reason="公開 API を変えない"))))
+        self.gate("pass", set(), self.manifest(lambda m: (without_reason(m), check(m, "TEST-SYSTEM-001").update(
+            reason="公開 API を変えない", approved_by="owner-a"))))
 
 
 class RiskTests(AssuranceTestCase):
@@ -116,15 +120,15 @@ class RiskTests(AssuranceTestCase):
         self.gate("blocked", {"A-04"}, self.manifest(lambda m: m.pop("risk")))
 
     def test_high_risk_needs_approval_by_someone_else(self):
-        self.gate("blocked", {"A-05"}, self.manifest(lambda m: m["risk"].update({"class": "high"})))
+        self.gate("blocked", {"A-05"}, self.manifest(lambda m: m["risk"].update({"class": "high"})), report=REPORT)
         self.gate("blocked", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "high"}),
-                  m["approvals"].append({"by": "claude", "decision": "approved", "scope": "all"}))))
+                  m["approvals"].append({"by": "claude", "decision": "approved", "scope": "all"}))), report=REPORT)
         self.gate("pass", set(), self.manifest(lambda m: (m["risk"].update({"class": "high"}),
-                  m["approvals"].append({"by": "owner-a", "decision": "approved", "scope": "all"}))))
+                  m["approvals"].append({"by": "owner-a", "decision": "approved", "scope": "all"}))), report=REPORT)
 
     def test_rejected_approval_fails(self):
         self.gate("fail", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "high"}),
-                  m["approvals"].append({"by": "owner-a", "decision": "rejected", "scope": "all"}))))
+                  m["approvals"].append({"by": "owner-a", "decision": "rejected", "scope": "all"}))), report=REPORT)
 
     def test_p3_06_weakened_test_needs_approval(self):
         self.gate("blocked", {"A-06"}, self.manifest(lambda m: m["test_changes"].append({"path": "tests/test_a.py::t", "change": "skipped"})))
@@ -137,7 +141,7 @@ class RiskTests(AssuranceTestCase):
         infra = {"kind": "permission_expansion", "ref": "cdk diff: iam:PassRole on *"}
         self.gate("blocked", {"A-07"}, self.manifest(lambda m: (m["risk"].update({"class": "medium"}), m["infra_changes"].append(infra))))
         self.gate("pass", set(), self.manifest(lambda m: (m["risk"].update({"class": "high"}), m["infra_changes"].append(infra),
-                  m["approvals"].append({"by": "owner-a", "decision": "approved", "scope": "IAM"}))))
+                  m["approvals"].append({"by": "owner-a", "decision": "approved", "scope": "IAM"}))), report=REPORT)
 
 
 class ManifestShapeTests(AssuranceTestCase):
@@ -208,7 +212,7 @@ class ReviewFindingTests(AssuranceTestCase):
             for entry in m["checks"]:
                 entry.update(status="not_applicable", reason="n/a")
                 entry.pop("evidence")
-        self.gate("blocked", {"A-03"}, self.manifest(all_not_applicable))
+        self.gate("blocked", {"A-03", "A-06"}, self.manifest(all_not_applicable))
 
     def test_rejected_approval_fails_at_any_risk(self):
         self.gate("fail", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "medium"}),
@@ -226,7 +230,7 @@ class ReviewFindingTests(AssuranceTestCase):
         for name in ("Claude", " claude ", "CLAUDE"):
             with self.subTest(name):
                 self.gate("blocked", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "high"}),
-                          m["approvals"].append({"by": name, "decision": "approved", "scope": "all"}))))
+                          m["approvals"].append({"by": name, "decision": "approved", "scope": "all"}))), report=REPORT)
 
     def test_format_after_the_subcommand_works(self):
         proc = subprocess.run([sys.executable, "-B", str(CHECKER), "check", self.manifest(), "--format", "json"],
@@ -301,6 +305,65 @@ class SecondReviewFindingTests(CollectTestCase):
         message = result["reasons"][0]["message"]
         self.assertNotIn("stale", message)
         self.assertIn("full", message)
+
+
+
+class DecisionTests(AssuranceTestCase):
+    """The user's decisions of 2026-11-06: a high-risk change needs a challenge
+    report, and an L2 or L3 check marked not_applicable needs approval by
+    someone other than the implementer."""
+
+    def report(self, problem_id: str = "PRB-001", disposition: str = "accepted") -> str:
+        doc = load("challenge-report.json")
+        doc["challenge_report"]["problem_id"] = problem_id
+        doc["challenge_report"]["findings"][0]["disposition"] = disposition
+        return self.write("report.json", doc)
+
+    @staticmethod
+    def high(m: dict) -> None:
+        m["risk"].update({"class": "high"})
+        m["approvals"].append({"by": "owner-a", "decision": "approved", "scope": "all"})
+
+    def test_high_risk_without_a_challenge_report_blocks(self):
+        self.gate("blocked", {"A-08"}, self.manifest(self.high))
+
+    def test_high_risk_with_a_resolved_challenge_report_passes(self):
+        self.gate("pass", set(), self.manifest(self.high), report=self.report())
+
+    def test_an_open_challenge_finding_blocks_at_any_risk(self):
+        self.gate("blocked", {"A-08"}, self.manifest(), report=self.report(disposition="open"))
+
+    def test_a_challenge_report_for_another_problem_is_an_input_error(self):
+        proc = run("gate", str(FIXTURES / "graph.json"), self.manifest(), "--report", self.report(problem_id="PRB-999"))
+        self.assertEqual(proc.returncode, 2, proc.stdout)
+        self.assertIn("the challenge report is for problem", json.loads(proc.stdout)["error"])
+
+    def test_not_applicable_parent_or_system_check_needs_independent_approval(self):
+        for check_id, level in (("TEST-PARENT-001", "L2"), ("TEST-SYSTEM-001", "L3")):
+            def waive(m, approved_by=None):
+                entry = check(m, check_id)
+                entry.update(status="not_applicable", reason="この変更は統合の経路を変えない")
+                entry.pop("evidence")
+                if approved_by is not None:
+                    entry["approved_by"] = approved_by
+            with self.subTest(check_id):
+                result = self.gate("blocked", {"A-06"}, self.manifest(waive))
+                self.assertEqual(result["levels"][level], {"blocked": 1})
+                self.gate("blocked", {"A-06"}, self.manifest(lambda m: waive(m, " Claude ")))
+                self.gate("pass", set(), self.manifest(lambda m: waive(m, "owner-a")))
+
+    def test_not_applicable_leaf_check_needs_no_approval(self):
+        def waive(m):
+            entry = check(m, "TEST-LEAF-002")
+            entry.update(status="not_applicable", reason="自分の注文の取得は変えない")
+            entry.pop("evidence")
+        self.gate("pass", set(), self.manifest(waive))
+
+    def test_approved_by_on_a_check_must_be_a_non_empty_string(self):
+        proc = run("check", self.manifest(lambda m: check(m, "TEST-PARENT-001").update(approved_by="")))
+        self.assertEqual({v["rule_id"] for v in json.loads(proc.stdout)["violations"]}, {"M-00"})
+        proc = run("check", self.manifest(lambda m: check(m, "TEST-PARENT-001").update(approved_by="owner-a")))
+        self.assertEqual((proc.returncode, json.loads(proc.stdout)["violations"]), (0, []))
 
 
 if __name__ == "__main__":
