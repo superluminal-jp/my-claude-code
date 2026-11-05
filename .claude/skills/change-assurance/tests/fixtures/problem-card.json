@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-001",
+    "ideal": "利用者は、閲覧を許可された注文にしかアクセスできない",
+    "current": "隔離した環境で、利用者 B が利用者 A の注文を取得できた",
+    "evidence": [
+      {
+        "source": "pytest tests/test_orders.py::test_other_user",
+        "observation": "200 が返った"
+      }
+    ],
+    "gap": "注文の取得 API で、オブジェクト単位の認可の要件が満たされていない",
+    "significance": "他人の個人情報が漏れる",
+    "status": "verified"
+  }
+}
