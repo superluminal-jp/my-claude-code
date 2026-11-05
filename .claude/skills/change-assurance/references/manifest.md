@@ -24,7 +24,7 @@ Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations
   "infra_changes": [{"kind": "permission_expansion", "ref": "<line of the infrastructure diff>"}]}}
 ```
 
-- `reviewed_commit` and every evidence `commit`: 7 to 40 lowercase hex digits.
+- `reviewed_commit` and every evidence `commit`: 7 to 40 lowercase hex digits and nothing else.
 - `risk.class`: `low`, `medium`, `high`, or `unclassified`. `approvals[].decision`: `approved` or `rejected`.
 - `checks[].status`: `passed`, `failed`, `not_run`, `blocked` (the evidence could not be collected), or `not_applicable` (needs a `reason`). `evidence.kind`: `ci_job`, `local_run`, `scanner`, `human_review`, or `ai_review`.
 - `test_changes[].change`: `deleted`, `skipped`, or `weakened`. `infra_changes[].kind`: `permission_expansion`, `public_exposure`, `resource_deletion`, or `resource_replacement`.
@@ -41,16 +41,18 @@ Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations
 
 | Rule | Holds when |
 |---|---|
-| A-01 | every acceptance criterion of the graph has exactly one check, no check names an id outside the graph, and the manifest is for the graph's problem |
+| A-01 | the graph has at least one acceptance criterion, each has exactly one check, no check names an id outside the graph, and the manifest is for the graph's problem |
 | A-02 | the evidence of a passed check is not `ai_review` only, has a reference, and is for `reviewed_commit` |
-| A-03 | every check is `passed` or `not_applicable` with a reason |
+| A-03 | every check is `passed` or `not_applicable` with a reason, and no requirement has only `not_applicable` checks |
 | A-04 | the risk is `low`, `medium`, or `high` |
-| A-05 | a `high` change has an `approved` approval by someone other than the implementer, and no `rejected` one |
+| A-05 | no approval is `rejected` (at any risk), and a `high` change has an `approved` approval by someone other than the implementer |
 | A-06 | every test change is approved by someone other than the implementer |
+
+Names are compared ignoring case and surrounding spaces, so `Claude` and ` claude ` are the same person as `claude`.
 | A-07 | a change with infrastructure changes is `high` |
 
 The graph is read only for its problem id and its acceptance criteria. Check the graph's structure with its own checker before this gate.
 
 ## JUnit XML
 
-`collect-junit` prints an array of checks to put in the manifest. A test case belongs to an acceptance criterion when its property `acceptance_id` equals the id, or when the id appears as a separate word (not inside a longer id or name) in its `classname` or `name`, for example `test_other_user[TEST-LEAF-001]`. A criterion whose test cases all passed is `passed`; one with any failure or error is `failed`; one with only skipped cases or none is `not_run`. Reports with a `DOCTYPE` or `ENTITY` declaration are refused.
+`collect-junit` prints an array of checks to put in the manifest. A test case belongs to an acceptance criterion when its property `acceptance_id` equals the id, or when the id appears as a separate word (not inside a longer id or name) in its `classname` or `name`, for example `test_other_user[TEST-LEAF-001]`. A separate word means the id is not next to a letter, digit, `_`, `-`, or `.`, so `TEST-LEAF-003.extra` does not count for `TEST-LEAF-003`. A criterion whose test cases all passed is `passed`; one with any failure or error is `failed`; any other mix (some skipped, or none found) is `not_run`, with the counts in its reason. A report with a `DOCTYPE` or `ENTITY` declaration before its root element is refused; such text inside the report, for example in CDATA, is not a declaration.
