@@ -60,8 +60,8 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T019 [P] 例 `tools/refinement-checker/examples/requirements-graph.example.json` と `tools/refinement-checker/examples/skills-graph.example.json` を、spec の FR-009 のとおりに作る。受け入れテストに、2つが合格することを確かめるテストを先に書き、失敗を確かめてから作る
-- [ ] T020 受け入れテストに、人が読む形式の出力で ID の中の改行と ESC がエスケープされること(spec の FR-013)と、同じ入力の2回の出力が一致すること(SC-003)のテストを先に書き、失敗を確かめてから検査器を直す
+- [X] T019 [P] 例 `tools/refinement-checker/examples/requirements-graph.example.json` と `tools/refinement-checker/examples/skills-graph.example.json` を、spec の FR-009 のとおりに作る。受け入れテストに、2つが合格することを確かめるテストを先に書き、失敗を確かめてから作る。結果: 2件が失敗した後、例を置いて通った
+- [X] T020 受け入れテストに、人が読む形式の出力で ID の中の改行と ESC がエスケープされること(spec の FR-013)と、同じ入力の2回の出力が一致すること(SC-003)のテストを先に書き、失敗を確かめてから検査器を直す。結果: エスケープは T008 でテストより先に実装していたため、このテストは実装の不足では失敗しなかった(TDD からの逸脱)。最初のテストは期待するエスケープの形を誤っており(理由の中の ID は JSON の形 `\n` でエスケープされる)、行頭の ID の経路を通るよう直した。エスケープを外した複製の検査器でこのテストが失敗することを確かめ、退行を検出できることを示した。決定性のテストは JSON と人が読む形式の両方で通った
 - [ ] T021 `.github/workflows/ci.yml` のジョブ `test` に、`bash tests/run-refinement-checker.sh` のステップを加える(spec の D9、SC-004)
 - [ ] T022 [P] 検査器の README を `tools/refinement-checker/README.md`(英語)と `tools/refinement-checker/README.ja.md`(日本語)に書く。同じ見出しの構成で、用途、実行主体、配布先、使い方、宣言の形式、規則、終了コード、限界を書く(spec の FR-011)
 - [ ] T023 `README.md` と `README.ja.md` の「What this provides」、ファイル構成の図、「Verification」、「Repository security automation」(CI の検査スクリプトの数を6から7に)の節を、変更後の内容に合わせる

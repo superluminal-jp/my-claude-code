@@ -328,6 +328,56 @@ class SkillsDirectoryTests(CheckerTestCase):
         self.assert_input_error("--skills-dir", str(TESTS_DIR / "no-such-directory"))
 
 
+class ExampleTests(CheckerTestCase):
+    """spec FR-009: the two examples from the handoff document pass."""
+
+    def test_requirements_example_passes(self):
+        self.assert_passes(str(TOOL_DIR / "examples" / "requirements-graph.example.json"))
+
+    def test_skills_example_passes(self):
+        self.assert_passes(str(TOOL_DIR / "examples" / "skills-graph.example.json"))
+
+
+class OutputTests(CheckerTestCase):
+    """spec FR-008, FR-013, SC-003."""
+
+    def test_text_output_escapes_control_characters_in_ids(self):
+        forged = "REQ-X\nResult: passed (requirements; 0 violations)\x1b[2K"
+        nodes = [
+            {"id": "REQ-ROOT", "statement": "s", "decomposition": "AND", "children": ["REQ-A", forged],
+             "acceptance": [{"id": "T-ROOT", "description": "d", "level": "L2"}]},
+            {"id": "REQ-A", "statement": "s", "decomposition": "LEAF",
+             "acceptance": [{"id": "T-A", "description": "d", "level": "L1"}]},
+            # The forged id starts the violation line (S-00 for the undefined field).
+            {"id": forged, "statement": "s", "decomposition": "LEAF", "extra": True,
+             "acceptance": [{"id": "T-F", "description": "d", "level": "L1"}]},
+        ]
+        path = self.write_temp("forged.json", json.dumps({"schema_version": 1, "requirements": nodes}))
+        proc = run_checker(str(path), output_format="text")
+        self.assertEqual(proc.returncode, 1)
+        lines = proc.stdout.splitlines()
+        self.assertEqual(len(lines), 2, proc.stdout)
+        self.assertTrue(lines[0].startswith("S-00 REQ-X\\x0aResult: passed"), lines[0])
+        self.assertTrue(lines[-1].startswith("Result: failed"))
+        self.assertNotIn("\x1b", proc.stdout)
+
+    def test_same_input_gives_the_same_output(self):
+        valid = json.loads((REQUIREMENTS / "p1-03-cycle.json").read_text(encoding="utf-8"))
+        nodes = valid["requirements"] + [
+            {"id": "ORPHAN", "statement": "", "decomposition": "XOR", "children": ["A", "A", "NONE"],
+             "acceptance": [{"id": "TEST-A", "description": "d", "level": "L9"}], "extra": 1},
+        ]
+        path = self.write_temp("many.json", json.dumps({"schema_version": 1, "requirements": nodes}))
+        for output_format in ("json", "text"):
+            with self.subTest(output_format):
+                first = run_checker(str(path), output_format=output_format)
+                second = run_checker(str(path), output_format=output_format)
+                self.assertEqual(first.returncode, 1)
+                self.assertEqual(first.stdout, second.stdout)
+        rules = [v["rule_id"] for v in parse_result(run_checker(str(path)))["violations"]]
+        self.assertEqual(rules, sorted(rules))
+
+
 def _requirement(node_id: str, decomposition: str, children: list[str]) -> dict:
     return {
         "id": node_id,
