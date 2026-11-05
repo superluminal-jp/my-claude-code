@@ -15,14 +15,39 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import importlib.util
 import json
 import math
 import statistics
 import sys
 import traceback
+from fractions import Fraction
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from assure import FORMATS, InputError, Report, _Parser, is_text, load_json, requested_format, show
+
+def _load_assure() -> Any:
+    """Loads assure.py from this file's own directory by its path, so the
+    script also runs under ``python3 -I`` or PYTHONSAFEPATH, and writes no
+    bytecode cache into the skill directory."""
+    sys.dont_write_bytecode = True
+    spec = importlib.util.spec_from_file_location("assure", Path(__file__).resolve().with_name("assure.py"))
+    if spec is None or spec.loader is None:
+        raise ImportError("assure.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["assure"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+try:
+    _assure = _load_assure()
+except Exception as exc:  # a checker that cannot start must not look like exit code 1
+    print(f"error: cannot load assure.py next to pilot.py ({type(exc).__name__})", file=sys.stderr)
+    sys.exit(2)
+FORMATS, InputError, Report, _Parser = _assure.FORMATS, _assure.InputError, _assure.Report, _assure._Parser
+escape_unsafe, is_text, load_json, requested_format, show = (
+    _assure.escape_unsafe, _assure.is_text, _assure.load_json, _assure.requested_format, _assure.show)
 
 EXIT_ADOPT, EXIT_NOT_ADOPT, EXIT_INPUT_ERROR = 0, 1, 2
 ARMS = ("A", "B")
@@ -113,12 +138,22 @@ def check_records(reg: Dict[str, Any], cases: List[Any]) -> List[Dict[str, Any]]
     return report.violations()
 
 
-def total(entry: Dict[str, Any]) -> float:
-    return float(sum(entry["minutes"].values()))
+def exact(value: Any) -> Fraction:
+    """The number as written in the record: 0.2 is one fifth, not the nearest
+    binary fraction, so a reduction exactly at the target meets it."""
+    return Fraction(repr(value)) if isinstance(value, float) else Fraction(value)
 
 
-def median_or_none(values: List[float]) -> Optional[float]:
+def total(entry: Dict[str, Any]) -> Fraction:
+    return sum((exact(v) for v in entry["minutes"].values()), Fraction(0))
+
+
+def median_or_none(values: List[Fraction]) -> Optional[Fraction]:
     return statistics.median(values) if values else None
+
+
+def as_float(value: Optional[Fraction]) -> Optional[float]:
+    return None if value is None else float(value)
 
 
 def decide(reg: Dict[str, Any], cases: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -143,8 +178,8 @@ def decide(reg: Dict[str, Any], cases: List[Dict[str, Any]]) -> Dict[str, Any]:
             reasons.append(("insufficient", f"stratum {show(name)} has completed cases in arm {only} only, so the arms are not comparable"))
             continue
         a, b = statistics.median(per_arm["A"]), statistics.median(per_arm["B"])
-        strata.append({"stratum": name, "median_A": a, "median_B": b,
-                       "reduction": (1 - b / a) if a else None, "b_slower": b > a})
+        strata.append({"stratum": name, "median_A": float(a), "median_B": float(b),
+                       "reduction": float(1 - b / a) if a else None, "b_slower": b > a})
     quality_failures = [{"case_id": c["case_id"], "gate": gate}
                         for c in cases if c["arm"] == "B" and isinstance(c.get("quality"), dict)
                         for gate in reg["quality_gates"] if c["quality"].get(gate) is False]
@@ -157,8 +192,8 @@ def decide(reg: Dict[str, Any], cases: List[Dict[str, Any]]) -> Dict[str, Any]:
     if not any(kind == "insufficient" for kind, _ in reasons):
         if quality_failures:
             reasons.append(("not_adopted", f"{len(quality_failures)} quality gate result(s) failed in arm B; time saved does not offset them"))
-        if reduction is not None and reduction < reg["target_reduction"]:
-            reasons.append(("not_adopted", f"the median reduction {reduction:.3f} is below the preregistered target {reg['target_reduction']}"))
+        if reduction is not None and reduction < exact(reg["target_reduction"]):
+            reasons.append(("not_adopted", f"the median reduction {float(reduction):.3f} is below the preregistered target {reg['target_reduction']}"))
         # A pooled median can improve while every stratum gets slower when
         # cases are spread unevenly over strata, so a slower stratum blocks adoption.
         for stratum in strata:
@@ -166,7 +201,9 @@ def decide(reg: Dict[str, Any], cases: List[Dict[str, Any]]) -> Dict[str, Any]:
                 reasons.append(("not_adopted", f"arm B is slower than arm A in stratum {show(stratum['stratum'])}"))
     kinds = {kind for kind, _ in reasons}
     decision = "insufficient" if "insufficient" in kinds else ("not_adopted" if kinds else "adopt")
-    return {"decision": decision, "reduction": reduction, "target_reduction": reg["target_reduction"], "arms": arms,
+    for data in arms.values():
+        data["median"], data["median_with_incomplete"] = as_float(data["median"]), as_float(data["median_with_incomplete"])
+    return {"decision": decision, "reduction": as_float(reduction), "target_reduction": reg["target_reduction"], "arms": arms,
             "strata": strata, "quality_failures": quality_failures,
             "reasons": [{"kind": kind, "message": message} for kind, message in reasons]}
 
@@ -189,9 +226,9 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
     for stratum in result["strata"]:
         mark = "  <- B slower" if stratum["b_slower"] else ""
         cut = "n/a" if stratum["reduction"] is None else f"{stratum['reduction']:.3f}"
-        print(f"Stratum {stratum['stratum']}: A {stratum['median_A']} min, B {stratum['median_B']} min, reduction {cut}{mark}")
+        print(f"Stratum {escape_unsafe(stratum['stratum'])}: A {stratum['median_A']} min, B {stratum['median_B']} min, reduction {cut}{mark}")
     for failure in result["quality_failures"]:
-        print(f"Quality gate failed: {failure['case_id']} {failure['gate']}")
+        print(f"Quality gate failed: {escape_unsafe(failure['case_id'])} {escape_unsafe(failure['gate'])}")
     for reason in result["reasons"]:
         print(f"{reason['kind']}: {reason['message']}")
     reduction = "n/a" if result["reduction"] is None else f"{result['reduction']:.3f}"

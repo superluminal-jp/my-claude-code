@@ -44,7 +44,7 @@ python3 <skill-dir>/scripts/pilot.py [--format text|json] preregistration.json c
 
 | Decision | When | Exit |
 |---|---|---|
-| `adopt` | the median reduction of completed cases is at least the target, no quality gate failed in arm B, and arm B is not slower than arm A in any stratum | 0 |
+| `adopt` | the median reduction of completed cases is at least the target (computed exactly from the numbers as written, so 10 and 8 minutes against a target of 0.2 meet it), no quality gate failed in arm B, and arm B is not slower than arm A in any stratum | 0 |
 | `not_adopted` | the reduction is below the target, any quality gate failed in arm B, or arm B is slower in some stratum (a pooled median can improve while every stratum gets slower when cases are spread unevenly over strata) | 1 |
 | `insufficient` | the preregistration is later than the first case, an arm has fewer completed cases than the preregistered minimum, a stratum has completed cases in one arm only, or arm A's median is 0 | 1 |
 
