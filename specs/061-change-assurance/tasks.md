@@ -1,0 +1,16 @@
+---
+description: "Task list for 061: 実行の証拠で、葉・親・システムの検証を別々に判定する"
+---
+
+# Tasks: 実行の証拠で、葉・親・システムの検証を別々に判定する
+
+背景、用語、既定 D1〜D6、規則 A は同じディレクトリの `spec.md`、欄の詳細は `contracts/manifest.md` にある。作業は、ブランチ `feat/goal-refinement`(コミット d0736a2)から作ったワークツリー `my-claude-code-worktrees/change-assurance`(ブランチ `feat/change-assurance`)で行う。「スキル」は `.claude/skills/change-assurance/`、「検査器」はその `scripts/assure.py` を指す。
+
+- [ ] T001 [US1] [US2] 要求グラフと検証の記録のフィクスチャ(spec の User Story 1 のシナリオ1〜8、User Story 2 のシナリオ1〜4、M-00〜M-02 の負例)を `tests/fixtures/` に作り、テストを書き、失敗を確かめる(Red)
+- [ ] T002 [US1] [US2] 検査器の `check` と `gate` を実装する(Green)
+- [ ] T003 [US3] JUnit XML のフィクスチャ(合格・失敗・スキップ・プロパティ・名前の中の ID・DOCTYPE)とテストを書き、失敗を確かめる(Red)
+- [ ] T004 [US3] `collect-junit` を実装する(Green)
+- [ ] T005 [US3] `SKILL.md`、`references/manifest.md`、`references/reviewer.md`、例を書く。`tests/run-config-pyramid.sh` の自作スキルの一覧と名前のパターンに `change-assurance` を加え、親子の規則を含めて通ることを確かめる
+- [ ] T006 `tests/run-change-assurance-skill.sh` を書き、CI の必須ジョブに加える。`tests/run-refinement-checker.sh` の `NOT RUN` の4行を、`change-assurance` のテストで実装済みと示す行に改める(SC-002)
+- [ ] T007 README の英日を改め、ローカルの検査をすべて実行して件数を記録する
+- [ ] T008 `/code-review` で差分をレビューし、確かめた指摘を直して記録する
