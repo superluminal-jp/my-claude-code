@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "REQ-ROOT の要求",
+      "decomposition": "AND",
+      "children": [
+        "REQ-READ",
+        "REQ-EXPORT"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "全ての取得経路を横断する統合認可試験",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "REQ-READ",
+      "statement": "REQ-READ の要求",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-READ",
+          "description": "REQ-READ で他者のデータを拒否する",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-EXPORT",
+      "statement": "REQ-EXPORT の要求",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-EXPORT",
+          "description": "REQ-EXPORT で他者のデータを拒否する",
+          "level": "L1"
+        }
+      ]
+    }
+  ],
+  "problem_id": "PRB-999"
+}

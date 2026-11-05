@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Offline contract suite for tools/refinement-checker
-# (specs/059-refinement-graph-checker): the checker's acceptance tests, its two
-# example declarations, and this repository's own skills read in
+# Offline contract suite for the checker bundled in the goal-refinement skill
+# (specs/059-refinement-graph-checker, specs/060-goal-refinement): its acceptance
+# tests, its example declarations, and this repository's own skills read in
 # compatibility mode. Tests the spec defers to a later phase are printed as
 # NOT RUN and never counted as passed.
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TOOL_DIR="$REPO_ROOT/tools/refinement-checker"
-CHECKER="$TOOL_DIR/check_graph.py"
+TOOL_DIR="$REPO_ROOT/.claude/skills/goal-refinement"
+CHECKER="$TOOL_DIR/scripts/check_graph.py"
 export PYTHONDONTWRITEBYTECODE=1
 
 PASS=0

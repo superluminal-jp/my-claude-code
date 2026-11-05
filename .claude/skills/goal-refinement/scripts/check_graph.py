@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Read-only structural checker for requirement and skill graphs.
 
-Contract: specs/059-refinement-graph-checker/ (spec.md, contracts/cli.md,
-data-model.md). A passing result means only that a declaration satisfies the
+Contract: specs 059 (refinement-graph-checker) and 060 (goal-refinement) of
+the my-claude-code repository. A passing result means only that a declaration satisfies the
 structural rules listed in ``rules_checked``; it is not a security verdict
 and does not show that children are sufficient for their parent.
 
