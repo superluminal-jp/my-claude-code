@@ -2,8 +2,7 @@
 # Offline contract suite for the checker bundled in the goal-refinement skill
 # (specs/059-refinement-graph-checker, specs/060-goal-refinement): its acceptance
 # tests, its example declarations, and this repository's own skills read in
-# compatibility mode. Tests the spec defers to a later phase are printed as
-# NOT RUN and never counted as passed.
+# compatibility mode.
 
 set -uo pipefail
 
@@ -60,18 +59,13 @@ check_exit "RC-05: the example problem card, graph, and challenge report are rea
   python3 -B "$CHECKER" --gate "$TOOL_DIR/examples/problem-card.example.json" \
   "$TOOL_DIR/examples/requirements-graph-v2.example.json" "$TOOL_DIR/examples/challenge-report.example.json"
 
-# Deferred to Phase 3 (spec "後の Phase へ送るテスト"): they need an evidence
-# record format that does not exist yet. Listed so they are never mistaken
-# for passing checks.
-printf 'NOT RUN T-04: a failed parent verification keeps the change incomplete (Phase 3)\n'
-printf 'NOT RUN T-05: an AI completion claim without evidence is not_run or blocked (Phase 3)\n'
-printf 'NOT RUN T-06: evidence for another commit is rejected as stale (Phase 3)\n'
-printf 'NOT RUN T-10: an unknown risk class stops instead of counting as low risk (Phase 3)\n'
+# The four tests specs/059 deferred (T-04, T-05, T-06, T-10) are now in
+# tests/run-change-assurance-skill.sh (specs/061-change-assurance).
 
 echo
 if [ "$FAIL" -gt 0 ]; then
-  printf 'Results: %d passed, %d failed, 4 not run\n' "$PASS" "$FAIL" >&2
+  printf 'Results: %d passed, %d failed\n' "$PASS" "$FAIL" >&2
   printf 'Failed:%b\n' "$FAIL_NAMES" >&2
   exit 1
 fi
-printf 'Results: %d passed, %d failed, 4 not run\n' "$PASS" "$FAIL"
+printf 'Results: %d passed, %d failed\n' "$PASS" "$FAIL"

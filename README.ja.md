@@ -36,6 +36,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     サブエージェントに異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
     (ready か blocked)を決める。[spec 059](specs/059-refinement-graph-checker/spec.md)、
     [spec 060](specs/060-goal-refinement/spec.md))、
+    `change-assurance`(`problem-definition`・`goal-refinement`・`coder` を順に適用する親スキル。
+    受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを記録し、同梱の検査器の判定で
+    pass・fail・blocked を返す。子の合格から親の合格を作らず、古い証拠や AI の申告を証拠とせず、
+    未分類のリスクや承認の欠けで止まる。[spec 061](specs/061-change-assurance/spec.md))、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
     開発着手前に整理）、
@@ -178,7 +182,7 @@ my-claude-code/
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち7本を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち8本を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── .claude/                        # インストーラーが管理する Claude パスの正本
@@ -197,6 +201,11 @@ my-claude-code/
         │   ├── SKILL.md            #   二段構成のプレイブック
         │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
         ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
+        ├── change-assurance/       # 親スキル: 受け入れ条件ごとの証拠 → pass/fail/blocked の判定
+        │   ├── SKILL.md            #   手順と子スキル
+        │   ├── references/         #   検証の記録の形式と規則、保証レビュー役への指示文
+        │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)
+        │   └── tests/              #   受け入れテストとフィクスチャ
         ├── goal-refinement/        # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定
         │   ├── SKILL.md            #   手順
         │   ├── references/         #   検査器の形式と規則、反証役への指示文
@@ -274,8 +283,17 @@ bash tests/run-config-pyramid.sh
 前者は、同梱の検査器の受け入れテスト(Python の標準ライブラリだけを使う)を実行し、例の宣言と、
 例の問題カード・要求グラフ・反証の記録が判定に合格することを確かめ、このリポジトリの
 `.claude/skills/` を互換モードで読む。
-[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送ったテストを
-4行の `NOT RUN` として表示し、合格の件数には数えない。
+
+[`.claude/skills/change-assurance/`](.claude/skills/change-assurance/) を変更したら:
+
+```sh
+bash tests/run-change-assurance-skill.sh
+bash tests/run-config-pyramid.sh
+```
+
+前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録が判定に合格することを確かめる。
+受け入れテストには、[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送った4件
+(親の検証の失敗、証拠のない AI の申告、古い証拠、未分類のリスク)を含む。
 
 [`.claude/CLAUDE.md`](.claude/CLAUDE.md)・[`.claude/rules/`](.claude/rules/)・
 自作スキルを変更したら:
@@ -343,10 +361,10 @@ end-to-end セクションはさらにネットワーク接続を必要としま
 
 ## リポジトリのセキュリティ自動化
 
-上記のうち7本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+上記のうち8本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
 自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
 `run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、
-`run-readme-skill-index.sh`、`run-refinement-checker.sh`、`run-mcp-startup.sh`。
+`run-readme-skill-index.sh`、`run-refinement-checker.sh`、`run-change-assurance-skill.sh`、`run-mcp-startup.sh`。
 それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
 する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
 

@@ -53,7 +53,14 @@ projects while preserving unrelated user files.
   object, and running a bundled standard-library checker whose gate answers
   ready or blocked before implementation starts;
   [spec 059](specs/059-refinement-graph-checker/spec.md),
-  [spec 060](specs/060-goal-refinement/spec.md)), `product-strategy` (vision, target users,
+  [spec 060](specs/060-goal-refinement/spec.md)), `change-assurance` (a
+  parent skill that applies `problem-definition`, `goal-refinement`, and
+  `coder` in order, records for every acceptance criterion which check ran on
+  which commit with what result, and runs a bundled checker whose gate answers
+  pass, fail, or blocked — never building a parent's pass from its children's,
+  never counting stale evidence or an AI's claim, and stopping on unclassified
+  risk or a missing approval; [spec 061](specs/061-change-assurance/spec.md)),
+  `product-strategy` (vision, target users,
   value proposition, success metrics, and MoSCoW-prioritized scope, framed
   before development work begins),
   `git-workflow` (branch/commit/push/PR conventions), `aws-research`
@@ -212,7 +219,7 @@ my-claude-code/
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs seven tests/run-*.sh suites on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs eight tests/run-*.sh suites on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
@@ -231,6 +238,11 @@ my-claude-code/
         │   ├── SKILL.md            #   two-stage playbook
         │   └── references/         #   framework inventory (named to the user) + design basis (not named)
         ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
+        ├── change-assurance/       # Parent skill: evidence per acceptance criterion -> pass/fail/blocked gate
+        │   ├── SKILL.md            #   playbook and its child skills
+        │   ├── references/         #   manifest format and rules, assurance reviewer prompt
+        │   ├── scripts/            #   assure.py (read-only, standard library only)
+        │   └── tests/              #   acceptance tests and fixtures
         ├── goal-refinement/        # Problem card -> requirements graph -> challenger -> ready/blocked gate
         │   ├── SKILL.md            #   playbook
         │   ├── references/         #   checker formats and rules, challenger prompt
@@ -309,10 +321,19 @@ bash tests/run-config-pyramid.sh
 The first runs the bundled checker's acceptance tests (Python standard library
 only), checks its example declarations and that the example problem card,
 requirements graph, and challenge report pass the gate, and reads this
-repository's `.claude/skills/` in compatibility mode. It also prints four
-`NOT RUN` lines for tests that
-[spec 059](specs/059-refinement-graph-checker/spec.md) defers to a later phase;
-they are never counted as passed.
+repository's `.claude/skills/` in compatibility mode.
+
+After changing [`.claude/skills/change-assurance/`](.claude/skills/change-assurance/):
+
+```sh
+bash tests/run-change-assurance-skill.sh
+bash tests/run-config-pyramid.sh
+```
+
+The first runs the bundled checker's acceptance tests, including the four that
+[spec 059](specs/059-refinement-graph-checker/spec.md) deferred (a failed
+parent check, an AI claim without evidence, stale evidence, unclassified
+risk), and checks that the example manifest passes the gate.
 
 After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
 [`.claude/rules/`](.claude/rules/), or an authored skill:
@@ -387,11 +408,12 @@ configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-Seven of the suites above also run automatically in CI
+Eight of the suites above also run automatically in CI
 (`.github/workflows/ci.yml`) on every push and pull request to `main`:
 `run-install.sh`, `run-digital-agency-frontend-skill.sh`,
 `run-removed-guardrails.sh`, `run-package-safety-bundle.sh`,
-`run-readme-skill-index.sh`, `run-refinement-checker.sh`, and
+`run-readme-skill-index.sh`, `run-refinement-checker.sh`,
+`run-change-assurance-skill.sh`, and
 `run-mcp-startup.sh`. The others run only when you run them. `main` is
 protected by a repository ruleset
 (`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)
