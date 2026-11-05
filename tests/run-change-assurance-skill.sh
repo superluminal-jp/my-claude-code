@@ -53,6 +53,9 @@ check_exit "CA-02: the example manifest passes its own rules" 0 \
   python3 -B "$CHECKER" check "$SKILL/examples/verification-manifest.example.json"
 check_exit "CA-03: the example graph and manifest pass the gate" 0 \
   python3 -B "$CHECKER" gate "$SKILL/examples/requirements-graph.example.json" "$SKILL/examples/verification-manifest.example.json"
+check_exit "CA-04: the example review card renders with a pass" 0 \
+  python3 -B "$CHECKER" card --problem "$SKILL/examples/problem-card.example.json" \
+  --graph "$SKILL/examples/requirements-graph.example.json" --manifest "$SKILL/examples/verification-manifest.example.json"
 
 echo
 if [ "$FAIL" -gt 0 ]; then
