@@ -11,14 +11,33 @@ is secure, or that any test was run. The contract is
 arguments, output, and exit codes are in its
 [CLI contract](../../specs/059-refinement-graph-checker/contracts/cli.md).
 
+Terms used below:
+
+- **Skill**: a Claude Code skill, a directory with a `SKILL.md` playbook that
+  Claude loads when a task matches it. This repository's skills are under
+  `.claude/skills/`.
+- **Spec 058**: [`specs/058-parent-skill-references/spec.md`](../../specs/058-parent-skill-references/spec.md).
+  It lets a parent skill list, in a `## Child skills` section of its
+  `SKILL.md`, the skills it applies in order, one `` - `name` `` line each, and
+  allows one level only: a child skill may not list children of its own.
+- **Levels L1, L2, L3**: what an acceptance criterion verifies. L1 checks a
+  single leaf requirement, L2 checks a parent by integrating its children,
+  and L3 checks the whole system.
+- **Phases**: spec 059 is Phase 1 of five. Phase 2 adds problem definition and
+  decomposition skills, Phase 3 independent verification at every level with
+  recorded evidence (which test ran on which commit, with what result),
+  Phase 4 a review card for the human decision, and Phase 5 a comparison
+  experiment of review time and quality.
+
 ## Purpose, who runs it, and where it is distributed
 
 - **Purpose**: Phase 1 of a plan to let people review AI-made changes by their
   requirements and evidence rather than by rereading every diff. It gives
   requirement decompositions and skill compositions a declared form that a
-  machine can check before later phases add parent skills or independent
-  auditors.
-- **Who runs it**: the CI job `test` (through `tests/run-refinement-checker.sh`),
+  machine can check before later phases write parent skills (none exists
+  yet) or independent auditor agents.
+- **Who runs it**: the GitHub Actions job `test` in `.github/workflows/ci.yml`
+  (through `tests/run-refinement-checker.sh`),
   and the maintainer or Claude by hand.
 - **Distribution**: none. It lives outside `.claude/`, so `install.sh` does not
   copy it to `~/.claude/`. Whether it moves into a skill under
@@ -55,6 +74,10 @@ every field and the rule a missing or wrong field breaks.
 
 ## Rules
 
+In the `Applies to` column, *declarations* means both kinds of declaration
+file, *requirements* and *skills* mean that kind only, *compatibility mode*
+means `--skills-dir`, and *all* means every input.
+
 | Rule | Applies to | Passes when |
 |---|---|---|
 | S-00 | declarations | every node is an object with correctly typed fields and no undefined field |
@@ -80,12 +103,15 @@ every field and the rule a missing or wrong field breaks.
 
 ## Limits
 
-- `permission` and `role` are declared, not enforced. A skill that can write
-  but declares `role: worker` passes S-09; enforcement belongs to the runtime.
+- `permission` and `role` are declared, not enforced. A skill that writes
+  files but declares `permission: read_only`, or an auditor declared as
+  `role: worker`, passes S-09. Enforcement belongs to Claude Code's permission
+  settings and the environment that runs the skill.
 - Declared skill ids are not compared with the real `SKILL.md` files; only
   compatibility mode reads real skills.
 - Compatibility mode checks the structural rules of spec 058 only. Whether a
-  declared child is in the `authored_skills` list, and how skills name each
+  declared child is in the `authored_skills` list (the skills this repository
+  authors, listed at the top of `tests/run-config-pyramid.sh`), and how skills name each
   other in their text, stay with `tests/run-config-pyramid.sh`.
 - OR conditions are checked for presence, not for being exclusive or covering
   every case. Whether a parent's acceptance criteria really verify the parent
@@ -99,5 +125,8 @@ bash tests/run-refinement-checker.sh
 
 It runs the acceptance tests in [`tests/`](tests/), checks both examples, and
 reads this repository's `.claude/skills/` in compatibility mode. Four tests
-that need an evidence format from Phase 3 (T-04, T-05, T-06, T-10) are printed
-as `NOT RUN` and never counted as passed.
+that need Phase 3's evidence records are printed as `NOT RUN` and never
+counted as passed: T-04 (a failed parent check keeps the change incomplete),
+T-05 (a completion claim without evidence is not accepted), T-06 (evidence for
+another commit is rejected as stale), and T-10 (an unknown risk class stops
+the flow instead of counting as low risk).
