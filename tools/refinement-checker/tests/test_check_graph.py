@@ -8,6 +8,7 @@ callers depend on: arguments, the JSON result, and the exit code
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -72,6 +73,16 @@ class CheckerTestCase(unittest.TestCase):
         self.assertIsNone(result["graph"])
         self.assertEqual(proc.returncode, 2)
         return result
+
+    def make_skills(self, bodies: dict[str, str]) -> str:
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(_remove_tree, root)
+        for name, body in bodies.items():
+            (root / name).mkdir()
+            (root / name / "SKILL.md").write_text(
+                f"---\nname: {name}\ndescription: Fixture only. Do not use.\n---\n\n{body}\n", encoding="utf-8"
+            )
+        return str(root)
 
     def write_temp(self, name: str, content: str | bytes) -> Path:
         directory = Path(tempfile.mkdtemp())
@@ -212,7 +223,7 @@ class RequirementsGraphTests(CheckerTestCase):
             self.assert_input_error()
 
     def test_undefined_option_exits_with_code_2(self):
-        proc = run_checker("--no-such-option", fixture(REQUIREMENTS, "valid-or-selection.json"))
+        proc = run_checker("--no-such-option", fixture(REQUIREMENTS, "valid-or-selection.json"), output_format="text")
         self.assertEqual(proc.returncode, 2)
         self.assertIn("error", proc.stderr)
 
@@ -266,16 +277,6 @@ class SkillsDirectoryTests(CheckerTestCase):
     Fixture skills use the same SKILL.md shape as write_fixture_skill in
     tests/run-config-pyramid.sh; parent declares child-a and child-b.
     """
-
-    def make_skills(self, bodies: dict[str, str]) -> str:
-        root = Path(tempfile.mkdtemp())
-        self.addCleanup(_remove_tree, root)
-        for name, body in bodies.items():
-            (root / name).mkdir()
-            (root / name / "SKILL.md").write_text(
-                f"---\nname: {name}\ndescription: Fixture only. Do not use.\n---\n\n{body}\n", encoding="utf-8"
-            )
-        return str(root)
 
     def base(self, **overrides: str) -> dict[str, str]:
         bodies = {
@@ -376,6 +377,59 @@ class OutputTests(CheckerTestCase):
                 self.assertEqual(first.stdout, second.stdout)
         rules = [v["rule_id"] for v in parse_result(run_checker(str(path)))["violations"]]
         self.assertEqual(rules, sorted(rules))
+
+
+class ReviewFindingTests(CheckerTestCase):
+    """Regressions for the /code-review findings recorded in tasks.md T025."""
+
+    def write_graph(self, nodes: list[dict]) -> str:
+        return str(self.write_temp("graph.json", json.dumps({"schema_version": 1, "requirements": nodes})))
+
+    def test_child_that_declares_only_a_missing_skill_still_breaks_one_level(self):
+        directory = self.make_skills({"a": "## Child skills\n\n- `b`\n", "b": "## Child skills\n\n- `ghost`\n"})
+        violations = self.assert_violations({"S-02", "S-10"}, "--skills-dir", directory)
+        self.assertIn({"rule_id": "S-10", "node_id": "a"}, [{k: v[k] for k in ("rule_id", "node_id")} for v in violations])
+
+    def test_duplicate_node_is_still_checked_and_its_children_count_as_referenced(self):
+        nodes = [
+            _requirement("R", "AND", ["A", "B"]),
+            _requirement("A", "LEAF", []),
+            _requirement("B", "LEAF", []),
+            {**_requirement("B", "LEAF", ["C"]), "acceptance": []},
+            _requirement("C", "LEAF", []),
+        ]
+        self.assert_violations({"S-01", "S-04", "S-06"}, self.write_graph(nodes))
+
+    def test_children_of_the_wrong_type_are_reported_once(self):
+        nodes = [{**_requirement("R", "AND", []), "children": "A"}, _requirement("A", "LEAF", [])]
+        violations = self.assert_violations({"S-00"}, self.write_graph(nodes))
+        self.assertEqual(len(violations), 1)
+
+    def test_input_that_is_not_a_regular_file_is_an_input_error(self):
+        self.assert_input_error("/dev/null")
+        fifo = Path(tempfile.mkdtemp()) / "pipe.json"
+        self.addCleanup(_remove_tree, fifo.parent)
+        os.mkfifo(fifo)
+        self.assert_input_error(str(fifo))
+
+    def test_argument_error_gives_a_json_result_with_format_json(self):
+        self.assert_input_error("--no-such-option", fixture(REQUIREMENTS, "valid-or-selection.json"))
+
+    def test_backslash_in_an_id_is_escaped_so_escapes_stay_unambiguous(self):
+        nodes = [
+            _requirement("R", "AND", ["A\nB", "A\\x0aB"]),
+            {**_requirement("A\nB", "LEAF", []), "extra": 1},
+            {**_requirement("A\\x0aB", "LEAF", []), "extra": 1},
+        ]
+        lines = run_checker(self.write_graph(nodes), output_format="text").stdout.splitlines()
+        self.assertEqual(lines[0], 'S-00 A\\x0aB: undefined field "extra"')
+        self.assertEqual(lines[1], 'S-00 A\\\\x0aB: undefined field "extra"')
+
+    def test_violations_of_one_node_keep_declaration_order(self):
+        node = _requirement("R", "LEAF", [])
+        node["acceptance"] = [{"id": f"T-{i}", "description": "d", "level": "L9"} for i in range(1, 13)]
+        violations = self.assert_violations({"S-07"}, self.write_graph([node]))
+        self.assertEqual([v["message"].split(" ")[1] for v in violations], [f"#{i}" for i in range(1, 13)])
 
 
 def _requirement(node_id: str, decomposition: str, children: list[str]) -> dict:

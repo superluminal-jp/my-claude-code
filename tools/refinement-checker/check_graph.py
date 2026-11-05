@@ -17,7 +17,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import stat
 import sys
 import traceback
 import unicodedata
@@ -81,26 +83,35 @@ class Node:
     node_id: str
     raw: Dict[str, Any]
     children: List[str] = field(default_factory=list)
+    # A node whose id repeats an earlier one is still checked (review finding 2).
+    duplicate: bool = False
+    # False when ``children`` was not an array of strings; rules that count
+    # children are then skipped instead of reporting a follow-on error.
+    children_valid: bool = True
 
 
 class Report:
     """Collects violations and returns them in a fixed order (research R4)."""
 
     def __init__(self) -> None:
-        self._items: List[Tuple[str, int, str, str, Optional[str]]] = []
+        self._items: List[Tuple[str, int, int, Optional[str], str]] = []
 
     def add(self, rule_id: str, position: int, node_id: Optional[str], message: str) -> None:
-        self._items.append((rule_id, position, node_id or "", message, node_id))
+        # Within one rule and node, the detection order follows the declaration.
+        self._items.append((rule_id, position, len(self._items), node_id, message))
 
     def violations(self) -> List[Violation]:
-        ordered = sorted(self._items, key=lambda item: item[:4])
-        return [Violation(rule_id, node_id, message) for rule_id, _, _, message, node_id in ordered]
+        ordered = sorted(self._items, key=lambda item: item[:3])
+        return [Violation(rule_id, node_id, message) for rule_id, _, _, node_id, message in ordered]
 
 
 def show(value: Any) -> str:
     """A short JSON rendering of a value for messages."""
     text = json.dumps(value, ensure_ascii=False)
-    return text if len(text) <= 60 else text[:57] + "..."
+    text = text if len(text) <= 60 else text[:57] + "..."
+    # JSON escapes C0 controls but leaves DEL, C1 controls, format characters,
+    # and line separators as they are (spec FR-013).
+    return "".join(f"\\u{ord(c):04x}" if unicodedata.category(c) in _UNSAFE_CATEGORIES else c for c in text)
 
 
 def is_nonempty_string(value: Any) -> bool:
@@ -115,12 +126,24 @@ def is_string_list(value: Any) -> bool:
 
 
 def read_text(path: Path, what: str) -> str:
+    # O_NONBLOCK keeps a FIFO from blocking the open; fstat on the opened file
+    # then rejects anything that is not a regular file, and the read is bounded
+    # even when the reported size is wrong (review finding 3).
     try:
-        if path.stat().st_size > MAX_INPUT_BYTES:
-            raise InputError(f"{what} is larger than {MAX_INPUT_BYTES} bytes")
-        data = path.read_bytes()
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NONBLOCK", 0))
     except OSError as exc:
         raise InputError(f"cannot read {what}: {exc.strerror or exc}") from None
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise InputError(f"{what} is not a regular file")
+        with os.fdopen(fd, "rb") as handle:
+            fd = -1
+            data = handle.read(MAX_INPUT_BYTES + 1)
+    except OSError as exc:
+        raise InputError(f"cannot read {what}: {exc.strerror or exc}") from None
+    finally:
+        if fd != -1:
+            os.close(fd)
     if len(data) > MAX_INPUT_BYTES:
         raise InputError(f"{what} is larger than {MAX_INPUT_BYTES} bytes")
     try:
@@ -186,15 +209,17 @@ def parse_nodes(raw_nodes: Sequence[Any], allowed_fields: frozenset, report: Rep
             continue
         for key in sorted(set(raw) - allowed_fields):
             report.add("S-00", position, node_id, f"undefined field {show(key)}")
-        if node_id in first_position:
+        duplicate = node_id in first_position
+        if duplicate:
             report.add("S-01", position, node_id, f"id is already used by node #{first_position[node_id] + 1}")
-            continue
-        first_position[node_id] = position
+        else:
+            first_position[node_id] = position
         children = raw.get("children", [])
-        if not is_string_list(children):
+        children_valid = is_string_list(children)
+        if not children_valid:
             report.add("S-00", position, node_id, "children must be an array of strings")
             children = []
-        nodes.append(Node(position, node_id, raw, children))
+        nodes.append(Node(position, node_id, raw, children, duplicate, children_valid))
     return nodes
 
 
@@ -214,7 +239,10 @@ def check_references(
             if child not in defined:
                 report.add("S-02", node.position, node.node_id, undefined.format(child=show(child)))
         node.children = seen
-        edges[node.node_id] = [child for child in seen if child in defined]
+        # A repeated id contributes its children to the same graph node, so
+        # they still count as referenced (review finding 2).
+        targets = edges.setdefault(node.node_id, [])
+        targets.extend(child for child in seen if child in defined and child not in targets)
     return edges
 
 
@@ -256,9 +284,12 @@ def find_cycles(order: List[str], edges: Dict[str, List[str]]) -> List[List[str]
 
 def check_cycles(nodes: List[Node], edges: Dict[str, List[str]], report: Report) -> None:
     """Applies S-03. S-08 needs no check: a shared child is legal."""
-    position = {node.node_id: node.position for node in nodes}
-    for cycle in find_cycles([node.node_id for node in nodes], edges):
-        report.add("S-03", position[cycle[0]], cycle[0], "cycle: " + " -> ".join(cycle + [cycle[0]]))
+    position: Dict[str, int] = {}
+    for node in nodes:
+        position.setdefault(node.node_id, node.position)
+    for cycle in find_cycles(list(position), edges):
+        path = " -> ".join(escape_unsafe(node_id) for node_id in cycle + [cycle[0]])
+        report.add("S-03", position[cycle[0]], cycle[0], f"cycle: {path}")
 
 
 # --- requirement graphs --------------------------------------------------------
@@ -277,6 +308,8 @@ def check_requirement_fields(node: Node, report: Report) -> Optional[str]:
         got = "none" if "decomposition" not in raw else show(decomposition)
         report.add("S-04", *where, f"decomposition must be AND, OR, or LEAF (got {got})")
         return None
+    if not node.children_valid:
+        return decomposition
     count = len(node.children)
     if decomposition == "LEAF" and count:
         report.add("S-04", *where, f"a LEAF has no children (got {count})")
@@ -288,6 +321,8 @@ def check_requirement_fields(node: Node, report: Report) -> Optional[str]:
 def check_selection(node: Node, decomposition: Optional[str], report: Report) -> None:
     """Applies S-05."""
     raw, where = node.raw, (node.position, node.node_id)
+    if not node.children_valid:
+        return
     if "selection" in raw:
         selection = raw["selection"]
         if not isinstance(selection, dict) or not all(isinstance(v, str) for v in selection.values()):
@@ -347,8 +382,10 @@ def check_roots(raw_nodes: Sequence[Any], nodes: List[Node], edges: Dict[str, Li
     if not raw_nodes:
         report.add("S-11", -1, None, "the requirements graph declares no node")
         return
+    if not all(node.children_valid for node in nodes):
+        return  # the edges are unknown; S-00 already fails the graph
     children = {child for targets in edges.values() for child in targets}
-    roots = [node.node_id for node in nodes if node.node_id not in children]
+    roots = [node_id for node_id in edges if node_id not in children]
     if len(roots) >= 2:
         names = ", ".join(show(root) for root in roots)
         report.add("S-11", -1, None, f"the graph has {len(roots)} roots ({names}); a requirements graph has one")
@@ -391,14 +428,15 @@ def check_skills(raw_nodes: Sequence[Any]) -> List[Violation]:
     nodes = parse_nodes(raw_nodes, SKILL_FIELDS, report)
     edges = check_references(nodes, report)
     check_cycles(nodes, edges, report)
-    declared = {node.node_id: check_skill_fields(node, report) for node in nodes}
-    permission = {node_id: values[0] for node_id, values in declared.items()}
-    for node in nodes:
-        role = declared[node.node_id][1]
+    declared = [(node, check_skill_fields(node, report)) for node in nodes]
+    permission: Dict[str, Optional[str]] = {}
+    for node, values in declared:
+        permission.setdefault(node.node_id, values[0])
+    for node, (_, role) in declared:
         if role not in READ_ONLY_ROLES:
             continue
         where = (node.position, node.node_id)
-        own = permission[node.node_id]
+        own = permission[node.node_id] if not node.duplicate else None
         if own is not None and own != "read_only":
             report.add("S-09", *where, f"an {role} must be read_only (declared {own})")
         # Applying a child produces the child's effects, so everything an
@@ -441,26 +479,28 @@ def declared_children(text: str) -> List[str]:
 
 def check_skills_dir(directory: Path) -> Tuple[str, List[Violation]]:
     if not directory.is_dir():
-        raise InputError(f"{directory} is not a readable directory")
+        raise InputError(f"{escape_unsafe(str(directory))} is not a readable directory")
     try:
         skills = sorted(
             (entry for entry in directory.iterdir() if entry.is_dir() and (entry / "SKILL.md").is_file()),
             key=lambda entry: entry.name,
         )
     except OSError as exc:
-        raise InputError(f"cannot read {directory}: {exc.strerror or exc}") from None
+        raise InputError(f"cannot read {escape_unsafe(str(directory))}: {exc.strerror or exc}") from None
     report = Report()
     nodes = [
-        Node(position, entry.name, {}, declared_children(read_text(entry / "SKILL.md", f"{entry.name}/SKILL.md")))
+        Node(position, entry.name, {}, declared_children(read_text(entry / "SKILL.md", f"{escape_unsafe(entry.name)}/SKILL.md")))
         for position, entry in enumerate(skills)
     ]
     edges = check_references(nodes, report, "declares {child}, which has no SKILL.md in the skills directory")
     check_cycles(nodes, edges, report)
+    declared = {node.node_id: node.children for node in nodes}
     for node in nodes:
         for child in edges[node.node_id]:
             # A self-declaration is already a cycle (S-03); spec 058 reports it
-            # only once as well.
-            if child != node.node_id and edges[child]:
+            # only once as well. Like spec 058, a child counts as a parent when
+            # it declares anything, even a skill that does not exist.
+            if child != node.node_id and declared[child]:
                 report.add(
                     "S-10",
                     node.position,
@@ -481,9 +521,13 @@ def check_file(path: Path) -> Tuple[str, List[Violation]]:
 
 
 def escape_unsafe(text: str) -> str:
+    """Escapes a raw id for the text output: a backslash is doubled, so an
+    escape sequence in the output always stands for one character (spec FR-013)."""
     out = []
     for char in text:
-        if unicodedata.category(char) in _UNSAFE_CATEGORIES:
+        if char == "\\":
+            out.append("\\\\")
+        elif unicodedata.category(char) in _UNSAFE_CATEGORIES:
             code = ord(char)
             out.append(f"\\x{code:02x}" if code < 0x100 else f"\\u{code:04x}")
         else:
@@ -496,44 +540,69 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
         print(json.dumps(result, indent=2))
         return
     if result["status"] == "error":
-        print(f"error: {escape_unsafe(result['error'])}", file=sys.stderr)
+        print(f"error: {result['error']}", file=sys.stderr)
         return
     for violation in result["violations"]:
-        where = f" {violation['node_id']}" if violation["node_id"] is not None else ""
-        print(escape_unsafe(f"{violation['rule_id']}{where}: {violation['message']}"))
+        # Messages carry ids only through show() or escape_unsafe(); the raw
+        # node id is escaped here.
+        where = f" {escape_unsafe(violation['node_id'])}" if violation["node_id"] is not None else ""
+        print(f"{violation['rule_id']}{where}: {violation['message']}")
     count = len(result["violations"])
     noun = "violation" if count == 1 else "violations"
     rules = " ".join(result["rules_checked"])
     print(f"Result: {result['status']} ({result['graph']}; {count} {noun}; checked {rules}; structural rules only)")
 
 
-class _Parser(argparse.ArgumentParser):
-    def error(self, message: str) -> NoReturn:
-        # argparse also exits with 2; this keeps the "error:" prefix of contracts/cli.md.
-        self.print_usage(sys.stderr)
-        print(f"error: {message}", file=sys.stderr)
-        sys.exit(EXIT_INPUT_ERROR)
+FORMATS = ("text", "json")
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = _Parser(
-        prog="check_graph.py",
-        description="Check the structure of a requirement or skill graph declaration (read-only).",
-    )
-    parser.add_argument("file", nargs="?", help="declaration file (JSON)")
-    parser.add_argument("--skills-dir", metavar="DIR", help="compatibility mode: read ## Child skills from DIR/*/SKILL.md")
-    parser.add_argument("--format", choices=("text", "json"), default="text", help="output format (default: text)")
-    args = parser.parse_args(argv)
-    target = args.file if args.file is not None else args.skills_dir
-    result: Dict[str, Any] = {
+def error_result(target: Optional[str], message: str) -> Dict[str, Any]:
+    return {
         "output_version": OUTPUT_VERSION,
         "input_file": target,
         "graph": None,
         "status": "error",
         "rules_checked": [],
         "violations": [],
-        "error": None,
+        "error": message,
     }
+
+
+def requested_format(argv: Sequence[str]) -> str:
+    """The --format value, read before argparse so that an argument error can
+    still be reported in the requested format (review finding 4)."""
+    for index, arg in enumerate(argv):
+        value = argv[index + 1] if arg == "--format" and index + 1 < len(argv) else None
+        if arg.startswith("--format="):
+            value = arg.split("=", 1)[1]
+        if value in FORMATS:
+            return value
+    return "text"
+
+
+class _Parser(argparse.ArgumentParser):
+    def __init__(self, output_format: str, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.output_format = output_format
+
+    def error(self, message: str) -> NoReturn:
+        if self.output_format == "text":
+            self.print_usage(sys.stderr)
+        emit(error_result(None, f"invalid arguments: {message}"), self.output_format)
+        sys.exit(EXIT_INPUT_ERROR)
+
+
+def run(argv: Sequence[str], output_format: str) -> int:
+    parser = _Parser(
+        output_format,
+        prog="check_graph.py",
+        description="Check the structure of a requirement or skill graph declaration (read-only).",
+    )
+    parser.add_argument("file", nargs="?", help="declaration file (JSON)")
+    parser.add_argument("--skills-dir", metavar="DIR", help="compatibility mode: read ## Child skills from DIR/*/SKILL.md")
+    parser.add_argument("--format", choices=FORMATS, default="text", help="output format (default: text)")
+    args = parser.parse_args(argv)
+    target = args.file if args.file is not None else args.skills_dir
     try:
         if (args.file is None) == (args.skills_dir is None):
             raise InputError("give exactly one of FILE or --skills-dir DIR")
@@ -542,23 +611,32 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         else:
             kind, violations = check_file(Path(args.file))
     except InputError as exc:
-        result["error"] = str(exc)
-        emit(result, args.format)
+        emit(error_result(target, str(exc)), args.format)
         return EXIT_INPUT_ERROR
+    result = error_result(target, "")
     result.update(
         graph=kind,
         status="failed" if violations else "passed",
         rules_checked=RULES_CHECKED[kind],
         violations=[{"rule_id": v.rule_id, "node_id": v.node_id, "message": v.message} for v in violations],
+        error=None,
     )
     emit(result, args.format)
     return EXIT_VIOLATIONS if violations else EXIT_PASSED
 
 
-if __name__ == "__main__":
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    output_format = requested_format(arguments)
     try:
-        sys.exit(main())
-    except Exception:
-        # A crash of the checker itself must not look like exit code 1 (violations).
+        return run(arguments, output_format)
+    except Exception as exc:
+        # A failure of the checker itself must not look like exit code 1
+        # (violations): show the traceback and report it as an error.
         traceback.print_exc()
-        sys.exit(EXIT_INPUT_ERROR)
+        emit(error_result(None, f"internal error: {type(exc).__name__}"), output_format)
+        return EXIT_INPUT_ERROR
+
+
+if __name__ == "__main__":
+    sys.exit(main())
