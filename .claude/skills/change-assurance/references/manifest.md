@@ -6,9 +6,10 @@
 python3 <skill-dir>/scripts/assure.py [--format text|json] check MANIFEST
 python3 <skill-dir>/scripts/assure.py [--format text|json] gate GRAPH MANIFEST
 python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commit SHA --ref REF [--kind ci_job|local_run]
+python3 <skill-dir>/scripts/assure.py [--format text|json] card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]
 ```
 
-Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, bad arguments) or the checker itself failed.
+Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, bad arguments) or the checker itself failed.
 
 ## The manifest
 
@@ -37,7 +38,7 @@ Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations
 
 ## The gate
 
-`gate GRAPH MANIFEST` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused as `blocked`. Manifest violations (M-xx) also block.
+`gate GRAPH MANIFEST` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused as `blocked`. Manifest violations (M-xx) also block. With `--format json` the result also has `checks`: for every acceptance criterion, its `check_id`, `level`, `requirement`, the status the gate used, and the recorded `evidence` object (or `null`).
 
 | Rule | Holds when |
 |---|---|
@@ -55,7 +56,7 @@ The graph is read only for its problem id and its acceptance criteria. Check the
 
 ## Review card
 
-`card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]` prints a Markdown review card and exits like the gate. It runs the gate itself and shows its decision, its counts per level, and its reasons; it never decides on its own. In order, it shows: the decision (✅ only on `pass`), the problem (current, ideal, gap), the change and its risk, the checks by level, every check that did not pass, the unresolved items (gate reasons and open findings of the challenge report), what a person has to decide, a Mermaid diagram of the decomposition three levels deep with each requirement drawn once (deeper requirements are listed), and the evidence of every check. All input text is treated as untrusted: table separators, HTML angle brackets, square brackets, and control characters are escaped, and an evidence reference becomes a link only when it is a plain `http` or `https` URL.
+`card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]` prints a Markdown review card and exits like the gate. It reads each file once, runs the gate on that content, and shows its decision, its counts per level, and its reasons. It refuses (exit 2) a problem card that is not `verified` or is for another problem than the graph and the manifest, and an `open` finding in the challenge report turns a `pass` into `blocked`, as in the decomposition gate; otherwise it never decides on its own. With `--format json` it prints `{output_version, input_file, decision, markdown}`. In order, it shows: the decision (✅ only on `pass`), the problem (current, ideal, gap), the change and its risk, the checks by level, every check that did not pass, the unresolved items (gate reasons and open findings of the challenge report), what a person has to decide, a Mermaid diagram of the decomposition three levels deep with each requirement drawn once (deeper requirements are listed; a requirement's colour covers its own checks and everything below it, and one with only `not_applicable` checks is not green), and the evidence of every check. All input text is treated as untrusted: Markdown emphasis, code, heading, and link characters, HTML angle brackets, control characters, and the decision marks are escaped, a URL inside text is shown as code, and an evidence reference becomes a link only when it is a plain `http` or `https` URL.
 
 ## JUnit XML
 
