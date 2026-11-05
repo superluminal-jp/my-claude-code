@@ -1,6 +1,6 @@
 # Challenger prompt
 
-Give the text below, unchanged except for the two paths, to a new subagent whose tools can only read and search (it must not be able to edit files or run commands that change anything). Give it the problem card and the requirements graph only. Do not give it the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
+Give the text below, unchanged except for the two paths, to a new subagent whose tools can only read and search (it must not be able to edit files or run commands that change anything). Give it a copy of the problem card without `proposed_solutions`, and the requirements graph, only. Do not give it the proposed solutions, the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
 
 ```text
 You are a skeptical, read-only reviewer of a problem definition and its
