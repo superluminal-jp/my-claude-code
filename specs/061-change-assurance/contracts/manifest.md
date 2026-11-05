@@ -41,7 +41,7 @@ python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commi
 | `reviewed_commit` | 7〜40 桁の16進数の文字列 | はい |
 | `risk` | `{class, rationale}`。`class` は `low`・`medium`・`high`・`unclassified` | はい(欠けると A-04 で `blocked`) |
 | `approvals` | `{by, decision, scope}` の配列。`decision` は `approved`・`rejected` | いいえ |
-| `checks` | `{check_id, status, evidence?, reason?}` の配列。`status` は `passed`・`failed`・`not_run`・`blocked`・`not_applicable` | はい |
+| `checks` | `{check_id, status, evidence?, reason?, approved_by?}` の配列。`status` は `passed`・`failed`・`not_run`・`blocked`・`not_applicable`。`approved_by` は空でない文字列で、`not_applicable` の `L2`・`L3` の検査に要る(A-06) | はい |
 | `evidence` | `{kind, ref, commit}`。`kind` は `ci_job`・`local_run`・`scanner`・`human_review`・`ai_review` | `passed` では必須 |
 | `test_changes` | `{path, change, approved_by?}` の配列。`change` は `deleted`・`skipped`・`weakened` | いいえ |
 | `infra_changes` | `{kind, ref}` の配列。`kind` は `permission_expansion`・`public_exposure`・`resource_deletion`・`resource_replacement` | いいえ |
@@ -60,10 +60,10 @@ python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commi
 {"graph": "assurance", "decision": "blocked",
  "levels": {"L1": {"passed": 2}, "L2": {"not_run": 1}, "L3": {}},
  "reasons": [{"rule_id": "A-01", "message": "acceptance \"TEST-REQ-ROOT\" has no check (treated as not_run)"}],
- "rules_checked": ["A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07"]}
+ "rules_checked": ["M-00", "M-01", "M-02", "A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07", "A-08"]}
 ```
 
-`status` は `pass` なら `passed`、それ以外は `failed` である。`levels` は、要求グラフの受け入れ条件の水準ごとに、判定に使った状態(A-02 で退けた `passed` と、M-00 で証拠を拒んだ `passed` は `blocked` に数える)の件数を示す。
+`status` は `pass` なら `passed`、それ以外は `failed` である。`levels` は、要求グラフの受け入れ条件の水準ごとに、判定に使った状態(A-02 で退けた `passed`、M-00 で証拠を拒んだ `passed`、A-06 で承認のない `not_applicable` は `blocked` に数える)の件数を示す。
 
 ## 4. JUnit XML の取り込み
 

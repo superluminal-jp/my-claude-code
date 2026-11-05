@@ -20,6 +20,8 @@
 | D4 | 失敗と止まるの区別 | 引き継ぎ書 §21.3 の判定規則 | `fail` は、必須の検査が `failed` か、承認が却下されたとき。`blocked` は、検査の証拠が足りない(`not_run`、`blocked`、別のコミット、AI の申告だけ、理由のない `not_applicable`)、リスクを分類できない、必要な承認がないとき。どちらも合格ではない |
 | D5 | リスクの分類 | 引き継ぎ書 §19.7(高・中・低・未分類を排他的に評価する) | 検証の記録の `risk.class` は `low`・`medium`・`high`・`unclassified` のいずれかとする。`unclassified` と欠落は `blocked`。`high` は、実装担当と別の人の `approved` の承認を要する。権限の拡大、公開範囲の拡大、資源の削除・置換を記録した変更は `high` でなければならない |
 | D6 | AI のレビューの扱い | 引き継ぎ書 §21.3「独立したAIの同意も証拠ではなく仮説的な指摘」 | 証拠の種類が `ai_review` だけの検査は `passed` とみなさない |
+| D7 | 反証役の強制 | spec 060 の D7 が本仕様に残した。利用者の決定(2026-11-06。Claude の推奨を選んだ) | `high` の変更は、その問題の反証の記録を判定に渡さなければ `blocked` とする(規則 A-08)。渡した記録に `open` の指摘があれば、リスクにかかわらず `blocked` とする。`medium` は強制しない。引き継ぎ書 §21.2 が、反証役を高リスクなどの場合だけ起動するとするためである |
+| D8 | `not_applicable` の承認 | 利用者の決定(2026-11-06。Claude の推奨を選んだ) | `L2` と `L3` の検査を `not_applicable` にするには、実装担当と別の人の `approved_by` を要する(規則 A-06)。親とシステムの検証は子の合格で代えられないためである。`L1` には求めない。すべての水準で求めると、人の作業時間を減らす目標に反するためである |
 
 **Authority**: 本仕様が正である。設計の出典は引き継ぎ書 §21.3(Phase 3)と §19.7(リスク別の処理)、要求グラフの形式は spec 059 と spec 060 である。
 
@@ -59,6 +61,8 @@ spec 059 と spec 060 の用語(要求グラフ、受け入れ条件、水準 L1
 2. **Given** リスクが `high` で承認がない、または承認者が実装担当と同じ、**Then** `blocked` である。**Given** 実装担当と別の人の `approved`、**Then** 承認の規則を満たす。**Given** `rejected` の承認、**Then** `fail` である。
 3. **P3-06** **Given** 承認のないテストの削除・スキップ・期待値の弱体化を記録した検証の記録、**Then** `blocked` である。
 4. **P3-07** **Given** 権限の拡大を記録したのに、リスクが `high` でない検証の記録、**Then** `blocked` で、理由は高リスクへの格上げである。
+5. **D7** **Given** 別の人の承認がある `high` の変更、**When** 反証の記録を渡さずに判定する、**Then** `blocked`(A-08)である。**Given** 指摘がすべて対応済みの反証の記録を渡す、**Then** `pass` である。**Given** `low` の変更と、`open` の指摘を持つ反証の記録、**Then** `blocked` である。
+6. **D8** **Given** 理由はあるが `approved_by` のない、`not_applicable` の `L2` か `L3` の検査、**Then** `blocked`(A-06)で、その検査は水準ごとの件数で `blocked` に数える。**Given** 実装担当と別の人の `approved_by`、**Then** `pass` である。**Given** `not_applicable` の `L1` の検査、**Then** 承認は要らない。
 
 ### User Story 3 - テスト結果を検証の記録へ取り込み、親スキルの手順で回す (Priority: P2)
 
@@ -75,7 +79,7 @@ spec 059 と spec 060 の用語(要求グラフ、受け入れ条件、水準 L1
 
 ## Requirements *(mandatory)*
 
-- **FR-001**: 検査器 `scripts/assure.py` は、`check MANIFEST`(検証の記録の形式の検査、規則 M-00〜M-02)、`gate GRAPH MANIFEST`(保証の判定、規則 A-01〜A-07)、`collect-junit REPORT --graph GRAPH --commit SHA --ref REF`(取り込み、規則 J-01〜J-02)の3つの動き方を持つ。欄と規則の詳細は [contracts/manifest.md](contracts/manifest.md) にある。
+- **FR-001**: 検査器 `scripts/assure.py` は、`check MANIFEST`(検証の記録の形式の検査、規則 M-00〜M-02)、`gate GRAPH MANIFEST [--report REPORT]`(保証の判定、規則 A-01〜A-08)、`collect-junit REPORT --graph GRAPH --commit SHA --ref REF`(取り込み、規則 J-01〜J-02)の3つの動き方を持つ。欄と規則の詳細は [contracts/manifest.md](contracts/manifest.md) にある。
 - **FR-002**: 判定の規則は次のとおりとする。どれか1つでも満たさなければ、D4 に従い `fail` か `blocked` とし、理由をすべて示す。
 
   | 規則 | 満たす条件 | 満たさないとき |
@@ -85,8 +89,9 @@ spec 059 と spec 060 の用語(要求グラフ、受け入れ条件、水準 L1
   | A-03 | すべての検査が `passed` か、理由のある `not_applicable` であり、検査がすべて `not_applicable` の要求がない | `failed` があれば `fail`、ほかは `blocked` |
   | A-04 | `risk.class` が `low`・`medium`・`high` のいずれかである | `blocked` |
   | A-05 | リスクにかかわらず `rejected` の承認がなく、`high` なら `implementer` と別の人の `approved` の承認が1件以上ある。名前は大文字小文字と前後の空白を区別せずに比べる | 承認がなければ `blocked`、`rejected` なら `fail` |
-  | A-06 | テストの変更(削除・スキップ・弱体化)には、`implementer` と別の人の `approved_by` がある | `blocked` |
+  | A-06 | テストの変更(削除・スキップ・弱体化)と、`not_applicable` の `L2`・`L3` の検査には、`implementer` と別の人の `approved_by` がある(D8) | `blocked` |
   | A-07 | 権限の拡大、公開範囲の拡大、資源の削除・置換を記録したなら、`risk.class` が `high` である | `blocked` |
+  | A-08 | `high` なら、要求グラフと同じ問題の反証の記録(`--report`)がある。渡した反証の記録に `open` の指摘がない(D7)。別の問題の記録は、入力を解釈できない誤り(終了コード 2)とする | `blocked` |
 
 - **FR-003**: 判定の結果は、spec 059 の出力の欄に加えて、`decision`(`pass`・`fail`・`blocked`)、`reasons`(`{rule_id, message}`)、`levels`(水準ごとの状態の件数)を持つ。終了コードは `pass` で 0、`fail` と `blocked` で 1、入力を解釈できなければ 2 とする。
 - **FR-004**: 検査器は、読み取りだけを行い、ネットワークに接続せず、入力をコードとして実行しない。XML は `<!DOCTYPE` と `<!ENTITY` を含めば読まない。入力は 5 MiB までとする。
@@ -108,7 +113,9 @@ spec 059 と spec 060 の用語(要求グラフ、受け入れ条件、水準 L1
 
 CI のジョブの結果の自動取得(GitHub の API など)、CodeQL・Dependabot・IaC の plan の解析、レビューカード(Phase 4)、比較実験(Phase 5)、承認者の本人確認。
 
-## 未決の事項(2026-11-06 のレビューによる)
+## 決定した事項(2026-11-06)
 
-- **リスクの分類による反証役の強制**: spec 060 の D7 は、反証役を起動するかをリスクの分類で強制することを本仕様(Phase 3)に残した。本仕様はそれを要求にも範囲外にも書いておらず、`medium` や `high` の変更が反証の記録なしで `pass` になる。強制するか、範囲外とするかは利用者が決める。
-- **`not_applicable` の承認**: D4 は、理由のある `not_applicable` を証拠の代わりに認める。そのため実装担当だけの判断で、親の唯一の L2 の検査を省ける(同じ要求に `passed` の L3 があれば A-03 も止めない)。スキップしたテストと同じく別の人の承認を求めるかは、利用者が決める。
+2回目のレビューで挙がった次の2つを、利用者が決めた。強制は D7、承認は D8 として本仕様に加えた。決める前の記録を残す。
+
+- **リスクの分類による反証役の強制**: spec 060 の D7 は、反証役を起動するかをリスクの分類で強制することを本仕様(Phase 3)に残した。本仕様はそれを要求にも範囲外にも書いておらず、`medium` や `high` の変更が反証の記録なしで `pass` になる。利用者は、`high` の変更で強制すると決めた(D7)。
+- **`not_applicable` の承認**: D4 は、理由のある `not_applicable` を証拠の代わりに認める。そのため実装担当だけの判断で、親の唯一の L2 の検査を省ける(同じ要求に `passed` の L3 があれば A-03 も止めない)。利用者は、`L2` と `L3` で別の人の承認を求めると決めた(D8)。

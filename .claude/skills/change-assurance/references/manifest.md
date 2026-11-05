@@ -4,12 +4,12 @@
 
 ```sh
 python3 <skill-dir>/scripts/assure.py [--format text|json] check MANIFEST
-python3 <skill-dir>/scripts/assure.py [--format text|json] gate GRAPH MANIFEST
+python3 <skill-dir>/scripts/assure.py [--format text|json] gate GRAPH MANIFEST [--report REPORT]
 python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commit SHA --ref REF [--kind ci_job|local_run]
 python3 <skill-dir>/scripts/assure.py [--format text|json] card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]
 ```
 
-Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, bad arguments) or the checker itself failed.
+Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, a challenge report for another problem, bad arguments) or the checker itself failed.
 
 ## The manifest
 
@@ -27,7 +27,7 @@ Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violat
 
 - `reviewed_commit` and every evidence `commit`: 7 to 40 lowercase hex digits and nothing else.
 - `risk.class`: `low`, `medium`, `high`, or `unclassified`. `approvals[].decision`: `approved` or `rejected`.
-- `checks[].status`: `passed`, `failed`, `not_run`, `blocked` (the evidence could not be collected), or `not_applicable` (needs a `reason`). `evidence.kind`: `ci_job`, `local_run`, `scanner`, `human_review`, or `ai_review`.
+- `checks[].status`: `passed`, `failed`, `not_run`, `blocked` (the evidence could not be collected), or `not_applicable` (needs a `reason`; an `L2` or `L3` check also needs `approved_by`, someone other than the implementer who agreed that it does not apply). `evidence.kind`: `ci_job`, `local_run`, `scanner`, `human_review`, or `ai_review`.
 - `test_changes[].change`: `deleted`, `skipped`, or `weakened`. `infra_changes[].kind`: `permission_expansion`, `public_exposure`, `resource_deletion`, or `resource_replacement`.
 
 | Rule | Passes when |
@@ -38,7 +38,7 @@ Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violat
 
 ## The gate
 
-`gate GRAPH MANIFEST` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused as `blocked`. Manifest violations (M-xx) also block. With `--format json` the result also has `checks`: for every acceptance criterion, its `check_id`, `level`, `requirement`, the status the gate used, and the recorded `evidence` object (or `null`).
+`gate GRAPH MANIFEST` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused, and an `L2` or `L3` check marked `not_applicable` without the approval A-06 needs, as `blocked`. Manifest violations (M-xx) also block. With `--format json` the result also has `checks`: for every acceptance criterion, its `check_id`, `level`, `requirement`, the status the gate used, and the recorded `evidence` object (or `null`).
 
 | Rule | Holds when |
 |---|---|
@@ -47,16 +47,19 @@ Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violat
 | A-03 | every check is `passed` or `not_applicable` with a reason, and no requirement has only `not_applicable` checks |
 | A-04 | the risk is `low`, `medium`, or `high` |
 | A-05 | no approval is `rejected` (at any risk), and a `high` change has an `approved` approval by someone other than the implementer |
-| A-06 | every test change is approved by someone other than the implementer |
+| A-06 | every test change, and every `L2` or `L3` check marked `not_applicable`, is approved (`approved_by`) by someone other than the implementer |
 | A-07 | a change with infrastructure changes is `high` |
+| A-08 | a `high` change comes with the challenge report for its problem (`--report`), and no finding of the given report is `open` |
 
 Names are compared ignoring case and surrounding spaces, so `Claude` and ` claude ` are the same person as `claude`.
 
 The graph is read only for its problem id and its acceptance criteria; an acceptance id used by two criteria is refused (exit 2), so a leaf's check cannot stand for a parent's own check. Check the graph's structure with its own checker before this gate.
 
+`--report` takes the challenge report written in the decomposition step (`goal-refinement`), in which the challenger's findings are answered. The gate reads only its problem id, which must be the graph's (otherwise exit 2), and which findings are `open`; check the report's own format with `goal-refinement`'s checker first. A `high` change without a report is `blocked`, so run the challenger for every high-risk change.
+
 ## Review card
 
-`card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]` prints a Markdown review card and exits like the gate. It reads each file once, runs the gate on that content, and shows its decision, its counts per level, and its reasons. It refuses (exit 2) a problem card that is not `verified`, and a problem card or challenge report for another problem than the graph and the manifest; an `open` finding in the challenge report turns a `pass` into `blocked`, as in the decomposition gate; otherwise it never decides on its own. With `--format json` it prints `{output_version, input_file, decision, markdown}`. In order, it shows: the decision (✅ only on `pass`), the problem (current, ideal, gap), the change and its risk, the checks by level, every check that did not pass, the unresolved items (gate reasons and open findings of the challenge report), what a person has to decide, a Mermaid diagram of the decomposition three levels deep with each requirement drawn once (deeper requirements are listed; a requirement's colour covers its own checks and everything below it, and one with only `not_applicable` checks is not green), and the evidence of every check. All input text is treated as untrusted: Markdown emphasis, code, heading, and link characters, HTML angle brackets, and control characters are escaped, the decision marks are replaced by words everywhere (in code, tables, and the diagram too), a URL, a `www.` host, or an e-mail address inside text is shown as code, and an evidence reference becomes a link only when it is a plain `http` or `https` URL.
+`card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]` prints a Markdown review card and exits like the gate. It reads each file once, runs the gate on that content, and shows its decision, its counts per level, and its reasons. It refuses (exit 2) a problem card that is not `verified`, and a problem card or challenge report for another problem than the graph and the manifest. The challenge report goes to the gate, so a `high` change without one, or an `open` finding in it, is `blocked` by A-08; otherwise the card never decides on its own. With `--format json` it prints `{output_version, input_file, decision, markdown}`. In order, it shows: the decision (✅ only on `pass`), the problem (current, ideal, gap), the change and its risk, the checks by level, every check that did not pass, the unresolved items (gate reasons and open findings of the challenge report), what a person has to decide, a Mermaid diagram of the decomposition three levels deep with each requirement drawn once (deeper requirements are listed; a requirement's colour covers its own checks and everything below it, and one with only `not_applicable` checks is not green), and the evidence of every check. All input text is treated as untrusted: Markdown emphasis, code, heading, and link characters, HTML angle brackets, and control characters are escaped, the decision marks are replaced by words everywhere (in code, tables, and the diagram too), a URL, a `www.` host, or an e-mail address inside text is shown as code, and an evidence reference becomes a link only when it is a plain `http` or `https` URL.
 
 ## JUnit XML
 

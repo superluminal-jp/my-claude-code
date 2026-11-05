@@ -59,9 +59,10 @@ projects while preserving unrelated user files.
   which commit with what result, and runs a bundled checker whose gate answers
   pass, fail, or blocked — never building a parent's pass from its children's,
   never counting stale evidence or an AI's claim, and stopping on unclassified
-  risk or a missing approval — and prints a one-screen review card for the
-  person who decides, plus a preregistered pilot decision on whether it cuts
-  review time without losing quality; [spec 061](specs/061-change-assurance/spec.md),
+  risk, a missing approval, or a high-risk change without a challenge report —
+  and prints a one-screen review card for the person who decides, plus a
+  preregistered pilot decision on whether it cuts review time without losing
+  quality; [spec 061](specs/061-change-assurance/spec.md),
   [spec 062](specs/062-review-card/spec.md), [spec 063](specs/063-pilot-metrics/spec.md)),
   `product-strategy` (vision, target users,
   value proposition, success metrics, and MoSCoW-prioritized scope, framed
