@@ -22,12 +22,14 @@ Terms used below:
   allows one level only: a child skill may not list children of its own.
 - **Levels L1, L2, L3**: what an acceptance criterion verifies. L1 checks a
   single leaf requirement, L2 checks a parent by integrating its children,
-  and L3 checks the whole system.
-- **Phases**: spec 059 is Phase 1 of five. Phase 2 adds problem definition and
-  decomposition skills, Phase 3 independent verification at every level with
-  recorded evidence (which test ran on which commit, with what result),
-  Phase 4 a review card for the human decision, and Phase 5 a comparison
-  experiment of review time and quality.
+  and L3 checks the whole software system that the requirements belong to.
+- **Phases**: spec 059 is Phase 1 of five, all about reviewing code changes
+  that an AI made. Phase 2 adds skills that define the problem and decompose
+  it; Phase 3 verifies each AI-made change at the L1, L2, and L3 levels and
+  records the evidence (which test ran on which commit, with what result);
+  Phase 4 adds a one-screen summary a person reads to accept or return the
+  change; Phase 5 compares reviewer time and missed defects between the
+  current review and the new one. Only Phase 1 exists.
 
 ## Purpose, who runs it, and where it is distributed
 
@@ -70,7 +72,10 @@ every field and the rule a missing or wrong field breaks.
   and, on an OR node only, `selection` (a condition for every child).
 - **Skill node**: `id`, `permission` (`read_only`, `workspace_write`, or
   `external_effect`), `role` (`orchestrator`, `worker`, `auditor`, or
-  `checker`), and optionally `children`.
+  `checker`), and optionally `children`. An `orchestrator` applies its
+  children in a set order, a `worker` does the task, an `auditor` is an AI
+  reviewer kept independent of whoever made the change, and a `checker` is a
+  deterministic program such as this one.
 
 ## Rules
 
@@ -85,7 +90,7 @@ means `--skills-dir`, and *all* means every input.
 | S-02 | all | every child is defined (a `SKILL.md` exists in compatibility mode) and listed once |
 | S-03 | all | following children never returns to a node; a violation shows the cycle |
 | S-04 | requirements | `LEAF` has no child; `AND` and `OR` have at least two |
-| S-05 | requirements | an `OR` gives a non-empty condition for every child and names no other id; other nodes have no `selection` |
+| S-05 | requirements | an `OR` gives a non-empty condition for every child and names no id that is not its child; other nodes have no `selection` |
 | S-06 | requirements | every node has at least one acceptance criterion |
 | S-07 | requirements | acceptance ids are non-empty and unique across the graph; levels are `L1`–`L3` |
 | S-08 | all | a child with several parents is legal (never reported) |
@@ -124,9 +129,13 @@ bash tests/run-refinement-checker.sh
 ```
 
 It runs the acceptance tests in [`tests/`](tests/), checks both examples, and
-reads this repository's `.claude/skills/` in compatibility mode. Four tests
-that need Phase 3's evidence records are printed as `NOT RUN` and never
-counted as passed: T-04 (a failed parent check keeps the change incomplete),
-T-05 (a completion claim without evidence is not accepted), T-06 (evidence for
-another commit is rejected as stale), and T-10 (an unknown risk class stops
-the flow instead of counting as low risk).
+reads this repository's `.claude/skills/` in compatibility mode.
+
+It also prints four `NOT RUN` lines and never counts them as passed. They are
+tests for the Phase 3 verification of AI-made changes, not for
+`check_graph.py`, and are listed so that they stay visible until Phase 3
+builds them: T-04 (when a parent's L2 check fails, the change is not
+complete), T-05 (an AI's report that a change is done, with no evidence, is
+not accepted), T-06 (evidence recorded for another commit is rejected as
+stale), and T-10 (a change whose risk class, low, medium, or high, cannot be
+decided stops for a person instead of being treated as low risk).

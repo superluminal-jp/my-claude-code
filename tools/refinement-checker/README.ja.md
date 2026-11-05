@@ -8,8 +8,8 @@ English: [README.md](README.md)
 
 - **スキル**: Claude Code のスキル。`SKILL.md` という手順書を持つディレクトリで、作業に関係するときに Claude が読み込む。このリポジトリのスキルは `.claude/skills/` にある。
 - **spec 058**: [`specs/058-parent-skill-references/spec.md`](../../specs/058-parent-skill-references/spec.md)。親スキルが `SKILL.md` の「`## Child skills`」節に、順に適用するスキルを1行に1つ「- `名前`」の形で挙げられると定め、一段だけを許す(子スキルは自分の子を挙げられない)。
-- **水準 L1、L2、L3**: 受け入れ条件が何を検証するか。L1 は1つの葉の要求、L2 は子を統合した親の要求、L3 はシステム全体を検証する。
-- **Phase**: spec 059 は5段階の Phase 1 である。Phase 2 は問題定義と分解のスキル、Phase 3 は各層の独立した検証と証拠の記録(どのテストがどのコミットでどう終わったか)、Phase 4 は人の判断のためのレビューカード、Phase 5 はレビュー時間と品質の比較実験を扱う。
+- **水準 L1、L2、L3**: 受け入れ条件が何を検証するか。L1 は1つの葉の要求、L2 は子を統合した親の要求、L3 は要求が属するソフトウェアのシステム全体を検証する。
+- **Phase**: spec 059 は、AI が作ったコードの変更をレビューするための5段階の Phase 1 である。Phase 2 は問題を定義し分解するスキルを加える。Phase 3 は AI が作った各変更を L1・L2・L3 の水準で検証し、証拠(どのテストがどのコミットでどう終わったか)を記録する。Phase 4 は、人が変更を受け入れるか差し戻すかを決めるために読む1画面の要約を加える。Phase 5 は、現在のレビューと新しいレビューの間で、レビューする人の時間と見逃した欠陥を比べる。存在するのは Phase 1 だけである。
 
 ## 用途、実行主体、配布先
 
@@ -34,7 +34,7 @@ python3 tools/refinement-checker/check_graph.py --skills-dir .claude/skills
 宣言ファイルは `"schema_version": 1` と、`requirements` か `skills` のちょうど一方(ノードの配列)を持つ。それぞれの例は [`examples/`](examples/) にある。欄ごとの型と、欄がないときや誤っているときに破る規則は[データモデル](../../specs/059-refinement-graph-checker/data-model.md)にある。
 
 - **要求のノード**: `id`、`statement`、`decomposition`(`AND`、`OR`、`LEAF`)、`acceptance`(1件以上の `{id, description, level}`。水準は `L1`、`L2`、`L3`)。任意で `children`、`assumptions`、`counterexamples`、OR だけの `selection`(すべての子の条件)。
-- **スキルのノード**: `id`、`permission`(`read_only`、`workspace_write`、`external_effect`)、`role`(`orchestrator`、`worker`、`auditor`、`checker`)。任意で `children`。
+- **スキルのノード**: `id`、`permission`(`read_only`、`workspace_write`、`external_effect`)、`role`(`orchestrator`、`worker`、`auditor`、`checker`)。任意で `children`。`orchestrator` は子を決まった順に適用し、`worker` は作業を行い、`auditor` は変更を作った者から独立した AI のレビュー役であり、`checker` はこの検査器のような決定論的なプログラムである。
 
 ## 規則
 
@@ -47,7 +47,7 @@ python3 tools/refinement-checker/check_graph.py --skills-dir .claude/skills
 | S-02 | すべて | 子が定義されており(互換モードでは `SKILL.md` があり)、一度だけ挙げられる |
 | S-03 | すべて | 子をたどって元のノードに戻らない。違反は循環を示す |
 | S-04 | 要求 | `LEAF` は子を持たず、`AND` と `OR` は2件以上の子を持つ |
-| S-05 | 要求 | `OR` がすべての子に空でない条件を与え、子でない ID を挙げない。ほかのノードは `selection` を持たない |
+| S-05 | 要求 | `OR` がすべての子に空でない条件を与え、自分の子でない ID を挙げない。ほかのノードは `selection` を持たない |
 | S-06 | 要求 | すべてのノードが1件以上の受け入れ条件を持つ |
 | S-07 | 要求 | 受け入れ条件の ID が空でなくグラフ全体で一意で、水準が `L1`〜`L3` である |
 | S-08 | すべて | 複数の親を持つ子は合格する(報告しない) |
@@ -76,4 +76,4 @@ python3 tools/refinement-checker/check_graph.py --skills-dir .claude/skills
 bash tests/run-refinement-checker.sh
 ```
 
-[`tests/`](tests/) の受け入れテストを実行し、2つの例を検査し、このリポジトリの `.claude/skills/` を互換モードで読む。Phase 3 の証拠の記録を要する4つのテストは `NOT RUN` と表示し、合格の件数に数えない。T-04(親の検証が失敗すれば変更を完了としない)、T-05(証拠のない完了の報告を受け入れない)、T-06(別のコミットの証拠を古い証拠として拒否する)、T-10(不明なリスクの分類を低リスクとみなさず停止する)である。
+[`tests/`](tests/) の受け入れテストを実行し、2つの例を検査し、このリポジトリの `.claude/skills/` を互換モードで読む。あわせて4行の `NOT RUN` を表示し、合格の件数に数えない。これらは `check_graph.py` のテストではなく、AI が作った変更を検証する Phase 3 のテストであり、Phase 3 で作るまで見えるように挙げている。T-04(親の L2 の検証が失敗すれば、変更を完了としない)、T-05(証拠のない AI の「完了」の報告を受け入れない)、T-06(別のコミットに対して記録された証拠を古い証拠として拒否する)、T-10(リスクの分類、すなわち低・中・高を決められない変更は、低リスクとみなさず人の判断のために止める)である。
