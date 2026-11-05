@@ -194,5 +194,72 @@ class CollectTests(AssuranceTestCase):
         self.assertIn("DOCTYPE", proc.stderr)
 
 
+class ReviewFindingTests(AssuranceTestCase):
+    """Regressions for review findings: the gate must not pass without evidence."""
+
+    def test_graph_without_criteria_blocks(self):
+        graph = {"schema_version": 2, "problem_id": "PRB-001", "requirements": []}
+        self.gate("blocked", {"A-01"}, self.manifest(lambda m: m.update(checks=[])), graph=self.write("g.json", graph))
+
+    def test_requirement_without_any_passed_check_blocks(self):
+        def all_not_applicable(m):
+            for entry in m["checks"]:
+                entry.update(status="not_applicable", reason="n/a")
+                entry.pop("evidence")
+        self.gate("blocked", {"A-03"}, self.manifest(all_not_applicable))
+
+    def test_rejected_approval_fails_at_any_risk(self):
+        self.gate("fail", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "medium"}),
+                  m["approvals"].append({"by": "owner-a", "decision": "rejected", "scope": "all"}))))
+
+    def test_commit_with_a_trailing_newline_is_not_a_commit(self):
+        def change(m):
+            m["reviewed_commit"] = SHA + "\n"
+            for entry in m["checks"]:
+                entry["evidence"]["commit"] = SHA + "\n"
+        proc = run("check", self.manifest(change))
+        self.assertIn("M-00", {v["rule_id"] for v in json.loads(proc.stdout)["violations"]})
+
+    def test_self_approval_with_other_case_or_spaces_is_not_independent(self):
+        for name in ("Claude", " claude ", "CLAUDE"):
+            with self.subTest(name):
+                self.gate("blocked", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "high"}),
+                          m["approvals"].append({"by": name, "decision": "approved", "scope": "all"}))))
+
+    def test_format_after_the_subcommand_works(self):
+        proc = subprocess.run([sys.executable, "-B", str(CHECKER), "check", self.manifest(), "--format", "json"],
+                              capture_output=True, text=True, timeout=60)
+        self.assertEqual((proc.returncode, json.loads(proc.stdout)["status"]), (0, "passed"))
+
+    def test_text_gate_output_lists_a_manifest_violation_once(self):
+        proc = run("gate", str(FIXTURES / "graph.json"), self.manifest(lambda m: check(m, "TEST-LEAF-001").pop("evidence")),
+                   output_format="text")
+        self.assertEqual(proc.stdout.count("a passed check needs evidence"), 1, proc.stdout)
+
+
+class CollectReviewFindingTests(CollectTests):
+    def report(self, cases: str) -> str:
+        return self.write("r.xml", f'<?xml version="1.0"?>\n<testsuites><testsuite name="s">{cases}</testsuite></testsuites>\n')
+
+    def statuses(self, report: str) -> dict:
+        proc = self.collect(report)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return {c["check_id"]: c for c in json.loads(proc.stdout)}
+
+    def test_doctype_text_inside_cdata_is_accepted(self):
+        cases = '<testcase classname="t" name="a[TEST-LEAF-001]"><system-out><![CDATA[<!DOCTYPE html><html></html>]]></system-out></testcase>'
+        self.assertEqual(self.statuses(self.report(cases))["TEST-LEAF-001"]["status"], "passed")
+
+    def test_passed_and_skipped_mix_is_not_run_with_an_accurate_reason(self):
+        cases = '<testcase classname="t" name="a[TEST-LEAF-001]"/><testcase classname="t" name="b[TEST-LEAF-001]"><skipped/></testcase>'
+        entry = self.statuses(self.report(cases))["TEST-LEAF-001"]
+        self.assertEqual(entry["status"], "not_run")
+        self.assertIn("1 passed, 1 skipped", entry["reason"])
+
+    def test_id_inside_a_dotted_longer_id_does_not_count(self):
+        cases = '<testcase classname="t" name="c[TEST-LEAF-003.extra]"/>'
+        self.assertEqual(self.statuses(self.report(cases))["TEST-LEAF-003"]["status"], "not_run")
+
+
 if __name__ == "__main__":
     unittest.main()
