@@ -74,7 +74,7 @@ tools/refinement-checker/
 └── tests/
     ├── test_check_graph.py      # 受け入れテスト(サブプロセスで起動)
     └── fixtures/
-        ├── requirements/*.json  # P1-01〜P1-10 の正例と負例
+        ├── requirements/*.json  # User Story 1 のシナリオ1〜14の正例と負例
         └── skills/*.json        # User Story 2 の正例と負例
 
 tests/run-refinement-checker.sh  # 上のテスト・例・互換モードの検査をまとめて実行

@@ -29,7 +29,7 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 
 **Independent Test**: 下の T005 の正例と負例を検査器にかけ、終了コードと規則 ID を確かめる。
 
-- [ ] T005 [P] [US1] 要求の論理グラフの正例と負例を `tools/refinement-checker/tests/fixtures/requirements/` に JSON で作る。各負例は、期待する違反の1つだけを含み、ほかは正しい(根は1つ、すべてのノードに受け入れ条件がある)。対象は spec の User Story 1 のシナリオ1〜14(P1-01〜P1-08、P1-10 を含む)である。シナリオ15の10,000ノードの直鎖と100,000段の入れ子は、テストの中で生成する
+- [ ] T005 [P] [US1] 要求の論理グラフの正例と負例を `tools/refinement-checker/tests/fixtures/requirements/` に JSON で作る。各負例は、期待する違反の1つだけを含み、ほかは正しい(根は1つ、すべてのノードに受け入れ条件がある)。対象は spec の User Story 1 のシナリオ1〜14(P1-01〜P1-08、P1-10 を含む)である。シナリオ15の10,000ノードの直鎖と100,000段の入れ子は、テストの中で生成する。ファイル名は `p1-NN-<内容>.json`(引き継ぎ書の番号があるもの、例 `p1-03-cycle.json`)か `us1-NN-<内容>.json`(本仕様で加えたシナリオ)とし、正例は `valid-<内容>.json` とする
 - [ ] T006 [US1] 受け入れテストに、User Story 1 のシナリオ1〜15を1つずつ確かめるテストを書く。終了コード 2 を期待するテストは、JSON の `status` が `error` で `error` が空でないことも確かめる(research.md の R7)
 - [ ] T007 [US1] まとめの検査スクリプトを実行し、検査器がないために T006 のテストがすべて失敗することを記録する(Red)
 - [ ] T008 [US1] 検査器に、入力の読み込み(5 MiB の上限、UTF-8、重複キーの拒否、深い入れ子の拒否、最上位の検査、終了コード 2)、要求のノードの読み取り(data-model.md の §1・§2 の表のとおり、欄がないときはその欄の規則の違反)、S-01〜S-08 と S-11 の判定、違反の並べ替え(research.md の R4)、JSON と人が読む形式の出力(contracts/cli.md)を実装する。循環は反復の深さ優先探索で見つけ、宣言の順で最も早いノードから始まるように経路を回転させる(R3)
@@ -65,8 +65,8 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 - [ ] T021 `.github/workflows/ci.yml` のジョブ `test` に、`bash tests/run-refinement-checker.sh` のステップを加える(spec の D9、SC-004)
 - [ ] T022 [P] 検査器の README を `tools/refinement-checker/README.md`(英語)と `tools/refinement-checker/README.ja.md`(日本語)に書く。同じ見出しの構成で、用途、実行主体、配布先、使い方、宣言の形式、規則、終了コード、限界を書く(spec の FR-011)
 - [ ] T023 `README.md` と `README.ja.md` の「What this provides」、ファイル構成の図、「Verification」、「Repository security automation」(CI の検査スクリプトの数を6から7に)の節を、変更後の内容に合わせる
-- [ ] T024 ネットワークを使わないローカルの検査をすべて実行し、spec の SC-002 の件数と比べる(P1-12)
-- [ ] T025 変更の差分を `/code-review` でレビューし、確かめた指摘を直す。指摘と対応を本ファイルに記録する
+- [ ] T024 ネットワークを使わないローカルの検査をすべて実行し、spec の SC-002 の件数と比べる(P1-12)。あわせて `git diff --stat origin/main -- .claude install.sh tests/run-config-pyramid.sh` が空であることを確かめる(FR-012)
+- [ ] T025 変更の差分を `/code-review` でレビューし、確かめた指摘を直す。指摘と対応を本ファイルに記録する。あわせて、検査器がファイルを開く呼び出しが読み取りだけで、ネットワーク・サブプロセス・動的なコードの評価(`eval`、`exec`、`pickle` など)を使わないことを、コードを読んで確かめる(FR-007)
 - [ ] T026 README と PR に使う説明を、会話を見ていないサブエージェントに読ませ、指す先の分からない語を直す
 
 ## Dependencies & Execution Order
