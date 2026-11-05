@@ -22,6 +22,7 @@ import sys
 import traceback
 import unicodedata
 import xml.etree.ElementTree as ElementTree
+import xml.parsers.expat as expat
 from typing import Any, Dict, List, NoReturn, Optional, Sequence, Tuple
 
 OUTPUT_VERSION = 1
@@ -168,6 +169,7 @@ def graph_parts(document: Any) -> Tuple[str, List[Tuple[str, str, str]]]:
     if not isinstance(nodes, list):
         raise InputError("the requirements graph has no requirements array")
     criteria: List[Tuple[str, str, str]] = []
+    owners: Dict[str, str] = {}
     for node in nodes:
         entries = node.get("acceptance") if isinstance(node, dict) else None
         if not isinstance(entries, list):
@@ -175,6 +177,11 @@ def graph_parts(document: Any) -> Tuple[str, List[Tuple[str, str, str]]]:
         for entry in entries:
             if not isinstance(entry, dict) or not is_text(entry.get("id")) or entry.get("level") not in LEVELS:
                 raise InputError("every acceptance criterion needs an id and a level; check the graph with its own checker first")
+            # One check answers one criterion: a reused id would let a leaf's
+            # check stand for a parent's own check.
+            if entry["id"] in owners:
+                raise InputError(f"acceptance id {show(entry['id'])} is used by more than one criterion; check the graph with its own checker first")
+            owners[entry["id"]] = str(node.get("id"))
             criteria.append((entry["id"], entry["level"], str(node.get("id"))))
     return document["problem_id"], criteria
 
@@ -210,6 +217,11 @@ def _check_list(body: Dict[str, Any], name: str, fields: Dict[str, Tuple[Any, bo
         if ok:
             good.append(entry)
     return good
+
+
+def valid_evidence(evidence: Any) -> bool:
+    return (isinstance(evidence, dict) and set(evidence) == EVIDENCE_FIELDS and evidence.get("kind") in EVIDENCE_KINDS
+            and all(isinstance(evidence.get(k), str) for k in ("ref", "commit")) and bool(COMMIT.fullmatch(evidence["commit"])))
 
 
 def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -253,14 +265,7 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
             report.add("M-00", position, node, f"status must be one of {', '.join(STATUSES)} (got {show(status)})")
         if "reason" in entry and not isinstance(entry["reason"], str):
             report.add("M-00", position, node, "reason must be a string")
-        evidence = entry.get("evidence")
-        if "evidence" in entry and (
-            not isinstance(evidence, dict)
-            or set(evidence) != EVIDENCE_FIELDS
-            or evidence.get("kind") not in EVIDENCE_KINDS
-            or not all(isinstance(evidence.get(k), str) for k in ("ref", "commit"))
-            or not COMMIT.fullmatch(evidence["commit"])
-        ):
+        if "evidence" in entry and not valid_evidence(entry["evidence"]):
             report.add("M-00", position, node, "evidence must be {kind, ref, commit} with a defined kind and a commit SHA")
         if status == "passed" and "evidence" not in entry:
             report.add("M-02", position, node, "a passed check needs evidence")
@@ -312,7 +317,7 @@ def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: D
             evidence = entry.get("evidence") if isinstance(entry.get("evidence"), dict) else None
             effective = status if status in STATUSES else "blocked"
             if status == "passed":
-                if evidence is None:
+                if evidence is None or not valid_evidence(evidence):
                     effective = "blocked"  # reported by M-02 or M-00
                 elif evidence.get("kind") == "ai_review":
                     effective = "blocked"
@@ -322,7 +327,14 @@ def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: D
                     block("A-02", f"{show(criterion)} has evidence with no reference")
                 elif evidence.get("commit") != reviewed:
                     effective = "blocked"
-                    block("A-02", f"{show(criterion)} has stale evidence for commit {show(evidence.get('commit'))}")
+                    commit = evidence.get("commit")
+                    if isinstance(reviewed, str) and (reviewed.startswith(commit) or commit.startswith(reviewed)):
+                        # A short prefix is not compared as a match: a commit
+                        # with the same first digits can be made on purpose.
+                        block("A-02", f"{show(criterion)} has evidence for commit {show(commit)}, written at another length "
+                                      f"than reviewed_commit {show(reviewed)}; write both as the full SHA")
+                    else:
+                        block("A-02", f"{show(criterion)} has stale evidence for commit {show(commit)}")
             elif status == "failed":
                 reasons.append(("A-03", "fail", f"{show(criterion)} ({level}) failed"))
             elif status in ("not_run", "blocked"):
@@ -355,7 +367,7 @@ def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: D
             block("A-06", f"the {show(change.get('change'))} test {show(change.get('path'))} has no approval by someone other than the implementer")
     infra = body.get("infra_changes") if isinstance(body.get("infra_changes"), list) else []
     if infra and risk_class != "high":
-        kinds = sorted({str(c.get("kind")) for c in infra if isinstance(c, dict)})
+        kinds = sorted({show(c.get("kind")) for c in infra if isinstance(c, dict)})
         block("A-07", f"infrastructure changes ({', '.join(kinds)}) make this a high-risk change; escalate the risk class")
 
     decision = "fail" if any(effect == "fail" for _, effect, _ in reasons) else ("blocked" if reasons else "pass")
@@ -373,6 +385,22 @@ def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: D
 # --- JUnit XML (J-01, J-02) ------------------------------------------------------
 
 
+def refuse_declarations(text: str) -> None:
+    """J-01: refuses a document type declaration, so no entity can be defined
+    or expanded. The XML parser itself finds the declaration, so text in a
+    comment, an instruction, or CDATA is not mistaken for one or hides one."""
+    def refuse(*_: Any) -> NoReturn:
+        raise InputError("the JUnit report has a DOCTYPE or ENTITY declaration, which is refused")
+
+    parser = expat.ParserCreate()
+    parser.StartDoctypeDeclHandler = refuse
+    parser.EntityDeclHandler = refuse
+    try:
+        parser.Parse(text, True)
+    except expat.ExpatError as exc:
+        raise InputError(f"the JUnit report is not well-formed XML: {exc}") from None
+
+
 def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind: str) -> List[Dict[str, Any]]:
     if not COMMIT.fullmatch(commit):
         raise InputError("--commit must be a commit SHA (7 to 40 lowercase hex digits)")
@@ -380,13 +408,7 @@ def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind
         raise InputError("--ref must not be empty")
     _, criteria = load_graph(graph_path)
     text = read_text(report_path, "the JUnit report")
-    # Refuse a document type declaration in the prolog, so no entity can be
-    # defined or expanded (J-01). Text such as CDATA after the root element
-    # starts is not a declaration.
-    root_start = re.search(r"<(?![?!])", text)
-    prolog = text[: root_start.start()] if root_start else text
-    if re.search(r"<!(DOCTYPE|ENTITY)", prolog, re.IGNORECASE):
-        raise InputError("the JUnit report has a DOCTYPE or ENTITY declaration, which is refused")
+    refuse_declarations(text)
     try:
         root = ElementTree.fromstring(text)
     except ElementTree.ParseError as exc:
@@ -455,14 +477,20 @@ MAX_DEPTH = 3  # levels drawn in the overview; deeper requirements are listed
 
 
 MARK_WORDS = {"✅": "(check mark)", "❌": "(cross mark)", "⛔": "(no-entry mark)"}
-URL_IN_TEXT = re.compile(r"https?://[^\s|]+")
+# What GitHub-Flavored Markdown turns into a link without brackets: URLs,
+# www. hosts, and e-mail addresses (its extended autolinks).
+URL_IN_TEXT = re.compile(r"https?://[^\s|]+|www\.[^\s|]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+")
 MARKDOWN_SPECIALS = ("|", "<", ">", "[", "]", "*", "_", "`", "#", "~")
 
 
-def _plain(text: str) -> str:
+def _no_marks(text: str) -> str:
     for mark, word in MARK_WORDS.items():
         text = text.replace(mark, word)
-    out = escape_unsafe(text)
+    return text
+
+
+def _plain(text: str) -> str:
+    out = escape_unsafe(_no_marks(text))
     for char in MARKDOWN_SPECIALS:
         out = out.replace(char, {"<": "&lt;", ">": "&gt;"}.get(char, "\\" + char))
     return out
@@ -482,7 +510,7 @@ def md(text: Any) -> str:
 
 def code(text: Any) -> str:
     """Untrusted text as a code span outside a table."""
-    value = escape_unsafe(str(text)).replace("`", "'")
+    value = escape_unsafe(_no_marks(str(text))).replace("`", "'")
     return f"`{value}`" if value else "—"
 
 
@@ -492,7 +520,7 @@ def cell_code(text: Any) -> str:
 
 
 def mermaid_text(text: Any) -> str:
-    out = escape_unsafe(str(text))
+    out = escape_unsafe(_no_marks(str(text)))
     for raw, safe in (('"', "#quot;"), ("<", "#lt;"), (">", "#gt;")):
         out = out.replace(raw, safe)
     return out
@@ -515,7 +543,7 @@ def graph_nodes(document: Any) -> List[Dict[str, Any]]:
     return nodes
 
 
-def load_open_findings(path: Optional[str]) -> List[Dict[str, Any]]:
+def load_open_findings(path: Optional[str], problem_id: str) -> List[Dict[str, Any]]:
     if path is None:
         return []
     document = load_json(path, "the challenge report")
@@ -523,6 +551,9 @@ def load_open_findings(path: Optional[str]) -> List[Dict[str, Any]]:
     findings = report.get("findings") if isinstance(report, dict) else None
     if not isinstance(findings, list):
         raise InputError("the challenge report must have challenge_report with a findings array")
+    if report.get("problem_id") != problem_id:
+        # Another problem's report would hide this problem's open findings.
+        raise InputError(f"the challenge report is for problem {show(report.get('problem_id'))}, not {show(problem_id)}")
     return [f for f in findings if isinstance(f, dict) and f.get("disposition") == "open"]
 
 
@@ -662,7 +693,7 @@ def run_card(problem: str, graph: str, manifest: str, report: Optional[str], lan
     if card.get("status") != "verified":
         raise InputError(f"the problem card is {show(card.get('status'))}, not verified; decompose and gate it first")
     gate = evaluate_gate(problem_id, criteria, body)
-    findings = load_open_findings(report)
+    findings = load_open_findings(report, problem_id)
     if findings and gate["decision"] == "pass":
         # An unanswered objection keeps the change from passing, as in the
         # decomposition gate.

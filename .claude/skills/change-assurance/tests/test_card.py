@@ -40,6 +40,16 @@ class CardTestCase(unittest.TestCase):
             args += ["--report", self.write("report.json", report)]
         return subprocess.run(args, capture_output=True, text=True, timeout=60)
 
+    def problem(self, **changes) -> str:
+        doc = load("problem-card.json")
+        doc["problem_card"].update(changes)
+        return self.write("problem.json", doc)
+
+    def run_card(self, problem: str, *extra: str, manifest: dict | None = None) -> subprocess.CompletedProcess:
+        return subprocess.run([sys.executable, "-B", str(CHECKER), "card", "--problem", problem, "--graph", str(FIXTURES / "graph.json"),
+                               "--manifest", self.write("m.json", manifest or load("manifest-pass.json")), *extra],
+                              capture_output=True, text=True, timeout=60)
+
 
 def check(m: dict, check_id: str) -> dict:
     return next(c for c in m["checks"] if c["check_id"] == check_id)
@@ -149,16 +159,6 @@ class TraceTests(CardTestCase):
 class CardReviewFindingTests(CardTestCase):
     """Regressions for review findings on the card."""
 
-    def problem(self, **changes) -> str:
-        doc = load("problem-card.json")
-        doc["problem_card"].update(changes)
-        return self.write("problem.json", doc)
-
-    def run_card(self, problem: str, *extra: str, manifest: dict | None = None) -> subprocess.CompletedProcess:
-        return subprocess.run([sys.executable, "-B", str(CHECKER), "card", "--problem", problem, "--graph", str(FIXTURES / "graph.json"),
-                               "--manifest", self.write("m.json", manifest or load("manifest-pass.json")), *extra],
-                              capture_output=True, text=True, timeout=60)
-
     def test_problem_card_for_another_problem_or_unverified_is_refused(self):
         self.assertEqual(self.run_card(self.problem(id="PRB-999")).returncode, 2)
         self.assertEqual(self.run_card(self.problem(status="unverified")).returncode, 2)
@@ -215,6 +215,45 @@ class CardReviewFindingTests(CardTestCase):
         out = self.card(graph={"schema_version": 2, "problem_id": "PRB-001", "requirements": nodes}, manifest=manifest).stdout
         for nid in ("R", "Y", "Z"):
             self.assertIn(f'["{nid} · AND · fail"]', out)
+
+
+class CardSecondReviewTests(CardTestCase):
+    """Regressions for the second review of the stacked pull requests."""
+
+    def report(self, problem_id: str) -> dict:
+        return {"schema_version": 1, "challenge_report": {"problem_id": problem_id, "reviewer": "r", "context_given": ["x"],
+                "findings": [{"id": "CH-01", "kind": "counterexample", "target": "REQ-ROOT", "severity": "high",
+                              "statement": "s", "disposition": "accepted", "reason": "fixed"}]}}
+
+    def test_no_pass_mark_comes_from_a_url_an_id_or_a_reference(self):
+        graph = load("graph.json")
+        graph["requirements"][0]["children"] = ["REQ-READ", "REQ-✅"]
+        graph["requirements"][2]["id"] = "REQ-✅"
+        manifest = load("manifest-pass.json")
+        check(manifest["verification_manifest"], "TEST-LEAF-003").update(status="failed")
+        check(manifest["verification_manifest"], "TEST-LEAF-001")["evidence"]["ref"] = "job ✅ pass"
+        proc = subprocess.run([sys.executable, "-B", str(CHECKER), "card", "--problem", self.problem(gap="see https://x.example/✅pass"),
+                               "--graph", self.write("g.json", graph), "--manifest", self.write("m.json", manifest)],
+                              capture_output=True, text=True, timeout=60)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertNotIn("✅", proc.stdout)
+
+    def test_a_challenge_report_for_another_problem_is_refused(self):
+        proc = self.run_card(str(FIXTURES / "problem-card.json"), "--report", self.write("r.json", self.report("PRB-999")))
+        self.assertEqual(proc.returncode, 2, proc.stdout)
+        self.assertEqual(self.run_card(str(FIXTURES / "problem-card.json"), "--report", self.write("r.json", self.report("PRB-001"))).returncode, 0)
+
+    def test_www_hosts_and_email_addresses_are_code_not_links(self):
+        out = self.run_card(self.problem(current="see www.evil.example/login or write to me@evil.example")).stdout
+        problem = out.split("## Problem", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("`www.evil.example/login`", problem)
+        self.assertIn("`me@evil.example`", problem)
+
+    def test_a_passed_check_whose_evidence_is_refused_is_listed_as_not_passed(self):
+        out = self.card(lambda m: check(m, "TEST-LEAF-001")["evidence"].update(kind="chatgpt")).stdout
+        self.assertIn("- `TEST-LEAF-001` (L1, REQ-READ): blocked", out)
+        self.assertIn('["REQ-READ · LEAF · open"]', out)
+
 
 if __name__ == "__main__":
     unittest.main()
