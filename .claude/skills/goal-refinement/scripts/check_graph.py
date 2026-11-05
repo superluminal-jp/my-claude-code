@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Dict, List, NoReturn, Optional, Sequence, Tuple
 
 OUTPUT_VERSION = 1
-SCHEMA_VERSION = 1
+SCHEMA_VERSIONS = (1, 2)  # 2 adds problem_id to requirements graphs (spec 060)
 MAX_INPUT_BYTES = 5 * 1024 * 1024
 
 EXIT_PASSED = 0
@@ -42,17 +42,34 @@ PERMISSIONS = ("read_only", "workspace_write", "external_effect")
 ROLES = ("orchestrator", "worker", "auditor", "checker")
 READ_ONLY_ROLES = ("auditor", "checker")
 
-TOP_LEVEL_FIELDS = frozenset({"schema_version", "requirements", "skills"})
+TOP_LEVEL_FIELDS = frozenset({"schema_version", "problem_id", "requirements", "skills", "problem_card", "challenge_report"})
+DECLARATION_KINDS = ("requirements", "skills", "problem_card", "challenge_report")
 REQUIREMENT_FIELDS = frozenset(
     {"id", "statement", "decomposition", "children", "acceptance", "assumptions", "counterexamples", "selection"}
 )
 ACCEPTANCE_FIELDS = frozenset({"id", "description", "level"})
 SKILL_FIELDS = frozenset({"id", "children", "permission", "role"})
+PROBLEM_TEXT_FIELDS = ("id", "ideal", "current", "gap", "significance")
+PROBLEM_LIST_FIELDS = ("hypotheses", "proposed_solutions", "out_of_scope")
+PROBLEM_FIELDS = frozenset(PROBLEM_TEXT_FIELDS + PROBLEM_LIST_FIELDS + ("status", "status_rationale", "evidence", "counter_evidence"))
+EVIDENCE_FIELDS = frozenset({"source", "observation"})
+STATUSES = ("verified", "unverified", "refuted")
+REPORT_FIELDS = frozenset({"problem_id", "reviewer", "context_given", "findings"})
+FINDING_FIELDS = frozenset({"id", "kind", "target", "severity", "statement", "disposition", "resolution"})
+FINDING_KINDS = (
+    "false_positive", "alternative_cause", "solution_as_problem", "mixed_statement",
+    "counterexample", "missing_child", "or_overlap", "missing_evidence", "other",
+)
+SEVERITIES = ("high", "medium", "low")
+DISPOSITIONS = ("open", "accepted", "rejected")
 
 RULES_CHECKED: Dict[str, List[str]] = {
     "requirements": ["S-00", "S-01", "S-02", "S-03", "S-04", "S-05", "S-06", "S-07", "S-08", "S-11"],
     "skills": ["S-00", "S-01", "S-02", "S-03", "S-08", "S-09"],
     "skills-dir": ["S-02", "S-03", "S-08", "S-10"],
+    "problem_card": ["C-00", "C-01", "C-02", "C-03"],
+    "challenge_report": ["R-00", "R-01", "R-02"],
+    "gate": ["G-01", "G-02", "G-03", "G-04"],
 }
 
 # How spec 058 FR-001 declares a child, read exactly as declared_children in
@@ -163,8 +180,10 @@ def _reject_duplicate_keys(pairs: List[Tuple[str, Any]]) -> Dict[str, Any]:
     return obj
 
 
-def parse_declaration(text: str) -> Tuple[str, List[Any]]:
-    """Validates the top level (spec FR-001) and returns (graph kind, nodes)."""
+def parse_declaration(text: str) -> Tuple[str, Any, Optional[str]]:
+    """Validates the top level (spec 059 FR-001, spec 060 FR-001) and returns
+    (kind, body, problem_id). The body is a node array for a graph and an
+    object for a problem card or challenge report."""
     try:
         document = json.loads(text, object_pairs_hook=_reject_duplicate_keys)
     except json.JSONDecodeError as exc:
@@ -174,18 +193,27 @@ def parse_declaration(text: str) -> Tuple[str, List[Any]]:
     if not isinstance(document, dict):
         raise InputError("the top level must be a JSON object")
     version = document.get("schema_version")
-    if type(version) is not int or version != SCHEMA_VERSION:
-        raise InputError(f"schema_version must be the integer {SCHEMA_VERSION} (got {show(version)})")
+    if type(version) is not int or version not in SCHEMA_VERSIONS:
+        raise InputError(f"schema_version must be the integer 1 or 2 (got {show(version)})")
     undefined = sorted(set(document) - TOP_LEVEL_FIELDS)
     if undefined:
         raise InputError(f"undefined top-level field {show(undefined[0])}")
-    kinds = [kind for kind in ("requirements", "skills") if kind in document]
+    kinds = [kind for kind in DECLARATION_KINDS if kind in document]
     if len(kinds) != 1:
-        raise InputError("the top level must have exactly one of requirements or skills")
+        raise InputError("the top level must have exactly one of " + ", ".join(DECLARATION_KINDS))
     kind = kinds[0]
-    if not isinstance(document[kind], list):
-        raise InputError(f"{kind} must be an array")
-    return kind, document[kind]
+    graph = kind in ("requirements", "skills")
+    if not isinstance(document[kind], list if graph else dict):
+        raise InputError(f"{kind} must be {'an array' if graph else 'an object'}")
+    problem_id = document.get("problem_id")
+    if version == 2:
+        if kind != "requirements":
+            raise InputError("schema_version 2 is defined only for requirements graphs")
+        if not is_nonempty_string(problem_id):
+            raise InputError("a version 2 requirements graph needs a non-empty problem_id")
+    elif "problem_id" in document:
+        raise InputError("problem_id needs schema_version 2")
+    return kind, document[kind], problem_id
 
 
 # --- rules shared by both graph kinds ----------------------------------------
@@ -510,14 +538,174 @@ def check_skills_dir(directory: Path) -> Tuple[str, List[Violation]]:
     return "skills-dir", report.violations()
 
 
+# --- problem cards and challenge reports (spec 060) ------------------------------
+
+
+def _evidence(card: Dict[str, Any], name: str, where: Tuple[int, Optional[str]], report: Report) -> int:
+    """Applies C-00 to an evidence list; returns the number of well-formed entries."""
+    if name not in card:
+        if name == "evidence":
+            report.add("C-00", *where, "evidence is missing (use [] when there is none)")
+        return 0
+    entries = card[name]
+    if not isinstance(entries, list):
+        report.add("C-00", *where, f"{name} must be an array")
+        return 0
+    good = 0
+    for index, entry in enumerate(entries):
+        if (
+            isinstance(entry, dict)
+            and set(entry) == EVIDENCE_FIELDS
+            and all(is_nonempty_string(entry[key]) for key in EVIDENCE_FIELDS)
+        ):
+            good += 1
+        else:
+            report.add("C-00", *where, f"{name} #{index + 1} must have exactly a non-empty source and observation")
+    return good
+
+
+def check_problem_card(card: Dict[str, Any]) -> List[Violation]:
+    report = Report()
+    where = (0, card.get("id") if is_nonempty_string(card.get("id")) else None)
+    for key in sorted(set(card) - PROBLEM_FIELDS):
+        report.add("C-00", *where, f"undefined field {show(key)}")
+    for name in PROBLEM_TEXT_FIELDS:
+        if not is_nonempty_string(card.get(name)):
+            report.add("C-00", *where, f"{name} must be a non-empty string")
+    for name in PROBLEM_LIST_FIELDS:
+        if name in card and not is_string_list(card[name]):
+            report.add("C-00", *where, f"{name} must be an array of strings")
+    if "status_rationale" in card and not isinstance(card["status_rationale"], str):
+        report.add("C-00", *where, "status_rationale must be a string")
+    evidence = _evidence(card, "evidence", where, report)
+    counter = _evidence(card, "counter_evidence", where, report)
+    status = card.get("status")
+    if "status" not in card:
+        report.add("C-00", *where, "status is missing")
+    elif status not in STATUSES:
+        report.add("C-03", *where, f"status must be verified, unverified, or refuted (got {show(status)})")
+    if status == "verified" and not evidence:
+        report.add("C-01", *where, "a verified problem needs at least one evidence entry")
+    if counter and not is_nonempty_string(card.get("status_rationale")):
+        report.add("C-02", *where, "counter_evidence needs a status_rationale that explains the status")
+    if status == "refuted" and not counter:
+        report.add("C-02", *where, "a refuted problem needs at least one counter_evidence entry")
+    return report.violations()
+
+
+def check_challenge_report(body: Dict[str, Any], targets: Optional[set] = None) -> List[Violation]:
+    """Applies R-00 to R-02, and R-03 when ``targets`` (the ids a finding may name) is given."""
+    report = Report()
+    where = (-1, None)
+    for key in sorted(set(body) - REPORT_FIELDS):
+        report.add("R-00", *where, f"undefined field {show(key)}")
+    for name in ("problem_id", "reviewer"):
+        if not is_nonempty_string(body.get(name)):
+            report.add("R-00", *where, f"{name} must be a non-empty string")
+    if not is_string_list(body.get("context_given")):
+        report.add("R-00", *where, "context_given must be an array of strings")
+    findings = body.get("findings")
+    if not isinstance(findings, list):
+        report.add("R-00", *where, "findings must be an array")
+        return report.violations()
+    seen = set()
+    for position, finding in enumerate(findings):
+        label = f"finding #{position + 1}"
+        if not isinstance(finding, dict):
+            report.add("R-00", position, None, f"{label} is not a JSON object")
+            continue
+        finding_id = finding.get("id")
+        at = (position, finding_id if is_nonempty_string(finding_id) else None)
+        for key in sorted(set(finding) - FINDING_FIELDS):
+            report.add("R-00", *at, f"undefined field {show(key)}")
+        if not isinstance(finding_id, str):
+            report.add("R-00", *at, f"{label} needs an id")
+        elif not finding_id.strip():
+            report.add("R-01", *at, f"{label} has an empty id")
+        elif finding_id in seen:
+            report.add("R-01", *at, "id is already used by another finding")
+        else:
+            seen.add(finding_id)
+        for name, allowed in (("kind", FINDING_KINDS), ("severity", SEVERITIES), ("disposition", DISPOSITIONS)):
+            if name not in finding:
+                report.add("R-00", *at, f"{name} is missing")
+            elif finding[name] not in allowed:
+                report.add("R-01", *at, f"{name} must be one of {', '.join(allowed)} (got {show(finding[name])})")
+        for name in ("target", "statement"):
+            if not is_nonempty_string(finding.get(name)):
+                report.add("R-00", *at, f"{name} must be a non-empty string")
+        if "resolution" in finding and not isinstance(finding["resolution"], str):
+            report.add("R-00", *at, "resolution must be a string")
+        elif finding.get("disposition") in ("accepted", "rejected") and not is_nonempty_string(finding.get("resolution")):
+            report.add("R-02", *at, f"a {finding['disposition']} finding needs a resolution")
+        target = finding.get("target")
+        if targets is not None and is_nonempty_string(target) and target not in targets:
+            report.add("R-03", *at, f"target {show(target)} is neither the problem nor a requirement")
+    return report.violations()
+
+
+def load_for_gate(path: Path, kind: str, what: str) -> Tuple[Any, Optional[str]]:
+    found, body, problem_id = parse_declaration(read_text(path, what))
+    if found != kind:
+        raise InputError(f"{what} must be a {kind} declaration (got {found})")
+    return body, problem_id
+
+
+def run_gate(paths: Sequence[str]) -> Dict[str, Any]:
+    """spec 060 FR-004: decides whether a problem may proceed to implementation."""
+    if len(paths) not in (2, 3):
+        raise InputError("--gate takes CARD GRAPH [REPORT]")
+    card, _ = load_for_gate(Path(paths[0]), "problem_card", "the problem card")
+    graph, problem_id = load_for_gate(Path(paths[1]), "requirements", "the requirements graph")
+    challenge = load_for_gate(Path(paths[2]), "challenge_report", "the challenge report")[0] if len(paths) == 3 else None
+    reasons: List[Tuple[str, str]] = []
+    card_id = card.get("id")
+    card_violations = check_problem_card(card)
+    if card_violations:
+        reasons.append(("G-01", f"the problem card has {len(card_violations)} violation(s)"))
+    elif card.get("status") != "verified":
+        reasons.append(("G-01", f"the problem is {card.get('status')}, not verified"))
+    graph_violations = check_requirements(graph)
+    if graph_violations:
+        reasons.append(("G-02", f"the requirements graph has {len(graph_violations)} violation(s)"))
+    if problem_id is None:
+        reasons.append(("G-02", "the requirements graph is not linked to a problem (schema_version 2 with problem_id)"))
+    elif problem_id != card_id:
+        reasons.append(("G-02", f"the requirements graph belongs to problem {show(problem_id)}, not {show(card_id)}"))
+    report_violations: List[Violation] = []
+    if challenge is not None:
+        targets = {card_id} | {node.get("id") for node in graph if isinstance(node, dict)}
+        report_violations = check_challenge_report(challenge, targets)
+        if report_violations:
+            reasons.append(("G-03", f"the challenge report has {len(report_violations)} violation(s)"))
+        if challenge.get("problem_id") != card_id:
+            reasons.append(("G-03", f"the challenge report is for problem {show(challenge.get('problem_id'))}, not {show(card_id)}"))
+        findings = challenge.get("findings") if isinstance(challenge.get("findings"), list) else []
+        for finding in findings:
+            if isinstance(finding, dict) and finding.get("disposition") == "open":
+                reasons.append(("G-04", f"finding {show(finding.get('id'))} ({show(finding.get('kind'))} on {show(finding.get('target'))}) is still open"))
+    decision = "blocked" if reasons else "ready"
+    return {
+        "graph": "gate",
+        "decision": decision,
+        "challenge": "recorded" if challenge is not None else "not_run",
+        "reasons": [{"rule_id": rule_id, "message": message} for rule_id, message in reasons],
+        "violations": card_violations + graph_violations + report_violations,
+    }
+
+
 # --- command line --------------------------------------------------------------
 
 
 def check_file(path: Path) -> Tuple[str, List[Violation]]:
-    kind, raw_nodes = parse_declaration(read_text(path, "the declaration file"))
-    if kind == "skills":
-        return kind, check_skills(raw_nodes)
-    return kind, check_requirements(raw_nodes)
+    kind, body, _ = parse_declaration(read_text(path, "the declaration file"))
+    checks = {
+        "requirements": check_requirements,
+        "skills": check_skills,
+        "problem_card": check_problem_card,
+        "challenge_report": check_challenge_report,
+    }
+    return kind, checks[kind](body)
 
 
 def escape_unsafe(text: str) -> str:
@@ -547,9 +735,14 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
         # node id is escaped here.
         where = f" {escape_unsafe(violation['node_id'])}" if violation["node_id"] is not None else ""
         print(f"{violation['rule_id']}{where}: {violation['message']}")
+    for reason in result.get("reasons", []):
+        print(f"{reason['rule_id']}: {reason['message']}")
     count = len(result["violations"])
     noun = "violation" if count == 1 else "violations"
     rules = " ".join(result["rules_checked"])
+    if "decision" in result:
+        print(f"Result: {result['decision']} (gate; challenge {result['challenge']}; {count} {noun}; checked {rules}; structural rules only)")
+        return
     print(f"Result: {result['status']} ({result['graph']}; {count} {noun}; checked {rules}; structural rules only)")
 
 
@@ -600,12 +793,28 @@ def run(argv: Sequence[str], output_format: str) -> int:
     )
     parser.add_argument("file", nargs="?", help="declaration file (JSON)")
     parser.add_argument("--skills-dir", metavar="DIR", help="compatibility mode: read ## Child skills from DIR/*/SKILL.md")
+    parser.add_argument("--gate", nargs="+", metavar="FILE", help="decide readiness: CARD GRAPH [REPORT]")
     parser.add_argument("--format", choices=FORMATS, default="text", help="output format (default: text)")
     args = parser.parse_args(argv)
     target = args.file if args.file is not None else args.skills_dir
+    if args.gate is not None:
+        target = " ".join(args.gate)
     try:
-        if (args.file is None) == (args.skills_dir is None):
-            raise InputError("give exactly one of FILE or --skills-dir DIR")
+        if sum(mode is not None for mode in (args.file, args.skills_dir, args.gate)) != 1:
+            raise InputError("give exactly one of FILE, --skills-dir DIR, or --gate CARD GRAPH [REPORT]")
+        if args.gate is not None:
+            gate = run_gate(args.gate)
+            violations = gate.pop("violations")
+            result = error_result(target, "")
+            result.update(
+                gate,
+                status="passed" if gate["decision"] == "ready" else "failed",
+                rules_checked=RULES_CHECKED["gate"],
+                violations=[{"rule_id": v.rule_id, "node_id": v.node_id, "message": v.message} for v in violations],
+                error=None,
+            )
+            emit(result, args.format)
+            return EXIT_PASSED if gate["decision"] == "ready" else EXIT_VIOLATIONS
         if args.skills_dir is not None:
             kind, violations = check_skills_dir(Path(args.skills_dir))
         else:
