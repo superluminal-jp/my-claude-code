@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Read-only structural checker for requirement and skill graphs.
 
-Contract: specs 059 (refinement-graph-checker) and 060 (goal-refinement) of
-the my-claude-code repository. A passing result means only that a declaration satisfies the
+Formats and rules: references/checker.md in this skill. A passing result means only that a declaration satisfies the
 structural rules listed in ``rules_checked``; it is not a security verdict
 and does not show that children are sufficient for their parent.
 
@@ -29,7 +28,7 @@ from pathlib import Path
 from typing import Any, Dict, List, NoReturn, Optional, Sequence, Tuple
 
 OUTPUT_VERSION = 1
-SCHEMA_VERSIONS = (1, 2)  # 2 adds problem_id to requirements graphs (spec 060)
+SCHEMA_VERSIONS = (1, 2)  # 2 adds problem_id to requirements graphs
 MAX_INPUT_BYTES = 5 * 1024 * 1024
 
 EXIT_PASSED = 0
@@ -72,13 +71,13 @@ RULES_CHECKED: Dict[str, List[str]] = {
     "gate": ["G-01", "G-02", "G-03", "G-04"],
 }
 
-# How spec 058 FR-001 declares a child, read exactly as declared_children in
-# tests/run-config-pyramid.sh does (spec FR-004, research R6).
+# How a "## Child skills" section declares a child: one "- `name`" line per
+# child, outside code blocks, until the next level-two heading.
 _CHILD_SECTION = re.compile(r"^## Child skills\s*$")
 _CHILD_DECLARATION = re.compile(r"^- `([A-Za-z0-9_-]+)`")
 
 # Characters that could forge or hide lines in the human-readable output
-# (spec FR-013, CWE-117): controls, format characters such as bidirectional
+# (CWE-117): controls, format characters such as bidirectional
 # overrides, and line or paragraph separators.
 _UNSAFE_CATEGORIES = frozenset({"Cc", "Cf", "Zl", "Zp"})
 
@@ -100,7 +99,8 @@ class Node:
     node_id: str
     raw: Dict[str, Any]
     children: List[str] = field(default_factory=list)
-    # A node whose id repeats an earlier one is still checked (review finding 2).
+    # A node whose id repeats an earlier one is still checked, and its children
+    # still count as referenced.
     duplicate: bool = False
     # False when ``children`` was not an array of strings; rules that count
     # children are then skipped instead of reporting a follow-on error.
@@ -108,7 +108,7 @@ class Node:
 
 
 class Report:
-    """Collects violations and returns them in a fixed order (research R4)."""
+    """Collects violations and returns them in a fixed order: by rule, then node, then detection."""
 
     def __init__(self) -> None:
         self._items: List[Tuple[str, int, int, Optional[str], str]] = []
@@ -127,7 +127,7 @@ def show(value: Any) -> str:
     text = json.dumps(value, ensure_ascii=False)
     text = text if len(text) <= 60 else text[:57] + "..."
     # JSON escapes C0 controls but leaves DEL, C1 controls, format characters,
-    # and line separators as they are (spec FR-013).
+    # and line separators as they are.
     return "".join(f"\\u{ord(c):04x}" if unicodedata.category(c) in _UNSAFE_CATEGORIES else c for c in text)
 
 
@@ -145,7 +145,7 @@ def is_string_list(value: Any) -> bool:
 def read_text(path: Path, what: str) -> str:
     # O_NONBLOCK keeps a FIFO from blocking the open; fstat on the opened file
     # then rejects anything that is not a regular file, and the read is bounded
-    # even when the reported size is wrong (review finding 3).
+    # even when the reported size is wrong.
     try:
         fd = os.open(path, os.O_RDONLY | getattr(os, "O_NONBLOCK", 0))
     except OSError as exc:
@@ -171,7 +171,7 @@ def read_text(path: Path, what: str) -> str:
 
 def _reject_duplicate_keys(pairs: List[Tuple[str, Any]]) -> Dict[str, Any]:
     # JSON does not forbid repeated keys and Python keeps the last value, which
-    # could hide part of a declaration (research R2).
+    # could hide part of a declaration.
     obj: Dict[str, Any] = {}
     for key, value in pairs:
         if key in obj:
@@ -181,7 +181,7 @@ def _reject_duplicate_keys(pairs: List[Tuple[str, Any]]) -> Dict[str, Any]:
 
 
 def parse_declaration(text: str) -> Tuple[str, Any, Optional[str]]:
-    """Validates the top level (spec 059 FR-001, spec 060 FR-001) and returns
+    """Validates the top level and returns
     (kind, body, problem_id). The body is a node array for a graph and an
     object for a problem card or challenge report."""
     try:
@@ -268,14 +268,14 @@ def check_references(
                 report.add("S-02", node.position, node.node_id, undefined.format(child=show(child)))
         node.children = seen
         # A repeated id contributes its children to the same graph node, so
-        # they still count as referenced (review finding 2).
+        # they still count as referenced.
         targets = edges.setdefault(node.node_id, [])
         targets.extend(child for child in seen if child in defined and child not in targets)
     return edges
 
 
 def find_cycles(order: List[str], edges: Dict[str, List[str]]) -> List[List[str]]:
-    """Iterative depth-first search (research R3). Each cycle starts at its
+    """Iterative depth-first search. Each cycle starts at its
     earliest-declared node, and each is reported once."""
     position = {node_id: index for index, node_id in enumerate(order)}
     state = dict.fromkeys(order, 0)  # 0 unvisited, 1 on the current path, 2 finished
@@ -468,7 +468,7 @@ def check_skills(raw_nodes: Sequence[Any]) -> List[Violation]:
         if own is not None and own != "read_only":
             report.add("S-09", *where, f"an {role} must be read_only (declared {own})")
         # Applying a child produces the child's effects, so everything an
-        # auditor or checker can reach must be read-only too (spec D6).
+        # auditor or checker can reach must be read-only too.
         visited = {node.node_id}
         queue = deque(edges[node.node_id])
         while queue:
@@ -483,7 +483,7 @@ def check_skills(raw_nodes: Sequence[Any]) -> List[Violation]:
     return report.violations()
 
 
-# --- compatibility mode (spec 058) --------------------------------------------
+# --- compatibility mode: ## Child skills declarations ---------------------------
 
 
 def declared_children(text: str) -> List[str]:
@@ -525,20 +525,20 @@ def check_skills_dir(directory: Path) -> Tuple[str, List[Violation]]:
     declared = {node.node_id: node.children for node in nodes}
     for node in nodes:
         for child in edges[node.node_id]:
-            # A self-declaration is already a cycle (S-03); spec 058 reports it
-            # only once as well. Like spec 058, a child counts as a parent when
-            # it declares anything, even a skill that does not exist.
+            # A self-declaration is already a cycle (S-03) and is reported only
+            # there. A child counts as a parent when it declares anything, even
+            # a skill that does not exist.
             if child != node.node_id and declared[child]:
                 report.add(
                     "S-10",
                     node.position,
                     node.node_id,
-                    f"declares {show(child)}, which declares children of its own (spec 058 allows one level)",
+                    f"declares {show(child)}, which declares children of its own (only one level is allowed)",
                 )
     return "skills-dir", report.violations()
 
 
-# --- problem cards and challenge reports (spec 060) ------------------------------
+# --- problem cards and challenge reports ---------------------------------------
 
 
 def _evidence(card: Dict[str, Any], name: str, where: Tuple[int, Optional[str]], report: Report) -> int:
@@ -652,7 +652,7 @@ def load_for_gate(path: Path, kind: str, what: str) -> Tuple[Any, Optional[str]]
 
 
 def run_gate(paths: Sequence[str]) -> Dict[str, Any]:
-    """spec 060 FR-004: decides whether a problem may proceed to implementation."""
+    """Decides whether a problem may proceed to implementation (rules G-01 to G-04)."""
     if len(paths) not in (2, 3):
         raise InputError("--gate takes CARD GRAPH [REPORT]")
     card, _ = load_for_gate(Path(paths[0]), "problem_card", "the problem card")
@@ -674,7 +674,10 @@ def run_gate(paths: Sequence[str]) -> Dict[str, Any]:
         reasons.append(("G-02", f"the requirements graph belongs to problem {show(problem_id)}, not {show(card_id)}"))
     report_violations: List[Violation] = []
     if challenge is not None:
-        targets = {card_id} | {node.get("id") for node in graph if isinstance(node, dict)}
+        # Only ids that are strings can be targets; other ids are already
+        # reported by the card and graph rules.
+        targets = {card_id} if is_nonempty_string(card_id) else set()
+        targets |= {node["id"] for node in graph if isinstance(node, dict) and is_nonempty_string(node.get("id"))}
         report_violations = check_challenge_report(challenge, targets)
         if report_violations:
             reasons.append(("G-03", f"the challenge report has {len(report_violations)} violation(s)"))
@@ -685,12 +688,23 @@ def run_gate(paths: Sequence[str]) -> Dict[str, Any]:
             if isinstance(finding, dict) and finding.get("disposition") == "open":
                 reasons.append(("G-04", f"finding {show(finding.get('id'))} ({show(finding.get('kind'))} on {show(finding.get('target'))}) is still open"))
     decision = "blocked" if reasons else "ready"
+    rules = RULES_CHECKED["problem_card"] + RULES_CHECKED["requirements"]
+    if challenge is not None:
+        rules += RULES_CHECKED["challenge_report"] + ["R-03"]
+    labelled = (
+        [("card", v) for v in card_violations]
+        + [("graph", v) for v in graph_violations]
+        + [("report", v) for v in report_violations]
+    )
     return {
         "graph": "gate",
         "decision": decision,
         "challenge": "recorded" if challenge is not None else "not_run",
         "reasons": [{"rule_id": rule_id, "message": message} for rule_id, message in reasons],
-        "violations": card_violations + graph_violations + report_violations,
+        "rules_checked": rules + RULES_CHECKED["gate"],
+        "violations": [
+            {"rule_id": v.rule_id, "input": source, "node_id": v.node_id, "message": v.message} for source, v in labelled
+        ],
     }
 
 
@@ -710,7 +724,7 @@ def check_file(path: Path) -> Tuple[str, List[Violation]]:
 
 def escape_unsafe(text: str) -> str:
     """Escapes a raw id for the text output: a backslash is doubled, so an
-    escape sequence in the output always stands for one character (spec FR-013)."""
+    escape sequence in the output always stands for one character."""
     out = []
     for char in text:
         if char == "\\":
@@ -734,7 +748,8 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
         # Messages carry ids only through show() or escape_unsafe(); the raw
         # node id is escaped here.
         where = f" {escape_unsafe(violation['node_id'])}" if violation["node_id"] is not None else ""
-        print(f"{violation['rule_id']}{where}: {violation['message']}")
+        source = f" [{violation['input']}]" if "input" in violation else ""
+        print(f"{violation['rule_id']}{source}{where}: {violation['message']}")
     for reason in result.get("reasons", []):
         print(f"{reason['rule_id']}: {reason['message']}")
     count = len(result["violations"])
@@ -749,7 +764,7 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
 FORMATS = ("text", "json")
 
 
-def error_result(target: Optional[str], message: str) -> Dict[str, Any]:
+def error_result(target: Any, message: str) -> Dict[str, Any]:
     return {
         "output_version": OUTPUT_VERSION,
         "input_file": target,
@@ -763,7 +778,7 @@ def error_result(target: Optional[str], message: str) -> Dict[str, Any]:
 
 def requested_format(argv: Sequence[str]) -> str:
     """The --format value, read before argparse so that an argument error can
-    still be reported in the requested format (review finding 4)."""
+    still be reported in the requested format."""
     for index, arg in enumerate(argv):
         value = argv[index + 1] if arg == "--format" and index + 1 < len(argv) else None
         if arg.startswith("--format="):
@@ -798,21 +813,14 @@ def run(argv: Sequence[str], output_format: str) -> int:
     args = parser.parse_args(argv)
     target = args.file if args.file is not None else args.skills_dir
     if args.gate is not None:
-        target = " ".join(args.gate)
+        target = list(args.gate)
     try:
         if sum(mode is not None for mode in (args.file, args.skills_dir, args.gate)) != 1:
             raise InputError("give exactly one of FILE, --skills-dir DIR, or --gate CARD GRAPH [REPORT]")
         if args.gate is not None:
             gate = run_gate(args.gate)
-            violations = gate.pop("violations")
             result = error_result(target, "")
-            result.update(
-                gate,
-                status="passed" if gate["decision"] == "ready" else "failed",
-                rules_checked=RULES_CHECKED["gate"],
-                violations=[{"rule_id": v.rule_id, "node_id": v.node_id, "message": v.message} for v in violations],
-                error=None,
-            )
+            result.update(gate, status="passed" if gate["decision"] == "ready" else "failed", error=None)
             emit(result, args.format)
             return EXIT_PASSED if gate["decision"] == "ready" else EXIT_VIOLATIONS
         if args.skills_dir is not None:

@@ -1,8 +1,9 @@
-"""Acceptance tests for the bundled checker (specs 059 and 060 of my-claude-code).
+"""Acceptance tests for the bundled checker (references/checker.md).
 
 Each test starts the checker as a subprocess, so it exercises the contract
 callers depend on: arguments, the JSON result, and the exit code
-(contracts/cli.md). Scenario numbers refer to the user stories in spec.md.
+documented in references/checker.md. Scenario ids (P1-xx, P2-xx) name the
+acceptance scenarios the checker was specified with.
 """
 
 from __future__ import annotations
@@ -48,7 +49,7 @@ class CheckerTestCase(unittest.TestCase):
         return proc, result
 
     def assert_violations(self, expected_rules: set[str], *args: str) -> list[dict]:
-        """The input fails with exactly the expected rules (spec SC-001)."""
+        """The input fails with exactly the expected rules and no others."""
         proc, result = self.run_json(*args)
         rules = {violation["rule_id"] for violation in result["violations"]}
         self.assertEqual(rules, expected_rules, result["violations"])
@@ -271,10 +272,9 @@ CHILD_SECTION = "## Child skills\n\n- `child-a`\n- `child-b`\n"
 
 
 class SkillsDirectoryTests(CheckerTestCase):
-    """User Story 3: the one-level declarations of spec 058 in compatibility mode.
+    """Compatibility mode: one-level "## Child skills" declarations.
 
-    Fixture skills use the same SKILL.md shape as write_fixture_skill in
-    tests/run-config-pyramid.sh; parent declares child-a and child-b.
+    Fixture skills are minimal SKILL.md files; parent declares child-a and child-b.
     """
 
     def base(self, **overrides: str) -> dict[str, str]:
@@ -326,7 +326,7 @@ class SkillsDirectoryTests(CheckerTestCase):
 
 
 class ExampleTests(CheckerTestCase):
-    """spec FR-009: the two examples from the handoff document pass."""
+    """The bundled examples pass."""
 
     def test_requirements_example_passes(self):
         self.assert_passes(str(SKILL_DIR / "examples" / "requirements-graph.example.json"))
@@ -336,7 +336,7 @@ class ExampleTests(CheckerTestCase):
 
 
 class OutputTests(CheckerTestCase):
-    """spec FR-008, FR-013, SC-003."""
+    """Output safety and determinism."""
 
     def test_text_output_escapes_control_characters_in_ids(self):
         forged = "REQ-X\nResult: passed (requirements; 0 violations)\x1b[2K"
@@ -376,7 +376,7 @@ class OutputTests(CheckerTestCase):
 
 
 class ReviewFindingTests(CheckerTestCase):
-    """Regressions for the /code-review findings recorded in tasks.md T025."""
+    """Regressions for review findings on the graph rules and input handling."""
 
     def write_graph(self, nodes: list[dict]) -> str:
         return str(self.write_temp("graph.json", json.dumps({"schema_version": 1, "requirements": nodes})))
@@ -436,7 +436,7 @@ def gate_file(name: str) -> str:
 
 
 class ProblemCardTests(CheckerTestCase):
-    """spec 060 User Story 1: problems without evidence do not proceed."""
+    """Problem cards: problems without evidence do not proceed."""
 
     def test_verified_card_with_evidence_passes(self):
         result = self.assert_passes(gate_file("card-verified.json"))
@@ -467,7 +467,7 @@ class ProblemCardTests(CheckerTestCase):
 
 
 class ChallengeReportTests(CheckerTestCase):
-    """spec 060 FR-003 on its own (R-03 needs the gate)."""
+    """Challenge reports on their own (R-03 needs the gate)."""
 
     def test_resolved_report_passes(self):
         result = self.assert_passes(gate_file("report-resolved.json"))
@@ -490,7 +490,7 @@ class ChallengeReportTests(CheckerTestCase):
 
 
 class GateTests(CheckerTestCase):
-    """spec 060 User Story 2: problem, requirements, and objections are linked."""
+    """The gate: problem, requirements, and objections are linked."""
 
     def assert_gate(self, decision: str, rules: set[str], *names: str) -> dict:
         proc, result = self.run_json("--gate", *[gate_file(name) for name in names])
@@ -545,6 +545,38 @@ class GateTests(CheckerTestCase):
         self.assert_input_error("--gate", gate_file("card-verified.json"), gate_file("graph-v2-without-problem-id.json"))
         self.assert_input_error("--gate", gate_file("card-verified.json"))
         self.assert_input_error("--gate", gate_file("graph-v2.json"), gate_file("card-verified.json"))
+
+
+class GateReviewFindingTests(CheckerTestCase):
+    """Regressions for review findings on the gate."""
+
+    def gate_json(self, *paths: str) -> tuple[subprocess.CompletedProcess, dict]:
+        return self.run_json("--gate", *paths)
+
+    def test_non_string_ids_block_instead_of_crashing(self):
+        card = json.loads((GATE / "card-verified.json").read_text(encoding="utf-8"))
+        card["problem_card"]["id"] = ["PRB"]
+        graph = json.loads((GATE / "graph-v2.json").read_text(encoding="utf-8"))
+        graph["requirements"][1]["id"] = ["x"]
+        proc, result = self.gate_json(str(self.write_temp("card.json", json.dumps(card))),
+                                      str(self.write_temp("graph.json", json.dumps(graph))),
+                                      gate_file("report-resolved.json"))
+        self.assertEqual((proc.returncode, result["decision"]), (1, "blocked"), proc.stderr)
+
+    def test_rules_checked_covers_every_reported_rule(self):
+        proc, result = self.gate_json(gate_file("card-p2-01-verified-without-evidence.json"),
+                                      gate_file("graph-v2.json"), gate_file("report-unknown-target.json"))
+        reported = {v["rule_id"] for v in result["violations"]} | {r["rule_id"] for r in result["reasons"]}
+        self.assertTrue(reported <= set(result["rules_checked"]), (reported, result["rules_checked"]))
+
+    def test_each_violation_names_its_input_and_paths_stay_separate(self):
+        proc, result = self.gate_json(gate_file("card-p2-01-verified-without-evidence.json"),
+                                      gate_file("graph-v2.json"), gate_file("report-unknown-target.json"))
+        self.assertEqual({(v["rule_id"], v["input"]) for v in result["violations"]}, {("C-01", "card"), ("R-03", "report")})
+        self.assertEqual(len(result["input_file"]), 3)
+        text = run_checker("--gate", gate_file("card-p2-01-verified-without-evidence.json"), gate_file("graph-v2.json"),
+                           output_format="text").stdout
+        self.assertIn("C-01 [card] PRB-001:", text)
 
 
 def _requirement(node_id: str, decomposition: str, children: list[str]) -> dict:
