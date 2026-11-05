@@ -71,7 +71,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 ### 3.3 廃止したルール
 
-`rules/model-routing.md`（作業の単位ごとに、モデルの能力層と推論の労力を選ぶルール）は、利用者が不要と判断し、[spec 058](../specs/058-parent-skill-references/spec.md) で削除した。移動先はなく、戻すときは Git の履歴から復元する。削除後は、サブエージェントのモデルと労力を選ぶ常時ロードの指示がない。指定がなければ、サブエージェントは呼び出し元のモデルを使う。
+`rules/model-routing.md`（作業の単位ごとに、モデルの能力層と推論の労力を選ぶルール）は、利用者が不要と判断し、[spec 058](../specs/058-parent-skill-references/spec.md) で削除した。移動先はなく、戻すときは Git の履歴から復元する。削除後は、サブエージェントのモデルと労力を選ぶ常時ロードの指示がない。サブエージェントのモデルは、呼び出しのときに渡す `model` の指定、エージェントの定義の `model` 欄、環境変数 `CLAUDE_CODE_SUBAGENT_MODEL`、呼び出し元の会話のモデルの順で決まる [3]。
 
 ## 4. 番号ではなく名前で参照する
 
@@ -108,3 +108,4 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 1. Claude Code — How Claude remembers your project: <https://code.claude.com/docs/en/memory>
 2. Claude Code — Best practices: <https://code.claude.com/docs/en/best-practices>
+3. Claude Code — Create custom subagents, "Choose a model": <https://code.claude.com/docs/en/sub-agents>
