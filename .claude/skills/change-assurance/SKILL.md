@@ -25,6 +25,10 @@ A person can accept a change without rereading all of it when every acceptance c
 
 Stop and ask the person when the same reason blocks or fails the gate three times in a row, when the next step needs authority you do not have (a deployment, production access, a credential, accepting a risk), or when evidence can only be obtained from a system you may not touch.
 
+## Measuring whether this saves time
+
+To decide whether to keep using this skill, compare it with the current review on comparable past requests, following [references/pilot.md](references/pilot.md): preregister the target and the quality gates before the first case, record each person's working minutes and each gate per case, and run `python3 <skill-dir>/scripts/pilot.py preregistration.json cases.json`. Adopt only on `adopt`; a shorter time with a broken quality gate is `not_adopted`.
+
 ## What a pass does not show
 
 - That the change is secure or complete beyond its acceptance criteria: the gate checks the records against the requirements graph, and the graph can miss a requirement.
