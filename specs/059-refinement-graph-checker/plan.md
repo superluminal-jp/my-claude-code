@@ -6,7 +6,7 @@
 
 ## Summary
 
-検査器は、Python 3 の標準ライブラリだけで書いた1つのコマンド `tools/refinement-checker/check_graph.py` として実装する。宣言ファイル(JSON)または互換モードのスキルのディレクトリを読み、spec の規則 S-00〜S-10 を判定して、違反の一覧と終了コード 0・1・2 を返す。受け入れテストは、検査器をサブプロセスとして起動する `unittest` のテストで、spec の受け入れシナリオ P1-01〜P1-12 と User Story 2 の負例を1つずつ確かめる。リポジトリの検査スクリプトの慣例に合わせ、`tests/run-refinement-checker.sh` がそのテストと例の検査をまとめて実行し、CI の必須ジョブ `test` がそのスクリプトを呼ぶ。設計の判断とその代替案は [research.md](research.md) にある。
+検査器は、Python 3 の標準ライブラリだけで書いた1つのコマンド `tools/refinement-checker/check_graph.py` として実装する。宣言ファイル(JSON)または互換モードのスキルのディレクトリを読み、spec の規則 S-00〜S-11 を判定して、違反の一覧と終了コード 0・1・2 を返す。受け入れテストは、検査器をサブプロセスとして起動する `unittest` のテストで、spec の受け入れシナリオ P1-01〜P1-12 と User Story 2 の負例を1つずつ確かめる。リポジトリの検査スクリプトの慣例に合わせ、`tests/run-refinement-checker.sh` がそのテストと例の検査をまとめて実行し、CI の必須ジョブ `test` がそのスクリプトを呼ぶ。設計の判断とその代替案は [research.md](research.md) にある。
 
 ## Technical Context
 
@@ -26,7 +26,7 @@
 
 **Constraints**: 読み取り専用。ネットワークに接続しない。入力の内容をコードとして実行しない。入力の大きさを 5 MiB に制限する。`.claude/`、`install.sh`、`tests/run-config-pyramid.sh` を変えない(spec FR-012)。
 
-**Scale/Scope**: 規則 11 個(S-00〜S-10)、受け入れシナリオ12個、例2つ。
+**Scale/Scope**: 規則 12 個(S-00〜S-11)、受け入れシナリオ12個、例2つ。
 
 ## Constitution Check
 
