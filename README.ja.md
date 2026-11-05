@@ -22,8 +22,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 - **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
   推論の完全性（4つの推論セルフチェック: 依存と並行・条件と分岐・反復・推論）、権限と安全性
-  （強制される deny は `settings.json`）、読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の構成（要旨・前提・方法・結果・考察・結論）、番号付きの主張の見出しと太字の論点による構造の可視化、初学者向けの前提と平易な定義（ユーザーが使った用語も定義する）、会話・コード・文書を見ていない読み手を想定し、多義語や指示語が何を指すかを明示すること、用語はその分野で使われる形で書き訳語を作らないこと、比喩・類推による説明の禁止）、
-  モデルと労力のルーティング（能力層、閉じたエスカレーション条件、サブエージェントのモデルと労力））。他のルール・スキル・設定パスへの言及は持たない。
+  （強制される deny は `settings.json`）、および読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の構成（要旨・前提・方法・結果・考察・結論）、番号付きの主張の見出しと太字の論点による構造の可視化、初学者向けの前提と平易な定義（ユーザーが使った用語も定義する）、会話・コード・文書を見ていない読み手を想定し、多義語や指示語が何を指すかを明示すること、用語はその分野で使われる形で書き訳語を作らないこと、比喩・類推による説明の禁止））。他のルール・スキル・設定パスへの言及は持たない。
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`.claude/skills/`**: 必要時に読み込まれるプレイブック。中央ルーティング表なしに
   自己記述だけで選択できるよう、2つの独立した軸で分類する
@@ -34,9 +33,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
-    開発着手前に整理）、`meta-spec`
-    （1つの大きな取り組みを、独立して仕様化できるフィーチャに分割し、
-    仕様駆動フローが1スライスずつ消費する1枚のメタスペックとして記録）、
+    開発着手前に整理）、
     `git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
     `aws-research`（AWS 公式ドキュメントの最新調査）
   - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
@@ -73,7 +70,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `pyramid-structure` に置き換え、同期対象外の
     [`archive/minto-pyramid/`](archive/minto-pyramid/) に退避した。従来の Minto スイート
     （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
-    [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した
+    [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した。`meta-spec` スキルは不要と判断し、[`archive/meta-spec/`](archive/meta-spec/) に退避した（[spec 058](specs/058-parent-skill-references/spec.md)）
+  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言せず、親がなくても使える（[spec 058](specs/058-parent-skill-references/spec.md)）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
@@ -181,10 +179,9 @@ my-claude-code/
 └── .claude/                        # インストーラーが管理する Claude パスの正本
     ├── CLAUDE.md                   # 達成目標: 定義 → 実行 → 引き渡し。設計根拠は docs/
     ├── settings.json               # Claude Code のユーザーレベル設定
-    ├── rules/                      # 常時ロード: 毎セッション読み込む、独立した5つの関心事
+    ├── rules/                      # 常時ロード: 毎セッション読み込む、独立した4つの関心事
     │   ├── clarifier.md            # 要件確実性: 確認するか進めるか
     │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
-    │   ├── model-routing.md        # モデルと労力のルーティング: 足りる最小の層、閉じたエスカレーション条件
     │   ├── permissions.md          # 権限と安全性。強制される deny は settings.json
     │   └── pyramid-principle.md    # 読み手本位の構造: ピラミッド、論文の構成の順序、前提と用語
     └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型
@@ -196,7 +193,6 @@ my-claude-code/
         │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
         ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
         ├── product-strategy/SKILL.md # 開発着手前のビジョン・ユーザー・提供価値・指標
-        ├── meta-spec/SKILL.md      # 1つの取り組み -> 独立して仕様化できるスライスのメタスペック
         ├── git-workflow/SKILL.md   # ブランチ/コミット/プッシュ/PR 運用
         ├── aws-research/SKILL.md   # AWS 公式ドキュメントの最新調査
         ├── digital-agency-frontend/ # DADS React/Tailwind の手順 + 出典付きの参考資料(ドメインオーバーレイ)
@@ -266,9 +262,10 @@ bash tests/run-config-pyramid.sh
 ```
 
 設定のピラミッド構造をオフラインで検査する: apex の3分岐、他のルール・スキル・設定
-パスを名指さないちょうど5つのルールファイル、自身の除外境界を記述し兄弟スキルを
-名指さない自作スキル。対象とする自作スキルは、スクリプト冒頭の `authored_skills`
-の一覧である。
+パスを名指さないちょうど4つのルールファイル、自身の除外境界を記述し、親スキルが
+宣言した子を除いてほかのスキルを名指さない自作スキル。親子の規則は、一時ディレクトリに
+作る架空のスキルに対しても検査する。対象とする自作スキルは、スクリプト冒頭の
+`authored_skills` の一覧である。
 
 [`.claude/skills/apple-notes/`](.claude/skills/apple-notes/) を変更したら:
 

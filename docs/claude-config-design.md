@@ -29,7 +29,7 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 ## 3. ファイル別 — 何を意図的に置いていないか
 
-### 3.1 常時ロードに残る5つのルール
+### 3.1 常時ロードに残る4つのルール
 
 各ルールは apex の3分岐（定義・実行・引き渡し）のうち正確に1つだけを支え、他のルールが既に持つ関心事は持たない。
 
@@ -42,7 +42,6 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 | `permissions.md` | 部分一致をグロブ化しない理由 | [ADR-0014](adr/0014-restore-credential-deny-rules.md) |
 | `clarifier.md` | 意図の共通認識を形成する手順、判断基準の接地先となる枠組みの在庫、曖昧性パターン目録、品質ゲート、出典 | `.claude/skills/clarifier/SKILL.md` と同パッケージの `references/` |
 | `pyramid-principle.md` | Minto の4条件の詳述そのもの、構成の機械検査、および成果物を会話を見ていないサブエージェントに読ませる手順（spec 057） | `pyramid-structure` スキルが全タスク向けに持つ（spec 055 で取り込みプラグイン `minto-pyramid` を置き換えて `archive/minto-pyramid/` へ退避。従来の対話・診断・書き直し向け Minto スキル3件は `archive/minto-suite/` へ退避済み） |
-| `model-routing.md` | モデルID・価格・コンテキスト上限、モデルや労力を設定する構文 | ハーネスとベンダーのモデル文書が正本。ルールは能力層とエイリアス、労力レベルだけを持つため、モデルの世代交代でルーティングの論理は古くならない |
 | `thinking-lenses.md` | 4つのセルフチェック（依存と並行・条件と分岐・反復・推論）を出力へ強制する書式 | 自然な置き場がある成果物（`clarifier`/`coder` の Given/When/Then、Spec Kit の依存順タスクリストなど）にだけ表出させる |
 
 残っているのは、いずれの分類にも当たらないもの — **非自明で、判断を変え、他のどこにも存在しない**記述だけである。
@@ -70,21 +69,29 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 移動した2件は、移動先スキル自身が「いつ呼ぶか」を `description`/`when_to_use` で自己記述する。削除した1件は、その自己記述の仕組みそのものに置き換わっている。経緯と却下した代替案は [ADR-0015](adr/0015-rule-layer-independence.md) にある。
 
+### 3.3 廃止したルール
+
+`rules/model-routing.md`（作業の単位ごとに、モデルの能力層と推論の労力を選ぶルール）は、利用者が不要と判断し、[spec 058](../specs/058-parent-skill-references/spec.md) で削除した。移動先はなく、戻すときは Git の履歴から復元する。削除後は、サブエージェントのモデルと労力を選ぶ常時ロードの指示がない。サブエージェントのモデルは、呼び出しのときに渡す `model` の指定、エージェントの定義の `model` 欄、環境変数 `CLAUDE_CODE_SUBAGENT_MODEL`、呼び出し元の会話のモデルの順で決まる [3]。
+
 ## 4. 番号ではなく名前で参照する
 
 `CLAUDE.md` の原則は「Core Principle #3」のような番号ではなく **Traceability のように名前で** 参照する。原則を 1 つ足せば番号参照は全て壊れるためで、実際に Traceability は #3 から #4 へ動いた。`specs/` 配下の過去の記録は当時の番号のまま残してある（当時の事実の記録であり、遡及修正の対象ではない）。
 
 ## 5. 変更するとき
 
-構成は `CLAUDE.md` を唯一の頂点とする独立ピラミッドとして保つ。各層は**意味**でのみ親の主張を支え、名前やパスで他ノードを名指ししない。第2層は5個のユニバーサルルール（品質の関心事1つにつき1ファイル）、第3層は2つの独立した軸で自己記述するスキルである — ライフサイクル操作（意図の共通認識と要件化、問題定義、プロダクト戦略、メタスペック分割、実装、Git 協業、AWS 調査）と、ドメインオーバーレイ（Scrum、Digital Agency フロントエンド、Digital Agency スライド、セキュアロギング）。macOS アプリ連携の2件（`apple-notes`、`apple-reminders`）はどちらの軸にも分類していない。ドメインオーバーレイは一致するライフサイクル操作に**追加で**適用されるものであり、置き換えではない。第3層の分類がなぜルールへの1対1対応ではなく2軸なのかは [ADR-0015](adr/0015-rule-layer-independence.md) にある。
+構成は `CLAUDE.md` を唯一の頂点とする独立ピラミッドとして保つ。各層は**意味**でのみ親の主張を支え、名前やパスで他ノードを名指ししない（唯一の例外は下の親スキル）。第2層は4個のユニバーサルルール（品質の関心事1つにつき1ファイル）、第3層は2つの独立した軸で自己記述するスキルである — ライフサイクル操作（意図の共通認識と要件化、問題定義、プロダクト戦略、実装、Git 協業、AWS 調査）と、ドメインオーバーレイ（Scrum、Digital Agency フロントエンド、Digital Agency スライド、セキュアロギング）。macOS アプリ連携の2件（`apple-notes`、`apple-reminders`）はどちらの軸にも分類していない。ドメインオーバーレイは一致するライフサイクル操作に**追加で**適用されるものであり、置き換えではない。第3層の分類がなぜルールへの1対1対応ではなく2軸なのかは [ADR-0015](adr/0015-rule-layer-independence.md) にある。
 
 | 層 | 依存できる上位層 | 分類原理 | 許可する参照 | 禁止する参照 |
 |---|---|---|---|---|
 | `CLAUDE.md`（1件） | なし | ライフサイクル段階（定義→実行→引き渡し） | なし | ルール・スキル・コマンド・サーバーいずれの個別名も不可 |
-| `.claude/rules/*.md`（5件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
-| `.claude/skills/*/SKILL.md` | `CLAUDE.md` と、自身が支える品質の関心事 | ライフサイクル操作軸／ドメインオーバーレイ軸 | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源 | 他スキルへの名指し・パス参照、`.claude/` 配下の絶対パスのハードコード |
+| `.claude/rules/*.md`（4件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | 外部一次情報源への引用 | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
+| `.claude/skills/*/SKILL.md` | `CLAUDE.md` と、自身が支える品質の関心事 | ライフサイクル操作軸／ドメインオーバーレイ軸 | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源。親スキルに限り、自身の `SKILL.md` で宣言した子スキルの名前 | 他スキルへの名指し（親スキルが宣言した子を除く）・パス参照（親スキルから子へも不可）、`.claude/` 配下の絶対パスのハードコード |
 
-対象スキルは `tests/run-config-pyramid.sh` の `authored_skills` に列挙した11件で、この一覧が正本である — `clarifier`、`aws-research`、`coder`、`digital-agency-frontend`、`git-workflow`、`meta-spec`、`problem-definition`、`product-strategy`、`pyramid-structure`、`scrum-master`、`secure-logging`。このうち `git-workflow` と `aws-research` は §3.2 で常時ロードから移した先である。spec 036 の改訂時点の対象には `adr` と Minto スイート3件（`minto-builder`、`minto-reviewer`、`minto-rewriter`）も含まれていたが、いずれも `archive/` へ退避した（`adr` の規則は `maintaining-living-documentation` へ統合）。自作スキルのうち `digital-agency-slides`、`apple-notes`、`apple-reminders` は現在この一覧に入っておらず、入れていない理由は記録されていない。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流から取り込んだプラグイン（`hooks/hooks.json` を削除するローカル変更を加えた `maintaining-living-documentation`。`minto-pyramid` は spec 055 で退避）、Spec Kit の生成物はこの対象スキル一覧に含めない。
+対象スキルは `tests/run-config-pyramid.sh` の `authored_skills` に列挙した10件で、この一覧が正本である — `clarifier`、`aws-research`、`coder`、`digital-agency-frontend`、`git-workflow`、`problem-definition`、`product-strategy`、`pyramid-structure`、`scrum-master`、`secure-logging`。このうち `git-workflow` と `aws-research` は §3.2 で常時ロードから移した先である。spec 036 の改訂時点の対象には `adr` と Minto スイート3件（`minto-builder`、`minto-reviewer`、`minto-rewriter`）も含まれていたが、いずれも `archive/` へ退避した（`adr` の規則は `maintaining-living-documentation` へ統合）。`meta-spec` も、利用者が不要と判断し、spec 058 で `archive/` へ退避した。自作スキルのうち `digital-agency-slides`、`apple-notes`、`apple-reminders` は現在この一覧に入っておらず、入れていない理由は記録されていない。ルール名とスキル名が同じ場合でも、子スキルを指す下向き参照は許可する。禁止するのは、同じ層にある別ファイルを指す横向き参照である。バンドルされたサードパーティ資料（DADS 参考資料一式など）、上流から取り込んだプラグイン（`hooks/hooks.json` を削除するローカル変更を加えた `maintaining-living-documentation`。`minto-pyramid` は spec 055 で退避）、Spec Kit の生成物はこの対象スキル一覧に含めない。
+
+**親スキルは、宣言した子スキルを名前で参照できる**（[spec 058](../specs/058-parent-skill-references/spec.md)）。親スキルは、複数のスキルを決まった順序で適用する取りまとめ役のスキルである。`SKILL.md` に `## Child skills` 節を置き、子を1行に1つ「- `名前`」の形で宣言する。検査 SKILL-05 は、パッケージ内の Markdown が宣言した子以外の自作スキルを名指しすると失敗する。検査は次も確かめる: 子は `authored_skills` にあり、`SKILL.md` が存在する。子は自分の子を宣言しない（階層は1段）。親は自分を子として宣言しない。親も子をパスでは参照しない。親子の規則は、実在の親スキルがまだなくても働くよう、検査 PARENT-01〜08 が一時ディレクトリに作る架空のスキルに対しても確かめる。親スキルとその子は `authored_skills` に入れる。入れないと検査されない。
+
+この例外は、[ADR-0015](adr/0015-rule-layer-independence.md) が却下した「下向き参照と中央ルーターを許可する案」とは別物である。ADR-0015 の却下理由は2つあった。発見の情報（どのスキルをいつ使うか）を二重に管理すること、スキルの追加や改名のたびに常時ロードの設定を変えることである。親スキルはどちらにも当たらない。親スキルは常時ロードではなく、条件付きで読み込まれる。子がいつ呼ばれるかは、引き続き子自身の `description` が決め、親が持つのは自分の手順の中で子を使う順序だけである。子を改名して壊れるのは、その子を宣言した親だけで、検査 SKILL-05 がそれを見つける。ただし ADR-0015 の「参照境界」節（設定ノードは上位・下位・横の別ノードを名前やパスで参照しない）は、スキル層ではもう成り立たない。ADR-0015 の本文は変えていない。
 
 同一階層にしかない情報が必要になったら、参照を足すのではなく、次のどちらかを行う。
 
@@ -101,3 +108,4 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 1. Claude Code — How Claude remembers your project: <https://code.claude.com/docs/en/memory>
 2. Claude Code — Best practices: <https://code.claude.com/docs/en/best-practices>
+3. Claude Code — Create custom subagents, "Choose a model": <https://code.claude.com/docs/en/sub-agents>

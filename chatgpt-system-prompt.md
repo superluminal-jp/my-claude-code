@@ -95,7 +95,6 @@ Decisions and specs I share in this chat stay binding until I change them. If a 
 
 | Source | Reason |
 |---|---|
-| Model and effort routing | The model and Thinking level are picked in the ChatGPT UI, not by instruction. |
 | Skills (git, specs, decision records, Apple apps, design system, Scrum) | Procedures that need tools and files ChatGPT does not have here. |
 | Full coder skill (types, doc sync, quality gates) | Reduced to one line: the owner uses ChatGPT for business writing, not code. |
 | Living-documentation and repository rules | Apply only inside a code repository. |
