@@ -42,17 +42,17 @@ Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations
 | Rule | Holds when |
 |---|---|
 | A-01 | the graph has at least one acceptance criterion, each has exactly one check, no check names an id outside the graph, and the manifest is for the graph's problem |
-| A-02 | the evidence of a passed check is not `ai_review` only, has a reference, and is for `reviewed_commit` |
+| A-02 | the evidence of a passed check is not `ai_review` only, has a reference, and is for `reviewed_commit` (the same string: a short SHA and the full SHA of one commit do not match, so write both in full) |
 | A-03 | every check is `passed` or `not_applicable` with a reason, and no requirement has only `not_applicable` checks |
 | A-04 | the risk is `low`, `medium`, or `high` |
 | A-05 | no approval is `rejected` (at any risk), and a `high` change has an `approved` approval by someone other than the implementer |
 | A-06 | every test change is approved by someone other than the implementer |
-
-Names are compared ignoring case and surrounding spaces, so `Claude` and ` claude ` are the same person as `claude`.
 | A-07 | a change with infrastructure changes is `high` |
 
-The graph is read only for its problem id and its acceptance criteria. Check the graph's structure with its own checker before this gate.
+Names are compared ignoring case and surrounding spaces, so `Claude` and ` claude ` are the same person as `claude`.
+
+The graph is read only for its problem id and its acceptance criteria; an acceptance id used by two criteria is refused (exit 2), so a leaf's check cannot stand for a parent's own check. Check the graph's structure with its own checker before this gate.
 
 ## JUnit XML
 
-`collect-junit` prints an array of checks to put in the manifest. A test case belongs to an acceptance criterion when its property `acceptance_id` equals the id, or when the id appears as a separate word (not inside a longer id or name) in its `classname` or `name`, for example `test_other_user[TEST-LEAF-001]`. A separate word means the id is not next to a letter, digit, `_`, `-`, or `.`, so `TEST-LEAF-003.extra` does not count for `TEST-LEAF-003`. A criterion whose test cases all passed is `passed`; one with any failure or error is `failed`; any other mix (some skipped, or none found) is `not_run`, with the counts in its reason. A report with a `DOCTYPE` or `ENTITY` declaration before its root element is refused; such text inside the report, for example in CDATA, is not a declaration.
+`collect-junit` prints an array of checks to put in the manifest. A test case belongs to an acceptance criterion when its property `acceptance_id` equals the id, or when the id appears as a separate word (not inside a longer id or name) in its `classname` or `name`, for example `test_other_user[TEST-LEAF-001]`. A separate word means the id is not next to a letter, digit, `_`, `-`, or `.`, so `TEST-LEAF-003.extra` does not count for `TEST-LEAF-003`. A criterion whose test cases all passed is `passed`; one with any failure or error is `failed`; any other mix (some skipped, or none found) is `not_run`, with the counts in its reason. A report with a `DOCTYPE` declaration, where entities are declared, is refused. The XML parser finds the declaration, so such text inside a comment, an instruction, or CDATA is not taken for one, and none can hide behind them.

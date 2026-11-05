@@ -63,13 +63,13 @@ python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commi
  "rules_checked": ["A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07"]}
 ```
 
-`status` は `pass` なら `passed`、それ以外は `failed` である。`levels` は、要求グラフの受け入れ条件の水準ごとに、判定に使った状態(A-02 で退けた `passed` は `blocked` に数える)の件数を示す。
+`status` は `pass` なら `passed`、それ以外は `failed` である。`levels` は、要求グラフの受け入れ条件の水準ごとに、判定に使った状態(A-02 で退けた `passed` と、M-00 で証拠を拒んだ `passed` は `blocked` に数える)の件数を示す。
 
 ## 4. JUnit XML の取り込み
 
 | 規則 | 内容 |
 |---|---|
-| J-01 | `<!DOCTYPE` か `<!ENTITY` を含む XML、壊れた XML は、入力を解釈できない(終了コード 2) |
+| J-01 | 文書型宣言(`<!DOCTYPE`。実体はその中で宣言する)を持つ XML、壊れた XML は、入力を解釈できない(終了コード 2)。宣言は XML の構文解析器で見つけるため、コメント、処理命令、CDATA の中の同じ文字列は宣言とみなさず、それらの後ろの宣言も見落とさない |
 | J-02 | テストケースは、プロパティ `acceptance_id` の値か、名前(`classname` と `name`)の中の語として現れる受け入れ条件の ID に対応する。1つの ID に対応するテストケースが、すべて合格なら `passed`、1つでも `failure` か `error` なら `failed`、ほかは `not_run` とする。どのテストケースにも対応しない ID も `not_run` として出力する |
 
 出力の各項目の `evidence` は `{"kind": "ci_job", "ref": REF, "commit": SHA}` とし、`local_run` を指定するときは `--kind local_run` を加える。
