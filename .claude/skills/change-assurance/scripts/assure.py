@@ -299,7 +299,7 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
     return report.violations()
 
 
-# --- the gate (A-01 to A-07) -----------------------------------------------------
+# --- the gate (A-01 to A-08) -----------------------------------------------------
 
 
 def run_gate(graph_path: str, manifest_path: str, report_path: Optional[str] = None) -> Dict[str, Any]:
