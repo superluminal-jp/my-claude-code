@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "requirement REQ-ROOT",
+      "decomposition": "AND",
+      "children": [
+        "REQ-A"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "verify TEST-REQ-ROOT",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "REQ-A",
+      "statement": "requirement REQ-A",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-REQ-A",
+          "description": "verify TEST-REQ-A",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

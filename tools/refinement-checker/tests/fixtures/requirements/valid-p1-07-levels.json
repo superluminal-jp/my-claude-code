@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "requirement REQ-ROOT",
+      "decomposition": "AND",
+      "children": [
+        "REQ-P",
+        "REQ-Q"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "verify TEST-REQ-ROOT",
+          "level": "L3"
+        }
+      ]
+    },
+    {
+      "id": "REQ-P",
+      "statement": "requirement REQ-P",
+      "decomposition": "AND",
+      "children": [
+        "REQ-P1",
+        "REQ-P2"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-P",
+          "description": "verify TEST-REQ-P",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "REQ-Q",
+      "statement": "requirement REQ-Q",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-REQ-Q",
+          "description": "verify TEST-REQ-Q",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-P1",
+      "statement": "requirement REQ-P1",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-REQ-P1",
+          "description": "verify TEST-REQ-P1",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-P2",
+      "statement": "requirement REQ-P2",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-REQ-P2",
+          "description": "verify TEST-REQ-P2",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

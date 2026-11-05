@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "A",
+      "statement": "requirement A",
+      "decomposition": "AND",
+      "children": [
+        "B",
+        "XA"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-A",
+          "description": "verify TEST-A",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "statement": "requirement B",
+      "decomposition": "AND",
+      "children": [
+        "C",
+        "XB"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-B",
+          "description": "verify TEST-B",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "statement": "requirement C",
+      "decomposition": "AND",
+      "children": [
+        "A",
+        "XC"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-C",
+          "description": "verify TEST-C",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "ROOT",
+      "statement": "requirement ROOT",
+      "decomposition": "AND",
+      "children": [
+        "A",
+        "XR"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-ROOT",
+          "description": "verify TEST-ROOT",
+          "level": "L3"
+        }
+      ]
+    },
+    {
+      "id": "XA",
+      "statement": "requirement XA",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-XA",
+          "description": "verify TEST-XA",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "XB",
+      "statement": "requirement XB",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-XB",
+          "description": "verify TEST-XB",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "XC",
+      "statement": "requirement XC",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-XC",
+          "description": "verify TEST-XC",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "XR",
+      "statement": "requirement XR",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-XR",
+          "description": "verify TEST-XR",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}
