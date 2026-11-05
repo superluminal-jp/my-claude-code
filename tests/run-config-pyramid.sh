@@ -49,6 +49,7 @@ authored_skills=(
   coder
   digital-agency-frontend
   git-workflow
+  goal-refinement
   problem-definition
   product-strategy
   pyramid-structure
@@ -144,7 +145,7 @@ thinking-lenses.md"
   check_absent_pattern "RULE-02: no config path or slash-command dependency" \
     '(\.claude/|rules/|skills/|SKILL\.md|settings(\.local)?\.json|\.mcp\.json|/speckit-[[:alnum:]-]+)' "$RULE_DIR"
   check_absent_pattern "RULE-03: no named authored-skill routing" \
-    '(`|/)(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|problem-definition|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
+    '(`|/)(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|goal-refinement|problem-definition|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
 
   local source target target_name failed=0
   for source in "$RULE_DIR"/*.md; do
@@ -223,10 +224,10 @@ run_skill_contract() {
     "$SKILL_DIR/pyramid-structure/SKILL.md" 'subagent.*(not|never|none).*(conversation)'
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging)' \
+    '\.claude/skills/(clarifier|aws-research|coder|digital-agency-frontend|git-workflow|goal-refinement|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging)' \
     "$SKILL_DIR/clarifier" "$SKILL_DIR/aws-research" "$SKILL_DIR/coder" \
     "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" \
-    "$SKILL_DIR/problem-definition" \
+    "$SKILL_DIR/goal-refinement" "$SKILL_DIR/problem-definition" \
     "$SKILL_DIR/product-strategy" "$SKILL_DIR/pyramid-structure" "$SKILL_DIR/scrum-master" \
     "$SKILL_DIR/secure-logging"
 

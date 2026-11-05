@@ -1,87 +1,62 @@
-# refinement-checker
+# The bundled checker
 
-日本語版: [README.ja.md](README.ja.md)
-
-`check_graph.py` reads a declared requirement graph or skill composition graph
-and reports every structural rule it breaks, without changing anything. A
-pass means only that the declaration follows the rules listed in the result;
-it does not show that a decomposition is sufficient, that an implementation
-is secure, or that any test was run. The contract is
-[spec 059](../../specs/059-refinement-graph-checker/spec.md); the exact
-arguments, output, and exit codes are in its
-[CLI contract](../../specs/059-refinement-graph-checker/contracts/cli.md).
-
-Terms used below:
-
-- **Skill**: a Claude Code skill, a directory with a `SKILL.md` playbook that
-  Claude loads when a task matches it. This repository's skills are under
-  `.claude/skills/`.
-- **Spec 058**: [`specs/058-parent-skill-references/spec.md`](../../specs/058-parent-skill-references/spec.md).
-  It lets a parent skill list, in a `## Child skills` section of its
-  `SKILL.md`, the skills it applies in order, one `` - `name` `` line each, and
-  allows one level only: a child skill may not list children of its own.
-- **Levels L1, L2, L3**: what an acceptance criterion verifies. L1 checks a
-  single leaf requirement, L2 checks a parent by integrating its children,
-  and L3 checks the whole software system that the requirements belong to.
-- **Phases**: spec 059 is Phase 1 of five, all about reviewing code changes
-  that an AI made. Phase 2 adds skills that define the problem and decompose
-  it; Phase 3 verifies each AI-made change at the L1, L2, and L3 levels and
-  records the evidence (which test ran on which commit, with what result);
-  Phase 4 adds a one-screen summary a person reads to accept or return the
-  change; Phase 5 compares reviewer time and missed defects between the
-  current review and the new one. Only Phase 1 exists.
-
-## Purpose, who runs it, and where it is distributed
-
-- **Purpose**: Phase 1 of a plan to let people review AI-made changes by their
-  requirements and evidence rather than by rereading every diff. It gives
-  requirement decompositions and skill compositions a declared form that a
-  machine can check before later phases write parent skills (none exists
-  yet) or independent auditor agents.
-- **Who runs it**: the GitHub Actions job `test` in `.github/workflows/ci.yml`
-  (through `tests/run-refinement-checker.sh`),
-  and the maintainer or Claude by hand.
-- **Distribution**: none. It lives outside `.claude/`, so `install.sh` does not
-  copy it to `~/.claude/`. Whether it moves into a skill under
-  `.claude/skills/` is decided in Phase 2.
-
-## Usage
-
-Python 3.9 or later; the standard library only; no network access.
+`scripts/check_graph.py` reads one declaration, a skills directory, or the three records of the gate, and reports every rule it breaks. It reads its input and nothing else: it writes no file, opens no network connection, starts no process, and never executes input content. It needs Python 3.9 or later and its standard library only.
 
 ```sh
-python3 tools/refinement-checker/check_graph.py FILE
-python3 tools/refinement-checker/check_graph.py --format json FILE
-python3 tools/refinement-checker/check_graph.py --skills-dir .claude/skills
+python3 <skill-dir>/scripts/check_graph.py [--format text|json] FILE
+python3 <skill-dir>/scripts/check_graph.py [--format text|json] --skills-dir DIR
+python3 <skill-dir>/scripts/check_graph.py [--format text|json] --gate CARD GRAPH [REPORT]
 ```
 
-`FILE` is one declaration (JSON). `--skills-dir DIR` is compatibility mode: it
-reads the `## Child skills` section of every `DIR/*/SKILL.md` the way spec 058
-defines it. Give exactly one of the two.
+Give exactly one of the three. The kind of a `FILE` is read from its top-level key.
 
-## Declaration format
+## Exit codes
 
-A declaration has `"schema_version": 1` and exactly one of `requirements` or
-`skills`, an array of nodes. See [`examples/`](examples/) for one of each, and
-the [data model](../../specs/059-refinement-graph-checker/data-model.md) for
-every field and the rule a missing or wrong field breaks.
+| Code | Meaning |
+|---|---|
+| 0 | no violation (for `--gate`: `ready`) |
+| 1 | one or more violations (for `--gate`: `blocked`) |
+| 2 | the input cannot be interpreted — bad arguments, a file that is unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON, a repeated key, nesting too deep, or a wrong top level — or the checker itself failed |
 
-- **Requirement node**: `id`, `statement`, `decomposition` (`AND`, `OR`, or
-  `LEAF`), `acceptance` (at least one `{id, description, level}`, level `L1`,
-  `L2`, or `L3`), and optionally `children`, `assumptions`, `counterexamples`,
-  and, on an OR node only, `selection` (a condition for every child).
-- **Skill node**: `id`, `permission` (`read_only`, `workspace_write`, or
-  `external_effect`), `role` (`orchestrator`, `worker`, `auditor`, or
-  `checker`), and optionally `children`. An `orchestrator` applies its
-  children in a set order, a `worker` does the task, an `auditor` is an AI
-  reviewer kept independent of whoever made the change, and a `checker` is a
-  deterministic program such as this one.
+With `--format json` the result is one object: `output_version`, `input_file`, `graph` (the kind), `status` (`passed`, `failed`, `error`), `rules_checked`, `violations` (`{rule_id, node_id, message}`), and `error`; the gate adds `decision`, `challenge` (`recorded` or `not_run`), and `reasons` (`{rule_id, message}`). `passed` means the structure follows the rules listed in `rules_checked`, nothing more.
 
-## Rules
+## Declarations
 
-In the `Applies to` column, *declarations* means both kinds of declaration
-file, *requirements* and *skills* mean that kind only, *compatibility mode*
-means `--skills-dir`, and *all* means every input.
+Every declaration has `schema_version` and exactly one of the four keys below.
+
+### Problem card — `problem_card` (object, `schema_version` 1)
+
+Required: `id`, `ideal`, `current`, `gap`, `significance` (non-empty strings), `status` (`verified`, `unverified`, or `refuted`), and `evidence` (an array, possibly empty, of `{source, observation}`). Optional: `counter_evidence` (same shape), `hypotheses`, `proposed_solutions`, `out_of_scope` (arrays of strings), `status_rationale` (string).
+
+| Rule | Passes when |
+|---|---|
+| C-00 | required fields are present, every value has the right type, and no field is undefined |
+| C-01 | a `verified` card has at least one evidence entry |
+| C-02 | any counter-evidence comes with a non-empty `status_rationale`, and a `refuted` card has counter-evidence |
+| C-03 | `status` is one of the three values |
+
+### Requirements graph — `requirements` (array)
+
+Each node: `id`, `statement`, `decomposition` (`AND` — every child is needed; `OR` — one child is chosen by condition; `LEAF` — not decomposed), `acceptance` (at least one `{id, description, level}`, where `level` is `L1` for a leaf check, `L2` for a parent's integration check, `L3` for the whole system), and optionally `children`, `assumptions`, `counterexamples`, and, on an `OR` only, `selection` (`{child id: condition}` for every child). With `schema_version` 2 the top level also has `problem_id`, the id of the problem card the graph decomposes; the gate needs version 2.
+
+### Skill composition graph — `skills` (array, `schema_version` 1)
+
+Each node: `id`, `permission` (`read_only`, `workspace_write` — reversible changes inside the working tree, `external_effect` — effects on other systems or people), `role` (`orchestrator` applies its children in order, `worker` does the task, `auditor` is an independent AI reviewer, `checker` is a deterministic program), and optionally `children`.
+
+### Challenge report — `challenge_report` (object, `schema_version` 1)
+
+`problem_id`, `reviewer`, `context_given` (array of strings), and `findings`, each with `id`, `kind`, `target` (the problem card id or a requirement id), `severity` (`high`, `medium`, `low`), `statement`, `disposition` (`open`, `accepted`, `rejected`), and `resolution` (required unless `open`). The kinds are those in [challenger.md](challenger.md).
+
+| Rule | Passes when |
+|---|---|
+| R-00 | required fields are present, every value has the right type, and no field is undefined |
+| R-01 | finding ids are non-empty and unique; `kind`, `severity`, and `disposition` have defined values |
+| R-02 | every `accepted` or `rejected` finding has a resolution |
+| R-03 | (gate only) every target is the problem card or a node of the requirements graph |
+
+## Graph rules
+
+In the *Applies to* column, *declarations* means requirement and skill graph files, *compatibility mode* means `--skills-dir`, and *all* means both.
 
 | Rule | Applies to | Passes when |
 |---|---|---|
@@ -93,49 +68,26 @@ means `--skills-dir`, and *all* means every input.
 | S-05 | requirements | an `OR` gives a non-empty condition for every child and names no id that is not its child; other nodes have no `selection` |
 | S-06 | requirements | every node has at least one acceptance criterion |
 | S-07 | requirements | acceptance ids are non-empty and unique across the graph; levels are `L1`–`L3` |
-| S-08 | all | a child with several parents is legal (never reported) |
-| S-09 | skills | permission and role are known values; an `auditor` or `checker`, and every skill it can reach, is `read_only` |
-| S-10 | compatibility mode | a declared child declares no children of its own (spec 058's one level) |
+| S-08 | all | a child with several parents is legal (this rule never reports) |
+| S-09 | skills | permission and role have defined values; an `auditor` or `checker`, and every skill reachable from it, is `read_only` |
+| S-10 | compatibility mode | a declared child declares no children of its own: a `## Child skills` section may list skills that list none |
 | S-11 | requirements | at most one node has no parent, so a forgotten child shows up as a second root |
 
-## Exit codes
+## Gate rules
 
-| Code | Meaning |
+`--gate CARD GRAPH [REPORT]` is `ready` only when all four hold; otherwise it is `blocked` and `reasons` lists each one that failed.
+
+| Rule | Holds when |
 |---|---|
-| 0 | no violation |
-| 1 | one or more rule violations |
-| 2 | the input cannot be interpreted (bad arguments, unreadable or over 5 MiB, not UTF-8, invalid JSON, a repeated key, nesting too deep, a wrong top level), or the checker itself failed |
+| G-01 | the problem card has no violation and its status is `verified` |
+| G-02 | the requirements graph has no violation, is version 2, and its `problem_id` is the card's `id` |
+| G-03 | if a report is given, it has no violation (including R-03) and is for the card's `id` |
+| G-04 | no finding is `open` |
+
+Without a report the gate can still be `ready`, and says `challenge: not_run`.
 
 ## Limits
 
-- `permission` and `role` are declared, not enforced. A skill that writes
-  files but declares `permission: read_only`, or an auditor declared as
-  `role: worker`, passes S-09. Enforcement belongs to Claude Code's permission
-  settings and the environment that runs the skill.
-- Declared skill ids are not compared with the real `SKILL.md` files; only
-  compatibility mode reads real skills.
-- Compatibility mode checks the structural rules of spec 058 only. Whether a
-  declared child is in the `authored_skills` list (the skills this repository
-  authors, listed at the top of `tests/run-config-pyramid.sh`), and how skills name each
-  other in their text, stay with `tests/run-config-pyramid.sh`.
-- OR conditions are checked for presence, not for being exclusive or covering
-  every case. Whether a parent's acceptance criteria really verify the parent
-  is a judgment for a reviewer.
-
-## Tests
-
-```sh
-bash tests/run-refinement-checker.sh
-```
-
-It runs the acceptance tests in [`tests/`](tests/), checks both examples, and
-reads this repository's `.claude/skills/` in compatibility mode.
-
-It also prints four `NOT RUN` lines and never counts them as passed. They are
-tests for the Phase 3 verification of AI-made changes, not for
-`check_graph.py`, and are listed so that they stay visible until Phase 3
-builds them: T-04 (when a parent's L2 check fails, the change is not
-complete), T-05 (an AI's report that a change is done, with no evidence, is
-not accepted), T-06 (evidence recorded for another commit is rejected as
-stale), and T-10 (a change whose risk class, low, medium, or high, cannot be
-decided stops for a person instead of being treated as low risk).
+- Statements are checked for presence, not meaning. A gap that names a solution, an OR whose conditions overlap, or a parent whose acceptance merely restates a child's passes every rule; finding those is the challenger's job.
+- `permission` and `role` are self-declared; a skill that writes but declares `read_only` passes S-09.
+- Declared skill ids are not compared with real `SKILL.md` files; only `--skills-dir` reads real skills, and it checks structure only, not how skills name each other in their text.

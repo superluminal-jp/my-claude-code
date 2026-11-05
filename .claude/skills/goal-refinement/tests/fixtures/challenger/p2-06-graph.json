@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-206",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "総当たりを防ぐ",
+      "decomposition": "AND",
+      "children": [
+        "REQ-LIMIT",
+        "REQ-LOCK"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "総当たりの試験で成功しない",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "REQ-LIMIT",
+      "statement": "試行の回数を制限する",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-LIMIT",
+          "description": "1分あたりの試行を制限する",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-LOCK",
+      "statement": "連続の失敗でロックする",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-LOCK",
+          "description": "連続の失敗でアカウントを一時ロックする",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

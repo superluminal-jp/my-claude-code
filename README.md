@@ -46,7 +46,14 @@ projects while preserving unrelated user files.
   first — the AI states its reading, assumptions, and scope for the user to
   reject — then formalize it: INVEST/Gherkin), `problem-definition` (turning a vague
   complaint into a verifiable problem statement — the gap between current
-  and ideal state), `product-strategy` (vision, target users,
+  and ideal state), `goal-refinement` (recording an agreed problem as a
+  problem card that keeps evidence, causal hypotheses, and fixes apart,
+  decomposing it into an AND/OR/LEAF requirements graph whose parents carry
+  their own acceptance criteria, having a read-only challenger subagent
+  object, and running a bundled standard-library checker whose gate answers
+  ready or blocked before implementation starts;
+  [spec 059](specs/059-refinement-graph-checker/spec.md),
+  [spec 060](specs/060-goal-refinement/spec.md)), `product-strategy` (vision, target users,
   value proposition, success metrics, and MoSCoW-prioritized scope, framed
   before development work begins),
   `git-workflow` (branch/commit/push/PR conventions), `aws-research`
@@ -118,16 +125,6 @@ projects while preserving unrelated user files.
   least 7 days ago. It is not synced by `install.sh` and does not change this
   repository's own settings; see its [README](team/package-safety/README.md)
   and [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md)
-- **`tools/refinement-checker/`** — A read-only checker for declared
-  requirement graphs (AND/OR/LEAF decomposition, each node with its own
-  acceptance criteria at level L1, L2, or L3) and skill composition graphs
-  (several levels deep, each skill with a declared permission and role), plus
-  a compatibility mode that reads the one-level `## Child skills`
-  declarations of [spec 058](specs/058-parent-skill-references/spec.md). A
-  pass means only that the structure follows the rules, not that the
-  decomposition is sufficient or secure. It is not synced by `install.sh`;
-  see its [README](tools/refinement-checker/README.md) and
-  [spec 059](specs/059-refinement-graph-checker/spec.md)
 - **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md),
   [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)** — Paste-ready
   portable prompts that carry this configuration's working principles into
@@ -213,7 +210,6 @@ my-claude-code/
 ├── .specify/                       # Spec Kit project files for this repository (templates, scripts, git extension)
 ├── archive/                        # Retired skills kept for reference (not synced)
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
-├── tools/refinement-checker/       # Read-only checker for requirement and skill graphs (not synced; spec 059)
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml                  # Runs seven tests/run-*.sh suites on every push/PR to main (required check)
@@ -235,6 +231,11 @@ my-claude-code/
         │   ├── SKILL.md            #   two-stage playbook
         │   └── references/         #   framework inventory (named to the user) + design basis (not named)
         ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
+        ├── goal-refinement/        # Problem card -> requirements graph -> challenger -> ready/blocked gate
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   checker formats and rules, challenger prompt
+        │   ├── scripts/            #   check_graph.py (read-only, standard library only)
+        │   └── tests/              #   acceptance tests and fixtures
         ├── product-strategy/SKILL.md # Vision/users/value-prop/metrics before development begins
         ├── git-workflow/SKILL.md   # Branch/commit/push/PR conventions
         ├── aws-research/SKILL.md # Current AWS doc lookup
@@ -298,15 +299,18 @@ It checks the bundle's files against each other without network access. How
 the bundle behaves inside Claude Code is checked by hand with the procedure
 in its [README](team/package-safety/README.md#check-that-it-is-in-force).
 
-After changing [`tools/refinement-checker/`](tools/refinement-checker/):
+After changing [`.claude/skills/goal-refinement/`](.claude/skills/goal-refinement/):
 
 ```sh
 bash tests/run-refinement-checker.sh
+bash tests/run-config-pyramid.sh
 ```
 
-It runs the checker's acceptance tests (Python standard library only), checks
-its two example declarations, and reads this repository's `.claude/skills/`
-in compatibility mode. It also prints four `NOT RUN` lines for tests that
+The first runs the bundled checker's acceptance tests (Python standard library
+only), checks its example declarations and that the example problem card,
+requirements graph, and challenge report pass the gate, and reads this
+repository's `.claude/skills/` in compatibility mode. It also prints four
+`NOT RUN` lines for tests that
 [spec 059](specs/059-refinement-graph-checker/spec.md) defers to a later phase;
 they are never counted as passed.
 

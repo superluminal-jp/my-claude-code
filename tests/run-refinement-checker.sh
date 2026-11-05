@@ -56,6 +56,9 @@ check_exit "RC-03: the skills example passes" 0 \
   python3 -B "$CHECKER" "$TOOL_DIR/examples/skills-graph.example.json"
 check_exit "RC-04: this repository's skills pass in compatibility mode" 0 \
   python3 -B "$CHECKER" --skills-dir "$REPO_ROOT/.claude/skills"
+check_exit "RC-05: the example problem card, graph, and challenge report are ready" 0 \
+  python3 -B "$CHECKER" --gate "$TOOL_DIR/examples/problem-card.example.json" \
+  "$TOOL_DIR/examples/requirements-graph-v2.example.json" "$TOOL_DIR/examples/challenge-report.example.json"
 
 # Deferred to Phase 3 (spec "後の Phase へ送るテスト"): they need an evidence
 # record format that does not exist yet. Listed so they are never mistaken

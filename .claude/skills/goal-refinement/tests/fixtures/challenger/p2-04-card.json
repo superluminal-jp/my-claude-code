@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-204",
+    "ideal": "利用者は、閲覧を許可された注文にしかアクセスできない",
+    "current": "隔離した環境で、利用者 B が GET /orders/{id} で利用者 A の注文を取得できた。API には GET /orders(owner を問い合わせの引数で指定する一覧)と GET /orders/export もある",
+    "evidence": [
+      {
+        "source": "pytest tests/test_orders.py::test_other_user",
+        "observation": "200 が返った"
+      }
+    ],
+    "counter_evidence": [],
+    "gap": "注文を返す API で、オブジェクト単位の認可の要件が満たされていない",
+    "significance": "他人の個人情報が漏れる",
+    "hypotheses": [
+      "API が所有者を検証していない"
+    ],
+    "proposed_solutions": [
+      "所有者の検証を加える"
+    ],
+    "out_of_scope": [],
+    "status": "verified",
+    "status_rationale": ""
+  }
+}

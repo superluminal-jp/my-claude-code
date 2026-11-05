@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-203",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "requests を更新する",
+      "decomposition": "AND",
+      "children": [
+        "REQ-BUMP",
+        "REQ-TESTS"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "更新後に統合試験が通る",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "REQ-BUMP",
+      "statement": "requirements.txt を 2.32 にする",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-BUMP",
+          "description": "requirements.txt の版が 2.32 である",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-TESTS",
+      "statement": "既存のテストが通る",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-TESTS",
+          "description": "pytest が通る",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

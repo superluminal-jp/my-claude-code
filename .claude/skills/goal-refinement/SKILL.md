@@ -1,0 +1,29 @@
+---
+name: goal-refinement
+description: "Turn an agreed problem into a typed, checkable decomposition before implementation: record it as a problem card that keeps evidence, causal hypotheses, and proposed solutions apart; decompose it into an AND/OR/LEAF requirements graph whose parents carry their own acceptance criteria; when the change is risky or the evidence is weak, have a read-only challenger subagent look for false positives, counterexamples, and missing children; then run the bundled checker's gate, which answers ready or blocked. Use before implementing a nontrivial, security-relevant, or multi-part change, and when asked to decompose requirements or to check a requirements graph or skill composition graph. Do not use to define a vague problem in the first place, to analyze root causes, to implement or review code, or to judge test evidence after implementation; those are separate capabilities. A ready result shows only that the structure holds and every recorded objection was answered, not that the decomposition is sufficient or the change is secure."
+---
+
+# Goal refinement
+
+A change may start only when its problem is backed by evidence, its requirements trace to that problem, and every objection raised against them has been answered. This skill produces the three records that make this checkable — a problem card, a requirements graph, and a challenge report — and runs the bundled checker's gate over them. The gate is deterministic; finding meaning errors (a solution stated as the problem, a parent that fails while all its children pass) is the challenger's job, and the challenger is a model whose errors can correlate with yours.
+
+## Steps
+
+Work in this order. Each step names the file it writes; keep the files together, for example under the project's spec or change directory. Run the checker after each step: `python3 <skill-dir>/scripts/check_graph.py FILE` (exit 0 passes, 1 lists violations, 2 means the file cannot be read). The formats and every rule are in [references/checker.md](references/checker.md); [examples/](examples/) has one complete set whose gate is ready.
+
+1. **Problem card** (`problem-card.json`). Start from a problem statement the person has agreed to; if there is none, stop and define the problem first, which is a separate capability. Copy the ideal state, the current state, the gap, and why it matters. Put every observation that supports the current state in `evidence` with its source (a test, a log, a scanner alert, a reproduction), and every observation against it in `counter_evidence`. Keep causes in `hypotheses` and fixes in `proposed_solutions`; never let either leak into `gap`. Set `status` to `verified` only when the evidence shows the current state, `refuted` when counter-evidence shows the problem does not exist as stated, and `unverified` otherwise; explain the status in `status_rationale` whenever there is counter-evidence.
+2. **Requirements graph** (`requirements-graph.json`, `schema_version` 2 with the card's id as `problem_id`). Make one root: the requirement that closes the gap. Decompose with `AND` when every child is needed and `OR` only for real alternatives, giving each alternative its selection condition and scope. Give every parent its own acceptance criterion at `L2` (integration across its children) or `L3` (the whole system), never only its children's `L1` tests, and list in `counterexamples` how all children could pass while the parent fails. Stop decomposing a node when it is one requirement with a clear acceptance criterion that can be verified on its own with a small change.
+3. **Challenge** (`challenge-report.json`). Run it when the change touches authentication, authorization, secrets or personal data, data migration, infrastructure permissions, or anything hard to undo; when the evidence is thin or contested; or when the same agent wrote the card and the graph and will implement them. Start a new subagent that can only read and search, give it the prompt in [references/challenger.md](references/challenger.md) and the paths of the card and the graph — not the planned implementation, so it cannot inherit your solution — and copy its findings into the report as `open`. Then answer each one: fix the card or the graph and mark it `accepted` with what changed, or mark it `rejected` with the reason. Never delete a finding.
+4. **Gate**. Run `python3 <skill-dir>/scripts/check_graph.py --gate problem-card.json requirements-graph.json [challenge-report.json]`. On `ready`, hand the requirements graph to implementation, which is a separate capability, and report the gate result with `challenge: recorded` or `challenge: not_run` as it is. On `blocked`, go back to the step the reason names: G-01 to the card, G-02 to the graph, G-03 to the report, G-04 to the open findings.
+
+Stop and ask the person instead of looping when the gate gives the same reason three times in a row, when a finding needs a decision that belongs to the person (accepting a risk, changing the scope), or when the evidence cannot be obtained with the access you have.
+
+## What the gate does not show
+
+- `ready` does not mean the decomposition is sufficient: the checker cannot read the meaning of a statement, and no finding is not the same as no error.
+- `permission` and `role` in a skill composition graph are declarations; enforcement belongs to the runtime's permission settings.
+- A challenger running on the same model family is a second opinion, not independent evidence. For high-risk changes, a person with the authority to accept the risk still decides.
+
+## Other declarations the checker reads
+
+The same script checks a skill composition graph (`skills`), the one-level `## Child skills` declarations of a skills directory (`--skills-dir DIR`), and a version 1 requirements graph without a problem. [references/checker.md](references/checker.md) describes each.

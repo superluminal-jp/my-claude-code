@@ -23,12 +23,12 @@ description: "Task list for 060: 問題カード・要求グラフ・反証の�
 
 ## Phase 4: User Story 3 - スキルの手順と反証役の評価 (P2)
 
-- [ ] T007 [US3] `SKILL.md`、`references/challenger.md`、`references/declarations.md` を書く。`tests/run-config-pyramid.sh` の `authored_skills`、RULE-03、SKILL-06 のパターンに `goal-refinement` を加え、検査が通ることを確かめる
-- [ ] T008 [US3] 判定が `ready` になる例の1組を `examples/` に置き、まとめの検査で確かめる
+- [X] T007 [US3] `SKILL.md`、`references/challenger.md`、`references/declarations.md` を書く。`tests/run-config-pyramid.sh` の `authored_skills`、RULE-03、SKILL-06 のパターンに `goal-refinement` を加え、検査が通ることを確かめる。結果: `SKILL.md`、`references/challenger.md`、`references/checker.md`(検査器の README を移して書き直した。計画の `references/declarations.md` はこれに統合した)を書いた。`run-config-pyramid` は57件が通った
+- [X] T008 [US3] 判定が `ready` になる例の1組を `examples/` に置き、まとめの検査で確かめる。結果: 例の3つ(`problem-card.example.json`、`requirements-graph-v2.example.json`、`challenge-report.example.json`)を置き、まとめの検査に RC-05 として加えた。`ready` になった
 - [ ] T009 [US3] 反証役の評価: P2-03〜P2-06 の入力を `tests/fixtures/challenger/` に置き、`references/challenger.md` の指示文で読み取り専用のサブエージェントを4件起動し、期待する種類の指摘が出たかを本ファイルに記録する
 
 ## Phase 5: Polish
 
-- [ ] T010 README の英日(スキルの説明、構成、検証)を改め、`tests/run-readme-skill-index.sh` が通ることを確かめる
+- [X] T010 README の英日(スキルの説明、構成、検証)を改め、`tests/run-readme-skill-index.sh` が通ることを確かめる。結果: `run-readme-skill-index` は31件が通った(`goal-refinement` の2件が増えた)
 - [ ] T011 ローカルの検査をすべて実行し、件数を記録する
 - [ ] T012 `/code-review` で差分をレビューし、確かめた指摘を直して記録する。仕様を会話を見ていないサブエージェントに読ませて直す

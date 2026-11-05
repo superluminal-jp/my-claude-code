@@ -1,0 +1,48 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-204",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "非認可の利用者が他人の注文を取得できない",
+      "decomposition": "AND",
+      "children": [
+        "REQ-READ",
+        "REQ-EXPORT"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "読み取りとエクスポートの統合認可試験",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "REQ-READ",
+      "statement": "読み取り API で他者の注文を返さない",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-READ",
+          "description": "他者 ID での GET /orders/{id} を拒否する",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-EXPORT",
+      "statement": "エクスポート API で他者の注文を返さない",
+      "decomposition": "LEAF",
+      "children": [],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-EXPORT",
+          "description": "他者 ID でのエクスポートを拒否する",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}
