@@ -80,11 +80,11 @@ spec 059 と spec 060 の用語(要求グラフ、受け入れ条件、水準 L1
 
   | 規則 | 満たす条件 | 満たさないとき |
   |---|---|---|
-  | A-01 | 要求グラフのすべての受け入れ条件に、検証の記録の検査がちょうど1つある。グラフにない ID の検査がない | `blocked` |
+  | A-01 | 要求グラフに受け入れ条件が1つ以上あり、そのすべてに検証の記録の検査がちょうど1つある。グラフにない ID の検査がない | `blocked` |
   | A-02 | `passed` の検査の証拠は、種類が `ai_review` でなく、参照先が空でなく、コミットが `reviewed_commit` と一致する | `blocked` |
-  | A-03 | すべての検査が `passed` か、理由のある `not_applicable` である | `failed` があれば `fail`、ほかは `blocked` |
+  | A-03 | すべての検査が `passed` か、理由のある `not_applicable` であり、検査がすべて `not_applicable` の要求がない | `failed` があれば `fail`、ほかは `blocked` |
   | A-04 | `risk.class` が `low`・`medium`・`high` のいずれかである | `blocked` |
-  | A-05 | `high` なら、`implementer` と別の人の `approved` の承認が1件以上あり、`rejected` の承認がない | 承認がなければ `blocked`、`rejected` なら `fail` |
+  | A-05 | リスクにかかわらず `rejected` の承認がなく、`high` なら `implementer` と別の人の `approved` の承認が1件以上ある。名前は大文字小文字と前後の空白を区別せずに比べる | 承認がなければ `blocked`、`rejected` なら `fail` |
   | A-06 | テストの変更(削除・スキップ・弱体化)には、`implementer` と別の人の `approved_by` がある | `blocked` |
   | A-07 | 権限の拡大、公開範囲の拡大、資源の削除・置換を記録したなら、`risk.class` が `high` である | `blocked` |
 

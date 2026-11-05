@@ -13,11 +13,11 @@ description: "Task list for 061: 実行の証拠で、葉・親・システム�
 - [X] T005 [US3] `SKILL.md`、`references/manifest.md`、`references/reviewer.md`、例を書く。`tests/run-config-pyramid.sh` の自作スキルの一覧と名前のパターンに `change-assurance` を加え、親子の規則を含めて通ることを確かめる。結果: `run-config-pyramid` 57件が通った。このリポジトリで初めての実際の親スキルであり、宣言した子の名前による参照(spec 058)と、互換モードの S-10 も通った
 - [X] T006 `tests/run-change-assurance-skill.sh` を書き、CI の必須ジョブに加える。`tests/run-refinement-checker.sh` の `NOT RUN` の4行を、`change-assurance` のテストで実装済みと示す行に改める(SC-002)。結果: `run-change-assurance-skill` 3件、`run-refinement-checker` 5件が通った。後者の `NOT RUN` の4行は消した
 - [X] T007 README の英日を改め、ローカルの検査をすべて実行して件数を記録する。結果: `run-config-pyramid` 57件、`run-readme-skill-index` 33件、`run-removed-guardrails` 4件、`run-package-safety-bundle` 21件、`run-refinement-checker` 5件、`run-change-assurance-skill` 3件、`run-secure-logging-skill` 40件、`run-digital-agency-frontend-skill` 74件、`run-install` 成功、`pyramid-structure` の単体テストが通った
-- [ ] T008 `/code-review` で差分をレビューし、確かめた指摘を直して記録する
+- [X] T008 `/code-review` で差分をレビューし、確かめた指摘を直して記録する。結果: 10件の指摘のうち9件を受け入れ、回帰テスト(12件が失敗する Red、コミット e0d9301)を先に書いてから直した。34件が通る。下の「中断時点の記録」の表の予定どおりに直した。10件目の重複は却下し、文字の出力の二重表示だけを直した
 
 ## 中断時点の記録(2026-11-06、利用量の上限による)
 
-T008 の `/code-review`(労力 medium、PR #114)は10件を指摘した。9件を受け入れ、回帰テストを先に書いた(このコミットの時点で12件が失敗する Red)。修正はまだしていない。
+T008 の `/code-review`(労力 medium、PR #114)は10件を指摘した。9件を受け入れ、回帰テストを先に書いた(このコミットの時点で12件が失敗する Red)。修正は、中断の後に行った(T008 の結果)。
 
 | # | 指摘 | 予定の対応 |
 |---|---|---|

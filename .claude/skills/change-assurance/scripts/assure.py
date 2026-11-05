@@ -74,6 +74,12 @@ def is_text(value: Any) -> bool:
     return isinstance(value, str) and value.strip() != ""
 
 
+def same_person(a: Any, b: Any) -> bool:
+    """Names match regardless of case and surrounding spaces, so a self-approval
+    cannot pass as independent by spelling the name differently."""
+    return isinstance(a, str) and isinstance(b, str) and a.strip().casefold() == b.strip().casefold()
+
+
 def read_text(path: str, what: str) -> str:
     # O_NONBLOCK keeps a FIFO from blocking the open; only regular files are
     # read, and the read is bounded even when the reported size is wrong.
@@ -148,9 +154,9 @@ def load_manifest(path: str) -> Dict[str, Any]:
     return document["verification_manifest"]
 
 
-def load_graph(path: str) -> Tuple[str, List[Tuple[str, str]]]:
+def load_graph(path: str) -> Tuple[str, List[Tuple[str, str, str]]]:
     """Reads what the gate needs from a version 2 requirements graph: its
-    problem id and every acceptance criterion as (id, level), in order. The
+    problem id and every acceptance criterion as (id, level, requirement id), in order. The
     graph's own structure is checked by its own checker, before this gate."""
     document = load_json(path, "the requirements graph")
     if not isinstance(document, dict) or document.get("schema_version") != 2 or not is_text(document.get("problem_id")):
@@ -158,7 +164,7 @@ def load_graph(path: str) -> Tuple[str, List[Tuple[str, str]]]:
     nodes = document.get("requirements")
     if not isinstance(nodes, list):
         raise InputError("the requirements graph has no requirements array")
-    criteria: List[Tuple[str, str]] = []
+    criteria: List[Tuple[str, str, str]] = []
     for node in nodes:
         entries = node.get("acceptance") if isinstance(node, dict) else None
         if not isinstance(entries, list):
@@ -166,7 +172,7 @@ def load_graph(path: str) -> Tuple[str, List[Tuple[str, str]]]:
         for entry in entries:
             if not isinstance(entry, dict) or not is_text(entry.get("id")) or entry.get("level") not in LEVELS:
                 raise InputError("every acceptance criterion needs an id and a level; check the graph with its own checker first")
-            criteria.append((entry["id"], entry["level"]))
+            criteria.append((entry["id"], entry["level"], str(node.get("id"))))
     return document["problem_id"], criteria
 
 
@@ -210,7 +216,7 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
     for name in ("change_id", "problem_id", "implementer"):
         if not is_text(body.get(name)):
             report.add("M-00", -1, None, f"{name} must be a non-empty string")
-    if not isinstance(body.get("reviewed_commit"), str) or not COMMIT.match(body["reviewed_commit"]):
+    if not isinstance(body.get("reviewed_commit"), str) or not COMMIT.fullmatch(body["reviewed_commit"]):
         report.add("M-00", -1, None, "reviewed_commit must be a commit SHA (7 to 40 lowercase hex digits)")
     if "risk" in body:
         risk = body["risk"]
@@ -250,8 +256,9 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
             or set(evidence) != EVIDENCE_FIELDS
             or evidence.get("kind") not in EVIDENCE_KINDS
             or not all(isinstance(evidence.get(k), str) for k in ("ref", "commit"))
+            or not COMMIT.fullmatch(evidence["commit"])
         ):
-            report.add("M-00", position, node, "evidence must be {kind, ref, commit} with a defined kind")
+            report.add("M-00", position, node, "evidence must be {kind, ref, commit} with a defined kind and a commit SHA")
         if status == "passed" and "evidence" not in entry:
             report.add("M-02", position, node, "a passed check needs evidence")
         if status == "not_applicable" and not is_text(entry.get("reason")):
@@ -279,13 +286,16 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
     for entry in body.get("checks") if isinstance(body.get("checks"), list) else []:
         if isinstance(entry, dict) and is_text(entry.get("check_id")):
             checks.setdefault(entry["check_id"], entry)
-    known = {criterion for criterion, _ in criteria}
+    known = {criterion for criterion, _, _ in criteria}
+    if not criteria:
+        block("A-01", "the requirements graph has no acceptance criterion, so nothing can be verified")
     for check_id in checks:
         if check_id not in known:
             block("A-01", f"check {show(check_id)} is not an acceptance criterion of the graph")
     reviewed = body.get("reviewed_commit")
     levels: Dict[str, Dict[str, int]] = {level: {} for level in LEVELS}
-    for criterion, level in criteria:
+    by_requirement: Dict[str, List[str]] = {}
+    for criterion, level, requirement in criteria:
         entry = checks.get(criterion)
         effective = "not_run"
         if entry is None:
@@ -313,6 +323,10 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
             elif status == "not_applicable" and not is_text(entry.get("reason")):
                 effective = "blocked"  # reported by M-02
         levels[level][effective] = levels[level].get(effective, 0) + 1
+        by_requirement.setdefault(requirement, []).append(effective)
+    for requirement, effective_statuses in by_requirement.items():
+        if all(status == "not_applicable" for status in effective_statuses):
+            block("A-03", f"requirement {show(requirement)} has no passed check: every one of its checks is not_applicable")
 
     risk = body.get("risk") if isinstance(body.get("risk"), dict) else {}
     risk_class = risk.get("class")
@@ -320,14 +334,15 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
     if risk_class not in ("low", "medium", "high"):
         block("A-04", f"the risk is not classified (got {show(risk_class)}); classify it before deciding")
     approvals = [a for a in body.get("approvals", []) if isinstance(a, dict)] if isinstance(body.get("approvals"), list) else []
-    if risk_class == "high":
-        if any(a.get("decision") == "rejected" for a in approvals):
-            reasons.append(("A-05", "fail", "a person rejected this high-risk change"))
-        elif not any(a.get("decision") == "approved" and is_text(a.get("by")) and a.get("by") != implementer for a in approvals):
-            block("A-05", "a high-risk change needs approval by someone other than the implementer")
+    if any(a.get("decision") == "rejected" for a in approvals):
+        reasons.append(("A-05", "fail", "a person rejected this change"))
+    elif risk_class == "high" and not any(
+        a.get("decision") == "approved" and is_text(a.get("by")) and not same_person(a.get("by"), implementer) for a in approvals
+    ):
+        block("A-05", "a high-risk change needs approval by someone other than the implementer")
     test_changes = body.get("test_changes") if isinstance(body.get("test_changes"), list) else []
     for change in test_changes:
-        if isinstance(change, dict) and (not is_text(change.get("approved_by")) or change.get("approved_by") == implementer):
+        if isinstance(change, dict) and (not is_text(change.get("approved_by")) or same_person(change.get("approved_by"), implementer)):
             block("A-06", f"the {show(change.get('change'))} test {show(change.get('path'))} has no approval by someone other than the implementer")
     infra = body.get("infra_changes") if isinstance(body.get("infra_changes"), list) else []
     if infra and risk_class != "high":
@@ -349,14 +364,18 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
 
 
 def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind: str) -> List[Dict[str, Any]]:
-    if not COMMIT.match(commit):
+    if not COMMIT.fullmatch(commit):
         raise InputError("--commit must be a commit SHA (7 to 40 lowercase hex digits)")
     if not is_text(ref):
         raise InputError("--ref must not be empty")
     _, criteria = load_graph(graph_path)
     text = read_text(report_path, "the JUnit report")
-    # Refuse document type declarations, so no entity can be defined or expanded (J-01).
-    if re.search(r"<!(DOCTYPE|ENTITY)", text, re.IGNORECASE):
+    # Refuse a document type declaration in the prolog, so no entity can be
+    # defined or expanded (J-01). Text such as CDATA after the root element
+    # starts is not a declaration.
+    root_start = re.search(r"<(?![?!])", text)
+    prolog = text[: root_start.start()] if root_start else text
+    if re.search(r"<!(DOCTYPE|ENTITY)", prolog, re.IGNORECASE):
         raise InputError("the JUnit report has a DOCTYPE or ENTITY declaration, which is refused")
     try:
         root = ElementTree.fromstring(text)
@@ -374,15 +393,18 @@ def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind
         cases.append((f"{case.get('classname', '')} {case.get('name', '')}", ids, outcome))
     evidence = {"kind": kind, "ref": ref, "commit": commit}
     out = []
-    for criterion, _ in criteria:
-        token = re.compile(r"(?<![A-Za-z0-9_-])" + re.escape(criterion) + r"(?![A-Za-z0-9_-])")
+    for criterion, _, _ in criteria:
+        token = re.compile(r"(?<![A-Za-z0-9_.-])" + re.escape(criterion) + r"(?![A-Za-z0-9_.-])")
         outcomes = [outcome for label, ids, outcome in cases if criterion in ids or token.search(label)]
         if "failed" in outcomes:
             out.append({"check_id": criterion, "status": "failed", "evidence": dict(evidence)})
         elif outcomes and all(outcome == "passed" for outcome in outcomes):
             out.append({"check_id": criterion, "status": "passed", "evidence": dict(evidence)})
         else:
-            why = "only skipped test cases" if outcomes else "no test case names this acceptance id"
+            if outcomes:
+                why = f"{outcomes.count('passed')} passed, {outcomes.count('skipped')} skipped test cases"
+            else:
+                why = "no test case names this acceptance id"
             out.append({"check_id": criterion, "status": "not_run", "reason": f"{why} in the JUnit report"})
     return out
 
@@ -402,7 +424,8 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
     if result["status"] == "error":
         print(f"error: {result['error']}", file=sys.stderr)
         return
-    for violation in result["violations"]:
+    # The gate's reasons already include its manifest violations.
+    for violation in result["violations"] if "decision" not in result else []:
         where = f" {escape_unsafe(violation['node_id'])}" if violation["node_id"] is not None else ""
         print(f"{violation['rule_id']}{where}: {violation['message']}")
     for reason in result.get("reasons", []):
@@ -439,12 +462,16 @@ def run(argv: Sequence[str], output_format: str) -> int:
     _Parser.output_format = output_format
     parser = _Parser(prog="assure.py", description="Check a verification manifest and decide assurance (read-only).")
     parser.add_argument("--format", choices=FORMATS, default="text")
+    # Also accept --format after the subcommand; SUPPRESS keeps a value given
+    # before it.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--format", choices=FORMATS, default=argparse.SUPPRESS)
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("check").add_argument("manifest")
-    gate = commands.add_parser("gate")
+    commands.add_parser("check", parents=[common]).add_argument("manifest")
+    gate = commands.add_parser("gate", parents=[common])
     gate.add_argument("graph")
     gate.add_argument("manifest")
-    collect = commands.add_parser("collect-junit")
+    collect = commands.add_parser("collect-junit", parents=[common])
     collect.add_argument("report")
     collect.add_argument("--graph", required=True)
     collect.add_argument("--commit", required=True)
