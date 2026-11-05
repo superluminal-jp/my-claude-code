@@ -16,12 +16,12 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 ## Phase 1: Setup
 
 - [X] T001 変更前の状態を記録する: ワークツリーを作った直後、変更を加える前(コミット 34708a5)に、ネットワークを使わないローカルの検査をすべて実行した。結果は spec の SC-002 に書いた件数で、失敗はなかった
-- [ ] T002 ディレクトリ `tools/refinement-checker/`、`tools/refinement-checker/examples/`、`tools/refinement-checker/tests/fixtures/requirements/`、`tools/refinement-checker/tests/fixtures/skills/` を作る
+- [X] T002 ディレクトリ `tools/refinement-checker/`、`tools/refinement-checker/examples/`、`tools/refinement-checker/tests/fixtures/requirements/`、`tools/refinement-checker/tests/fixtures/skills/` を作る
 
 ## Phase 2: Foundational
 
-- [ ] T003 受け入れテストの土台を `tools/refinement-checker/tests/test_check_graph.py` に書く。検査器を `sys.executable -B` のサブプロセスとして `--format json` で起動し、終了コードと JSON を返す補助関数と、「終了コードが 1 で、違反の規則 ID の集合が期待する集合と一致する」ことを確かめる補助関数を置く(research.md の R7)
-- [ ] T004 まとめの検査スクリプト `tests/run-refinement-checker.sh` を書く。リポジトリのほかの `tests/run-*.sh` と同じく `PASS`/`FAIL` の行と `Results: N passed, M failed` を出し、失敗があれば終了コード 1 を返す。中身は、受け入れテストの実行(`PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover`)、2つの例の検査、`.claude/skills` の互換モードの検査、spec の「後の Phase へ送るテスト」T-04・T-05・T-06・T-10 の `NOT RUN` の行(件数に数えない)である
+- [X] T003 受け入れテストの土台を `tools/refinement-checker/tests/test_check_graph.py` に書く。検査器を `sys.executable -B` のサブプロセスとして `--format json` で起動し、終了コードと JSON を返す補助関数と、「終了コードが 1 で、違反の規則 ID の集合が期待する集合と一致する」ことを確かめる補助関数を置く(research.md の R7)
+- [X] T004 まとめの検査スクリプト `tests/run-refinement-checker.sh` を書く。リポジトリのほかの `tests/run-*.sh` と同じく `PASS`/`FAIL` の行と `Results: N passed, M failed` を出し、失敗があれば終了コード 1 を返す。中身は、受け入れテストの実行(`PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover`)、2つの例の検査、`.claude/skills` の互換モードの検査、spec の「後の Phase へ送るテスト」T-04・T-05・T-06・T-10 の `NOT RUN` の行(件数に数えない)である
 
 ## Phase 3: User Story 1 - 要求の分解の構造の誤りを見つける (Priority: P1)
 
@@ -29,11 +29,11 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 
 **Independent Test**: 下の T005 の正例と負例を検査器にかけ、終了コードと規則 ID を確かめる。
 
-- [ ] T005 [P] [US1] 要求の論理グラフの正例と負例を `tools/refinement-checker/tests/fixtures/requirements/` に JSON で作る。各負例は、期待する違反の1つだけを含み、ほかは正しい(根は1つ、すべてのノードに受け入れ条件がある)。対象は spec の User Story 1 のシナリオ1〜14(P1-01〜P1-08、P1-10 を含む)である。シナリオ15の10,000ノードの直鎖と100,000段の入れ子は、テストの中で生成する。ファイル名は `p1-NN-<内容>.json`(引き継ぎ書の番号があるもの、例 `p1-03-cycle.json`)か `us1-NN-<内容>.json`(本仕様で加えたシナリオ)とし、正例は `valid-<内容>.json` とする
-- [ ] T006 [US1] 受け入れテストに、User Story 1 のシナリオ1〜15を1つずつ確かめるテストを書く。終了コード 2 を期待するテストは、JSON の `status` が `error` で `error` が空でないことも確かめる(research.md の R7)
-- [ ] T007 [US1] まとめの検査スクリプトを実行し、検査器がないために T006 のテストがすべて失敗することを記録する(Red)
-- [ ] T008 [US1] 検査器に、入力の読み込み(5 MiB の上限、UTF-8、重複キーの拒否、深い入れ子の拒否、最上位の検査、終了コード 2)、要求のノードの読み取り(data-model.md の §1・§2 の表のとおり、欄がないときはその欄の規則の違反)、S-01〜S-08 と S-11 の判定、違反の並べ替え(research.md の R4)、JSON と人が読む形式の出力(contracts/cli.md)を実装する。循環は反復の深さ優先探索で見つけ、宣言の順で最も早いノードから始まるように経路を回転させる(R3)
-- [ ] T009 [US1] まとめの検査スクリプトを実行し、T006 のテストがすべて通ることを確かめる(Green)
+- [X] T005 [P] [US1] 要求の論理グラフの正例と負例を `tools/refinement-checker/tests/fixtures/requirements/` に JSON で作る。各負例は、期待する違反の1つだけを含み、ほかは正しい(根は1つ、すべてのノードに受け入れ条件がある)。対象は spec の User Story 1 のシナリオ1〜14(P1-01〜P1-08、P1-10 を含む)である。シナリオ15の10,000ノードの直鎖と100,000段の入れ子は、テストの中で生成する。ファイル名は `p1-NN-<内容>.json`(引き継ぎ書の番号があるもの、例 `p1-03-cycle.json`)か `us1-NN-<内容>.json`(本仕様で加えたシナリオ)とし、正例は `valid-<内容>.json` とする
+- [X] T006 [US1] 受け入れテストに、User Story 1 のシナリオ1〜15を1つずつ確かめるテストを書く。終了コード 2 を期待するテストは、JSON の `status` が `error` で `error` が空でないことも確かめる(research.md の R7)
+- [X] T007 [US1] まとめの検査スクリプトを実行し、検査器がないために T006 のテストがすべて失敗することを記録する(Red)。結果: 22件のテストがすべて失敗した(subTest を含め33件の失敗)。まとめの検査スクリプトの RC-01〜RC-04 も失敗した
+- [X] T008 [US1] 検査器に、入力の読み込み(5 MiB の上限、UTF-8、重複キーの拒否、深い入れ子の拒否、最上位の検査、終了コード 2)、要求のノードの読み取り(data-model.md の §1・§2 の表のとおり、欄がないときはその欄の規則の違反)、S-01〜S-08 と S-11 の判定、違反の並べ替え(research.md の R4)、JSON と人が読む形式の出力(contracts/cli.md)を実装する。循環は反復の深さ優先探索で見つけ、宣言の順で最も早いノードから始まるように経路を回転させる(R3)
+- [X] T009 [US1] まとめの検査スクリプトを実行し、T006 のテストがすべて通ることを確かめる(Green)。結果: 22件が通った(Python 3.14.3 と macOS 標準の 3.9.6 の両方)。RC-02〜RC-04 は T019 と User Story 3 の作業で通す
 
 ## Phase 4: User Story 2 - スキル合成グラフの多段と権限を検査する (Priority: P1)
 
