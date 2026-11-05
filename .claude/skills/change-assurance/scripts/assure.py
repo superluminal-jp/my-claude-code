@@ -477,14 +477,20 @@ MAX_DEPTH = 3  # levels drawn in the overview; deeper requirements are listed
 
 
 MARK_WORDS = {"✅": "(check mark)", "❌": "(cross mark)", "⛔": "(no-entry mark)"}
-URL_IN_TEXT = re.compile(r"https?://[^\s|]+")
+# What GitHub-Flavored Markdown turns into a link without brackets: URLs,
+# www. hosts, and e-mail addresses (its extended autolinks).
+URL_IN_TEXT = re.compile(r"https?://[^\s|]+|www\.[^\s|]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+")
 MARKDOWN_SPECIALS = ("|", "<", ">", "[", "]", "*", "_", "`", "#", "~")
 
 
-def _plain(text: str) -> str:
+def _no_marks(text: str) -> str:
     for mark, word in MARK_WORDS.items():
         text = text.replace(mark, word)
-    out = escape_unsafe(text)
+    return text
+
+
+def _plain(text: str) -> str:
+    out = escape_unsafe(_no_marks(text))
     for char in MARKDOWN_SPECIALS:
         out = out.replace(char, {"<": "&lt;", ">": "&gt;"}.get(char, "\\" + char))
     return out
@@ -504,7 +510,7 @@ def md(text: Any) -> str:
 
 def code(text: Any) -> str:
     """Untrusted text as a code span outside a table."""
-    value = escape_unsafe(str(text)).replace("`", "'")
+    value = escape_unsafe(_no_marks(str(text))).replace("`", "'")
     return f"`{value}`" if value else "—"
 
 
@@ -514,7 +520,7 @@ def cell_code(text: Any) -> str:
 
 
 def mermaid_text(text: Any) -> str:
-    out = escape_unsafe(str(text))
+    out = escape_unsafe(_no_marks(str(text)))
     for raw, safe in (('"', "#quot;"), ("<", "#lt;"), (">", "#gt;")):
         out = out.replace(raw, safe)
     return out
@@ -537,7 +543,7 @@ def graph_nodes(document: Any) -> List[Dict[str, Any]]:
     return nodes
 
 
-def load_open_findings(path: Optional[str]) -> List[Dict[str, Any]]:
+def load_open_findings(path: Optional[str], problem_id: str) -> List[Dict[str, Any]]:
     if path is None:
         return []
     document = load_json(path, "the challenge report")
@@ -545,6 +551,9 @@ def load_open_findings(path: Optional[str]) -> List[Dict[str, Any]]:
     findings = report.get("findings") if isinstance(report, dict) else None
     if not isinstance(findings, list):
         raise InputError("the challenge report must have challenge_report with a findings array")
+    if report.get("problem_id") != problem_id:
+        # Another problem's report would hide this problem's open findings.
+        raise InputError(f"the challenge report is for problem {show(report.get('problem_id'))}, not {show(problem_id)}")
     return [f for f in findings if isinstance(f, dict) and f.get("disposition") == "open"]
 
 
@@ -684,7 +693,7 @@ def run_card(problem: str, graph: str, manifest: str, report: Optional[str], lan
     if card.get("status") != "verified":
         raise InputError(f"the problem card is {show(card.get('status'))}, not verified; decompose and gate it first")
     gate = evaluate_gate(problem_id, criteria, body)
-    findings = load_open_findings(report)
+    findings = load_open_findings(report, problem_id)
     if findings and gate["decision"] == "pass":
         # An unanswered objection keeps the change from passing, as in the
         # decomposition gate.
