@@ -53,6 +53,10 @@ Names are compared ignoring case and surrounding spaces, so `Claude` and ` claud
 
 The graph is read only for its problem id and its acceptance criteria. Check the graph's structure with its own checker before this gate.
 
+## Review card
+
+`card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]` prints a Markdown review card and exits like the gate. It runs the gate itself and shows its decision, its counts per level, and its reasons; it never decides on its own. In order, it shows: the decision (✅ only on `pass`), the problem (current, ideal, gap), the change and its risk, the checks by level, every check that did not pass, the unresolved items (gate reasons and open findings of the challenge report), what a person has to decide, a Mermaid diagram of the decomposition three levels deep with each requirement drawn once (deeper requirements are listed), and the evidence of every check. All input text is treated as untrusted: table separators, HTML angle brackets, square brackets, and control characters are escaped, and an evidence reference becomes a link only when it is a plain `http` or `https` URL.
+
 ## JUnit XML
 
 `collect-junit` prints an array of checks to put in the manifest. A test case belongs to an acceptance criterion when its property `acceptance_id` equals the id, or when the id appears as a separate word (not inside a longer id or name) in its `classname` or `name`, for example `test_other_user[TEST-LEAF-001]`. A separate word means the id is not next to a letter, digit, `_`, `-`, or `.`, so `TEST-LEAF-003.extra` does not count for `TEST-LEAF-003`. A criterion whose test cases all passed is `passed`; one with any failure or error is `failed`; any other mix (some skipped, or none found) is `not_run`, with the counts in its reason. A report with a `DOCTYPE` or `ENTITY` declaration before its root element is refused; such text inside the report, for example in CDATA, is not a declaration.

@@ -295,6 +295,7 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
     reviewed = body.get("reviewed_commit")
     levels: Dict[str, Dict[str, int]] = {level: {} for level in LEVELS}
     by_requirement: Dict[str, List[str]] = {}
+    per_check: List[Dict[str, Any]] = []
     for criterion, level, requirement in criteria:
         entry = checks.get(criterion)
         effective = "not_run"
@@ -324,6 +325,8 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
                 effective = "blocked"  # reported by M-02
         levels[level][effective] = levels[level].get(effective, 0) + 1
         by_requirement.setdefault(requirement, []).append(effective)
+        per_check.append({"check_id": criterion, "level": level, "requirement": requirement, "status": effective,
+                          "evidence": entry.get("evidence") if entry is not None and isinstance(entry.get("evidence"), dict) else None})
     for requirement, effective_statuses in by_requirement.items():
         if all(status == "not_applicable" for status in effective_statuses):
             block("A-03", f"requirement {show(requirement)} has no passed check: every one of its checks is not_applicable")
@@ -357,6 +360,7 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
         "reasons": [{"rule_id": rule, "effect": effect, "message": message} for rule, effect, message in reasons],
         "rules_checked": MANIFEST_RULES + GATE_RULES,
         "violations": [dict(v, input="manifest") for v in violations],
+        "checks": per_check,
     }
 
 
@@ -407,6 +411,193 @@ def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind
                 why = "no test case names this acceptance id"
             out.append({"check_id": criterion, "status": "not_run", "reason": f"{why} in the JUnit report"})
     return out
+
+
+# --- review card -----------------------------------------------------------------
+
+LABELS = {
+    "en": {
+        "title": "Review card", "decision": "Decision",
+        "note": "From the assurance gate. It checks that the records are consistent, not that the change is secure.",
+        "problem": "Problem", "current": "Current", "ideal": "Ideal", "gap": "Gap",
+        "change": "Change and risk", "commit": "Reviewed commit", "implementer": "Implementer", "risk": "Risk",
+        "approvals": "Approvals", "none": "none", "levels": "Checks by level", "level": "Level",
+        "not_passed": "Not passed", "unresolved": "Unresolved", "decide": "Decisions for a person",
+        "requirements": "Requirements", "deeper": "Deeper requirements (not drawn)", "evidence": "Evidence",
+        "requirement": "Requirement", "check": "Check", "status": "Status",
+        "accept": "Accept or return the change.",
+        "risk_acceptance": "Accept or reject the residual risk of this high-risk change.",
+        "return": "Return the change, or supply what the unresolved items name.",
+    },
+    "ja": {
+        "title": "レビューカード", "decision": "判定",
+        "note": "保証の判定による。記録どうしの整合を確かめるもので、変更が安全であることは示さない。",
+        "problem": "問題", "current": "現状", "ideal": "理想", "gap": "差分",
+        "change": "変更とリスク", "commit": "審査の対象のコミット", "implementer": "実装担当", "risk": "リスク",
+        "approvals": "承認", "none": "なし", "levels": "水準ごとの検査", "level": "水準",
+        "not_passed": "合格していない検査", "unresolved": "未解消の事項", "decide": "人が決めること",
+        "requirements": "要求", "deeper": "図に描かない深い要求", "evidence": "証拠",
+        "requirement": "要求", "check": "検査", "status": "状態",
+        "accept": "変更を受け入れるか、差し戻すかを決める。",
+        "risk_acceptance": "この高リスクの変更の残存リスクを受け入れるかを決める。",
+        "return": "変更を差し戻すか、未解消の事項が求めるものを用意する。",
+    },
+}
+MARKS = {"pass": "✅", "fail": "❌", "blocked": "⛔"}
+SAFE_URL = re.compile(r"https?://[A-Za-z0-9._~:/?#@!$&'*+,;=%-]+")
+MAX_DEPTH = 3  # levels drawn in the overview; deeper requirements are listed
+
+
+def md(text: Any) -> str:
+    """Untrusted text for a Markdown line or table cell."""
+    out = escape_unsafe(str(text))
+    for raw, safe in (("|", "\\|"), ("<", "&lt;"), (">", "&gt;"), ("[", "\\["), ("]", "\\]")):
+        out = out.replace(raw, safe)
+    return out
+
+
+def code(text: Any) -> str:
+    return "`" + escape_unsafe(str(text)).replace("`", "'").replace("|", "\\|") + "`"
+
+
+def mermaid_text(text: Any) -> str:
+    out = escape_unsafe(str(text))
+    for raw, safe in (('"', "#quot;"), ("<", "#lt;"), (">", "#gt;")):
+        out = out.replace(raw, safe)
+    return out
+
+
+def load_problem_card(path: str) -> Dict[str, Any]:
+    document = load_json(path, "the problem card")
+    card = document.get("problem_card") if isinstance(document, dict) else None
+    if not isinstance(card, dict) or not all(isinstance(card.get(k), str) for k in ("id", "ideal", "current", "gap")):
+        raise InputError("the problem card must have problem_card with id, ideal, current, and gap")
+    return card
+
+
+def load_graph_nodes(path: str) -> List[Dict[str, Any]]:
+    document = load_json(path, "the requirements graph")
+    nodes = document.get("requirements") if isinstance(document, dict) else None
+    if not isinstance(nodes, list) or not all(
+        isinstance(n, dict) and is_text(n.get("id")) and isinstance(n.get("children", []), list) for n in nodes
+    ):
+        raise InputError("every requirement needs an id and a children array; check the graph with its own checker first")
+    return nodes
+
+
+def load_open_findings(path: Optional[str]) -> List[Dict[str, Any]]:
+    if path is None:
+        return []
+    document = load_json(path, "the challenge report")
+    report = document.get("challenge_report") if isinstance(document, dict) else None
+    findings = report.get("findings") if isinstance(report, dict) else None
+    if not isinstance(findings, list):
+        raise InputError("the challenge report must have challenge_report with a findings array")
+    return [f for f in findings if isinstance(f, dict) and f.get("disposition") == "open"]
+
+
+def render_card(card: Dict[str, Any], nodes: List[Dict[str, Any]], body: Dict[str, Any], gate: Dict[str, Any],
+                findings: List[Dict[str, Any]], lang: str) -> str:
+    L = LABELS[lang]
+    decision = gate["decision"]
+    lines = [f"# {L['title']}: {md(body.get('change_id', ''))}", "",
+             f"**{L['decision']}: {MARKS[decision]} {decision}**", "", L["note"], "",
+             f"## {L['problem']}", "",
+             f"- **{L['current']}**: {md(card['current'])}",
+             f"- **{L['ideal']}**: {md(card['ideal'])}",
+             f"- **{L['gap']}**: {md(card['gap'])}", ""]
+    risk = body.get("risk") if isinstance(body.get("risk"), dict) else {}
+    approvals = [a for a in body.get("approvals", []) if isinstance(a, dict)] if isinstance(body.get("approvals"), list) else []
+    approval_text = "; ".join(f"{md(a.get('by'))} ({md(a.get('decision'))}): {md(a.get('scope'))}" for a in approvals) or L["none"]
+    lines += [f"## {L['change']}", "",
+              f"- **{L['commit']}**: {code(body.get('reviewed_commit', ''))}",
+              f"- **{L['implementer']}**: {md(body.get('implementer', ''))}",
+              f"- **{L['risk']}**: {md(risk.get('class', 'unclassified'))} — {md(risk.get('rationale', ''))}",
+              f"- **{L['approvals']}**: {approval_text}", ""]
+    statuses = list(STATUSES)
+    lines += [f"## {L['levels']}", "", f"| {L['level']} | " + " | ".join(statuses) + " |",
+              "|---|" + "---|" * len(statuses)]
+    for level in LEVELS:
+        counts = gate["levels"].get(level, {})
+        lines.append(f"| {level} | " + " | ".join(str(counts.get(st, 0)) for st in statuses) + " |")
+    not_passed = [c for c in gate["checks"] if c["status"] not in ("passed", "not_applicable")]
+    lines += ["", f"## {L['not_passed']}", ""]
+    lines += [f"- {code(c['check_id'])} ({c['level']}, {md(c['requirement'])}): {c['status']}" for c in not_passed] or [f"- {L['none']}"]
+    unresolved = [f"- {r['rule_id']} ({r['effect']}): {md(r['message'])}" for r in gate["reasons"]]
+    unresolved += [f"- {md(f.get('id'))} ({md(f.get('kind'))} on {md(f.get('target'))}, {md(f.get('severity'))}): {md(f.get('statement'))}"
+                   for f in findings]
+    lines += ["", f"## {L['unresolved']}", ""] + (unresolved or [f"- {L['none']}"])
+    decide = [L["risk_acceptance"]] if risk.get("class") == "high" else []
+    decide.append(L["accept"] if decision == "pass" and not findings else L["return"])
+    lines += ["", f"## {L['decide']}", ""] + [f"- {item}" for item in decide]
+    lines += ["", f"## {L['requirements']}", ""] + render_requirements(nodes, gate["checks"], L)
+    lines += ["", f"## {L['evidence']}", "",
+              f"| {L['requirement']} | {L['check']} | {L['level']} | {L['status']} | {L['evidence']} |", "|---|---|---|---|---|"]
+    for c in gate["checks"]:
+        evidence = c["evidence"]
+        if evidence is None:
+            cell = "—"
+        else:
+            ref = str(evidence.get("ref", ""))
+            link = f"[{md(evidence.get('kind'))}]({ref})" if SAFE_URL.fullmatch(ref) else code(ref)
+            cell = f"{link} @ {code(str(evidence.get('commit', ''))[:7])}"
+        lines.append(f"| {md(c['requirement'])} | {code(c['check_id'])} | {c['level']} | {c['status']} | {cell} |")
+    return "\n".join(lines) + "\n"
+
+
+def render_requirements(nodes: List[Dict[str, Any]], checks: List[Dict[str, Any]], L: Dict[str, str]) -> List[str]:
+    """A Mermaid overview of the decomposition only, three levels deep, each
+    requirement drawn once; deeper requirements are listed below it."""
+    by_id: Dict[str, Dict[str, Any]] = {}
+    for node in nodes:
+        by_id.setdefault(node["id"], node)
+    children_of = {nid: [c for c in node.get("children", []) if isinstance(c, str) and c in by_id] for nid, node in by_id.items()}
+    referenced = {c for kids in children_of.values() for c in kids}
+    depth: Dict[str, int] = {}
+    queue = [nid for nid in by_id if nid not in referenced]
+    for nid in queue:
+        depth[nid] = 1
+    index = 0
+    while index < len(queue):
+        nid = queue[index]
+        index += 1
+        for child in children_of[nid]:
+            if child not in depth:
+                depth[child] = depth[nid] + 1
+                queue.append(child)
+    state: Dict[str, str] = {}
+    for c in checks:
+        current = state.get(c["requirement"], "pass")
+        if c["status"] == "failed":
+            current = "fail"
+        elif c["status"] not in ("passed", "not_applicable") and current != "fail":
+            current = "open"
+        state[c["requirement"]] = current
+    drawn = [nid for nid in by_id if depth.get(nid, MAX_DEPTH + 1) <= MAX_DEPTH]
+    key = {nid: f"n{i}" for i, nid in enumerate(drawn)}
+    lines = ["```mermaid", "flowchart TD"]
+    for nid in drawn:
+        label = f"{nid} · {by_id[nid].get('decomposition', '')} · {state.get(nid, 'open')}"
+        lines.append(f'  {key[nid]}["{mermaid_text(label)}"]:::{state.get(nid, "open")}')
+    for nid in drawn:
+        for child in children_of[nid]:
+            if child in key:
+                lines.append(f"  {key[nid]} --> {key[child]}")
+    lines += ["  classDef pass fill:#e6f4ea,stroke:#1e7e34", "  classDef fail fill:#fdecea,stroke:#b02a37",
+              "  classDef open fill:#fff4e5,stroke:#b36b00", "```", ""]
+    lines += [f"- {code(nid)} ({md(by_id[nid].get('decomposition', ''))}): {md(by_id[nid].get('statement', ''))}" for nid in drawn]
+    deeper = [nid for nid in by_id if nid not in key]
+    if deeper:
+        lines += ["", f"### {L['deeper']}", ""]
+        lines += [f"- {code(nid)} ({md(by_id[nid].get('decomposition', ''))}): {md(by_id[nid].get('statement', ''))}" for nid in deeper]
+    return lines
+
+
+def run_card(problem: str, graph: str, manifest: str, report: Optional[str], lang: str) -> Tuple[str, str]:
+    gate = run_gate(graph, manifest)
+    text = render_card(load_problem_card(problem), load_graph_nodes(graph), load_manifest(manifest), gate,
+                       load_open_findings(report), lang)
+    return gate["decision"], text
 
 
 # --- command line --------------------------------------------------------------
@@ -477,8 +668,18 @@ def run(argv: Sequence[str], output_format: str) -> int:
     collect.add_argument("--commit", required=True)
     collect.add_argument("--ref", required=True)
     collect.add_argument("--kind", choices=("ci_job", "local_run"), default="ci_job")
+    card = commands.add_parser("card", parents=[common])
+    card.add_argument("--problem", required=True)
+    card.add_argument("--graph", required=True)
+    card.add_argument("--manifest", required=True)
+    card.add_argument("--report")
+    card.add_argument("--lang", choices=tuple(LABELS), default="en")
     args = parser.parse_args(argv)
     try:
+        if args.command == "card":
+            decision, text = run_card(args.problem, args.graph, args.manifest, args.report, args.lang)
+            sys.stdout.write(text)
+            return EXIT_OK if decision == "pass" else EXIT_NOT_OK
         if args.command == "collect-junit":
             print(json.dumps(collect_junit(args.report, args.graph, args.commit, args.ref, args.kind), indent=2, ensure_ascii=False))
             return EXIT_OK
