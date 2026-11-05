@@ -20,6 +20,7 @@ import json
 import sys
 import traceback
 import unicodedata
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, NoReturn, Optional, Sequence, Tuple
@@ -34,15 +35,20 @@ EXIT_INPUT_ERROR = 2
 
 DECOMPOSITIONS = ("AND", "OR", "LEAF")
 LEVELS = ("L1", "L2", "L3")
+PERMISSIONS = ("read_only", "workspace_write", "external_effect")
+ROLES = ("orchestrator", "worker", "auditor", "checker")
+READ_ONLY_ROLES = ("auditor", "checker")
 
 TOP_LEVEL_FIELDS = frozenset({"schema_version", "requirements", "skills"})
 REQUIREMENT_FIELDS = frozenset(
     {"id", "statement", "decomposition", "children", "acceptance", "assumptions", "counterexamples", "selection"}
 )
 ACCEPTANCE_FIELDS = frozenset({"id", "description", "level"})
+SKILL_FIELDS = frozenset({"id", "children", "permission", "role"})
 
 RULES_CHECKED: Dict[str, List[str]] = {
     "requirements": ["S-00", "S-01", "S-02", "S-03", "S-04", "S-05", "S-06", "S-07", "S-08", "S-11"],
+    "skills": ["S-00", "S-01", "S-02", "S-03", "S-08", "S-09"],
 }
 
 # Characters that could forge or hide lines in the human-readable output
@@ -149,8 +155,6 @@ def parse_declaration(text: str) -> Tuple[str, List[Any]]:
     kind = kinds[0]
     if not isinstance(document[kind], list):
         raise InputError(f"{kind} must be an array")
-    if kind not in RULES_CHECKED:
-        raise InputError(f"{kind} graphs are not supported yet")
     return kind, document[kind]
 
 
@@ -355,11 +359,62 @@ def check_requirements(raw_nodes: Sequence[Any]) -> List[Violation]:
     return report.violations()
 
 
+# --- skill graphs --------------------------------------------------------------
+
+
+def check_skill_fields(node: Node, report: Report) -> Tuple[Optional[str], Optional[str]]:
+    """Applies the value part of S-09; returns (permission, role), each None when invalid."""
+    where = (node.position, node.node_id)
+    values: Dict[str, Optional[str]] = {}
+    for name, allowed in (("permission", PERMISSIONS), ("role", ROLES)):
+        value = node.raw.get(name)
+        if value in allowed:
+            values[name] = value
+        else:
+            got = "none" if name not in node.raw else show(value)
+            report.add("S-09", *where, f"{name} must be one of {', '.join(allowed)} (got {got})")
+            values[name] = None
+    return values["permission"], values["role"]
+
+
+def check_skills(raw_nodes: Sequence[Any]) -> List[Violation]:
+    report = Report()
+    nodes = parse_nodes(raw_nodes, SKILL_FIELDS, report)
+    edges = check_references(nodes, report)
+    check_cycles(nodes, edges, report)
+    declared = {node.node_id: check_skill_fields(node, report) for node in nodes}
+    permission = {node_id: values[0] for node_id, values in declared.items()}
+    for node in nodes:
+        role = declared[node.node_id][1]
+        if role not in READ_ONLY_ROLES:
+            continue
+        where = (node.position, node.node_id)
+        own = permission[node.node_id]
+        if own is not None and own != "read_only":
+            report.add("S-09", *where, f"an {role} must be read_only (declared {own})")
+        # Applying a child produces the child's effects, so everything an
+        # auditor or checker can reach must be read-only too (spec D6).
+        visited = {node.node_id}
+        queue = deque(edges[node.node_id])
+        while queue:
+            child = queue.popleft()
+            if child in visited:
+                continue
+            visited.add(child)
+            reached = permission[child]
+            if reached is not None and reached != "read_only":
+                report.add("S-09", *where, f"the {role} reaches {show(child)}, which is {reached}, through its children")
+            queue.extend(edges[child])
+    return report.violations()
+
+
 # --- command line --------------------------------------------------------------
 
 
 def check_file(path: Path) -> Tuple[str, List[Violation]]:
     kind, raw_nodes = parse_declaration(read_text(path, "the declaration file"))
+    if kind == "skills":
+        return kind, check_skills(raw_nodes)
     return kind, check_requirements(raw_nodes)
 
 

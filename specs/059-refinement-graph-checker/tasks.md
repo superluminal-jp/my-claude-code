@@ -41,11 +41,11 @@ description: "Task list for 059: 要求とスキルの多段の関係を宣言�
 
 **Independent Test**: 下の T010 の正例と負例を検査器にかけ、終了コードと規則 ID を確かめる。
 
-- [ ] T010 [P] [US2] スキル合成グラフの正例と負例を `tools/refinement-checker/tests/fixtures/skills/` に JSON で作る。対象は spec の User Story 2 のシナリオ1〜5である。権限は `read_only`・`workspace_write`・`external_effect`、役割は `orchestrator`・`worker`・`auditor`・`checker` だけが正しい値である(spec の D6)
-- [ ] T011 [US2] 受け入れテストに、User Story 2 のシナリオ1〜5を確かめるテストを書く
-- [ ] T012 [US2] T011 のテストが失敗することを記録する(Red)
-- [ ] T013 [US2] 検査器に、スキルのノードの読み取り(data-model.md の §3)と S-09 の判定を加える。`auditor` と `checker` の子孫は、訪問済みの集合を持つ反復の幅優先探索でたどる
-- [ ] T014 [US2] T011 のテストが通ることを確かめる(Green)
+- [X] T010 [P] [US2] スキル合成グラフの正例と負例を `tools/refinement-checker/tests/fixtures/skills/` に JSON で作る。対象は spec の User Story 2 のシナリオ1〜5である。権限は `read_only`・`workspace_write`・`external_effect`、役割は `orchestrator`・`worker`・`auditor`・`checker` だけが正しい値である(spec の D6)
+- [X] T011 [US2] 受け入れテストに、User Story 2 のシナリオ1〜5を確かめるテストを書く
+- [X] T012 [US2] T011 のテストが失敗することを記録する(Red)。結果: 新しい7件が失敗し、User Story 1 の22件は通った
+- [X] T013 [US2] 検査器に、スキルのノードの読み取り(data-model.md の §3)と S-09 の判定を加える。`auditor` と `checker` の子孫は、訪問済みの集合を持つ反復の幅優先探索でたどる
+- [X] T014 [US2] T011 のテストが通ることを確かめる(Green)。結果: 29件が通った(Python 3.14.3 と 3.9.6)
 
 ## Phase 5: User Story 3 - 既存の一段の宣言を互換モードで検査する (Priority: P2)
 

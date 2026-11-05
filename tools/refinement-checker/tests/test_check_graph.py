@@ -217,6 +217,46 @@ class RequirementsGraphTests(CheckerTestCase):
         self.assertIn("error", proc.stderr)
 
 
+class SkillsGraphTests(CheckerTestCase):
+    """User Story 2: multi-level skill composition and declared permissions."""
+
+    def test_scenario_1_two_levels_and_a_shared_child_pass(self):
+        result = self.assert_passes(fixture(SKILLS, "valid-multilevel-shared.json"))
+        self.assertEqual(result["graph"], "skills")
+        self.assertEqual(result["rules_checked"], ["S-00", "S-01", "S-02", "S-03", "S-08", "S-09"])
+
+    def test_p1_09_auditor_that_declares_write_is_rejected(self):
+        violations = self.assert_violations({"S-09"}, fixture(SKILLS, "p1-09-auditor-declares-write.json"))
+        self.assertEqual(violations[0]["node_id"], "problem-challenger")
+
+    def test_scenario_3_undefined_permission_is_rejected(self):
+        self.assert_violations({"S-09"}, fixture(SKILLS, "us2-03-undefined-permission.json"))
+
+    def test_scenario_4_auditor_that_reaches_a_writer_is_rejected(self):
+        violations = self.assert_violations({"S-09"}, fixture(SKILLS, "us2-04-auditor-reaches-writer.json"))
+        self.assertEqual(violations[0]["node_id"], "assurance-reviewer")
+        self.assertIn("coder-step", violations[0]["message"])
+
+    def test_scenario_5_cycle_between_skills_is_rejected(self):
+        violations = self.assert_violations({"S-03"}, fixture(SKILLS, "us2-05-cycle.json"))
+        self.assertIn("skill-a -> skill-b -> skill-a", violations[0]["message"])
+
+    def test_missing_permission_and_role_are_rejected(self):
+        path = self.write_temp(
+            "skills.json", json.dumps({"schema_version": 1, "skills": [{"id": "lonely"}]})
+        )
+        violations = self.assert_violations({"S-09"}, str(path))
+        self.assertEqual(len(violations), 2)
+
+    def test_skill_graph_allows_several_roots(self):
+        nodes = [
+            {"id": "one", "permission": "read_only", "role": "worker"},
+            {"id": "two", "permission": "external_effect", "role": "worker"},
+        ]
+        path = self.write_temp("skills.json", json.dumps({"schema_version": 1, "skills": nodes}))
+        self.assert_passes(str(path))
+
+
 def _requirement(node_id: str, decomposition: str, children: list[str]) -> dict:
     return {
         "id": node_id,
