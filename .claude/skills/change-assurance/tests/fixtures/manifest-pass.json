@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-001",
+    "problem_id": "PRB-001",
+    "reviewed_commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f",
+    "implementer": "claude",
+    "risk": {
+      "class": "low",
+      "rationale": "テストの環境だけで確かめた変更"
+    },
+    "approvals": [],
+    "checks": [
+      {
+        "check_id": "TEST-PARENT-001",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "https://ci.example.test/runs/1",
+          "commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f"
+        }
+      },
+      {
+        "check_id": "TEST-SYSTEM-001",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "https://ci.example.test/runs/1",
+          "commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f"
+        }
+      },
+      {
+        "check_id": "TEST-LEAF-001",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "https://ci.example.test/runs/1",
+          "commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f"
+        }
+      },
+      {
+        "check_id": "TEST-LEAF-002",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "https://ci.example.test/runs/1",
+          "commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f"
+        }
+      },
+      {
+        "check_id": "TEST-LEAF-003",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "https://ci.example.test/runs/1",
+          "commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f"
+        }
+      }
+    ],
+    "test_changes": [],
+    "infra_changes": []
+  }
+}
