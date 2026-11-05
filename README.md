@@ -118,6 +118,16 @@ projects while preserving unrelated user files.
   least 7 days ago. It is not synced by `install.sh` and does not change this
   repository's own settings; see its [README](team/package-safety/README.md)
   and [ADR-0017](docs/adr/0017-team-package-install-safety-bundle.md)
+- **`tools/refinement-checker/`** — A read-only checker for declared
+  requirement graphs (AND/OR/LEAF decomposition, each node with its own
+  acceptance criteria at level L1, L2, or L3) and skill composition graphs
+  (several levels deep, each skill with a declared permission and role), plus
+  a compatibility mode that reads the one-level `## Child skills`
+  declarations of [spec 058](specs/058-parent-skill-references/spec.md). A
+  pass means only that the structure follows the rules, not that the
+  decomposition is sufficient or secure. It is not synced by `install.sh`;
+  see its [README](tools/refinement-checker/README.md) and
+  [spec 059](specs/059-refinement-graph-checker/spec.md)
 - **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md),
   [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)** — Paste-ready
   portable prompts that carry this configuration's working principles into
@@ -203,9 +213,10 @@ my-claude-code/
 ├── .specify/                       # Spec Kit project files for this repository (templates, scripts, git extension)
 ├── archive/                        # Retired skills kept for reference (not synced)
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
+├── tools/refinement-checker/       # Read-only checker for requirement and skill graphs (not synced; spec 059)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs six tests/run-*.sh suites on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs seven tests/run-*.sh suites on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
@@ -287,6 +298,18 @@ It checks the bundle's files against each other without network access. How
 the bundle behaves inside Claude Code is checked by hand with the procedure
 in its [README](team/package-safety/README.md#check-that-it-is-in-force).
 
+After changing [`tools/refinement-checker/`](tools/refinement-checker/):
+
+```sh
+bash tests/run-refinement-checker.sh
+```
+
+It runs the checker's acceptance tests (Python standard library only), checks
+its two example declarations, and reads this repository's `.claude/skills/`
+in compatibility mode. It also prints four `NOT RUN` lines for tests that
+[spec 059](specs/059-refinement-graph-checker/spec.md) defers to a later phase;
+they are never counted as passed.
+
 After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
 [`.claude/rules/`](.claude/rules/), or an authored skill:
 
@@ -360,11 +383,12 @@ configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-Six of the suites above also run automatically in CI
+Seven of the suites above also run automatically in CI
 (`.github/workflows/ci.yml`) on every push and pull request to `main`:
 `run-install.sh`, `run-digital-agency-frontend-skill.sh`,
 `run-removed-guardrails.sh`, `run-package-safety-bundle.sh`,
-`run-readme-skill-index.sh`, and `run-mcp-startup.sh`. The others run only when you run them. `main` is
+`run-readme-skill-index.sh`, `run-refinement-checker.sh`, and
+`run-mcp-startup.sh`. The others run only when you run them. `main` is
 protected by a repository ruleset
 (`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)
 to pass before anything merges.

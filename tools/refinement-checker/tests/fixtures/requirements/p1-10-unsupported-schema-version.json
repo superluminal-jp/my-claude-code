@@ -1,0 +1,45 @@
+{
+  "schema_version": 2,
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "requirement REQ-ROOT",
+      "decomposition": "AND",
+      "children": [
+        "REQ-A",
+        "REQ-B"
+      ],
+      "acceptance": [
+        {
+          "id": "TEST-REQ-ROOT",
+          "description": "verify TEST-REQ-ROOT",
+          "level": "L2"
+        }
+      ]
+    },
+    {
+      "id": "REQ-A",
+      "statement": "requirement REQ-A",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-REQ-A",
+          "description": "verify TEST-REQ-A",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-B",
+      "statement": "requirement REQ-B",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "TEST-REQ-B",
+          "description": "verify TEST-REQ-B",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

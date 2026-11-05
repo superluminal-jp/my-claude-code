@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "非認可利用者が保護対象データを取得できない",
+      "decomposition": "AND",
+      "children": ["REQ-READ", "REQ-EXPORT"],
+      "assumptions": ["対象の読み取り経路とエクスポート経路が把握されている"],
+      "acceptance": [
+        {
+          "id": "TEST-PARENT-001",
+          "description": "全ての取得経路を横断する統合認可試験",
+          "level": "L2"
+        }
+      ],
+      "counterexamples": ["読み取りとエクスポートは拒否されるが別経路から取得できる"]
+    },
+    {
+      "id": "REQ-READ",
+      "statement": "読み取りAPIで他者のデータを返さない",
+      "decomposition": "LEAF",
+      "children": [],
+      "assumptions": [],
+      "acceptance": [
+        {
+          "id": "TEST-LEAF-001",
+          "description": "他者IDでの取得を拒否する",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-EXPORT",
+      "statement": "エクスポートAPIで他者のデータを返さない",
+      "decomposition": "LEAF",
+      "children": [],
+      "assumptions": [],
+      "acceptance": [
+        {
+          "id": "TEST-LEAF-002",
+          "description": "他者IDでのエクスポートを拒否する",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}
