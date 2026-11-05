@@ -40,10 +40,13 @@ INFRA_CHANGES = ("permission_expansion", "public_exposure", "resource_deletion",
 MANIFEST_FIELDS = frozenset(
     {"change_id", "problem_id", "reviewed_commit", "implementer", "risk", "approvals", "checks", "test_changes", "infra_changes"}
 )
-CHECK_FIELDS = frozenset({"check_id", "status", "evidence", "reason"})
+CHECK_FIELDS = frozenset({"check_id", "status", "evidence", "reason", "approved_by"})
 EVIDENCE_FIELDS = frozenset({"kind", "ref", "commit"})
 MANIFEST_RULES = ["M-00", "M-01", "M-02"]
-GATE_RULES = ["A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07"]
+GATE_RULES = ["A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07", "A-08"]
+# A check at these levels is a parent's or the system's own verification, so
+# waiving it as not_applicable needs someone other than the implementer.
+WAIVER_APPROVAL_LEVELS = ("L2", "L3")
 COMMIT = re.compile(r"^[0-9a-f]{7,40}$")
 _UNSAFE_CATEGORIES = frozenset({"Cc", "Cf", "Zl", "Zp"})
 
@@ -73,6 +76,10 @@ def escape_unsafe(text: str) -> str:
 
 def is_text(value: Any) -> bool:
     return isinstance(value, str) and value.strip() != ""
+
+
+def independently_approved(approved_by: Any, implementer: Any) -> bool:
+    return is_text(approved_by) and not same_person(approved_by, implementer)
 
 
 def same_person(a: Any, b: Any) -> bool:
@@ -183,6 +190,25 @@ def load_graph(path: str) -> Tuple[str, List[Tuple[str, str, str]]]:
     return document["problem_id"], criteria
 
 
+def load_challenge_report(path: Optional[str], problem_id: str) -> Optional[Dict[str, Any]]:
+    """Reads what the gate needs from goal-refinement's challenge report: its
+    problem id and its findings. Check the report with its own checker first."""
+    if path is None:
+        return None
+    document = load_json(path, "the challenge report")
+    report = document.get("challenge_report") if isinstance(document, dict) else None
+    if not isinstance(report, dict) or not isinstance(report.get("findings"), list):
+        raise InputError("the challenge report must have challenge_report with a findings array")
+    if report.get("problem_id") != problem_id:
+        # Another problem's report would hide this problem's open findings.
+        raise InputError(f"the challenge report is for problem {show(report.get('problem_id'))}, not {show(problem_id)}")
+    return report
+
+
+def open_findings(report: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [f for f in report["findings"] if isinstance(f, dict) and f.get("disposition") == "open"] if report else []
+
+
 # --- the manifest's own rules (M-00 to M-02) --------------------------------------
 
 
@@ -262,6 +288,8 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
             report.add("M-00", position, node, f"status must be one of {', '.join(STATUSES)} (got {show(status)})")
         if "reason" in entry and not isinstance(entry["reason"], str):
             report.add("M-00", position, node, "reason must be a string")
+        if "approved_by" in entry and not is_text(entry["approved_by"]):
+            report.add("M-00", position, node, "approved_by must be a non-empty string")
         if "evidence" in entry and not valid_evidence(entry["evidence"]):
             report.add("M-00", position, node, "evidence must be {kind, ref, commit} with a defined kind and a commit SHA")
         if status == "passed" and "evidence" not in entry:
@@ -274,9 +302,10 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
 # --- the gate (A-01 to A-07) -----------------------------------------------------
 
 
-def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
+def run_gate(graph_path: str, manifest_path: str, report_path: Optional[str] = None) -> Dict[str, Any]:
     problem_id, criteria = load_graph(graph_path)
     body = load_manifest(manifest_path)
+    report = load_challenge_report(report_path, problem_id)
     violations = check_manifest(body)
     reasons: List[Tuple[str, str, str]] = []  # (rule, effect, message)
 
@@ -298,6 +327,7 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
         if check_id not in known:
             block("A-01", f"check {show(check_id)} is not an acceptance criterion of the graph")
     reviewed = body.get("reviewed_commit")
+    implementer = body.get("implementer")
     levels: Dict[str, Dict[str, int]] = {level: {} for level in LEVELS}
     by_requirement: Dict[str, List[str]] = {}
     for criterion, level, requirement in criteria:
@@ -334,6 +364,9 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
                 block("A-03", f"{show(criterion)} ({level}) is {status}")
             elif status == "not_applicable" and not is_text(entry.get("reason")):
                 effective = "blocked"  # reported by M-02
+            elif status == "not_applicable" and level in WAIVER_APPROVAL_LEVELS and not independently_approved(entry.get("approved_by"), implementer):
+                effective = "blocked"
+                block("A-06", f"{show(criterion)} ({level}) is not_applicable without approval by someone other than the implementer")
         levels[level][effective] = levels[level].get(effective, 0) + 1
         by_requirement.setdefault(requirement, []).append(effective)
     for requirement, effective_statuses in by_requirement.items():
@@ -342,7 +375,6 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
 
     risk = body.get("risk") if isinstance(body.get("risk"), dict) else {}
     risk_class = risk.get("class")
-    implementer = body.get("implementer")
     if risk_class not in ("low", "medium", "high"):
         block("A-04", f"the risk is not classified (got {show(risk_class)}); classify it before deciding")
     approvals = [a for a in body.get("approvals", []) if isinstance(a, dict)] if isinstance(body.get("approvals"), list) else []
@@ -354,12 +386,17 @@ def run_gate(graph_path: str, manifest_path: str) -> Dict[str, Any]:
         block("A-05", "a high-risk change needs approval by someone other than the implementer")
     test_changes = body.get("test_changes") if isinstance(body.get("test_changes"), list) else []
     for change in test_changes:
-        if isinstance(change, dict) and (not is_text(change.get("approved_by")) or same_person(change.get("approved_by"), implementer)):
+        if isinstance(change, dict) and not independently_approved(change.get("approved_by"), implementer):
             block("A-06", f"the {show(change.get('change'))} test {show(change.get('path'))} has no approval by someone other than the implementer")
     infra = body.get("infra_changes") if isinstance(body.get("infra_changes"), list) else []
     if infra and risk_class != "high":
         kinds = sorted({show(c.get("kind")) for c in infra if isinstance(c, dict)})
         block("A-07", f"infrastructure changes ({', '.join(kinds)}) make this a high-risk change; escalate the risk class")
+    if risk_class == "high" and report is None:
+        block("A-08", "a high-risk change needs the challenger's report for its problem (--report); run the challenger first")
+    unanswered = open_findings(report)
+    if unanswered:
+        block("A-08", f"{len(unanswered)} finding(s) of the challenge report are still open")
 
     decision = "fail" if any(effect == "fail" for _, effect, _ in reasons) else ("blocked" if reasons else "pass")
     return {
@@ -493,6 +530,7 @@ def run(argv: Sequence[str], output_format: str) -> int:
     gate = commands.add_parser("gate", parents=[common])
     gate.add_argument("graph")
     gate.add_argument("manifest")
+    gate.add_argument("--report")
     collect = commands.add_parser("collect-junit", parents=[common])
     collect.add_argument("report")
     collect.add_argument("--graph", required=True)
@@ -511,11 +549,11 @@ def run(argv: Sequence[str], output_format: str) -> int:
                           rules_checked=MANIFEST_RULES, violations=violations, error=None)
             emit(result, args.format)
             return EXIT_NOT_OK if violations else EXIT_OK
-        gate_result = run_gate(args.graph, args.manifest)
+        gate_result = run_gate(args.graph, args.manifest, args.report)
     except InputError as exc:
         emit(error_result(getattr(args, "manifest", None) or getattr(args, "report", None), str(exc)), args.format)
         return EXIT_INPUT_ERROR
-    result = error_result([args.graph, args.manifest], "")
+    result = error_result([args.graph, args.manifest] + ([args.report] if args.report else []), "")
     result.update(gate_result, status="passed" if gate_result["decision"] == "pass" else "failed", error=None)
     emit(result, args.format)
     return EXIT_OK if gate_result["decision"] == "pass" else EXIT_NOT_OK

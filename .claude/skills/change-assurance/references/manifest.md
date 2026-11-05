@@ -4,11 +4,11 @@
 
 ```sh
 python3 <skill-dir>/scripts/assure.py [--format text|json] check MANIFEST
-python3 <skill-dir>/scripts/assure.py [--format text|json] gate GRAPH MANIFEST
+python3 <skill-dir>/scripts/assure.py [--format text|json] gate GRAPH MANIFEST [--report REPORT]
 python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commit SHA --ref REF [--kind ci_job|local_run]
 ```
 
-Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, bad arguments) or the checker itself failed.
+Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, a challenge report for another problem, bad arguments) or the checker itself failed.
 
 ## The manifest
 
@@ -26,7 +26,7 @@ Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations
 
 - `reviewed_commit` and every evidence `commit`: 7 to 40 lowercase hex digits and nothing else.
 - `risk.class`: `low`, `medium`, `high`, or `unclassified`. `approvals[].decision`: `approved` or `rejected`.
-- `checks[].status`: `passed`, `failed`, `not_run`, `blocked` (the evidence could not be collected), or `not_applicable` (needs a `reason`). `evidence.kind`: `ci_job`, `local_run`, `scanner`, `human_review`, or `ai_review`.
+- `checks[].status`: `passed`, `failed`, `not_run`, `blocked` (the evidence could not be collected), or `not_applicable` (needs a `reason`; an `L2` or `L3` check also needs `approved_by`, someone other than the implementer who agreed that it does not apply). `evidence.kind`: `ci_job`, `local_run`, `scanner`, `human_review`, or `ai_review`.
 - `test_changes[].change`: `deleted`, `skipped`, or `weakened`. `infra_changes[].kind`: `permission_expansion`, `public_exposure`, `resource_deletion`, or `resource_replacement`.
 
 | Rule | Passes when |
@@ -37,7 +37,7 @@ Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations
 
 ## The gate
 
-`gate GRAPH MANIFEST` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused as `blocked`. Manifest violations (M-xx) also block.
+`gate GRAPH MANIFEST` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused, and an `L2` or `L3` check marked `not_applicable` without the approval A-06 needs, as `blocked`. Manifest violations (M-xx) also block.
 
 | Rule | Holds when |
 |---|---|
@@ -46,12 +46,15 @@ Exit codes: 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations
 | A-03 | every check is `passed` or `not_applicable` with a reason, and no requirement has only `not_applicable` checks |
 | A-04 | the risk is `low`, `medium`, or `high` |
 | A-05 | no approval is `rejected` (at any risk), and a `high` change has an `approved` approval by someone other than the implementer |
-| A-06 | every test change is approved by someone other than the implementer |
+| A-06 | every test change, and every `L2` or `L3` check marked `not_applicable`, is approved (`approved_by`) by someone other than the implementer |
 | A-07 | a change with infrastructure changes is `high` |
+| A-08 | a `high` change comes with the challenge report for its problem (`--report`), and no finding of the given report is `open` |
 
 Names are compared ignoring case and surrounding spaces, so `Claude` and ` claude ` are the same person as `claude`.
 
 The graph is read only for its problem id and its acceptance criteria; an acceptance id used by two criteria is refused (exit 2), so a leaf's check cannot stand for a parent's own check. Check the graph's structure with its own checker before this gate.
+
+`--report` takes the challenge report written in the decomposition step (`goal-refinement`), in which the challenger's findings are answered. The gate reads only its problem id, which must be the graph's (otherwise exit 2), and which findings are `open`; check the report's own format with `goal-refinement`'s checker first. A `high` change without a report is `blocked`, so run the challenger for every high-risk change.
 
 ## JUnit XML
 
