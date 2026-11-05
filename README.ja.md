@@ -39,7 +39,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `change-assurance`(`problem-definition`・`goal-refinement`・`coder` を順に適用する親スキル。
     受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを記録し、同梱の検査器の判定で
     pass・fail・blocked を返す。子の合格から親の合格を作らず、古い証拠や AI の申告を証拠とせず、
-    未分類のリスクや承認の欠けで止まる。判断する人に1画面のレビューカードを示す。
+    未分類のリスク、承認の欠け、反証の記録のない高リスクの変更で止まる。判断する人に1画面のレビューカードを示す。
     [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md))、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
