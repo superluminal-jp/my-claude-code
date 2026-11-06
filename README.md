@@ -46,15 +46,15 @@ projects while preserving unrelated user files.
   first — the AI states its reading, assumptions, and scope for the user to
   reject — then formalize it: INVEST/Gherkin), `problem-definition` (turning a vague
   complaint into a verifiable problem statement — the gap between current
-  and ideal state), `goal-refinement` (recording an agreed problem as a
+  and ideal state), `requirements-decomposition` (recording an agreed problem as a
   problem card that keeps evidence, causal hypotheses, and fixes apart,
   decomposing it into an AND/OR/LEAF requirements graph whose parents carry
   their own L2 or L3 acceptance criteria, having a read-only challenger subagent
   object, and running a bundled standard-library checker whose gate answers
   ready or blocked before implementation starts;
   [spec 059](specs/059-refinement-graph-checker/spec.md),
-  [spec 060](specs/060-goal-refinement/spec.md)), `change-assurance` (a
-  parent skill that applies `problem-definition`, `goal-refinement`, and
+  [spec 060](specs/060-goal-refinement/spec.md)), `verified-delivery` (a
+  parent skill that applies `problem-definition`, `requirements-decomposition`, and
   `coder` in order, records for every acceptance criterion which check ran on
   which commit with what result, and runs a bundled checker whose gate answers
   pass, fail, or blocked — never building a parent's pass from its children's,
@@ -246,12 +246,12 @@ my-claude-code/
         │   ├── SKILL.md            #   two-stage playbook
         │   └── references/         #   framework inventory (named to the user) + design basis (not named)
         ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
-        ├── change-assurance/       # Parent skill: evidence per acceptance criterion -> pass/fail/blocked gate
+        ├── verified-delivery/      # Parent skill: evidence per acceptance criterion -> pass/fail/blocked gate
         │   ├── SKILL.md            #   playbook and its child skills
         │   ├── references/         #   manifest format and rules, assurance reviewer prompt
         │   ├── scripts/            #   assure.py (read-only, standard library only)
         │   └── tests/              #   acceptance tests and fixtures
-        ├── goal-refinement/        # Problem card -> requirements graph -> challenger -> ready/blocked gate
+        ├── requirements-decomposition/ # Problem card -> requirements graph -> challenger -> ready/blocked gate
         │   ├── SKILL.md            #   playbook
         │   ├── references/         #   checker formats and rules, challenger prompt
         │   ├── scripts/            #   check_graph.py (read-only, standard library only)
@@ -319,10 +319,10 @@ It checks the bundle's files against each other without network access. How
 the bundle behaves inside Claude Code is checked by hand with the procedure
 in its [README](team/package-safety/README.md#check-that-it-is-in-force).
 
-After changing [`.claude/skills/goal-refinement/`](.claude/skills/goal-refinement/):
+After changing [`.claude/skills/requirements-decomposition/`](.claude/skills/requirements-decomposition/):
 
 ```sh
-bash tests/run-refinement-checker.sh
+bash tests/run-requirements-decomposition-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
@@ -331,10 +331,10 @@ only), checks its example declarations and that the example problem card,
 requirements graph, and challenge report pass the gate, and reads this
 repository's `.claude/skills/` in compatibility mode.
 
-After changing [`.claude/skills/change-assurance/`](.claude/skills/change-assurance/):
+After changing [`.claude/skills/verified-delivery/`](.claude/skills/verified-delivery/):
 
 ```sh
-bash tests/run-change-assurance-skill.sh
+bash tests/run-verified-delivery-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
@@ -342,7 +342,7 @@ The first runs the bundled checker's acceptance tests, including the four that
 [spec 059](specs/059-refinement-graph-checker/spec.md) deferred (a failed
 parent check, an AI claim without evidence, stale evidence, unclassified
 risk), checks that the example manifest passes the gate, and checks that the
-gate passes no requirements graph from `goal-refinement`'s test fixtures that
+gate passes no requirements graph from `requirements-decomposition`'s test fixtures that
 its checker rejects under a rule the gate depends on.
 
 After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
@@ -422,8 +422,8 @@ Eight of the suites above also run automatically in CI
 (`.github/workflows/ci.yml`) on every push and pull request to `main`:
 `run-install.sh`, `run-digital-agency-frontend-skill.sh`,
 `run-removed-guardrails.sh`, `run-package-safety-bundle.sh`,
-`run-readme-skill-index.sh`, `run-refinement-checker.sh`,
-`run-change-assurance-skill.sh`, and
+`run-readme-skill-index.sh`, `run-requirements-decomposition-skill.sh`,
+`run-verified-delivery-skill.sh`, and
 `run-mcp-startup.sh`. The others run only when you run them. `main` is
 protected by a repository ruleset
 (`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)

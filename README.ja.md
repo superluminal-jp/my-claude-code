@@ -31,12 +31,12 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （まず意図の共通認識を形成し——AIが自分の理解・前提・スコープを述べ、
     ユーザーが却下できる形にする——その後、形式的要件へ変換。INVEST/Gherkin）、`problem-definition`
     （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
-    `goal-refinement`(合意済みの問題を、根拠・原因の仮説・解決策を分けた問題カードに記録し、
+    `requirements-decomposition`(合意済みの問題を、根拠・原因の仮説・解決策を分けた問題カードに記録し、
     親が固有の L2 か L3 の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、読み取り専用の反証役の
     サブエージェントに異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
     (ready か blocked)を決める。[spec 059](specs/059-refinement-graph-checker/spec.md)、
     [spec 060](specs/060-goal-refinement/spec.md))、
-    `change-assurance`(`problem-definition`・`goal-refinement`・`coder` を順に適用する親スキル。
+    `verified-delivery`(`problem-definition`・`requirements-decomposition`・`coder` を順に適用する親スキル。
     受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを記録し、同梱の検査器の判定で
     pass・fail・blocked を返す。子の合格から親の合格を作らず、古い証拠や AI の申告を証拠とせず、
     未分類のリスク、承認の欠け、反証の記録のない高リスクの変更、コミットに対する独立した保証レビューのない中・高リスクの変更、
@@ -205,12 +205,12 @@ my-claude-code/
         │   ├── SKILL.md            #   二段構成のプレイブック
         │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
         ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
-        ├── change-assurance/       # 親スキル: 受け入れ条件ごとの証拠 → pass/fail/blocked の判定
+        ├── verified-delivery/      # 親スキル: 受け入れ条件ごとの証拠 → pass/fail/blocked の判定
         │   ├── SKILL.md            #   手順と子スキル
         │   ├── references/         #   検証の記録の形式と規則、保証レビュー役への指示文
         │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)
         │   └── tests/              #   受け入れテストとフィクスチャ
-        ├── goal-refinement/        # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定
+        ├── requirements-decomposition/ # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定
         │   ├── SKILL.md            #   手順
         │   ├── references/         #   検査器の形式と規則、反証役への指示文
         │   ├── scripts/            #   check_graph.py(読み取り専用、標準ライブラリのみ)
@@ -277,10 +277,10 @@ bash tests/run-package-safety-bundle.sh
 振る舞いは、[バンドルの README](team/package-safety/README.ja.md#適用されたことの確認)
 の手順で手で確認する。
 
-[`.claude/skills/goal-refinement/`](.claude/skills/goal-refinement/) を変更したら:
+[`.claude/skills/requirements-decomposition/`](.claude/skills/requirements-decomposition/) を変更したら:
 
 ```sh
-bash tests/run-refinement-checker.sh
+bash tests/run-requirements-decomposition-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
@@ -288,14 +288,14 @@ bash tests/run-config-pyramid.sh
 例の問題カード・要求グラフ・反証の記録が判定に合格することを確かめ、このリポジトリの
 `.claude/skills/` を互換モードで読む。
 
-[`.claude/skills/change-assurance/`](.claude/skills/change-assurance/) を変更したら:
+[`.claude/skills/verified-delivery/`](.claude/skills/verified-delivery/) を変更したら:
 
 ```sh
-bash tests/run-change-assurance-skill.sh
+bash tests/run-verified-delivery-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
-前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録が判定に合格することと、`goal-refinement` の
+前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録が判定に合格することと、`requirements-decomposition` の
 テストの要求グラフのうち、その検査器が判定の頼る規則で違反とするものを、判定が合格させないことを確かめる。
 受け入れテストには、[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送った4件
 (親の検証の失敗、証拠のない AI の申告、古い証拠、未分類のリスク)を含む。
@@ -369,7 +369,7 @@ end-to-end セクションはさらにネットワーク接続を必要としま
 上記のうち8本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
 自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
 `run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、
-`run-readme-skill-index.sh`、`run-refinement-checker.sh`、`run-change-assurance-skill.sh`、`run-mcp-startup.sh`。
+`run-readme-skill-index.sh`、`run-requirements-decomposition-skill.sh`、`run-verified-delivery-skill.sh`、`run-mcp-startup.sh`。
 それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
 する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
 

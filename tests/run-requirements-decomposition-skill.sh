@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Offline contract suite for the checker bundled in the goal-refinement skill
+# Offline contract suite for the checker bundled in the requirements-decomposition skill
 # (specs/059-refinement-graph-checker, specs/060-goal-refinement): its acceptance
 # tests, its example declarations, and this repository's own skills read in
 # compatibility mode.
@@ -7,7 +7,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TOOL_DIR="$REPO_ROOT/.claude/skills/goal-refinement"
+TOOL_DIR="$REPO_ROOT/.claude/skills/requirements-decomposition"
 CHECKER="$TOOL_DIR/scripts/check_graph.py"
 export PYTHONDONTWRITEBYTECODE=1
 
@@ -60,7 +60,7 @@ check_exit "RC-05: the example problem card, graph, and challenge report are rea
   "$TOOL_DIR/examples/requirements-graph-v2.example.json" "$TOOL_DIR/examples/challenge-report.example.json"
 
 # The four tests specs/059 deferred (T-04, T-05, T-06, T-10) are now in
-# tests/run-change-assurance-skill.sh (specs/061-change-assurance).
+# tests/run-verified-delivery-skill.sh (specs/061-change-assurance).
 
 echo
 if [ "$FAIL" -gt 0 ]; then

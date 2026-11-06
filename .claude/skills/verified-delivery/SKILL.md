@@ -1,22 +1,22 @@
 ---
-name: change-assurance
+name: verified-delivery
 description: "Carry a change from an agreed problem to an evidence-backed acceptance decision: define and decompose the problem, implement it, record for every acceptance criterion which check ran on which commit with what result, and run the bundled checker's gate, which answers pass, fail, or blocked and never builds a parent's pass out of its children's. Use for a nontrivial, security-relevant, or multi-part change to a work or production system when the person wants to accept it by its evidence rather than by rereading every diff, and when asked to check a verification manifest or to turn JUnit results into one. Do not use for a trivial local edit, for a code review that decides nothing, or for operating CI itself. A pass shows only that the records are consistent; high-risk changes still need a person's approval, and the gate does not prove the change secure."
 ---
 
-# Change assurance
+# Verified delivery
 
 A person can accept a change without rereading all of it when every acceptance criterion — of each leaf, of each parent, and of the system — has its own evidence from the commit under review, and nothing about risk, approval, or weakened tests is left open. This skill applies its children in order, records that evidence in a verification manifest, and lets the bundled checker decide. The checker cannot tell whether an evidence reference really shows what it claims; that rests on the system that produced it, which is why AI statements never count as evidence.
 
 ## Child skills
 
 - `problem-definition`
-- `goal-refinement`
+- `requirements-decomposition`
 - `coder`
 
 ## Steps
 
 1. **Problem.** If there is no problem statement the person has agreed to, apply `problem-definition` first.
-2. **Decomposition.** Apply `goal-refinement` to write the problem card and the version 2 requirements graph and to run its gate. Go on only when that gate says `ready`.
+2. **Decomposition.** Apply `requirements-decomposition` to write the problem card and the version 2 requirements graph and to run its gate. Go on only when that gate says `ready`.
 3. **Implementation.** Apply `coder`, one leaf requirement at a time: observe the failing check before the fix, keep each change small, and do not delete, skip, or weaken a test to make it pass.
 4. **Verification manifest** (`verification-manifest.json`; format in [references/manifest.md](references/manifest.md)). Set `reviewed_commit` to the commit under review and `implementer` to whoever made the change. Classify the risk in this order and stop at the first that applies: `high` for authentication, authorization, secrets or personal data, data migration, payments, infrastructure permissions, network or public exposure, or anything hard to undo; `medium` for an API, a data flow, or several modules; `low` for a local change that touches no permission and no external contract; otherwise `unclassified`. Write one check per acceptance criterion. Mark one `not_applicable` only with a reason, and for an `L2` or `L3` check also with `approved_by`, the person other than the implementer who agreed. Turn test reports into checks with `python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commit SHA --ref REF`, where `<skill-dir>` is this skill's base directory (Claude Code shows it when the skill loads). Record a CI job by its URL and the commit it ran on, a scanner by its run or alert, and a person's check as `human_review`; an AI review goes in as `ai_review` and never passes a check. List every deleted, skipped, or weakened test in `test_changes` and every permission expansion, public exposure, deletion, or replacement from an infrastructure diff in `infra_changes`.
 5. **Assurance review** (for `medium` and `high` risk). Start a new subagent that can only read and search, with the prompt in [references/reviewer.md](references/reviewer.md), and give it the requirements graph, the diff up to `reviewed_commit`, and the raw evidence (logs, reports) — not the conversation or your own summary. Copy its findings into `assurance-review.json` as `open` (format in [references/manifest.md](references/manifest.md)). Then answer each one: fix the change or the manifest and mark it `accepted` with what changed, or mark it `rejected` with why it does not hold. Never delete a finding. A fix to the change makes a new commit, so collect its evidence and run the review again for that commit. The reviewer's agreement is an opinion, not evidence.

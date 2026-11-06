@@ -57,9 +57,9 @@ A finding is answered when it is an object whose `id` no other finding has, whos
 
 Names are compared ignoring case and surrounding spaces, so `Claude` and ` claude ` are the same person as `claude`.
 
-The gate reads the graph's problem id, its acceptance criteria, and the structure A-09 lists, so a graph whose own checker never ran cannot pass. It does not check field shapes or `OR` selections, which stay with the graph's own checker (`goal-refinement`): every alternative's criteria need their own checks anyway. An acceptance id used by two criteria, an undefined level, or a requirement without an `acceptance` array is refused (exit 2), so a leaf's check cannot stand for a parent's own check.
+The gate reads the graph's problem id, its acceptance criteria, and the structure A-09 lists, so a graph whose own checker never ran cannot pass. It does not check field shapes or `OR` selections, which stay with the graph's own checker (`requirements-decomposition`): every alternative's criteria need their own checks anyway. An acceptance id used by two criteria, an undefined level, or a requirement without an `acceptance` array is refused (exit 2), so a leaf's check cannot stand for a parent's own check.
 
-`--report` takes the challenge report written in the decomposition step (`goal-refinement`), in which the challenger's findings are answered. The gate reads its problem id, which must be the graph's (otherwise exit 2), and its findings. A `high` change without a report is `blocked`, so run the challenger for every high-risk change.
+`--report` takes the challenge report written in the decomposition step (`requirements-decomposition`), in which the challenger's findings are answered. The gate reads its problem id, which must be the graph's (otherwise exit 2), and its findings. A `high` change without a report is `blocked`, so run the challenger for every high-risk change.
 
 ## The assurance review
 

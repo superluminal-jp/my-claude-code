@@ -1,9 +1,9 @@
 ---
-name: goal-refinement
+name: requirements-decomposition
 description: "Turn an agreed problem into a checkable decomposition before implementation: a problem card that keeps evidence, hypotheses, and fixes apart; an AND/OR/LEAF requirements graph whose parents carry their own acceptance criteria; for risky changes or weak evidence, a read-only challenger subagent that looks for false positives, counterexamples, and missing children; and the bundled checker's gate, which answers ready or blocked. Use before implementing a nontrivial, security-relevant, or multi-part change, and when asked to decompose requirements or check a requirements or skill composition graph. Do not use to define a vague problem in the first place, analyze root causes, implement or review code, or judge test evidence after implementation; those are separate capabilities. Ready means the structure holds and every recorded objection was answered, not that the decomposition is sufficient or the change secure."
 ---
 
-# Goal refinement
+# Requirements decomposition
 
 A change may start only when its problem is backed by evidence, its requirements trace to that problem, and every objection raised against them has been answered. This skill produces the three records that make this checkable — a problem card, a requirements graph, and a challenge report — and runs the bundled checker's gate over them. The gate is deterministic; finding meaning errors (a solution stated as the problem, a parent that fails while all its children pass) is the challenger's job, and the challenger is a model whose errors can correlate with yours.
 

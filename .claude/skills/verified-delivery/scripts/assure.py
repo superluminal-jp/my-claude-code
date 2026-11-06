@@ -337,7 +337,7 @@ def load_assurance_review(path: Optional[str], change_id: Any) -> Optional[Dict[
 
 
 def load_challenge_report(path: Optional[str], problem_id: str) -> Optional[Dict[str, Any]]:
-    """Reads what the gate needs from goal-refinement's challenge report: its
+    """Reads what the gate needs from requirements-decomposition's challenge report: its
     problem id and its findings. Check the report with its own checker first."""
     if path is None:
         return None
