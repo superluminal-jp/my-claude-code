@@ -56,6 +56,8 @@ check_exit "CA-03: the example graph and manifest pass the gate" 0 \
 check_exit "CA-04: the example review card renders with a pass" 0 \
   python3 -B "$CHECKER" card --problem "$SKILL/examples/problem-card.example.json" \
   --graph "$SKILL/examples/requirements-graph.example.json" --manifest "$SKILL/examples/verification-manifest.example.json"
+check_exit "CA-05: the gate passes no graph goal-refinement's checker rejects under a rule the gate depends on (spec 064)" 0 \
+  python3 -B "$REPO_ROOT/tests/assert_assurance_parity.py" "$REPO_ROOT"
 
 echo
 if [ "$FAIL" -gt 0 ]; then

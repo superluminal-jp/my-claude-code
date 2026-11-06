@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-001",
+    "reviewed_commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f",
+    "reviewer": "read-only subagent (Explore), 2026-11-06",
+    "context_given": [
+      "requirements graph",
+      "diff of 0f5a148",
+      "CI log of run 1"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "parent_by_children",
+        "target": "TEST-PARENT-001",
+        "severity": "medium",
+        "statement": "統合認可試験がエクスポートの API を呼ばず、2つの葉の試験を順に実行するだけである",
+        "disposition": "rejected",
+        "resolution": "試験は1つのセッションで両方の API を呼ぶ(CI のログの 120 行目)"
+      }
+    ]
+  }
+}

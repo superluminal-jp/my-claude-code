@@ -49,7 +49,7 @@ projects while preserving unrelated user files.
   and ideal state), `goal-refinement` (recording an agreed problem as a
   problem card that keeps evidence, causal hypotheses, and fixes apart,
   decomposing it into an AND/OR/LEAF requirements graph whose parents carry
-  their own acceptance criteria, having a read-only challenger subagent
+  their own L2 or L3 acceptance criteria, having a read-only challenger subagent
   object, and running a bundled standard-library checker whose gate answers
   ready or blocked before implementation starts;
   [spec 059](specs/059-refinement-graph-checker/spec.md),
@@ -59,11 +59,15 @@ projects while preserving unrelated user files.
   which commit with what result, and runs a bundled checker whose gate answers
   pass, fail, or blocked — never building a parent's pass from its children's,
   never counting stale evidence or an AI's claim, and stopping on unclassified
-  risk, a missing approval, or a high-risk change without a challenge report —
+  risk, a missing approval, a high-risk change without a challenge report, a
+  medium- or high-risk change without an independent assurance review of its
+  commit, any finding not answered, or a requirements graph whose structure it
+  re-checks and finds broken, so a skipped step blocks instead of passing —
   and prints a one-screen review card for the person who decides, plus a
   preregistered pilot decision on whether it cuts review time without losing
   quality; [spec 061](specs/061-change-assurance/spec.md),
-  [spec 062](specs/062-review-card/spec.md), [spec 063](specs/063-pilot-metrics/spec.md)),
+  [spec 062](specs/062-review-card/spec.md), [spec 063](specs/063-pilot-metrics/spec.md),
+  [spec 064](specs/064-assurance-gate-hardening/spec.md)),
   `product-strategy` (vision, target users,
   value proposition, success metrics, and MoSCoW-prioritized scope, framed
   before development work begins),
@@ -337,7 +341,9 @@ bash tests/run-config-pyramid.sh
 The first runs the bundled checker's acceptance tests, including the four that
 [spec 059](specs/059-refinement-graph-checker/spec.md) deferred (a failed
 parent check, an AI claim without evidence, stale evidence, unclassified
-risk), and checks that the example manifest passes the gate.
+risk), checks that the example manifest passes the gate, and checks that the
+gate passes no requirements graph from `goal-refinement`'s test fixtures that
+its checker rejects under a rule the gate depends on.
 
 After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
 [`.claude/rules/`](.claude/rules/), or an authored skill:
