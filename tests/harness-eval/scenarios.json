@@ -641,48 +641,6 @@
       ]
     },
     {
-      "id": "e-notes-create",
-      "kind": "expectation",
-      "stages": [
-        "E-notes"
-      ],
-      "description": "Apple のメモにメモを作る依頼。",
-      "prompt": "Apple のメモアプリの「買い物」フォルダに、牛乳と卵を書いたメモを作って。",
-      "graders": [
-        {
-          "id": "uses-apple-notes",
-          "type": "skill",
-          "skill": "apple-notes",
-          "expect": "used",
-          "basis": {
-            "file": ".claude/skills/apple-notes/SKILL.md",
-            "quote": "when prose has to be recorded there"
-          }
-        }
-      ]
-    },
-    {
-      "id": "e-reminders-add",
-      "kind": "expectation",
-      "stages": [
-        "E-reminders"
-      ],
-      "description": "リマインダーを追加する依頼。",
-      "prompt": "リマインダーアプリの「仕事」リストに、金曜までに請求書を送るリマインダーを追加して。",
-      "graders": [
-        {
-          "id": "uses-apple-reminders",
-          "type": "skill",
-          "skill": "apple-reminders",
-          "expect": "used",
-          "basis": {
-            "file": ".claude/skills/apple-reminders/SKILL.md",
-            "quote": "when items must be added or completed there"
-          }
-        }
-      ]
-    },
-    {
       "id": "h-verify-evidence",
       "kind": "expectation",
       "stages": [
@@ -787,7 +745,7 @@
         "H-verify",
         "D-decompose"
       ],
-      "description": "些細な誤字の修正。重い手順が適用されないか。",
+      "description": "些細な誤字の修正。直したうえで、重い手順が適用されないか。",
       "fixture": "readme-typo",
       "prompt": "README.md の誤字「teh」を「the」に直して。",
       "graders": [
@@ -809,6 +767,26 @@
           "basis": {
             "file": ".claude/skills/requirements-decomposition/SKILL.md",
             "quote": "Use before implementing a nontrivial, security-relevant, or multi-part change"
+          }
+        },
+        {
+          "id": "typo-fixed",
+          "type": "regex",
+          "pattern": "reads the config file",
+          "target": {
+            "file": "README.md"
+          },
+          "basis": {
+            "file": ".claude/CLAUDE.md",
+            "quote": "Verify the actual completion condition before reporting success."
+          },
+          "examples": {
+            "match": [
+              "This tool reads the config file and prints it.\n"
+            ],
+            "no_match": [
+              "This tool reads teh config file and prints it.\n"
+            ]
           }
         }
       ]

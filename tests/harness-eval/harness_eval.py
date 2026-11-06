@@ -64,9 +64,13 @@ FIXTURE_GIT = {"init", "checkout", "add", "commit"}
 HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
 FIXTURE_KEYS = {"schema_version", "description", "files", "commit", "after_commit"}
 PATH_PART = re.compile(r"^[A-Za-z0-9._-]+$")
-# A path part that would let git run code or change what git runs.
+# A path part that would let git run code or change what git runs, compared
+# in lower case because the default macOS file system ignores letter case.
 FORBIDDEN_PARTS = {".", "..", ".git", ".gitattributes", ".gitmodules"}
-GIT_IDENTITY = "-c core.hooksPath=/dev/null -c user.email=eval@example.invalid -c user.name=eval"
+GIT_SAFE = "-c core.hooksPath=/dev/null"
+GIT_IDENTITY = GIT_SAFE + " -c user.email=eval@example.invalid -c user.name=eval"
+# Tools a scenario may list; anything else is granted only by eval_command.
+READ_ONLY_TOOLS = {"Read", "Glob", "Grep", "NotebookRead", "Skill", "AskUserQuestion", "TodoWrite"}
 
 
 class BuildError(Exception):
@@ -182,7 +186,7 @@ def fixture_data_violations(data) -> list[str]:
             continue
         for path, content in files.items():
             parts = path.split("/") if isinstance(path, str) else []
-            if not parts or any(not PATH_PART.match(part) or part in FORBIDDEN_PARTS for part in parts):
+            if not parts or any(not PATH_PART.match(part) or part.lower() in FORBIDDEN_PARTS for part in parts):
                 out.append(f"{key}: unsafe path {path!r}")
             if not isinstance(content, str) or not content.endswith("\n"):
                 out.append(f"{key}: {path!r} must be text that ends with a newline")
@@ -213,7 +217,7 @@ def render_scaffold(data: dict) -> str:
              "set -euo pipefail", FIXTURE_GUARD]
     lines += _write_files(data["files"])
     if data.get("commit"):
-        lines += ["git init -q", "git checkout -q -b main",
+        lines += [f"git {GIT_SAFE} -c init.templateDir= init -q", f"git {GIT_SAFE} checkout -q -b main",
                   f"git {GIT_IDENTITY} add -A",
                   f"git {GIT_IDENTITY} -c commit.gpgsign=false commit -qm initial"]
     lines += _write_files(data.get("after_commit", {}))
@@ -391,6 +395,10 @@ def check_suite(suite: dict, cmap: dict, info: dict, harness: Path, suite_root: 
                 out.append(f"{where}: names stage {st}, which is not in the map")
         if kind != "probe" and not sc_stages:
             out.append(f"{where}: names no stage")
+        tools = sc.get("allowed_tools", DEFAULT_TOOLS)
+        if not isinstance(tools, list) or any(tool not in READ_ONLY_TOOLS for tool in tools):
+            extra = sorted(set(tools) - READ_ONLY_TOOLS) if isinstance(tools, list) else tools
+            out.append(f"{where}: allowed_tools may list only read-only tools; not {extra}")
         if not JAPANESE.search(sc.get("prompt", "")):
             out.append(f"{where}: the prompt must be written in Japanese")
         if kind == "probe":
@@ -652,6 +660,11 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     if violations:
         raise BuildError("the map or the suite has violations:\n  " + "\n  ".join(violations))
 
+    # The plugin's only hooks are the generated ones, which --trust-plugin trusts.
+    for found in (src_h / ".claude/skills").rglob("*"):
+        if found.name == "hooks.json" or (found.name == "plugin.json" and
+                                          "hooks" in json.loads(found.read_text(encoding="utf-8") or "{}")):
+            raise BuildError(f"{found.relative_to(src_h)} declares hooks; the eval would run them as trusted")
     plugin = out_dir / PLUGIN_NAME
     (plugin / ".claude-plugin").mkdir(parents=True)
     (plugin / ".claude-plugin/plugin.json").write_text(json.dumps({
@@ -835,8 +848,10 @@ def compare_dirs(before: Path, after: Path, threshold: float) -> dict:
     if all(metas):
         for key, name in (("suite_commit", "suite"), ("model", "model"),
                           ("claude_version", "claude_version"), ("runs", "runs")):
-            if metas[0].get(key) != metas[1].get(key):
-                problems.append(f"the {name} differs: {metas[0].get(key)} vs {metas[1].get(key)}")
+            if key not in metas[0] or key not in metas[1]:
+                problems.append(f"{key} is missing from a metadata.json, so the {name} cannot be confirmed")
+            elif metas[0][key] != metas[1][key]:
+                problems.append(f"the {name} differs: {metas[0][key]} vs {metas[1][key]}")
     res["problems"] = problems
     return res
 

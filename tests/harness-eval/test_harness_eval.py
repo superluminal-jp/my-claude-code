@@ -710,7 +710,8 @@ class ReviewFindings(unittest.TestCase):
         d.mkdir()
         (d / "aggregate-result.json").write_text(json.dumps(
             {"schemaVersion": 1, "partial": partial, "cases": [{"name": "a", "aggregates": {"score": 1.0}}]}))
-        (d / "metadata.json").write_text(json.dumps({"suite_commit": suite, "model": model}))
+        (d / "metadata.json").write_text(json.dumps({"suite_commit": suite, "model": model,
+                                                     "claude_version": "1", "runs": 3}))
         return d
 
     def test_comparing_results_of_different_suites_is_refused(self):
@@ -848,6 +849,52 @@ class CompareRound2(unittest.TestCase):
                 os.environ["PATH"] = old_path
             (run_dir,) = list(results.iterdir())
             self.assertEqual(he.compare_dirs(run_dir, run_dir, 0.34)["problems"], [])
+
+
+class ReviewRound3(unittest.TestCase):
+    """Regression tests for the assurance review of afb2a63 (round 3)."""
+
+    def data(self, files):
+        return {"schema_version": 1, "description": "t", "files": files, "commit": True}
+
+    def test_git_paths_are_refused_in_any_letter_case(self):
+        bad = [".GIT/config", ".Git/hooks/pre-commit", "x/.gIt/config", ".GITATTRIBUTES", ".GitModules"]
+        self.assertEqual([p for p in bad if not he.fixture_data_violations(self.data({p: "x\n"}))], [])
+
+    def test_every_git_command_in_the_scaffold_disables_hooks_and_templates(self):
+        lines = [l for l in he.render_scaffold(self.data({"a.txt": "x\n"})).splitlines() if l.startswith("git ")]
+        self.assertTrue(len(lines) == 4 and all("-c core.hooksPath=/dev/null" in l for l in lines)
+                        and "-c init.templateDir=" in lines[0])
+
+    def test_a_scenario_granting_a_tool_beyond_read_only_is_reported(self):
+        for tool in ("Bash", "Write", "Edit", "WebFetch", "WebSearch", "Agent"):
+            s = valid_suite()
+            s["scenarios"][1]["allowed_tools"] = ["Read", tool]
+            with tempfile.TemporaryDirectory() as tmp:
+                self.assertTrue(has(Tree(tmp, suite=s).violations(), tool), tool)
+
+    def test_a_skill_that_carries_its_own_hooks_stops_the_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp, extra={".claude/skills/alpha/hooks/hooks.json": "{}"})
+            with self.assertRaises(he.BuildError):
+                Build().build(repo, tmp)
+
+    def test_a_result_without_metadata_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = CompareRound2().write(tmp, "a")
+            b = Path(tmp) / "b"
+            b.mkdir()
+            (b / "aggregate-result.json").write_text((a / "aggregate-result.json").read_text())
+            self.assertTrue(any("metadata" in p for p in he.compare_dirs(a, b, 0.34)["problems"]))
+
+    def test_metadata_missing_a_compared_key_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = CompareRound2().write(tmp, "a"), CompareRound2().write(tmp, "b")
+            for d in (a, b):
+                meta = json.loads((d / "metadata.json").read_text())
+                del meta["runs"]
+                (d / "metadata.json").write_text(json.dumps(meta))
+            self.assertTrue(any("runs" in p for p in he.compare_dirs(a, b, 0.34)["problems"]))
 
 
 if __name__ == "__main__":

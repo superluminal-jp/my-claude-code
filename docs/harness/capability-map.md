@@ -26,8 +26,8 @@
 | `E-dads-slides` | 実行 | DADS に沿った 16:9 の HTML スライド | `skill:digital-agency-slides` | `e-dads-slides` |
 | `E-scrum` | 実行 | Scrum のイベント・作成物・説明責任の診断と改善 | `skill:scrum-master` | `e-scrum-retro`, `e-scrum-not-pm` |
 | `E-logging` | 実行 | ログ出力の実装と確認を、セキュリティの要件に照らして行う | `skill:secure-logging` | `e-match-logging` |
-| `E-notes` | 実行 | Apple のメモの読み書き | `skill:apple-notes` | `e-notes-create` |
-| `E-reminders` | 実行 | Apple のリマインダーの読み書き | `skill:apple-reminders` | `e-reminders-add` |
+| `E-notes` | 実行 | Apple のメモの読み書き（観測しない: 評価のエージェントが利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめられていないので、この段階は評価しない） | `skill:apple-notes` | — |
+| `E-reminders` | 実行 | Apple のリマインダーの読み書き（観測しない: 評価のエージェントが利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめられていないので、この段階は評価しない） | `skill:apple-reminders` | — |
 | `H-verify` | 引き渡し | 完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする | `apex`, `skill:verified-delivery`, `skill:coder` | `h-verify-evidence`, `e-proportion-typo` |
 | `H-structure` | 引き渡し | 答えを先に置き、支えを下に組む | `apex`, `rule:pyramid-principle`, `skill:pyramid-structure` | `h-structure-recommend` |
 | `H-docs` | 引き渡し | 公開の契約と文書を、変更と同期させる | `apex`, `skill:maintaining-living-documentation`, `skill:coder` | `h-docs-flag-rename` |
@@ -52,4 +52,4 @@
 
 ## シナリオの数
 
-期待 19 件、観測 6 件、到達確認 1 件。
+期待 17 件、観測 6 件、到達確認 1 件。
