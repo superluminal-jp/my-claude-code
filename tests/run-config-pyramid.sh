@@ -61,11 +61,29 @@ authored_skills=(
 # A parent skill declares the skills it applies in a "## Child skills"
 # section of its SKILL.md, one "- `name`" line per child. Prints the
 # declared names, one per line; lines inside code blocks do not count.
+# Code blocks follow CommonMark's fence rules, as the bundled checker of
+# requirements-decomposition reads them: up to three spaces, then three or
+# more backticks or tildes; only the same character, at least as many, with
+# nothing but spaces or tabs after it, closes the block. Written without
+# interval expressions, which some awk implementations lack.
 declared_children() {
   [ -f "$1" ] || return 0
   awk '
-    /^```/ { code = !code; next }
-    code { next }
+    {
+      sub(/\r$/, "")
+      indent = 0
+      while (indent < 3 && substr($0, indent + 1, 1) == " ") indent++
+      rest = substr($0, indent + 1)
+      mark = substr(rest, 1, 1)
+      run = 0
+      if (mark == "`" || mark == "~") { while (substr(rest, run + 1, 1) == mark) run++ }
+      after = substr(rest, run + 1)
+    }
+    fence != "" {
+      if (mark == fence && run >= fence_run && after ~ /^[ \t]*$/) fence = ""
+      next
+    }
+    run >= 3 && !(mark == "`" && index(after, "`") > 0) { fence = mark; fence_run = run; next }
     /^## / { section = ($0 ~ /^## Child skills[[:space:]]*$/); next }
     section && /^- `[[:alnum:]_-]+`/ {
       name = $0

@@ -6,9 +6,10 @@ import json
 import re
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
+
+from support import temp_file
 
 TESTS_DIR = Path(__file__).resolve().parent
 CHECKER = TESTS_DIR.parent / "scripts" / "assure.py"
@@ -22,11 +23,7 @@ def load(name: str) -> dict:
 
 class CardTestCase(unittest.TestCase):
     def write(self, name: str, doc: dict) -> str:
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(lambda: ([p.unlink() for p in directory.iterdir()], directory.rmdir()))
-        path = directory / name
-        path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
-        return str(path)
+        return temp_file(self, name, doc)
 
     def card(self, manifest_change=None, graph: dict | None = None, manifest: dict | None = None,
              report: dict | None = None, lang: str = "en", review: dict | None = None) -> subprocess.CompletedProcess:
@@ -258,7 +255,7 @@ class CardSecondReviewTests(CardTestCase):
 
 
 class CardAssuranceReviewTests(CardTestCase):
-    """spec 064 User Story 3, scenario 7: the card decides with the assurance
+    """The card decides with the assurance
     review as the gate does, and lists its unanswered findings."""
 
     @staticmethod

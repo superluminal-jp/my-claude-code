@@ -46,8 +46,8 @@ except Exception as exc:  # a checker that cannot start must not look like exit 
     print(f"error: cannot load assure.py next to pilot.py ({type(exc).__name__})", file=sys.stderr)
     sys.exit(2)
 FORMATS, InputError, Report, _Parser = _assure.FORMATS, _assure.InputError, _assure.Report, _assure._Parser
-escape_unsafe, is_text, load_json, requested_format, show = (
-    _assure.escape_unsafe, _assure.is_text, _assure.load_json, _assure.requested_format, _assure.show)
+escape_unsafe, is_text, load_body, requested_format, show = (
+    _assure.escape_unsafe, _assure.is_text, _assure.load_body, _assure.requested_format, _assure.show)
 
 EXIT_ADOPT, EXIT_NOT_ADOPT, EXIT_INPUT_ERROR = 0, 1, 2
 ARMS = ("A", "B")
@@ -65,17 +65,14 @@ def parse_date(value: Any) -> Optional[datetime.date]:
 
 
 def is_number(value: Any) -> bool:
-    """A finite number; JSON's non-standard NaN and Infinity are not."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
-
-
-def load_body(path: str, key: str, what: str, kind: type) -> Any:
-    document = load_json(path, what)
-    if not isinstance(document, dict) or set(document) != {"schema_version", key} or type(document["schema_version"]) is not int or document["schema_version"] != 1:
-        raise InputError(f"{what} must have exactly schema_version 1 and {key}")
-    if not isinstance(document[key], kind):
-        raise InputError(f"{key} must be {'an object' if kind is dict else 'an array'}")
-    return document[key]
+    """A finite number that a float can hold; JSON's non-standard NaN and
+    Infinity are not, and neither is an integer too large for a float."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
 
 
 def check_records(reg: Dict[str, Any], cases: List[Any]) -> List[Dict[str, Any]]:

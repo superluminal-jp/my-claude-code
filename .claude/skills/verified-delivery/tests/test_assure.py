@@ -11,9 +11,10 @@ import copy
 import json
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
+
+from support import temp_file
 
 TESTS_DIR = Path(__file__).resolve().parent
 SKILL_DIR = TESTS_DIR.parent
@@ -36,11 +37,7 @@ def load(name: str) -> dict:
 
 class AssuranceTestCase(unittest.TestCase):
     def write(self, name: str, content: str | dict) -> str:
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(lambda: [p.unlink() for p in directory.iterdir()] and None or directory.rmdir())
-        path = directory / name
-        path.write_text(content if isinstance(content, str) else json.dumps(content), encoding="utf-8")
-        return str(path)
+        return temp_file(self, name, content)
 
     def manifest(self, change=None) -> str:
         doc = load("manifest-pass.json")
@@ -60,8 +57,8 @@ class AssuranceTestCase(unittest.TestCase):
 
 
 REPORT = str(FIXTURES / "challenge-report.json")
-# A medium or high change also needs an answered assurance review (A-10,
-# spec 064); tests of other rules pass this one so that only their rule shows.
+# A medium or high change also needs an answered assurance review (A-10);
+# tests of other rules pass this one so that only their rule shows.
 REVIEW = str(FIXTURES / "assurance-review.json")
 
 
@@ -377,7 +374,7 @@ def node(graph: dict, node_id: str) -> dict:
 
 
 class GraphStructureTests(AssuranceTestCase):
-    """spec 064 User Story 1: the gate does not pass a graph whose structure
+    """The gate does not pass a graph whose structure
     was never checked (A-09)."""
 
     def graph(self, change) -> str:
@@ -432,7 +429,7 @@ class GraphStructureTests(AssuranceTestCase):
 
 
 class FindingTests(AssuranceTestCase):
-    """spec 064 User Story 2: a finding counts as answered only when it is
+    """A finding counts as answered only when it is
     accepted or rejected with a resolution, has its own id, and names a real
     target (A-08)."""
 
@@ -467,7 +464,7 @@ class FindingTests(AssuranceTestCase):
 
 
 class AssuranceReviewTests(AssuranceTestCase):
-    """spec 064 User Story 3: a medium or high change is not accepted before
+    """A medium or high change is not accepted before
     the independent assurance review of its commit is recorded and answered
     (A-10)."""
 

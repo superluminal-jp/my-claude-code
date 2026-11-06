@@ -155,7 +155,7 @@ class RequirementsGraphTests(CheckerTestCase):
         self.assert_violations({"S-07"}, fixture(REQUIREMENTS, "p1-07-invalid-level.json"))
 
     def test_s_12_parent_with_only_l1_criteria_is_rejected(self):
-        # spec 064 FR-001: a parent's own check cannot be a leaf-level check.
+        # A parent's own check cannot be a leaf-level check.
         violations = self.assert_violations({"S-12"}, fixture(REQUIREMENTS, "s-12-parent-with-only-l1.json"))
         self.assertEqual(violations[0]["node_id"], "REQ-P")
 
