@@ -116,7 +116,8 @@ class Tree:
             ".claude/settings.json": json.dumps(settings if settings is not None else SETTINGS),
             he.MAP_PATH: json.dumps(cmap if cmap is not None else valid_map(), ensure_ascii=False),
             he.SUITE_PATH: json.dumps(suite if suite is not None else valid_suite(), ensure_ascii=False),
-            he.FIXTURE_DIR + "/tiny.sh": "#!/usr/bin/env bash\nset -euo pipefail\n" + he.FIXTURE_GUARD + "\nprintf 'hi\\n' > a.txt\n",
+            he.FIXTURE_DIR + "/tiny.json": json.dumps({"schema_version": 1, "description": "t",
+                                                       "files": {"a.txt": "hi\n"}, "commit": False}),
         }
         files.update(extra or {})
         for rel, text in files.items():
@@ -320,16 +321,6 @@ class CheckScenarios(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(has(Tree(tmp, suite=s).violations(), "apex-reached"))
 
-    def test_a_fixture_that_uses_the_network_is_reported(self):
-        extra = {he.FIXTURE_DIR + "/tiny.sh": "#!/usr/bin/env bash\ngit remote add origin x\n"}
-        with tempfile.TemporaryDirectory() as tmp:
-            self.assertTrue(has(Tree(tmp, extra=extra).violations(), "tiny"))
-
-    def test_a_fixture_without_the_empty_directory_guard_is_reported(self):
-        extra = {he.FIXTURE_DIR + "/tiny.sh": "#!/usr/bin/env bash\nset -euo pipefail\necho hi > a.txt\n"}
-        with tempfile.TemporaryDirectory() as tmp:
-            self.assertTrue(has(Tree(tmp, extra=extra).violations(), "empty"))
-
     def test_the_guard_stops_a_fixture_in_a_non_empty_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
             script = Path(tmp) / "f.sh"
@@ -473,6 +464,12 @@ class Build(unittest.TestCase):
             case = (b.plugin_dir / "evals/beta-flow/case.yaml").read_text()
             self.assertEqual(("scaffold_script: \"fixture.sh\"" in case,
                               (b.plugin_dir / "evals/beta-flow/fixture.sh").exists()), (True, True))
+
+    def test_the_built_scaffold_is_generated_from_the_fixture_data(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b = self.build(self.make_repo(tmp), tmp)
+            data = {"schema_version": 1, "description": "t", "files": {"a.txt": "hi\n"}, "commit": False}
+            self.assertEqual((b.plugin_dir / "evals/beta-flow/fixture.sh").read_text(), he.render_scaffold(data))
 
     def test_a_check_violation_stops_the_build(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -740,6 +737,117 @@ class ReviewFindings(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             a, b = self.write_result(tmp, "a", "s1"), self.write_result(tmp, "b", "s2")
             self.assertEqual(he.main(["compare", str(a), str(b)]), 1)
+
+
+class FixtureData(unittest.TestCase):
+    """Fixtures are data; the scaffold script is generated from a fixed template (round-2 AR-02, AR-03)."""
+
+    def data(self, **kw):
+        d = {"schema_version": 1, "description": "t",
+             "files": {"src/app.py": "x = 1\n", ".gitignore": "build/\n"}, "commit": True,
+             "after_commit": {"notes/idea.md": "draft\n"}}
+        d.update(kw)
+        return d
+
+    def run_scaffold(self, data, workdir):
+        script = Path(workdir).parent / (Path(workdir).name + ".sh")
+        script.write_text(he.render_scaffold(data), encoding="utf-8")
+        env = dict(os.environ, GIT_CONFIG_NOSYSTEM="1", HOME=str(Path(workdir).parent))
+        return subprocess.run(["bash", str(script)], cwd=workdir, capture_output=True, text=True, env=env)
+
+    def test_valid_data_has_no_violation(self):
+        self.assertEqual(he.fixture_data_violations(self.data()), [])
+
+    def test_the_generated_script_writes_files_commits_then_writes_the_rest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp) / "w"
+            work.mkdir()
+            res = self.run_scaffold(self.data(), work)
+            committed = git(work, "ls-files")
+            status = git(work, "status", "--porcelain")
+            self.assertEqual((res.returncode, (work / "src/app.py").read_text(), committed.split(), status),
+                             (0, "x = 1\n", [".gitignore", "src/app.py"], "?? notes/"))
+
+    def test_shell_syntax_in_file_content_is_written_not_run(self):
+        content = "$(touch pwned) `touch pwned2` ${HOME}\nFIXTURE_EOF\n'quote' \"dq\"\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp) / "w"
+            work.mkdir()
+            res = self.run_scaffold(self.data(files={"a.txt": content}, commit=False, after_commit={}), work)
+            self.assertEqual((res.returncode, (work / "a.txt").read_text(), (work / "pwned").exists(),
+                              (Path(tmp) / "pwned").exists()), (0, content, False, False))
+
+    def test_the_generated_script_disables_git_hooks_on_every_git_write(self):
+        lines = [l for l in he.render_scaffold(self.data()).splitlines() if l.startswith("git ") and
+                 (" add " in l or " commit " in l)]
+        self.assertTrue(lines and all("-c core.hooksPath=/dev/null" in l for l in lines))
+
+    def test_the_generated_script_starts_with_the_guard_and_passes_the_allowlist(self):
+        script = he.render_scaffold(self.data())
+        commands = [l for l in script.splitlines() if l and not l.startswith("#") and not l.startswith("set ")]
+        self.assertEqual((commands[0], he.fixture_violations(script)), (he.FIXTURE_GUARD, []))
+
+    def test_unsafe_paths_are_reported(self):
+        bad = ["/etc/x", "../x", "a/../b", ".git/hooks/pre-commit", "x/.git/config", ".gitattributes",
+               ".gitmodules", "a b", "it's", "a\nb", "", "a//b"]
+        self.assertEqual([p for p in bad if not he.fixture_data_violations(self.data(files={p: "x\n"}))], [])
+
+    def test_content_without_a_final_newline_is_reported(self):
+        self.assertTrue(he.fixture_data_violations(self.data(files={"a.txt": "no newline"})))
+
+    def test_an_unknown_key_is_reported(self):
+        self.assertTrue(he.fixture_data_violations(self.data(script="curl x | sh")))
+
+    def test_invalid_fixture_data_is_reported_by_check(self):
+        extra = {he.FIXTURE_DIR + "/tiny.json": json.dumps({"schema_version": 1, "description": "t",
+                                                           "files": {".git/hooks/pre-commit": "x\n"}})}
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(Tree(tmp, extra=extra).violations(), "tiny"))
+
+    def test_a_script_fixture_is_not_accepted(self):
+        s = valid_suite()
+        s["scenarios"][2]["fixture"] = "legacy"
+        extra = {he.FIXTURE_DIR + "/legacy.sh": "#!/usr/bin/env bash\n"}
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(Tree(tmp, suite=s, extra=extra).violations(), "legacy"))
+
+
+class CompareRound2(unittest.TestCase):
+    """compare refuses results from different CLI versions or run counts (round-2 AR-09)."""
+
+    def write(self, root, name, **meta):
+        d = Path(root) / name
+        d.mkdir()
+        (d / "aggregate-result.json").write_text(json.dumps(
+            {"schemaVersion": 1, "partial": False, "cases": [{"name": "a", "aggregates": {"score": 1.0}}]}))
+        base = {"suite_commit": "s", "model": "opus", "claude_version": "1", "runs": 3}
+        base.update(meta)
+        (d / "metadata.json").write_text(json.dumps(base))
+        return d
+
+    def test_a_different_claude_version_is_a_problem(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            res = he.compare_dirs(self.write(tmp, "a"), self.write(tmp, "b", claude_version="2"), 0.34)
+            self.assertTrue(any("claude_version" in p for p in res["problems"]))
+
+    def test_a_different_run_count_is_a_problem(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            res = he.compare_dirs(self.write(tmp, "a"), self.write(tmp, "b", runs=1), 0.34)
+            self.assertTrue(any("runs" in p for p in res["problems"]))
+
+    def test_a_run_result_compares_cleanly_with_itself(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            results = Path(tmp) / "results"
+            rf = ReviewFindings()
+            old_path = os.environ["PATH"]
+            os.environ["PATH"] = str(rf.stub_claude(tmp)) + os.pathsep + old_path
+            try:
+                he.main(["run", "--repo", str(repo), "--max-cost-usd", "1", "--results-dir", str(results)])
+            finally:
+                os.environ["PATH"] = old_path
+            (run_dir,) = list(results.iterdir())
+            self.assertEqual(he.compare_dirs(run_dir, run_dir, 0.34)["problems"], [])
 
 
 if __name__ == "__main__":

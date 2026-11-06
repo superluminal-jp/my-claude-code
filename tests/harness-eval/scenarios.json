@@ -937,6 +937,38 @@
           }
         }
       ]
+    },
+    {
+      "id": "obs-code-review",
+      "kind": "observation",
+      "stages": [
+        "H-code-review"
+      ],
+      "description": "担い手のない段階（コードレビュー）の依頼で、要件の分解と証拠での受け入れのスキルが使われるかを記録する。",
+      "fixture": "git-on-main",
+      "prompt": "app.py の未コミットの変更をコードレビューして、問題があれば指摘して。",
+      "graders": [
+        {
+          "id": "requirements-decomposition-unused",
+          "type": "skill",
+          "skill": "requirements-decomposition",
+          "expect": "unused",
+          "basis": {
+            "file": ".claude/skills/requirements-decomposition/SKILL.md",
+            "quote": "implement or review code"
+          }
+        },
+        {
+          "id": "verified-delivery-unused",
+          "type": "skill",
+          "skill": "verified-delivery",
+          "expect": "unused",
+          "basis": {
+            "file": ".claude/skills/verified-delivery/SKILL.md",
+            "quote": "for a code review that decides nothing"
+          }
+        }
+      ]
     }
   ]
 }

@@ -31,6 +31,7 @@
 | `H-verify` | 引き渡し | 完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする | `apex`, `skill:verified-delivery`, `skill:coder` | `h-verify-evidence`, `e-proportion-typo` |
 | `H-structure` | 引き渡し | 答えを先に置き、支えを下に組む | `apex`, `rule:pyramid-principle`, `skill:pyramid-structure` | `h-structure-recommend` |
 | `H-docs` | 引き渡し | 公開の契約と文書を、変更と同期させる | `apex`, `skill:maintaining-living-documentation`, `skill:coder` | `h-docs-flag-rename` |
+| `H-code-review` | 引き渡し | 変更をコードレビューする | **担い手なし** | `obs-code-review` |
 | `H-report` | 引き渡し | 行ったこと、限界、残るリスク、未完了の作業を報告する（観測しない: 何を書けば満たすかが依頼ごとに違い、決定的な判定で確かめられる形の約束ではない） | `apex` | — |
 
 ## 境界グループ
@@ -51,4 +52,4 @@
 
 ## シナリオの数
 
-期待 19 件、観測 5 件、到達確認 1 件。
+期待 19 件、観測 6 件、到達確認 1 件。
