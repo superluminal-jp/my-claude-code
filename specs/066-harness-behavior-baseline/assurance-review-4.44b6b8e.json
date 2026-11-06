@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "44b6b8e79796e31f2899ebdf8a590e3a035d94aa",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、4回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（44b6b8e の時点の版）",
+      "git diff main..44b6b8e79796e31f2899ebdf8a590e3a035d94aa",
+      "specs/066-harness-behavior-baseline/evidence/44b6b8e/ の6つのファイルと evidence/junit_run.py"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "parent_by_children",
+        "target": "R0",
+        "severity": "high",
+        "statement": "No evidence for either L3 criterion at 44b6b8e; the probe never ran, so R0 counterexample 1 and R5's runtime assumptions (exec-form args, the per-hook cap, SessionStart under plugin eval) are unrefuted.",
+        "disposition": "accepted",
+        "resolution": "R0-A1 と R0-A2 は manifest で not_run と記録し、gate はそれを理由に blocked と判定する。承認は基準の実行の前に利用者から得て approvals に記録し、到達確認がそこで R0 の反例1と R5 の実行時の前提を確かめる。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "evidence_mismatch",
+        "target": "R-MEASURE-A1",
+        "severity": "medium",
+        "statement": "The stub decides discovery (ls $3/evals), so no evidence shows the real eval finds the 24 cases; copytree also carries nested eval suites (skills/pyramid-structure/evals, skills/maintaining-living-documentation/evals) and nested plugin.json files, which might change the case count and cost.",
+        "disposition": "accepted",
+        "resolution": "1点目は認める。本物の eval が評価ディレクトリを見つけることは差し替えでは示せず、R0-A1 の結果の cases が24件であることで確かめる。2点目は成り立たない。claude plugin eval --help（2.1.319）は、評価の対象を『<eval dir>/**/case.yaml or prompt.md + graders/*.md; the eval dir is evals/ unless --eval-dir or the manifest says otherwise』と書く。skills/ の下の evals はプラグインの根の evals/ の外にあり、組み立てる plugin.json は experimental.evals を持たないので、走らない。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "uncovered_path",
+        "target": "R-MEASURE",
+        "severity": "medium",
+        "statement": "No check validates generated case.yaml, prompt.md and graders against the real schema; the file target {source: file, path} may be wrong since the recorded evidence lists regex targets only as last_message or trace; the same applies to tool_order's object form and allowed_tools: [].",
+        "disposition": "rejected",
+        "resolution": "形式は公式文書に沿う。plugin-evals の『What a grader can look at』は target に last_message、trace、files、{ source: file, path: <path> }、mock_calls を挙げ、このリポジトリの既存の maintaining-living-documentation の eval（graders/changelog-entry.md の target: { source: file, path: CHANGELOG.md }）も同じ形を使う。tool_order の before と after は『a tool name or { tool, input_match }』、allowed_tools の既定は [] と文書にある。問題カードの evidence の一文は target を網羅していなかったが、誤りではない。形式の誤りがあれば、R0-A1 の実行で run の誤りとして現れる。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "uncovered_path",
+        "target": "R4",
+        "severity": "medium",
+        "statement": "apple-notes and apple-reminders scripts are still copied into every build and Bash is granted, so any scenario (e.g. obs-document-cocreation, 手元のメモ…) could lead the model to change the user's real Notes or Reminders, and transcripts are copied into the repository.",
+        "disposition": "accepted",
+        "resolution": "112db91: 対応表で apple-notes と apple-reminders に in_eval: false と理由を記し、組み立てるプラグインに含めないようにした（dry-run の組み立てたスキルは14件）。check は理由を求め、そのスキルを期待するシナリオを拒む。実際の環境との違いとして R5 の前提と docs §4 に記した。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "risk_mismatch",
+        "target": "CHG-066",
+        "severity": "medium",
+        "statement": "Neither the requirements graph nor the evidence records a risk class, though the diff adds --scaffold, --trust-plugin, Bash for every case, transcripts written into the repository, and billed runs.",
+        "disposition": "rejected",
+        "resolution": "risk は verification-manifest.json に high と記録し、理由に準備スクリプトと課金される実行を挙げている（reviewer.md の手順どおり、レビューに渡す資料に manifest は含めない）。high なので、gate は実装者以外の人の承認がなければ通さない（A-05）。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "R1-A1",
+        "severity": "low",
+        "statement": "test_a_stage_with_neither_owners_nor_gap_is_reported only checks a violation containing D-gap, which the coverage rule also emits, so it would pass without the owners-xor-gap check.",
+        "disposition": "accepted",
+        "resolution": "112db91: そのテストが規則に固有の文言（stage D-gap: give either owners or gap）を確かめるようにした。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "evidence_mismatch",
+        "target": "R2-A1",
+        "severity": "low",
+        "statement": "test_a_probe_basis_must_be_an_always_on_file only checks a violation containing probe, which the probe-coverage rule also emits, so it would pass without the allowed = always_on restriction.",
+        "disposition": "accepted",
+        "resolution": "112db91: そのテストが、到達確認の判定の根拠が常時ロードでないことを指す違反の文言を確かめるようにした。"
+      },
+      {
+        "id": "AR-08",
+        "kind": "uncovered_path",
+        "target": "R0-A1",
+        "severity": "low",
+        "statement": "The probe has allowed_tools: [] but Bash is granted to every case and no grader asserts no tool was used, so a probe pass cannot tell injection from reading the built files.",
+        "disposition": "accepted",
+        "resolution": "112db91: 到達確認に、Bash を一度も使わなかったことの判定（no-tool-used）を加えた。読み取りの道具は allowed_tools が空なので与えられない。"
+      },
+      {
+        "id": "AR-09",
+        "kind": "uncovered_path",
+        "target": "R4-A1",
+        "severity": "low",
+        "statement": "The trusted-hook guard misses a hooks block in SKILL.md frontmatter.",
+        "disposition": "accepted",
+        "resolution": "112db91: SKILL.md の前付けに hooks を宣言するスキルも組み立てを止める（test_a_skill_whose_frontmatter_declares_hooks_stops_the_build）。"
+      },
+      {
+        "id": "AR-10",
+        "kind": "other",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "run-install and run-config-pyramid exit 1 at 44b6b8e from the sandbox; nothing shows them passing at this commit.",
+        "disposition": "accepted",
+        "resolution": "前の回と同じ。ローカルのサンドボックスでは通せず、外での再実行は拒まれた。この変更は .claude/ もこの2つのスクリプトも変えていない。CI での確かめには push が要り、利用者が決める。"
+      }
+    ]
+  }
+}
