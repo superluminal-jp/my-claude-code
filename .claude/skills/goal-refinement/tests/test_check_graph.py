@@ -148,11 +148,16 @@ class RequirementsGraphTests(CheckerTestCase):
         self.assertEqual(result["graph"], "requirements")
         self.assertEqual(
             result["rules_checked"],
-            ["S-00", "S-01", "S-02", "S-03", "S-04", "S-05", "S-06", "S-07", "S-08", "S-11"],
+            ["S-00", "S-01", "S-02", "S-03", "S-04", "S-05", "S-06", "S-07", "S-08", "S-11", "S-12"],
         )
 
     def test_p1_07_undefined_level_is_rejected(self):
         self.assert_violations({"S-07"}, fixture(REQUIREMENTS, "p1-07-invalid-level.json"))
+
+    def test_s_12_parent_with_only_l1_criteria_is_rejected(self):
+        # spec 064 FR-001: a parent's own check cannot be a leaf-level check.
+        violations = self.assert_violations({"S-12"}, fixture(REQUIREMENTS, "s-12-parent-with-only-l1.json"))
+        self.assertEqual(violations[0]["node_id"], "REQ-P")
 
     def test_p1_08_shared_child_passes(self):
         self.assert_passes(fixture(REQUIREMENTS, "valid-p1-08-shared-child.json"))
@@ -397,7 +402,8 @@ class ReviewFindingTests(CheckerTestCase):
         self.assert_violations({"S-01", "S-04", "S-06"}, self.write_graph(nodes))
 
     def test_children_of_the_wrong_type_are_reported_once(self):
-        nodes = [{**_requirement("R", "AND", []), "children": "A"}, _requirement("A", "LEAF", [])]
+        # Built with a child so that R's own criterion is L2 and only S-00 applies.
+        nodes = [{**_requirement("R", "AND", ["A"]), "children": "A"}, _requirement("A", "LEAF", [])]
         violations = self.assert_violations({"S-00"}, self.write_graph(nodes))
         self.assertEqual(len(violations), 1)
 

@@ -29,7 +29,7 @@ class CardTestCase(unittest.TestCase):
         return str(path)
 
     def card(self, manifest_change=None, graph: dict | None = None, manifest: dict | None = None,
-             report: dict | None = None, lang: str = "en") -> subprocess.CompletedProcess:
+             report: dict | None = None, lang: str = "en", review: dict | None = None) -> subprocess.CompletedProcess:
         doc = manifest or load("manifest-pass.json")
         if manifest_change is not None:
             manifest_change(doc["verification_manifest"])
@@ -38,6 +38,8 @@ class CardTestCase(unittest.TestCase):
                 "--manifest", self.write("manifest.json", doc), "--lang", lang]
         if report is not None:
             args += ["--report", self.write("report.json", report)]
+        if review is not None:
+            args += ["--review", self.write("review.json", review)]
         return subprocess.run(args, capture_output=True, text=True, timeout=60)
 
     def problem(self, **changes) -> str:
@@ -223,7 +225,7 @@ class CardSecondReviewTests(CardTestCase):
     def report(self, problem_id: str) -> dict:
         return {"schema_version": 1, "challenge_report": {"problem_id": problem_id, "reviewer": "r", "context_given": ["x"],
                 "findings": [{"id": "CH-01", "kind": "counterexample", "target": "REQ-ROOT", "severity": "high",
-                              "statement": "s", "disposition": "accepted", "reason": "fixed"}]}}
+                              "statement": "s", "disposition": "accepted", "resolution": "fixed"}]}}
 
     def test_no_pass_mark_comes_from_a_url_an_id_or_a_reference(self):
         graph = load("graph.json")
@@ -253,6 +255,41 @@ class CardSecondReviewTests(CardTestCase):
         out = self.card(lambda m: check(m, "TEST-LEAF-001")["evidence"].update(kind="chatgpt")).stdout
         self.assertIn("- `TEST-LEAF-001` (L1, REQ-READ): blocked", out)
         self.assertIn('["REQ-READ · LEAF · open"]', out)
+
+
+class CardAssuranceReviewTests(CardTestCase):
+    """spec 064 User Story 3, scenario 7: the card decides with the assurance
+    review as the gate does, and lists its unanswered findings."""
+
+    @staticmethod
+    def medium(m: dict) -> None:
+        m["risk"].update({"class": "medium", "rationale": "changes an API"})
+
+    def test_medium_change_without_a_review_is_blocked(self):
+        proc = self.card(self.medium)
+        self.assertEqual(proc.returncode, 1)
+        unresolved = proc.stdout.split("## Unresolved", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("A-10", unresolved)
+
+    def test_medium_change_with_an_answered_review_passes(self):
+        proc = self.card(self.medium, review=load("assurance-review.json"))
+        self.assertEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn("**Decision: ✅ pass**", proc.stdout)
+
+    def test_an_unanswered_review_finding_is_listed_as_unresolved(self):
+        review = load("assurance-review.json")
+        review["assurance_review"]["findings"][0].update(disposition="open", statement="the export API is not called")
+        review["assurance_review"]["findings"][0].pop("resolution")
+        proc = self.card(self.medium, review=review)
+        self.assertEqual(proc.returncode, 1)
+        unresolved = proc.stdout.split("## Unresolved", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("AR-01", unresolved)
+        self.assertIn("the export API is not called", unresolved)
+
+    def test_a_review_of_another_change_is_refused(self):
+        review = load("assurance-review.json")
+        review["assurance_review"]["change_id"] = "CHG-999"
+        self.assertEqual(self.card(self.medium, review=review).returncode, 2)
 
 
 if __name__ == "__main__":

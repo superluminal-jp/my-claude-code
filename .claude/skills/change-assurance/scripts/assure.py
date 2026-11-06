@@ -23,7 +23,7 @@ import traceback
 import unicodedata
 import xml.etree.ElementTree as ElementTree
 import xml.parsers.expat as expat
-from typing import Any, Dict, List, NoReturn, Optional, Sequence, Tuple
+from typing import Any, Dict, List, NoReturn, Optional, Sequence, Set, Tuple
 
 OUTPUT_VERSION = 1
 MAX_INPUT_BYTES = 5 * 1024 * 1024
@@ -43,7 +43,16 @@ MANIFEST_FIELDS = frozenset(
 CHECK_FIELDS = frozenset({"check_id", "status", "evidence", "reason", "approved_by"})
 EVIDENCE_FIELDS = frozenset({"kind", "ref", "commit"})
 MANIFEST_RULES = ["M-00", "M-01", "M-02"]
-GATE_RULES = ["A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07", "A-08"]
+GATE_RULES = ["A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07", "A-08", "A-09", "A-10"]
+REVIEW_FIELDS = frozenset({"change_id", "reviewed_commit", "reviewer", "context_given", "findings"})
+# Only these dispositions answer a finding, and only with a resolution; any
+# other value, spelling, or shape counts as unanswered (fail-safe default).
+ANSWERED = ("accepted", "rejected")
+# Risk classes whose change needs the independent assurance review (A-10).
+REVIEWED_RISKS = ("medium", "high")
+DECOMPOSITIONS = ("AND", "OR", "LEAF")
+# A parent's own check, which its children's L1 checks cannot stand for.
+PARENT_LEVELS = ("L2", "L3")
 # A check at these levels is a parent's or the system's own verification, so
 # waiving it as not_applicable needs someone other than the implementer.
 WAIVER_APPROVAL_LEVELS = ("L2", "L3")
@@ -193,6 +202,140 @@ def graph_parts(document: Any) -> Tuple[str, List[Tuple[str, str, str]]]:
     return document["problem_id"], criteria
 
 
+def graph_structure(document: Any) -> List[str]:
+    """A-09: the parts of the graph's structure the decision depends on. The
+    graph's own checker owns these rules too; they are checked again here so
+    that a graph whose checker never ran cannot pass. Field shapes and OR
+    selections are left to that checker: every criterion of every alternative
+    needs its own check anyway. Call after graph_parts, which has refused
+    nodes and criteria the gate cannot read."""
+    nodes = document["requirements"]
+    if not nodes:
+        return []  # A-01 already reports a graph with nothing to verify
+    problems: List[str] = []
+    counts: Dict[str, int] = {}
+    for node in nodes:
+        if is_text(node.get("id")):
+            counts[node["id"]] = counts.get(node["id"], 0) + 1
+        else:
+            problems.append("a requirement has no id")
+    problems += [f"requirement id {show(nid)} is used by {n} requirements" for nid, n in counts.items() if n > 1]
+    children_of: Dict[str, List[str]] = {}
+    for node in nodes:
+        nid = node.get("id")
+        if not is_text(nid) or nid in children_of:
+            continue
+        name, kids, decomposition = show(nid), node.get("children", []), node.get("decomposition")
+        if not isinstance(kids, list) or not all(isinstance(kid, str) for kid in kids):
+            problems.append(f"{name} has children that are not a list of requirement ids")
+            kids = [kid for kid in kids if isinstance(kid, str)] if isinstance(kids, list) else []
+        if len(set(kids)) != len(kids):
+            problems.append(f"{name} lists a child more than once")
+        problems += [f"{name} lists child {show(kid)}, which is not a requirement of the graph" for kid in kids if kid not in counts]
+        if decomposition not in DECOMPOSITIONS:
+            problems.append(f"{name} has decomposition {show(decomposition)}, not AND, OR, or LEAF")
+        elif decomposition == "LEAF" and kids:
+            problems.append(f"{name} is a LEAF with children")
+        elif decomposition != "LEAF" and len(set(kids)) < 2:
+            problems.append(f"{name} is an {decomposition} with fewer than two children")
+        if not node["acceptance"]:
+            problems.append(f"{name} has no acceptance criterion, so nothing verifies it")
+        elif decomposition in ("AND", "OR") and not any(entry["level"] in PARENT_LEVELS for entry in node["acceptance"]):
+            problems.append(f"{name} is an {decomposition} with only L1 criteria; it needs an L2 or L3 check of its own")
+        children_of[nid] = [kid for kid in dict.fromkeys(kids) if kid in counts]
+    referenced = {kid for kids in children_of.values() for kid in kids}
+    roots = [nid for nid in children_of if nid not in referenced]
+    if len(roots) != 1:
+        problems.append(f"the graph has {len(roots)} roots ({', '.join(show(r) for r in roots) or 'none'}); it needs exactly one")
+    # Kahn's algorithm: what cannot be ordered is on a cycle or below one.
+    indegree = {nid: 0 for nid in children_of}
+    for kids in children_of.values():
+        for kid in kids:
+            indegree[kid] += 1
+    ready = [nid for nid, degree in indegree.items() if degree == 0]
+    while ready:
+        for kid in children_of[ready.pop()]:
+            indegree[kid] -= 1
+            if indegree[kid] == 0:
+                ready.append(kid)
+    cyclic = [nid for nid, degree in indegree.items() if degree > 0]
+    if cyclic:
+        problems.append(f"following children returns to a requirement; these are on or below a cycle: {', '.join(show(n) for n in cyclic)}")
+    return problems
+
+
+def requirement_ids(document: Any) -> Set[str]:
+    return {n["id"] for n in document["requirements"] if isinstance(n, dict) and is_text(n.get("id"))}
+
+
+def unanswered(findings: List[Any], targets: Set[str], allowed: str) -> List[Tuple[Optional[Dict[str, Any]], str]]:
+    """Every finding that is not answered (spec 064 D3), with why: an answered
+    finding has its own id, names a target in ``targets`` (described to the
+    reader as ``allowed``), and is accepted or rejected with a resolution."""
+    counts: Dict[str, int] = {}
+    for finding in findings:
+        if isinstance(finding, dict) and is_text(finding.get("id")):
+            counts[finding["id"]] = counts.get(finding["id"], 0) + 1
+    out: List[Tuple[Optional[Dict[str, Any]], str]] = []
+    for index, finding in enumerate(findings):
+        if not isinstance(finding, dict):
+            out.append((None, f"finding #{index + 1} is not an object"))
+            continue
+        fid, target, disposition = finding.get("id"), finding.get("target"), finding.get("disposition")
+        name = show(fid) if is_text(fid) else f"finding #{index + 1}"
+        if not isinstance(fid, str) or not fid.strip():
+            why = f"{name} has no id"
+        elif counts[fid] > 1:
+            why = f"{name} is the id of more than one finding"
+        elif not isinstance(target, str) or target not in targets:
+            why = f"{name} targets {show(target)}, which is not {allowed}"
+        elif disposition not in ANSWERED:
+            why = f"{name} is {show(disposition)}, not accepted or rejected"
+        elif not is_text(finding.get("resolution")):
+            why = f"{name} is {disposition} without a resolution"
+        else:
+            continue
+        out.append((finding, why))
+    return out
+
+
+def unanswered_reason(record: str, items: List[Tuple[Optional[Dict[str, Any]], str]]) -> str:
+    return f"{len(items)} finding(s) of the {record} are not answered: " + "; ".join(why for _, why in items)
+
+
+CHALLENGE_TARGETS = "the problem or a requirement of the graph"
+REVIEW_TARGETS = "a requirement, an acceptance criterion, or the change"
+
+
+def challenge_targets(document: Any) -> Set[str]:
+    return requirement_ids(document) | {document["problem_id"]}
+
+
+def review_targets(document: Any, body: Dict[str, Any]) -> Set[str]:
+    criteria = {criterion for criterion, _, _ in graph_parts(document)[1]}
+    return requirement_ids(document) | criteria | ({body["change_id"]} if is_text(body.get("change_id")) else set())
+
+
+def load_assurance_review(path: Optional[str], change_id: Any) -> Optional[Dict[str, Any]]:
+    """Reads the record of the independent assurance review (references/reviewer.md)."""
+    if path is None:
+        return None
+    document = load_json(path, "the assurance review")
+    if (not isinstance(document, dict) or set(document) != {"schema_version", "assurance_review"}
+            or type(document["schema_version"]) is not int or document["schema_version"] != 1):
+        raise InputError("the assurance review must have exactly schema_version 1 and assurance_review")
+    review = document["assurance_review"]
+    if (not isinstance(review, dict) or set(review) != REVIEW_FIELDS
+            or not all(is_text(review[k]) for k in ("change_id", "reviewed_commit", "reviewer"))
+            or not isinstance(review["context_given"], list) or not all(is_text(c) for c in review["context_given"])
+            or not isinstance(review["findings"], list)):
+        raise InputError("the assurance review must have change_id, reviewed_commit, reviewer, context_given, and a findings array")
+    if review["change_id"] != change_id:
+        # Another change's review says nothing about this one.
+        raise InputError(f"the assurance review is for change {show(review['change_id'])}, not {show(change_id)}")
+    return review
+
+
 def load_challenge_report(path: Optional[str], problem_id: str) -> Optional[Dict[str, Any]]:
     """Reads what the gate needs from goal-refinement's challenge report: its
     problem id and its findings. Check the report with its own checker first."""
@@ -206,10 +349,6 @@ def load_challenge_report(path: Optional[str], problem_id: str) -> Optional[Dict
         # Another problem's report would hide this problem's open findings.
         raise InputError(f"the challenge report is for problem {show(report.get('problem_id'))}, not {show(problem_id)}")
     return report
-
-
-def open_findings(report: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    return [f for f in report["findings"] if isinstance(f, dict) and f.get("disposition") == "open"] if report else []
 
 
 # --- the manifest's own rules (M-00 to M-02) --------------------------------------
@@ -302,18 +441,24 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
     return report.violations()
 
 
-# --- the gate (A-01 to A-08) -----------------------------------------------------
+# --- the gate (A-01 to A-10) -----------------------------------------------------
 
 
-def run_gate(graph_path: str, manifest_path: str, report_path: Optional[str] = None) -> Dict[str, Any]:
-    problem_id, criteria = load_graph(graph_path)
+def run_gate(graph_path: str, manifest_path: str, report_path: Optional[str] = None,
+             review_path: Optional[str] = None) -> Dict[str, Any]:
+    document = load_json(graph_path, "the requirements graph")
+    problem_id, _ = graph_parts(document)
     body = load_manifest(manifest_path)
     report = load_challenge_report(report_path, problem_id)
-    return evaluate_gate(problem_id, criteria, body, report)
+    review = load_assurance_review(review_path, body.get("change_id"))
+    return evaluate_gate(document, body, report, review)
 
 
-def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: Dict[str, Any],
-                  report: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str, Any]],
+                  review: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Decides on a requirements graph document, a manifest body, and the
+    challenge report and assurance review (each None when not given)."""
+    problem_id, criteria = graph_parts(document)
     violations = check_manifest(body)
     reasons: List[Tuple[str, str, str]] = []  # (rule, effect, message)
 
@@ -324,6 +469,8 @@ def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: D
         block(violation["rule_id"], f"manifest: {violation['message']}")
     if body.get("problem_id") != problem_id:
         block("A-01", f"the manifest is for problem {show(body.get('problem_id'))}, not {show(problem_id)}")
+    for problem in graph_structure(document):
+        block("A-09", f"requirements graph: {problem}")
     checks: Dict[str, Dict[str, Any]] = {}
     for entry in body.get("checks") if isinstance(body.get("checks"), list) else []:
         if isinstance(entry, dict) and is_text(entry.get("check_id")):
@@ -405,9 +552,20 @@ def evaluate_gate(problem_id: str, criteria: List[Tuple[str, str, str]], body: D
         block("A-07", f"infrastructure changes ({', '.join(kinds)}) make this a high-risk change; escalate the risk class")
     if risk_class == "high" and report is None:
         block("A-08", "a high-risk change needs the challenger's report for its problem (--report); run the challenger first")
-    unanswered = open_findings(report)
-    if unanswered:
-        block("A-08", f"{len(unanswered)} finding(s) of the challenge report are still open")
+    if report is not None:
+        items = unanswered(report["findings"], challenge_targets(document), CHALLENGE_TARGETS)
+        if items:
+            block("A-08", unanswered_reason("challenge report", items))
+    if risk_class in REVIEWED_RISKS and review is None:
+        block("A-10", f"a {risk_class}-risk change needs the assurance review of its reviewed commit (--review); "
+                      "run the assurance reviewer first")
+    if review is not None:
+        if review["reviewed_commit"] != reviewed:
+            block("A-10", f"the assurance review is stale: it reviewed commit {show(review['reviewed_commit'])}, "
+                          f"not reviewed_commit {show(reviewed)} (write both as the full SHA)")
+        items = unanswered(review["findings"], review_targets(document, body), REVIEW_TARGETS)
+        if items:
+            block("A-10", unanswered_reason("assurance review", items))
 
     decision = "fail" if any(effect == "fail" for _, effect, _ in reasons) else ("blocked" if reasons else "pass")
     return {
@@ -706,22 +864,26 @@ def render_requirements(nodes: List[Dict[str, Any]], checks: List[Dict[str, Any]
     return lines
 
 
-def run_card(problem: str, graph: str, manifest: str, report: Optional[str], lang: str) -> Tuple[str, str]:
+def run_card(problem: str, graph: str, manifest: str, report: Optional[str], review: Optional[str], lang: str) -> Tuple[str, str]:
     # Each file is read once, so the decision and what the card shows come
     # from the same content.
     card = load_problem_card(problem)
     document = load_json(graph, "the requirements graph")
-    problem_id, criteria = graph_parts(document)
+    problem_id, _ = graph_parts(document)
     body = load_manifest(manifest)
     if card["id"] != problem_id or body.get("problem_id") != problem_id:
         raise InputError(f"the problem card {show(card['id'])}, the graph ({show(problem_id)}), and the manifest ({show(body.get('problem_id'))}) must be for the same problem")
     if card.get("status") != "verified":
         raise InputError(f"the problem card is {show(card.get('status'))}, not verified; decompose and gate it first")
     challenge = load_challenge_report(report, problem_id)
-    # The gate decides on the challenge report too (A-08); the card only shows
-    # the open findings.
-    gate = evaluate_gate(problem_id, criteria, body, challenge)
-    findings = open_findings(challenge)
+    assurance = load_assurance_review(review, body.get("change_id"))
+    # The gate decides on both records too (A-08, A-10); the card only shows
+    # their unanswered findings.
+    gate = evaluate_gate(document, body, challenge, assurance)
+    findings = [f for f, _ in unanswered(challenge["findings"], challenge_targets(document), CHALLENGE_TARGETS)
+                if f is not None] if challenge else []
+    findings += [f for f, _ in unanswered(assurance["findings"], review_targets(document, body), REVIEW_TARGETS)
+                 if f is not None] if assurance else []
     return gate["decision"], render_card(card, graph_nodes(document), body, gate, findings, lang)
 
 
@@ -788,6 +950,7 @@ def run(argv: Sequence[str], output_format: str) -> int:
     gate.add_argument("graph")
     gate.add_argument("manifest")
     gate.add_argument("--report")
+    gate.add_argument("--review")
     collect = commands.add_parser("collect-junit", parents=[common])
     collect.add_argument("report")
     collect.add_argument("--graph", required=True)
@@ -799,13 +962,15 @@ def run(argv: Sequence[str], output_format: str) -> int:
     card.add_argument("--graph", required=True)
     card.add_argument("--manifest", required=True)
     card.add_argument("--report")
+    card.add_argument("--review")
     card.add_argument("--lang", choices=tuple(LABELS), default="en")
     args = parser.parse_args(argv)
     try:
         if args.command == "card":
-            decision, text = run_card(args.problem, args.graph, args.manifest, args.report, args.lang)
+            decision, text = run_card(args.problem, args.graph, args.manifest, args.report, args.review, args.lang)
             if args.format == "json":
-                print(json.dumps({"output_version": OUTPUT_VERSION, "input_file": [args.problem, args.graph, args.manifest, args.report],
+                print(json.dumps({"output_version": OUTPUT_VERSION,
+                                  "input_file": [args.problem, args.graph, args.manifest, args.report, args.review],
                                   "decision": decision, "markdown": text}, indent=2, ensure_ascii=False))
             else:
                 sys.stdout.write(text)
@@ -820,11 +985,11 @@ def run(argv: Sequence[str], output_format: str) -> int:
                           rules_checked=MANIFEST_RULES, violations=violations, error=None)
             emit(result, args.format)
             return EXIT_NOT_OK if violations else EXIT_OK
-        gate_result = run_gate(args.graph, args.manifest, args.report)
+        gate_result = run_gate(args.graph, args.manifest, args.report, args.review)
     except InputError as exc:
         emit(error_result(getattr(args, "manifest", None) or getattr(args, "report", None), str(exc)), args.format)
         return EXIT_INPUT_ERROR
-    result = error_result([args.graph, args.manifest] + ([args.report] if args.report else []), "")
+    result = error_result([args.graph, args.manifest] + [path for path in (args.report, args.review) if path], "")
     result.update(gate_result, status="passed" if gate_result["decision"] == "pass" else "failed", error=None)
     emit(result, args.format)
     return EXIT_OK if gate_result["decision"] == "pass" else EXIT_NOT_OK

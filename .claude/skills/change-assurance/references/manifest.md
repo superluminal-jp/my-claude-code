@@ -1,15 +1,15 @@
 # The verification manifest and the bundled checker
 
-`scripts/assure.py` reads a verification manifest, a version 2 requirements graph, and JUnit XML reports. It reads its inputs and nothing else: it writes no file, opens no network connection, starts no process, and never executes input content. It needs Python 3.9 or later and its standard library only.
+`scripts/assure.py` reads a verification manifest, a version 2 requirements graph, the challenge report and the assurance review, and JUnit XML reports. It reads its inputs and nothing else: it writes no file, opens no network connection, starts no process, and never executes input content. It needs Python 3.9 or later and its standard library only.
 
 ```sh
 python3 <skill-dir>/scripts/assure.py [--format text|json] check MANIFEST
-python3 <skill-dir>/scripts/assure.py [--format text|json] gate GRAPH MANIFEST [--report REPORT]
+python3 <skill-dir>/scripts/assure.py [--format text|json] gate GRAPH MANIFEST [--report REPORT] [--review REVIEW]
 python3 <skill-dir>/scripts/assure.py collect-junit REPORT --graph GRAPH --commit SHA --ref REF [--kind ci_job|local_run]
-python3 <skill-dir>/scripts/assure.py [--format text|json] card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]
+python3 <skill-dir>/scripts/assure.py [--format text|json] card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--review REVIEW] [--lang en|ja]
 ```
 
-Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, a challenge report for another problem, bad arguments) or the checker itself failed.
+Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violation, 1 for `fail`, `blocked`, or violations, 2 when an input cannot be interpreted (unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON or XML, a repeated key, an XML `DOCTYPE` or `ENTITY`, a wrong top level, a challenge report for another problem, an assurance review for another change, bad arguments) or the checker itself failed.
 
 ## The manifest
 
@@ -38,7 +38,7 @@ Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violat
 
 ## The gate
 
-`gate GRAPH MANIFEST` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused, and an `L2` or `L3` check marked `not_applicable` without the approval A-06 needs, as `blocked`. Manifest violations (M-xx) also block. With `--format json` the result also has `checks`: for every acceptance criterion, its `check_id`, `level`, `requirement`, the status the gate used, and the recorded `evidence` object (or `null`).
+`gate GRAPH MANIFEST [--report REPORT] [--review REVIEW]` answers `pass` only when every rule holds. A failed check or a rejected approval makes it `fail`; anything else that does not hold makes it `blocked`. Both are not a pass. The result lists each reason with its rule and effect, and counts the statuses per level (`L1`, `L2`, `L3`), counting a passed check whose evidence was refused, and an `L2` or `L3` check marked `not_applicable` without the approval A-06 needs, as `blocked`. Manifest violations (M-xx) also block. With `--format json` the result also has `checks`: for every acceptance criterion, its `check_id`, `level`, `requirement`, the status the gate used, and the recorded `evidence` object (or `null`).
 
 | Rule | Holds when |
 |---|---|
@@ -49,17 +49,39 @@ Exit codes (the same for `card`, after its own rules): 0 for `pass` or no violat
 | A-05 | no approval is `rejected` (at any risk), and a `high` change has an `approved` approval by someone other than the implementer |
 | A-06 | every test change, and every `L2` or `L3` check marked `not_applicable`, is approved (`approved_by`) by someone other than the implementer |
 | A-07 | a change with infrastructure changes is `high` |
-| A-08 | a `high` change comes with the challenge report for its problem (`--report`), and no finding of the given report is `open` |
+| A-08 | a `high` change comes with the challenge report for its problem (`--report`), and every finding of a given report is answered and targets the problem or a requirement of the graph |
+| A-09 | the graph's structure holds where the decision depends on it: requirement ids are non-empty and unique; every listed child is a requirement of the graph and is listed once; following children never returns to a requirement; a `LEAF` has no children and an `AND` or `OR` has at least two; exactly one requirement has no parent; every requirement has an acceptance criterion; and every `AND` or `OR` has an `L2` or `L3` criterion of its own |
+| A-10 | a `medium` or `high` change comes with the assurance review (`--review`) of `reviewed_commit`, and every finding of a given review is answered and targets a requirement, an acceptance criterion, or the change (`change_id`) |
+
+A finding is answered when it is an object whose `id` no other finding has, whose `target` is one the rule names, whose `disposition` is `accepted` or `rejected`, and whose `resolution` is not empty. Anything else — `open`, another spelling, an undefined value, a missing resolution — leaves it unanswered.
 
 Names are compared ignoring case and surrounding spaces, so `Claude` and ` claude ` are the same person as `claude`.
 
-The graph is read only for its problem id and its acceptance criteria; an acceptance id used by two criteria is refused (exit 2), so a leaf's check cannot stand for a parent's own check. Check the graph's structure with its own checker before this gate.
+The gate reads the graph's problem id, its acceptance criteria, and the structure A-09 lists, so a graph whose own checker never ran cannot pass. It does not check field shapes or `OR` selections, which stay with the graph's own checker (`goal-refinement`): every alternative's criteria need their own checks anyway. An acceptance id used by two criteria, an undefined level, or a requirement without an `acceptance` array is refused (exit 2), so a leaf's check cannot stand for a parent's own check.
 
-`--report` takes the challenge report written in the decomposition step (`goal-refinement`), in which the challenger's findings are answered. The gate reads only its problem id, which must be the graph's (otherwise exit 2), and which findings are `open`; check the report's own format with `goal-refinement`'s checker first. A `high` change without a report is `blocked`, so run the challenger for every high-risk change.
+`--report` takes the challenge report written in the decomposition step (`goal-refinement`), in which the challenger's findings are answered. The gate reads its problem id, which must be the graph's (otherwise exit 2), and its findings. A `high` change without a report is `blocked`, so run the challenger for every high-risk change.
+
+## The assurance review
+
+`--review` takes the record of the independent assurance review ([reviewer.md](reviewer.md)), in which the reviewer's findings are answered. A `medium` or `high` change without one is `blocked`.
+
+```json
+{"schema_version": 1, "assurance_review": {
+  "change_id": "CHG-001", "reviewed_commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f",
+  "reviewer": "read-only subagent (Explore), 2026-11-06",
+  "context_given": ["requirements graph", "diff of 0f5a148", "CI log of run 1"],
+  "findings": [{"id": "AR-01", "kind": "parent_by_children", "target": "TEST-PARENT-001", "severity": "medium",
+                "statement": "<what is wrong and the line that shows it>", "disposition": "rejected",
+                "resolution": "<why it does not hold, or what changed>"}]}}
+```
+
+- Exactly these fields; `change_id`, `reviewed_commit`, and `reviewer` are non-empty strings, `context_given` lists exactly what the reviewer was given, and `findings` is an array, empty when the reviewer found nothing material. Otherwise, or when `change_id` is not the manifest's, the input cannot be interpreted (exit 2).
+- `reviewed_commit` must be the manifest's `reviewed_commit`, written the same way; a review of another commit is stale and A-10 blocks it.
+- Each finding has `id`, `kind` (`parent_by_children`, `evidence_mismatch`, `uncovered_path`, `weakened_test`, `risk_mismatch`, or `other`, after the reviewer prompt), `target`, `severity` (`high`, `medium`, `low`), `statement`, `disposition`, and `resolution` once answered. The gate reads `id`, `target`, `disposition`, and `resolution`; the card also shows the others.
 
 ## Review card
 
-`card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--lang en|ja]` prints a Markdown review card and exits like the gate. It reads each file once, runs the gate on that content, and shows its decision, its counts per level, and its reasons. It refuses (exit 2) a problem card that is not `verified`, and a problem card or challenge report for another problem than the graph and the manifest. The challenge report goes to the gate, so a `high` change without one, or an `open` finding in it, is `blocked` by A-08; otherwise the card never decides on its own. With `--format json` it prints `{output_version, input_file, decision, markdown}`. In order, it shows: the decision (✅ only on `pass`), the problem (current, ideal, gap), the change and its risk, the checks by level, every check that did not pass, the unresolved items (gate reasons and open findings of the challenge report), what a person has to decide, a Mermaid diagram of the decomposition three levels deep with each requirement drawn once (deeper requirements are listed; a requirement's colour covers its own checks and everything below it, and one with only `not_applicable` checks is not green), and the evidence of every check. All input text is treated as untrusted: Markdown emphasis, code, heading, and link characters, HTML angle brackets, and control characters are escaped, the decision marks are replaced by words everywhere (in code, tables, and the diagram too), a URL, a `www.` host, or an e-mail address inside text is shown as code, and an evidence reference becomes a link only when it is a plain `http` or `https` URL.
+`card --problem CARD --graph GRAPH --manifest MANIFEST [--report REPORT] [--review REVIEW] [--lang en|ja]` prints a Markdown review card and exits like the gate. It reads each file once, runs the gate on that content, and shows its decision, its counts per level, and its reasons. It refuses (exit 2) a problem card that is not `verified`, a problem card or challenge report for another problem than the graph and the manifest, and an assurance review for another change. The challenge report and the assurance review go to the gate, so a missing record or an unanswered finding in one is `blocked` by A-08 or A-10; otherwise the card never decides on its own. With `--format json` it prints `{output_version, input_file, decision, markdown}`. In order, it shows: the decision (✅ only on `pass`), the problem (current, ideal, gap), the change and its risk, the checks by level, every check that did not pass, the unresolved items (gate reasons and the unanswered findings of the challenge report and the assurance review), what a person has to decide, a Mermaid diagram of the decomposition three levels deep with each requirement drawn once (deeper requirements are listed; a requirement's colour covers its own checks and everything below it, and one with only `not_applicable` checks is not green), and the evidence of every check. All input text is treated as untrusted: Markdown emphasis, code, heading, and link characters, HTML angle brackets, and control characters are escaped, the decision marks are replaced by words everywhere (in code, tables, and the diagram too), a URL, a `www.` host, or an e-mail address inside text is shown as code, and an evidence reference becomes a link only when it is a plain `http` or `https` URL.
 
 ## JUnit XML
 

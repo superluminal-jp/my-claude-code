@@ -32,16 +32,18 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     ユーザーが却下できる形にする——その後、形式的要件へ変換。INVEST/Gherkin）、`problem-definition`
     （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
     `goal-refinement`(合意済みの問題を、根拠・原因の仮説・解決策を分けた問題カードに記録し、
-    親が固有の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、読み取り専用の反証役の
+    親が固有の L2 か L3 の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、読み取り専用の反証役の
     サブエージェントに異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
     (ready か blocked)を決める。[spec 059](specs/059-refinement-graph-checker/spec.md)、
     [spec 060](specs/060-goal-refinement/spec.md))、
     `change-assurance`(`problem-definition`・`goal-refinement`・`coder` を順に適用する親スキル。
     受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを記録し、同梱の検査器の判定で
     pass・fail・blocked を返す。子の合格から親の合格を作らず、古い証拠や AI の申告を証拠とせず、
-    未分類のリスク、承認の欠け、反証の記録のない高リスクの変更で止まる。判断する人に1画面のレビューカードを示し、
+    未分類のリスク、承認の欠け、反証の記録のない高リスクの変更、コミットに対する独立した保証レビューのない中・高リスクの変更、
+    答えられていない指摘、判定が自分で検査し直して壊れていると分かった要求グラフで止まり、工程を飛ばすと合格せずに止まる。判断する人に1画面のレビューカードを示し、
     レビューの時間を品質を保ったまま減らすかを、事前登録した基準の比較実験で判定する。
-    [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md)、[spec 063](specs/063-pilot-metrics/spec.md))、
+    [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md)、[spec 063](specs/063-pilot-metrics/spec.md)、
+    [spec 064](specs/064-assurance-gate-hardening/spec.md))、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
     開発着手前に整理）、
@@ -293,7 +295,8 @@ bash tests/run-change-assurance-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
-前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録が判定に合格することを確かめる。
+前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録が判定に合格することと、`goal-refinement` の
+テストの要求グラフのうち、その検査器が判定の頼る規則で違反とするものを、判定が合格させないことを確かめる。
 受け入れテストには、[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送った4件
 (親の検証の失敗、証拠のない AI の申告、古い証拠、未分類のリスク)を含む。
 

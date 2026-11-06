@@ -63,7 +63,7 @@ SEVERITIES = ("high", "medium", "low")
 DISPOSITIONS = ("open", "accepted", "rejected")
 
 RULES_CHECKED: Dict[str, List[str]] = {
-    "requirements": ["S-00", "S-01", "S-02", "S-03", "S-04", "S-05", "S-06", "S-07", "S-08", "S-11"],
+    "requirements": ["S-00", "S-01", "S-02", "S-03", "S-04", "S-05", "S-06", "S-07", "S-08", "S-11", "S-12"],
     "skills": ["S-00", "S-01", "S-02", "S-03", "S-08", "S-09"],
     "skills-dir": ["S-02", "S-03", "S-08", "S-10"],
     "problem_card": ["C-00", "C-01", "C-02", "C-03"],
@@ -405,6 +405,17 @@ def check_acceptance(node: Node, owners: Dict[str, str], report: Report) -> None
             report.add("S-07", *where, f"{label} level must be L1, L2, or L3 (got {show(entry.get('level'))})")
 
 
+def check_parent_level(node: Node, decomposition: Optional[str], report: Report) -> None:
+    """Applies S-12: a parent's own acceptance cannot be only leaf checks. A
+    node with no criteria is reported by S-06 alone."""
+    entries = node.raw.get("acceptance")
+    if decomposition not in ("AND", "OR") or not isinstance(entries, list) or not entries:
+        return
+    if not any(isinstance(entry, dict) and entry.get("level") in ("L2", "L3") for entry in entries):
+        report.add("S-12", node.position, node.node_id,
+                   f"an {decomposition} needs an L2 or L3 acceptance criterion of its own, not only L1")
+
+
 def check_roots(raw_nodes: Sequence[Any], nodes: List[Node], edges: Dict[str, List[str]], report: Report) -> None:
     """Applies S-11. With no root at all the graph has a cycle, which S-03 reports."""
     if not raw_nodes:
@@ -429,6 +440,7 @@ def check_requirements(raw_nodes: Sequence[Any]) -> List[Violation]:
         decomposition = check_requirement_fields(node, report)
         check_selection(node, decomposition, report)
         check_acceptance(node, owners, report)
+        check_parent_level(node, decomposition, report)
     check_roots(raw_nodes, nodes, edges, report)
     return report.violations()
 

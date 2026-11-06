@@ -72,6 +72,7 @@ In the *Applies to* column, *declarations* means requirement and skill graph fil
 | S-09 | skills | permission and role have defined values; an `auditor` or `checker`, and every skill reachable from it, is `read_only` |
 | S-10 | compatibility mode | a declared child declares no children of its own: a `## Child skills` section may list skills that list none |
 | S-11 | requirements | at most one node has no parent, so a forgotten child shows up as a second root |
+| S-12 | requirements | an `AND` or `OR` has at least one `L2` or `L3` acceptance criterion of its own, so a parent is never verified only by leaf-level checks |
 
 ## Gate rules
 
