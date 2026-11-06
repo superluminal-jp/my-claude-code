@@ -252,6 +252,16 @@ run_skill_contract() {
 
   check "SKILL-08: the decomposition skill is retired to archive/" \
     "$([ ! -e "$SKILL_DIR/meta-spec" ] && [ -f "$REPO_ROOT/archive/meta-spec/SKILL.md" ] && [ -f "$REPO_ROOT/archive/meta-spec/README.md" ] && echo 1 || echo 0)"
+
+  # Authored packages are installed into ~/.claude/skills/, where this
+  # repository's specs/ and archive/ do not exist (CLAUDE.md: keep .claude/
+  # free of repository-specific facts).
+  local authored_dirs=()
+  for skill in "${authored_skills[@]}"; do
+    authored_dirs+=("$SKILL_DIR/$skill")
+  done
+  check_absent_pattern "SKILL-09: authored packages cite none of this repository's specs or archive" \
+    '(^|[^[:alnum:]_-])(specs/[0-9]{3}|spec [0-9]{3}|archive/)' "${authored_dirs[@]}"
 }
 
 # Writes one fixture skill: write_fixture_skill <dir> <name> <body>.
