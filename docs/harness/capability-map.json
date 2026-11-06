@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "components": [
+    {"id": "apex", "path": ".claude/CLAUDE.md"},
+    {"id": "rule:clarifier", "path": ".claude/rules/clarifier.md"},
+    {"id": "rule:permissions", "path": ".claude/rules/permissions.md"},
+    {"id": "rule:pyramid-principle", "path": ".claude/rules/pyramid-principle.md"},
+    {"id": "rule:thinking-lenses", "path": ".claude/rules/thinking-lenses.md"},
+    {"id": "skill:apple-notes", "path": ".claude/skills/apple-notes/SKILL.md"},
+    {"id": "skill:apple-reminders", "path": ".claude/skills/apple-reminders/SKILL.md"},
+    {"id": "skill:aws-research", "path": ".claude/skills/aws-research/SKILL.md"},
+    {"id": "skill:clarifier", "path": ".claude/skills/clarifier/SKILL.md"},
+    {"id": "skill:coder", "path": ".claude/skills/coder/SKILL.md"},
+    {"id": "skill:digital-agency-frontend", "path": ".claude/skills/digital-agency-frontend/SKILL.md"},
+    {"id": "skill:digital-agency-slides", "path": ".claude/skills/digital-agency-slides/SKILL.md"},
+    {"id": "skill:git-workflow", "path": ".claude/skills/git-workflow/SKILL.md"},
+    {"id": "skill:maintaining-living-documentation", "path": ".claude/skills/maintaining-living-documentation/SKILL.md"},
+    {"id": "skill:problem-definition", "path": ".claude/skills/problem-definition/SKILL.md"},
+    {"id": "skill:product-strategy", "path": ".claude/skills/product-strategy/SKILL.md"},
+    {"id": "skill:pyramid-structure", "path": ".claude/skills/pyramid-structure/SKILL.md"},
+    {"id": "skill:requirements-decomposition", "path": ".claude/skills/requirements-decomposition/SKILL.md"},
+    {"id": "skill:scrum-master", "path": ".claude/skills/scrum-master/SKILL.md"},
+    {"id": "skill:secure-logging", "path": ".claude/skills/secure-logging/SKILL.md"},
+    {"id": "skill:verified-delivery", "path": ".claude/skills/verified-delivery/SKILL.md",
+     "children": ["skill:coder", "skill:problem-definition", "skill:requirements-decomposition"]}
+  ],
+  "stages": [
+    {"id": "D-intent", "branch": "define", "title": "目的・範囲・完了条件を定め、結果を変える選択が残るときは着手前に尋ねる",
+     "owners": ["apex", "rule:clarifier", "skill:clarifier"],
+     "basis": [
+       {"file": ".claude/CLAUDE.md", "quote": "Ask only when an unresolved choice would materially change the result"},
+       {"file": ".claude/rules/clarifier.md", "quote": "Ask before committing when a material gap cannot be resolved from applicable evidence."},
+       {"file": ".claude/skills/clarifier/SKILL.md", "quote": "two materially different readings would both let work proceed"}
+     ]},
+    {"id": "D-problem", "branch": "define", "title": "漠然とした不満を、現状と理想の差としての問題文にする",
+     "owners": ["skill:problem-definition"],
+     "basis": [{"file": ".claude/skills/problem-definition/SKILL.md", "quote": "Turn a vague sense that"}]},
+    {"id": "D-product", "branch": "define", "title": "開発の前に、プロダクトの方向（対象、価値、指標、範囲）を定める",
+     "owners": ["skill:product-strategy"],
+     "basis": [{"file": ".claude/skills/product-strategy/SKILL.md", "quote": "Formulate product/business strategy"}]},
+    {"id": "D-decompose", "branch": "define", "title": "合意した問題を、検査できる要件のグラフに分解する",
+     "owners": ["skill:requirements-decomposition"],
+     "basis": [{"file": ".claude/skills/requirements-decomposition/SKILL.md", "quote": "Turn an agreed problem into a checkable decomposition before implementation"}]},
+    {"id": "D-evidence", "branch": "define", "title": "事実の主張を、適用できる最新の一次の証拠に基づかせる",
+     "owners": ["apex", "rule:thinking-lenses", "skill:aws-research"],
+     "basis": [
+       {"file": ".claude/CLAUDE.md", "quote": "Ground factual claims in the most applicable, authoritative, and current evidence available."},
+       {"file": ".claude/rules/thinking-lenses.md", "quote": "Keep observations, sourced claims, assumptions, and inferences distinct while reasoning."},
+       {"file": ".claude/skills/aws-research/SKILL.md", "quote": "Research current AWS services and answer from official AWS documentation"}
+     ]},
+    {"id": "D-reasoning", "branch": "define", "title": "依存、分岐、反復、推論の完全さを確かめてから決める",
+     "owners": ["apex", "rule:thinking-lenses"],
+     "unobservable": "内部の判断の形成を律する規則で、出力の形を求めないため、決定的な判定で確かめられない",
+     "basis": [{"file": ".claude/rules/thinking-lenses.md", "quote": "This guidance governs internal decision formation, not the wording, hierarchy, or layout of the result presented to a reader."}]},
+    {"id": "D-root-cause", "branch": "define", "title": "根本原因を分析する",
+     "owners": [], "gap": true,
+     "basis": [
+       {"file": ".claude/skills/problem-definition/SKILL.md", "quote": "root-cause analysis, evaluating or proposing solutions, or building an execution plan"},
+       {"file": ".claude/skills/requirements-decomposition/SKILL.md", "quote": "analyze root causes"}
+     ]},
+    {"id": "D-solution", "branch": "define", "title": "解決策を評価して選ぶ",
+     "owners": [], "gap": true,
+     "basis": [{"file": ".claude/skills/problem-definition/SKILL.md", "quote": "evaluating or proposing solutions"}]},
+    {"id": "D-plan", "branch": "define", "title": "実行計画を作る",
+     "owners": [], "gap": true,
+     "basis": [{"file": ".claude/skills/problem-definition/SKILL.md", "quote": "building an execution plan"}]},
+    {"id": "D-architecture", "branch": "define", "title": "アーキテクチャ、技術の選定、自作か調達かを決める",
+     "owners": [], "gap": true,
+     "basis": [{"file": ".claude/skills/product-strategy/SKILL.md", "quote": "architecture, technology-stack, or build-vs-buy decisions"}]},
+    {"id": "D-document", "branch": "define", "title": "不完全な材料から、対話しながら文書を組み立てる",
+     "owners": [], "gap": true,
+     "basis": [
+       {"file": ".claude/skills/clarifier/SKILL.md", "quote": "building a document from incomplete material through dialogue"},
+       {"file": ".claude/skills/product-strategy/SKILL.md", "quote": "open-ended document co-creation with no development destination"}
+     ]},
+    {"id": "E-authority", "branch": "execute", "title": "権限の範囲で動き、破壊的・外部・資格情報に関わる操作の前に承認を得る",
+     "owners": ["apex", "rule:permissions"],
+     "basis": [
+       {"file": ".claude/CLAUDE.md", "quote": "Obtain explicit approval before destructive, hard-to-recover, credential-bearing, machine-wide, or externally consequential actions"},
+       {"file": ".claude/rules/permissions.md", "quote": "Obtain explicit approval before an action is destructive or hard to recover"}
+     ]},
+    {"id": "E-match", "branch": "execute", "title": "独立に当てはまる能力をすべて、依存の順に適用する",
+     "owners": ["apex"],
+     "basis": [{"file": ".claude/CLAUDE.md", "quote": "Apply every independently matching capability, never collapse a compound request to one."}]},
+    {"id": "E-proportion", "branch": "execute", "title": "手順と検証の重さを、複雑さ・可逆性・影響に比例させる",
+     "owners": ["apex"], "requires_unused_skill_grader": true,
+     "basis": [{"file": ".claude/CLAUDE.md", "quote": "Choose process and verification proportional to complexity, reversibility, and impact."}]},
+    {"id": "E-implement", "branch": "execute", "title": "コード・設定・テストを、失敗する検査を先に観測してから変える",
+     "owners": ["skill:coder"],
+     "basis": [{"file": ".claude/skills/coder/SKILL.md", "quote": "Implement and modify code, configuration, tests, scripts, interfaces, or observable behavior safely"}]},
+    {"id": "E-git", "branch": "execute", "title": "ブランチ、コミット、push、プルリクエストを、求められた操作だけ行う",
+     "owners": ["skill:git-workflow"],
+     "basis": [{"file": ".claude/skills/git-workflow/SKILL.md", "quote": "Manage Git collaboration state for branches, commits, pushes, and pull requests."}]},
+    {"id": "E-dads-frontend", "branch": "execute", "title": "DADS に沿った React と Tailwind CSS のフロントエンド",
+     "owners": ["skill:digital-agency-frontend"],
+     "basis": [{"file": ".claude/skills/digital-agency-frontend/SKILL.md", "quote": "Use for DADS components, Japanese government or public-service interfaces"}]},
+    {"id": "E-dads-slides", "branch": "execute", "title": "DADS に沿った 16:9 の HTML スライド",
+     "owners": ["skill:digital-agency-slides"],
+     "basis": [{"file": ".claude/skills/digital-agency-slides/SKILL.md", "quote": "Use for slide decks, briefing material, and presentation documents that must follow DADS"}]},
+    {"id": "E-scrum", "branch": "execute", "title": "Scrum のイベント・作成物・説明責任の診断と改善",
+     "owners": ["skill:scrum-master"],
+     "basis": [{"file": ".claude/skills/scrum-master/SKILL.md", "quote": "Scrum Guide (2020) を規範として"}]},
+    {"id": "E-logging", "branch": "execute", "title": "ログ出力の実装と確認を、セキュリティの要件に照らして行う",
+     "owners": ["skill:secure-logging"],
+     "basis": [{"file": ".claude/skills/secure-logging/SKILL.md", "quote": "Use when code or a workflow adds or modifies log output"}]},
+    {"id": "E-notes", "branch": "execute", "title": "Apple のメモの読み書き",
+     "owners": ["skill:apple-notes"],
+     "basis": [{"file": ".claude/skills/apple-notes/SKILL.md", "quote": "Use when a request needs content out of Notes.app"}]},
+    {"id": "E-reminders", "branch": "execute", "title": "Apple のリマインダーの読み書き",
+     "owners": ["skill:apple-reminders"],
+     "basis": [{"file": ".claude/skills/apple-reminders/SKILL.md", "quote": "when items must be added or completed there"}]},
+    {"id": "H-verify", "branch": "handoff", "title": "完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする",
+     "owners": ["apex", "skill:verified-delivery", "skill:coder"],
+     "basis": [
+       {"file": ".claude/CLAUDE.md", "quote": "Verify the actual completion condition before reporting success."},
+       {"file": ".claude/skills/verified-delivery/SKILL.md", "quote": "Carry a change from an agreed problem to an evidence-backed acceptance decision"}
+     ]},
+    {"id": "H-structure", "branch": "handoff", "title": "答えを先に置き、支えを下に組む",
+     "owners": ["apex", "rule:pyramid-principle", "skill:pyramid-structure"],
+     "basis": [
+       {"file": ".claude/CLAUDE.md", "quote": "Communicate the answer before its support"},
+       {"file": ".claude/rules/pyramid-principle.md", "quote": "State the answer, conclusion, or recommendation before its supporting detail."},
+       {"file": ".claude/skills/pyramid-structure/SKILL.md", "quote": "MUST be used for every substantive task."}
+     ]},
+    {"id": "H-docs", "branch": "handoff", "title": "公開の契約と文書を、変更と同期させる",
+     "owners": ["apex", "skill:maintaining-living-documentation", "skill:coder"],
+     "basis": [
+       {"file": ".claude/CLAUDE.md", "quote": "Keep public contracts, usage guidance, and durable rationale synchronized with the change"},
+       {"file": ".claude/skills/maintaining-living-documentation/SKILL.md", "quote": "Keeps documentation consistent with code"}
+     ]},
+    {"id": "H-report", "branch": "handoff", "title": "行ったこと、限界、残るリスク、未完了の作業を報告する",
+     "owners": ["apex"],
+     "unobservable": "何を書けば満たすかが依頼ごとに違い、決定的な判定で確かめられる形の約束ではない",
+     "basis": [{"file": ".claude/CLAUDE.md", "quote": "Report actions, limits, unresolved risks, and work left undone plainly"}]}
+  ],
+  "boundary_groups": [
+    {"id": "G-define", "members": ["skill:clarifier", "skill:problem-definition", "skill:product-strategy", "skill:requirements-decomposition"],
+     "basis": [
+       {"file": ".claude/skills/clarifier/SKILL.md", "quote": "framing the gap between a current and an ideal state, setting product direction before development begins"},
+       {"file": ".claude/skills/problem-definition/SKILL.md", "quote": "confirming scope or acceptance criteria on an already-agreed single feature"},
+       {"file": ".claude/skills/product-strategy/SKILL.md", "quote": "confirming scope or acceptance criteria on an already-agreed single feature"},
+       {"file": ".claude/skills/requirements-decomposition/SKILL.md", "quote": "Do not use to define a vague problem in the first place"}
+     ]}
+  ],
+  "settings": {
+    "$schema": {"in_eval": false, "reason": "JSON の検証のための宣言で、振る舞いに効かない"},
+    "tui": {"in_eval": false, "reason": "端末の表示形式で、モデルの振る舞いに効かない"},
+    "model": {"in_eval": true, "reason": "run は既定でこの値を --model に渡す"},
+    "permissions": {"in_eval": false, "reason": "defaultMode（auto）と資格情報の読み取り拒否。eval の実行は許可を求めず、許していない道具を外し、OS サンドボックスがホームを読めなくする。許可の仕組みが実際の環境と違うことは強制の配置（軸4）で扱う"},
+    "hooks": {"in_eval": false, "reason": "speckit-specify が呼ばれたときだけ specify-cli の更新を確かめるフックで、speckit-* は harness に含まれないため、評価の中では動く機会がない"}
+  }
+}

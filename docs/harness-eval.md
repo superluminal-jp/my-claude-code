@@ -1,0 +1,57 @@
+# harness 全体の振る舞いの基準
+
+この仕組みを使うと、harness を変える前と後で、代表的な依頼に対する Claude の振る舞いを同じシナリオ集で測り、比べられる。ここで harness は、`install.sh` が `~/.claude/` に入れる `.claude/CLAUDE.md`、`.claude/rules/`、`.claude/skills/` を指す。測る対象は2つある。1つは、どの部品（スキル、常時ロードの指示）が選ばれるか。もう1つは、その部品の記述が約束する観測できる振る舞いである。経緯と要件は [spec 066](../specs/066-harness-behavior-baseline/problem.md) にある。
+
+## 1. 3つの部品が、期待・実行・比較を分けて受け持つ
+
+| 部品 | 場所 | 受け持つこと |
+|---|---|---|
+| 受け持ちの対応表 | [`docs/harness/capability-map.json`](harness/capability-map.json)（人が読む版は [`capability-map.md`](harness/capability-map.md)、生成物） | apex の義務と、各スキルが「別の能力の仕事」として除外している関心事を段階として並べ、段階ごとに担い手か「担い手なし」を記す。互いに除外し合うスキルは境界グループとして記す。`settings.json` の各項目を評価に含めるかどうかも、理由とともに記す |
+| シナリオ集 | [`tests/harness-eval/scenarios.json`](../tests/harness-eval/scenarios.json) と `fixtures/` | 日本語の依頼と、期待する部品の選択と、観測できる振る舞いを書く。各判定は根拠として harness の語句を引く |
+| 実行器 | [`tests/harness-eval/harness_eval.py`](../tests/harness-eval/harness_eval.py) | 検査（`check`）、表の生成（`render`）、評価の実行（`run`）、2つの結果の比較（`compare`） |
+
+シナリオには3つの種類がある。
+
+- **期待**（expectation）: 合格が、harness が約束どおりに振る舞ったことを示す。
+- **観測**（observation）: 担い手のない段階の依頼で、どのスキルが使われたかを記録する。不合格（そのスキルが使われた）は欠陥ではない。後で担い手を加えたときの「変更前」になる。
+- **到達確認**（probe）: 常時ロードの5ファイルそれぞれの末尾の語句がモデルに届いたことを確かめる。これが不合格の結果は、harness を測っていない。
+
+## 2. 使い方: 検査はモデルを呼ばず、実行は承認した費用の上限の下でだけ行う
+
+```sh
+bash tests/run-harness-eval.sh                       # 単体テストと check（CI でも実行）
+python3 tests/harness-eval/harness_eval.py render    # 対応表かシナリオを変えたあとに表を作り直す
+python3 tests/harness-eval/harness_eval.py run --dry-run --max-cost-usd 20   # 組み立てと validate だけ
+python3 tests/harness-eval/harness_eval.py run --runs 1 --max-cost-usd 20    # 1回ずつの試し
+python3 tests/harness-eval/harness_eval.py run --max-cost-usd 60             # 基準（既定は1シナリオ3回）
+python3 tests/harness-eval/harness_eval.py compare 前の結果 後の結果
+```
+
+- `check` は作業ツリーを見る。`run` は作業ツリーを見ず、`--harness-ref` と `--suite-ref`（どちらも既定は `HEAD`）のコミットの内容を `git archive` で取り出して組み立てる。コミットしていない変更は測られない。
+- 変更の前後を比べるときは、同じ `--suite-ref` で、`--harness-ref` だけを変えて2回走らせる。
+- 結果は `tests/harness-eval/results/<UTC時刻>_h-<harness>_s-<suite>/` に置かれる。中身は `claude plugin eval` の出力（`aggregate-result.json`、`report.html`）と、両方のコミット、モデル、コマンドを記録した `metadata.json` である。
+- `compare` は、シナリオごとの得点の差を出し、差の絶対値が 0.34 以上のものに印をつける。印は確かめる対象を絞るためのもので、統計的な有意を示さない。3回の実行では小さな差は区別できない。
+- 費用は、モデルを呼ぶたびにかかる。`run` は `--max-cost-usd` がないと何もせずに失敗する。この上限は、新しい実行を始める前に確かめられる。超過は、実行中の件数分に限られる。実際の費用は `aggregate-result.json` の `costUsd`（定価での見積もり）に出る。まず `--runs 1` で1件あたりの費用を測ってから、回数を決める。
+
+## 3. 実行は隔離され、組み立ても準備も実リポジトリに書かない
+
+- 組み立てるプラグインは、一時ディレクトリの下に作る。リポジトリの中や `~/.claude` の中には組み立てない。
+- `claude plugin eval` の各実行は、一時的なホームと設定で動く。利用者の設定、他のプラグイン、MCP サーバーは読み込まれない。
+- 追加で許す道具は `Bash` だけで、OS サンドボックスの中で動く。サンドボックスの中では、書き込みは実行の作業領域に限られ、ホームは読めず、ネットワークのドメインは1つも許されていない。`--no-publish` を必ず付けるので、報告は claude.ai に公開されない。
+- 準備スクリプト（`fixtures/*.sh`）は、空のディレクトリでしか動かない。先頭の確認の行がそれを強制し、`check` はその行があることを求める。git remote やネットワークを使うコマンドも禁じる。
+
+## 4. 実際の環境とは5点が違い、結果はその範囲でしか成り立たない
+
+1. **常時ロードの読み込み方**: 常時ロードの5ファイルは、メモリとしてではなく、SessionStart フックの出力として注入する。フックの出力の上限は10,000字なので、ファイルごとに1つずつ注入する。本文が届いたことは到達確認で確かめる。同じように振る舞いに効くかどうかは、確かめていない。
+2. **スキルの名前**: スキルは `harness:<名前>` の名前で現れる。判定は、名前空間のない名前と、ある名前の両方を受け付ける。
+3. **許可の仕組み**: `permissions`（`defaultMode: auto` と資格情報の読み取り拒否）は評価に含まれない。eval は許可を求めず、許していない道具を外す。
+4. **使える道具**: `Edit`、`Write`、`Agent`、`WebFetch` は許していない。ファイルを書く振る舞いと、サブエージェントを起動する振る舞いは、`Bash` を通したもの以外は観測されない。
+5. **モデル**: モデルは既定で `settings.json` の `model` を使う。
+
+## 5. harness を変えたら、対応表とシナリオも同じ変更で直す
+
+- **スキルやルールを足す・消す・改名したとき**: `check` が、対応表にない部品と実在しない部品を報告する。部品を段階に割り当て、担い手のある段階には期待のシナリオを、担い手のない段階には観測のシナリオを足す。
+- **引用している語句が変わったとき**: `check` が、その引用を報告する。期待そのものが変わったのかを判断してから、引用か期待を直す。
+- **境界グループのスキルを期待するシナリオでは**: 同じグループの他のスキル（期待するスキルが宣言した子を除く）が使われないことも判定する。
+- **正規表現を使う判定では**: 合うべき例と合ってはいけない例を、それぞれ1つ以上持たせる。
+- **最後に**: `render` で表を作り直す。
