@@ -322,6 +322,38 @@ $children
   check_fixture "PARENT-08: a parent may not declare itself as a child" \
     "$root/f8" '^parent declares itself as a child$'
 
+  # Code blocks follow CommonMark's fence rules: ~~~ fences, up to three
+  # spaces of indentation, and a closing fence at least as long as the
+  # opening one, so an example section inside a fence is not a declaration.
+  cp -R "$root/f1" "$root/f9"
+  write_fixture_skill "$root/f9" parent "Apply \`child-a\` first.
+
+$children
+
+~~~markdown
+## Child skills
+
+- \`ghost\`
+~~~
+
+   \`\`\`
+## Child skills
+
+- \`ghost\`
+   \`\`\`"
+  check_fixture "PARENT-09: an example section inside a tilde or indented fence is not a declaration" "$root/f9" ''
+
+  cp -R "$root/f1" "$root/f10"
+  write_fixture_skill "$root/f10" parent "\`\`\`\`markdown
+\`\`\`
+still code
+\`\`\`\`
+
+$children
+- \`ghost\`"
+  check_fixture "PARENT-10: a shorter fence inside a longer one does not close it" \
+    "$root/f10" '^parent declares ghost, which is not an authored skill$'
+
   rm -rf "$root"
 }
 

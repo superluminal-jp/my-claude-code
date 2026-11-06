@@ -147,6 +147,12 @@ class PilotReviewFindingTests(PilotTestCase):
         result = json.loads(proc.stdout)
         self.assertEqual((proc.returncode, {v["rule_id"] for v in result["violations"]}), (1, {"E-00"}))
 
+    def test_minutes_too_large_for_a_float_are_a_format_violation_not_a_crash(self):
+        records = json.dumps({"schema_version": 1, "pilot_cases": baseline()}).replace('"review": 40', '"review": 1' + "0" * 400)
+        proc = self.raw(json.dumps(prereg()), records)
+        result = json.loads(proc.stdout)
+        self.assertEqual((proc.returncode, {v["rule_id"] for v in result["violations"]}), (1, {"E-00"}), proc.stderr)
+
     def test_unhashable_values_are_format_violations_not_crashes(self):
         cases = baseline()
         cases[0]["request_id"] = ["x"]

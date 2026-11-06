@@ -532,5 +532,57 @@ class AssuranceReviewTests(AssuranceTestCase):
                   review=str(SKILL_DIR / "examples" / "assurance-review.example.json"))
 
 
+class CodeReviewFindingTests(AssuranceTestCase):
+    """Regressions for the /code-review findings that change behavior."""
+
+    def test_another_spelling_of_the_implementer_is_not_an_independent_approver(self):
+        # NFKC folds fullwidth letters; format characters such as zero-width
+        # spaces are dropped before the names are compared.
+        for name in ("clau\u200bde", "\uff43\uff4c\uff41\uff55\uff44\uff45", "\u2060Claude\ufeff"):
+            with self.subTest(repr(name)):
+                self.gate("blocked", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "high"}),
+                          m["approvals"].append({"by": name, "decision": "approved", "scope": "all"}))),
+                          report=REPORT, review=REVIEW)
+                self.gate("blocked", {"A-06"}, self.manifest(lambda m: m["test_changes"].append(
+                    {"path": "tests/test_a.py::t", "change": "deleted", "approved_by": name})))
+
+                def waive(m):
+                    entry = check(m, "TEST-PARENT-001")
+                    entry.update(status="not_applicable", reason="統合の経路を変えない", approved_by=name)
+                    entry.pop("evidence")
+                self.gate("blocked", {"A-06"}, self.manifest(waive))
+
+    def test_a_manifest_without_change_id_reports_m_00_even_with_a_review(self):
+        self.gate("blocked", {"M-00"}, self.manifest(lambda m: m.pop("change_id")), review=REVIEW)
+
+    def test_a_number_too_long_to_read_is_an_input_error_not_a_checker_failure(self):
+        text = json.dumps(load("manifest-pass.json")).replace('"change_id": "CHG-001"', '"change_id": ' + "9" * 5000)
+        for command in (("check",), ("gate", str(FIXTURES / "graph.json"))):
+            with self.subTest(command[0]):
+                proc = run(*command, self.write("m.json", text))
+                result = json.loads(proc.stdout)
+                self.assertEqual((proc.returncode, result["status"]), (2, "error"), proc.stderr)
+                self.assertNotIn("internal error", result["error"])
+                self.assertNotIn("Traceback", proc.stderr)
+
+    def test_a_challenge_report_with_a_loose_envelope_is_an_input_error(self):
+        def variant(change):
+            doc = load("challenge-report.json")
+            change(doc)
+            return self.write("report.json", doc)
+        cases = {
+            "no schema_version": lambda d: d.pop("schema_version"),
+            "schema_version 99": lambda d: d.update(schema_version=99),
+            "an extra top-level key": lambda d: d.update(note="x"),
+            "an undefined field": lambda d: d["challenge_report"].update(extra="x"),
+            "no reviewer": lambda d: d["challenge_report"].pop("reviewer"),
+            "context_given not a list": lambda d: d["challenge_report"].update(context_given="all"),
+        }
+        for name, change in cases.items():
+            with self.subTest(name):
+                proc = run("gate", str(FIXTURES / "graph.json"), self.manifest(), "--report", variant(change))
+                self.assertEqual(proc.returncode, 2, proc.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
