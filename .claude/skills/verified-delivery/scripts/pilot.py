@@ -13,7 +13,6 @@ Exit codes: 0 adopt, 1 not_adopted, insufficient, or record violations,
 
 from __future__ import annotations
 
-import argparse
 import datetime
 import importlib.util
 import json
