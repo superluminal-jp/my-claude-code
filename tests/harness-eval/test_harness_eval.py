@@ -170,7 +170,7 @@ class CheckMap(unittest.TestCase):
         m = valid_map()
         del m["stages"][2]["gap"]
         with tempfile.TemporaryDirectory() as tmp:
-            self.assertTrue(has(Tree(tmp, cmap=m).violations(), "D-gap"))
+            self.assertTrue(has(Tree(tmp, cmap=m).violations(), "stage D-gap: give either owners or gap"))
 
     def test_a_basis_quote_absent_from_its_file_is_reported(self):
         m = valid_map()
@@ -301,7 +301,8 @@ class CheckScenarios(unittest.TestCase):
         s["scenarios"][0]["graders"][0]["basis"] = {"file": ".claude/skills/alpha/SKILL.md",
                                                     "quote": "Alpha does alpha"}
         with tempfile.TemporaryDirectory() as tmp:
-            self.assertTrue(has(Tree(tmp, suite=s).violations(), "probe"))
+            self.assertTrue(has(Tree(tmp, suite=s).violations(),
+                                "scenario probe grader apex-reached: basis file .claude/skills/alpha/SKILL.md is not"))
 
     def test_a_match_example_the_pattern_misses_is_reported(self):
         s = valid_suite()
@@ -376,7 +377,8 @@ class Build(unittest.TestCase):
     def make_repo(self, tmp, **kw):
         repo = Path(tmp) / "repo"
         repo.mkdir()
-        Tree(repo, suite=CheckScenarios().three_compound(), **kw)
+        kw.setdefault("suite", CheckScenarios().three_compound())
+        Tree(repo, **kw)
         git(repo, "init", "-q")
         git(repo, "add", "-A")
         git(repo, "-c", "commit.gpgsign=false", "commit", "-qm", "init")
@@ -895,6 +897,43 @@ class ReviewRound3(unittest.TestCase):
                 del meta["runs"]
                 (d / "metadata.json").write_text(json.dumps(meta))
             self.assertTrue(any("runs" in p for p in he.compare_dirs(a, b, 0.34)["problems"]))
+
+
+class ReviewRound4(unittest.TestCase):
+    """Regression tests for the assurance review of 44b6b8e (round 4)."""
+
+    def excluded_map(self):
+        m = valid_map()
+        m["components"][4]["in_eval"] = False
+        m["components"][4]["reason"] = "could change real data"
+        return m
+
+    def test_a_skill_marked_out_of_the_eval_is_not_built(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Build().build(Build().make_repo(tmp, cmap=self.excluded_map()), tmp)
+            self.assertEqual(sorted(p.name for p in (b.plugin_dir / "skills").iterdir()), ["alpha", "beta"])
+
+    def test_expecting_a_skill_left_out_of_the_eval_is_reported(self):
+        m = self.excluded_map()
+        s = valid_suite()
+        s["scenarios"][2]["graders"].append(
+            skill_grader("uses-gamma", "gamma", "used", ".claude/skills/gamma/SKILL.md", "Do gamma things"))
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(Tree(tmp, cmap=m, suite=s).violations(), "left out of the eval"))
+
+    def test_leaving_a_skill_out_needs_a_reason(self):
+        m = valid_map()
+        m["components"][4]["in_eval"] = False
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(Tree(tmp, cmap=m).violations(), "skill:gamma: in_eval false needs a reason"))
+
+    def test_a_skill_whose_frontmatter_declares_hooks_stops_the_build(self):
+        hooked = SKILL_A.replace("---\n\n# Alpha", "hooks:\n  Stop: []\n---\n\n# Alpha")
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp, extra={".claude/skills/alpha/SKILL.md": hooked})
+            self.assertEqual(he.check(repo, repo), [])
+            with self.assertRaisesRegex(he.BuildError, "hooks"):
+                Build().build(repo, tmp)
 
 
 if __name__ == "__main__":

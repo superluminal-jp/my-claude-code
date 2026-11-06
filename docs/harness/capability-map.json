@@ -23,11 +23,15 @@
     },
     {
       "id": "skill:apple-notes",
-      "path": ".claude/skills/apple-notes/SKILL.md"
+      "path": ".claude/skills/apple-notes/SKILL.md",
+      "in_eval": false,
+      "reason": "評価のエージェントが Bash でこのスキルのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスが Apple Events と EventKit を止めることは確かめていないので、組み立てるプラグインに含めない"
     },
     {
       "id": "skill:apple-reminders",
-      "path": ".claude/skills/apple-reminders/SKILL.md"
+      "path": ".claude/skills/apple-reminders/SKILL.md",
+      "in_eval": false,
+      "reason": "評価のエージェントが Bash でこのスキルのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスが Apple Events と EventKit を止めることは確かめていないので、組み立てるプラグインに含めない"
     },
     {
       "id": "skill:aws-research",

@@ -99,6 +99,26 @@
               "The Structure of Scientific Revolutions"
             ]
           }
+        },
+        {
+          "id": "no-tool-used",
+          "type": "tool",
+          "tool": "Bash",
+          "input_match": "\"command\"",
+          "min": 0,
+          "max": 0,
+          "basis": {
+            "file": ".claude/CLAUDE.md",
+            "quote": "Distinguish observed fact, sourced claim, inference, assumption, and unverified point"
+          },
+          "examples": {
+            "match": [
+              "{\"command\":\"cat ~/.claude/CLAUDE.md\"}"
+            ],
+            "no_match": [
+              "{\"description\":\"none\"}"
+            ]
+          }
         }
       ]
     },

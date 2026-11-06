@@ -328,6 +328,9 @@ def check_map(cmap: dict, harness: Path, files: list[str] | None, out: list[str]
         if sorted(comp.get("children", [])) != declared:
             out.append(f"component {cid}: children must be {declared}, as its ## Child skills section declares")
 
+    for cid, comp in sorted(comps.items()):
+        if "in_eval" in comp and (comp["in_eval"] is not False or not str(comp.get("reason", "")).strip()):
+            out.append(f"component {cid}: in_eval false needs a reason (and only false may be given)")
     owned = set()
     stages = {}
     for st in cmap.get("stages", []):
@@ -432,6 +435,8 @@ def check_suite(suite: dict, cmap: dict, info: dict, harness: Path, suite_root: 
                 if name not in skills:
                     out.append(f"{gwhere}: {name!r} is not a skill of the harness")
                     continue
+                if g.get("expect") == "used" and comps.get("skill:" + name, {}).get("in_eval") is False:
+                    out.append(f"{gwhere}: skill {name} is left out of the eval, so it can never be used there")
                 if g.get("expect") not in ("used", "unused"):
                     out.append(f"{gwhere}: expect must be used or unused")
                 rx = re.compile(skill_pattern(name))
@@ -565,6 +570,10 @@ def render_map(cmap: dict, suite: dict) -> str:
               "他のメンバー（期待するスキルが宣言した子を除く）が使われないことも判定する。", ""]
     for g in cmap.get("boundary_groups", []):
         lines.append(f"- `{g['id']}`: " + ", ".join(f"`{m}`" for m in g.get("members", [])))
+    left_out = [c for c in cmap.get("components", []) if c.get("in_eval") is False]
+    if left_out:
+        lines += ["", "## 評価に含めないスキル", "", "| スキル | 理由 |", "|---|---|"]
+        lines += [f"| `{c['id']}` | {c.get('reason', '')} |" for c in left_out]
     lines += ["", "## settings.json の扱い", "", "| 項目 | 評価に含めるか | 理由 |", "|---|---|---|"]
     for key, entry in cmap.get("settings", {}).items():
         lines.append(f"| `{key}` | {'含める' if entry.get('in_eval') else '含めない'} | {entry.get('reason', '')} |")
@@ -662,16 +671,26 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
 
     # The plugin's only hooks are the generated ones, which --trust-plugin trusts.
     for found in (src_h / ".claude/skills").rglob("*"):
-        if found.name == "hooks.json" or (found.name == "plugin.json" and
-                                          "hooks" in json.loads(found.read_text(encoding="utf-8") or "{}")):
+        declares = found.name == "hooks.json" or (
+            found.name == "plugin.json" and "hooks" in json.loads(found.read_text(encoding="utf-8") or "{}"))
+        if found.name == "SKILL.md":
+            lines = found.read_text(encoding="utf-8").splitlines()
+            if lines and lines[0] == "---":
+                end = next((i for i, line in enumerate(lines[1:], 1) if line == "---"), len(lines))
+                declares = any(re.match(r"^hooks\s*:", line) for line in lines[1:end])
+        if declares:
             raise BuildError(f"{found.relative_to(src_h)} declares hooks; the eval would run them as trusted")
+    cmap = json.loads((src_s / MAP_PATH).read_text(encoding="utf-8"))
+    left_out = {c["id"][len("skill:"):] for c in cmap.get("components", [])
+                if c.get("id", "").startswith("skill:") and c.get("in_eval") is False}
     plugin = out_dir / PLUGIN_NAME
     (plugin / ".claude-plugin").mkdir(parents=True)
     (plugin / ".claude-plugin/plugin.json").write_text(json.dumps({
         "name": PLUGIN_NAME,
         "description": f"Whole-harness behavior baseline: .claude/ at {harness_sha[:12]}, suite at {suite_sha[:12]}.",
     }, indent=2) + "\n", encoding="utf-8")
-    shutil.copytree(src_h / ".claude/skills", plugin / "skills")
+    shutil.copytree(src_h / ".claude/skills", plugin / "skills",
+                    ignore=lambda d, names: [n for n in names if Path(d) == src_h / ".claude/skills" and n in left_out])
 
     (plugin / "context").mkdir()
     hooks = []

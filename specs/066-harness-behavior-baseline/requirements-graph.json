@@ -130,7 +130,7 @@
         {
           "id": "R4-A1",
           "level": "L1",
-          "description": "単体テストが次を確かめる。組み立て先が一時ディレクトリの下で、リポジトリと ~/.claude の外にある。コマンド行が常に --no-publish と --max-cost-usd を含み、追加で許す道具が Bash だけで、WebFetch やネットワークの許可、--allow-real-servers、--mocks off を含まない。費用上限を与えないと実行せずに失敗する。準備のデータが、相対で安全な文字だけのパスを持ち、.git、.gitattributes、.gitmodules（大文字と小文字を区別せず）、. と .. を含まず、内容が改行で終わる。データから生成した準備スクリプトが、空のディレクトリの確認を最初の命令に置き、内容の中のシェルの構文を実行せずにそのまま書き、git のすべての命令でフックを無効にし（init ではテンプレートも使わず）、許可リストの命令しか使わない。スクリプトの形の準備は受け付けない。 各シナリオが許す道具は読み取りだけの道具（Read、Glob、Grep、NotebookRead、Skill、AskUserQuestion、TodoWrite）に限られる。harness のスキルが自前のフック（hooks.json か plugin.json の hooks）を持つと、--trust-plugin で信頼されて動くので、組み立てを止める。"
+          "description": "単体テストが次を確かめる。組み立て先が一時ディレクトリの下で、リポジトリと ~/.claude の外にある。コマンド行が常に --no-publish と --max-cost-usd を含み、追加で許す道具が Bash だけで、WebFetch やネットワークの許可、--allow-real-servers、--mocks off を含まない。費用上限を与えないと実行せずに失敗する。準備のデータが、相対で安全な文字だけのパスを持ち、.git、.gitattributes、.gitmodules（大文字と小文字を区別せず）、. と .. を含まず、内容が改行で終わる。データから生成した準備スクリプトが、空のディレクトリの確認を最初の命令に置き、内容の中のシェルの構文を実行せずにそのまま書き、git のすべての命令でフックを無効にし（init ではテンプレートも使わず）、許可リストの命令しか使わない。スクリプトの形の準備は受け付けない。 各シナリオが許す道具は読み取りだけの道具（Read、Glob、Grep、NotebookRead、Skill、AskUserQuestion、TodoWrite）に限られる。harness のスキルが自前のフック（hooks.json、plugin.json の hooks、SKILL.md の前付けの hooks）を持つと、--trust-plugin で信頼されて動くので、組み立てを止める。"
         }
       ],
       "assumptions": [
@@ -142,20 +142,21 @@
     },
     {
       "id": "R5",
-      "statement": "評価でモデルに届く harness の指示が、そのコミットの .claude/ と同じである。常時ロードの apex と4ルールの本文は欠けずに会話の開始時に届き、スキルはすべて同じ内容で含まれ、settings.json の各項目は評価に含めるか除くかが理由とともに定まっている。",
+      "statement": "評価でモデルに届く harness の指示が、そのコミットの .claude/ と同じである。常時ロードの apex と4ルールの本文は欠けずに会話の開始時に届き、スキルは、評価に含めないと対応表に理由とともに記したものを除き、すべて同じ内容で含まれ、settings.json の各項目は評価に含めるか除くかが理由とともに定まっている。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "R5-A1",
           "level": "L1",
-          "description": "単体テストが次を確かめる。常時ロードの各ファイルが、それぞれ別の SessionStart フックの出力として本文のまま注入され、各出力が10,000字未満である。注入する本文に @ による取り込みの行がなく、ルールに paths の前付けがない。スキルの集合とファイルの内容が、harness のコミットの .claude/skills と一致する。settings.json の最上位の項目がすべて、含めるか除くかの分類（理由つき）に載っていて、載っていない項目があれば失敗する。"
+          "description": "単体テストが次を確かめる。常時ロードの各ファイルが、それぞれ別の SessionStart フックの出力として本文のまま注入され、各出力が10,000字未満である。注入する本文に @ による取り込みの行がなく、ルールに paths の前付けがない。スキルの集合とファイルの内容が、harness のコミットの .claude/skills（評価に含めないと記したスキルを除く）と一致し、評価に含めないスキルには理由がある。settings.json の最上位の項目がすべて、含めるか除くかの分類（理由つき）に載っていて、載っていない項目があれば失敗する。"
         }
       ],
       "assumptions": [
         "SessionStart フックで注入した本文は、メモリから読み込まれた CLAUDE.md とルールと同じように振る舞いに効く。これは未検証で、R0-A1 の到達確認シナリオは本文が届いたことだけを確かめる。",
         "プラグインのスキルは <プラグイン名>:<スキル名> の名前で現れる。実際の環境の名前（名前空間なし）とのこの違いは、判定の正規表現が両方を受け付けることで吸収し、選択への影響は未検証として残す。",
         "このリポジトリの .claude/skills にある speckit-* は gitignore されたプロジェクトごとの生成物で、install.sh が ~/.claude から取り除くため、利用者の全プロジェクトに入る harness の一部ではない。",
-        "command フックの exec 形（command と args）と、args の中の ${CLAUDE_PLUGIN_ROOT} の展開は公式文書（hooks reference の Plugin scripts）にある。Claude Code が実際にそう動くことは、R0-A1 の到達確認でしか確かめられない。"
+        "command フックの exec 形（command と args）と、args の中の ${CLAUDE_PLUGIN_ROOT} の展開は公式文書（hooks reference の Plugin scripts）にある。Claude Code が実際にそう動くことは、R0-A1 の到達確認でしか確かめられない。",
+        "apple-notes と apple-reminders は、利用者の実際のデータを変えうるため評価のプラグインに含めない。実際の環境ではこの2つの description も選択の候補に並ぶので、選択の結果はその分だけ実際と違いうる。"
       ]
     },
     {

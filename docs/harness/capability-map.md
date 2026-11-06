@@ -40,6 +40,13 @@
 
 - `G-define`: `skill:clarifier`, `skill:problem-definition`, `skill:product-strategy`, `skill:requirements-decomposition`
 
+## 評価に含めないスキル
+
+| スキル | 理由 |
+|---|---|
+| `skill:apple-notes` | 評価のエージェントが Bash でこのスキルのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスが Apple Events と EventKit を止めることは確かめていないので、組み立てるプラグインに含めない |
+| `skill:apple-reminders` | 評価のエージェントが Bash でこのスキルのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスが Apple Events と EventKit を止めることは確かめていないので、組み立てるプラグインに含めない |
+
 ## settings.json の扱い
 
 | 項目 | 評価に含めるか | 理由 |
