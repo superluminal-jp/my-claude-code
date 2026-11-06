@@ -16,7 +16,7 @@ Give exactly one of the three. The kind of a `FILE` is read from its top-level k
 |---|---|
 | 0 | no violation (for `--gate`: `ready`) |
 | 1 | one or more violations (for `--gate`: `blocked`) |
-| 2 | the input cannot be interpreted — bad arguments, a file that is unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON, a repeated key, nesting too deep, or a wrong top level — or the checker itself failed |
+| 2 | the input cannot be interpreted — bad arguments, a file that is unreadable, not a regular file, over 5 MiB, not UTF-8, invalid JSON, a repeated key, a number too long to read, nesting too deep, or a wrong top level — or the checker itself failed |
 
 With `--format json` the result is one object: `output_version`, `input_file`, `graph` (the kind), `status` (`passed`, `failed`, `error`), `rules_checked`, `violations` (`{rule_id, node_id, message}`), and `error`; the gate adds `decision`, `challenge` (`recorded` or `not_run`), and `reasons` (`{rule_id, message}`), gives `input_file` as the list of its paths, and adds to each violation `input` (`card`, `graph`, or `report`), which the text output shows as `[card]` and so on. Its `rules_checked` lists the rules of every input it checked as well as G-01 to G-04. `passed` means the structure follows the rules listed in `rules_checked`, nothing more.
 
@@ -73,6 +73,8 @@ In the *Applies to* column, *declarations* means requirement and skill graph fil
 | S-10 | compatibility mode | a declared child declares no children of its own: a `## Child skills` section may list skills that list none |
 | S-11 | requirements | at most one node has no parent, so a forgotten child shows up as a second root |
 | S-12 | requirements | an `AND` or `OR` has at least one `L2` or `L3` acceptance criterion of its own, so a parent is never verified only by leaf-level checks |
+
+In compatibility mode a child is declared by a line ``- `name` `` in a `## Child skills` section, until the next level-two heading, outside fenced code blocks. A fence follows CommonMark: up to three spaces, then three or more backticks or tildes (a backtick fence's info string has no backtick); only a run of the same character, at least as long, followed by nothing but spaces or tabs, closes it, and an unclosed fence runs to the end of the file.
 
 ## Gate rules
 

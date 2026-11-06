@@ -2,26 +2,30 @@
   "schema_version": 1,
   "skills": [
     {
-      "id": "change-assurance",
-      "children": ["problem-definition", "goal-refinement"],
+      "id": "verified-delivery",
+      "children": [
+        "problem-definition",
+        "requirements-decomposition",
+        "decomposition-checker"
+      ],
       "permission": "read_only",
       "role": "orchestrator"
     },
     {
       "id": "problem-definition",
-      "children": [],
       "permission": "read_only",
       "role": "worker"
     },
     {
-      "id": "goal-refinement",
-      "children": ["refinement-checker"],
+      "id": "requirements-decomposition",
+      "children": [
+        "decomposition-checker"
+      ],
       "permission": "read_only",
       "role": "worker"
     },
     {
-      "id": "refinement-checker",
-      "children": [],
+      "id": "decomposition-checker",
       "permission": "read_only",
       "role": "checker"
     }

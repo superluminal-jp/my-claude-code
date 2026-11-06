@@ -45,6 +45,7 @@ EVIDENCE_FIELDS = frozenset({"kind", "ref", "commit"})
 MANIFEST_RULES = ["M-00", "M-01", "M-02"]
 GATE_RULES = ["A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07", "A-08", "A-09", "A-10"]
 REVIEW_FIELDS = frozenset({"change_id", "reviewed_commit", "reviewer", "context_given", "findings"})
+CHALLENGE_FIELDS = frozenset({"problem_id", "reviewer", "context_given", "findings"})
 # Only these dispositions answer a finding, and only with a resolution; any
 # other value, spelling, or shape counts as unanswered (fail-safe default).
 ANSWERED = ("accepted", "rejected")
@@ -70,10 +71,13 @@ def show(value: Any) -> str:
     return "".join(f"\\u{ord(c):04x}" if unicodedata.category(c) in _UNSAFE_CATEGORIES else c for c in text)
 
 
-def escape_unsafe(text: str) -> str:
+def escape_unsafe(text: str, backslash: bool = True) -> str:
+    """Shows unsafe characters as escapes. ``backslash`` doubles a literal
+    backslash so that it cannot be read as one of them; leave it False where
+    backslashes are shown literally anyway (a code span, a diagram label)."""
     out = []
     for char in text:
-        if char == "\\":
+        if char == "\\" and backslash:
             out.append("\\\\")
         elif unicodedata.category(char) in _UNSAFE_CATEGORIES:
             code = ord(char)
@@ -88,13 +92,22 @@ def is_text(value: Any) -> bool:
 
 
 def independently_approved(approved_by: Any, implementer: Any) -> bool:
-    return is_text(approved_by) and not same_person(approved_by, implementer)
+    return isinstance(approved_by, str) and person_key(approved_by) != "" and not same_person(approved_by, implementer)
+
+
+def person_key(name: str) -> str:
+    """The form in which names are compared: NFKC folds fullwidth and other
+    compatibility forms, format characters (zero-width spaces, word joiners,
+    byte order marks) are dropped, and case and surrounding spaces are
+    ignored."""
+    visible = "".join(c for c in unicodedata.normalize("NFKC", name) if unicodedata.category(c) != "Cf")
+    return unicodedata.normalize("NFKC", visible.casefold()).strip()
 
 
 def same_person(a: Any, b: Any) -> bool:
-    """Names match regardless of case and surrounding spaces, so a self-approval
-    cannot pass as independent by spelling the name differently."""
-    return isinstance(a, str) and isinstance(b, str) and a.strip().casefold() == b.strip().casefold()
+    """A self-approval cannot pass as independent by spelling the name
+    differently: names are compared in the form person_key gives."""
+    return isinstance(a, str) and isinstance(b, str) and person_key(a) == person_key(b)
 
 
 def read_text(path: str, what: str) -> str:
@@ -139,6 +152,21 @@ def load_json(path: str, what: str) -> Any:
         raise InputError(f"{what}: invalid JSON at line {exc.lineno} column {exc.colno}: {exc.msg}") from None
     except RecursionError:
         raise InputError(f"{what}: JSON nesting is too deep to read") from None
+    except ValueError:
+        # Python refuses to convert an integer with too many digits.
+        raise InputError(f"{what}: a number in it is too long to read") from None
+
+
+def load_body(path: str, key: str, what: str, kind: type = dict) -> Any:
+    """Reads a record whose top level is exactly schema_version 1 and ``key``,
+    and returns the value of ``key``, which must be of ``kind``."""
+    document = load_json(path, what)
+    if (not isinstance(document, dict) or set(document) != {"schema_version", key}
+            or type(document["schema_version"]) is not int or document["schema_version"] != 1):
+        raise InputError(f"{what} must have exactly schema_version 1 and {key}")
+    if not isinstance(document[key], kind):
+        raise InputError(f"{key} must be {'an object' if kind is dict else 'an array'}")
+    return document[key]
 
 
 class Report:
@@ -161,14 +189,8 @@ class Report:
 
 
 def load_manifest(path: str) -> Dict[str, Any]:
-    document = load_json(path, "the verification manifest")
-    if not isinstance(document, dict) or set(document) != {"schema_version", "verification_manifest"}:
-        raise InputError("the manifest must have exactly schema_version and verification_manifest")
-    if type(document["schema_version"]) is not int or document["schema_version"] != 1:
-        raise InputError(f"schema_version must be the integer 1 (got {show(document['schema_version'])})")
-    if not isinstance(document["verification_manifest"], dict):
-        raise InputError("verification_manifest must be an object")
-    return document["verification_manifest"]
+    body: Dict[str, Any] = load_body(path, "verification_manifest", "the verification manifest")
+    return body
 
 
 def load_graph(path: str) -> Tuple[str, List[Tuple[str, str, str]]]:
@@ -269,9 +291,10 @@ def requirement_ids(document: Any) -> Set[str]:
 
 
 def unanswered(findings: List[Any], targets: Set[str], allowed: str) -> List[Tuple[Optional[Dict[str, Any]], str]]:
-    """Every finding that is not answered (spec 064 D3), with why: an answered
-    finding has its own id, names a target in ``targets`` (described to the
-    reader as ``allowed``), and is accepted or rejected with a resolution."""
+    """Every finding that is not answered, with why. A finding is answered
+    only when it has its own id, names a target in ``targets`` (described to
+    the reader as ``allowed``), and is accepted or rejected with a
+    resolution; any other disposition, spelling, or shape leaves it open."""
     counts: Dict[str, int] = {}
     for finding in findings:
         if isinstance(finding, dict) and is_text(finding.get("id")):
@@ -311,40 +334,39 @@ def challenge_targets(document: Any) -> Set[str]:
     return requirement_ids(document) | {document["problem_id"]}
 
 
-def review_targets(document: Any, body: Dict[str, Any]) -> Set[str]:
-    criteria = {criterion for criterion, _, _ in graph_parts(document)[1]}
-    return requirement_ids(document) | criteria | ({body["change_id"]} if is_text(body.get("change_id")) else set())
+def review_targets(document: Any, body: Dict[str, Any], criteria: List[Tuple[str, str, str]]) -> Set[str]:
+    ids = {criterion for criterion, _, _ in criteria}
+    return requirement_ids(document) | ids | ({body["change_id"]} if is_text(body.get("change_id")) else set())
 
 
 def load_assurance_review(path: Optional[str], change_id: Any) -> Optional[Dict[str, Any]]:
     """Reads the record of the independent assurance review (references/reviewer.md)."""
     if path is None:
         return None
-    document = load_json(path, "the assurance review")
-    if (not isinstance(document, dict) or set(document) != {"schema_version", "assurance_review"}
-            or type(document["schema_version"]) is not int or document["schema_version"] != 1):
-        raise InputError("the assurance review must have exactly schema_version 1 and assurance_review")
-    review = document["assurance_review"]
-    if (not isinstance(review, dict) or set(review) != REVIEW_FIELDS
+    review = load_body(path, "assurance_review", "the assurance review")
+    if (set(review) != REVIEW_FIELDS
             or not all(is_text(review[k]) for k in ("change_id", "reviewed_commit", "reviewer"))
             or not isinstance(review["context_given"], list) or not all(is_text(c) for c in review["context_given"])
             or not isinstance(review["findings"], list)):
         raise InputError("the assurance review must have change_id, reviewed_commit, reviewer, context_given, and a findings array")
-    if review["change_id"] != change_id:
-        # Another change's review says nothing about this one.
+    if is_text(change_id) and review["change_id"] != change_id:
+        # Another change's review says nothing about this one. A manifest
+        # without a change id is reported by its own rule (M-00) instead.
         raise InputError(f"the assurance review is for change {show(review['change_id'])}, not {show(change_id)}")
     return review
 
 
 def load_challenge_report(path: Optional[str], problem_id: str) -> Optional[Dict[str, Any]]:
-    """Reads what the gate needs from goal-refinement's challenge report: its
-    problem id and its findings. Check the report with its own checker first."""
+    """Reads the challenge report written in the decomposition step
+    (requirements-decomposition): its envelope and fields are checked here as
+    strictly as the assurance review's, its findings by A-08."""
     if path is None:
         return None
-    document = load_json(path, "the challenge report")
-    report = document.get("challenge_report") if isinstance(document, dict) else None
-    if not isinstance(report, dict) or not isinstance(report.get("findings"), list):
-        raise InputError("the challenge report must have challenge_report with a findings array")
+    report = load_body(path, "challenge_report", "the challenge report")
+    if (set(report) != CHALLENGE_FIELDS or not is_text(report["reviewer"])
+            or not isinstance(report["context_given"], list) or not all(is_text(c) for c in report["context_given"])
+            or not isinstance(report["findings"], list)):
+        raise InputError("the challenge report must have problem_id, reviewer, context_given, and a findings array")
     if report.get("problem_id") != problem_id:
         # Another problem's report would hide this problem's open findings.
         raise InputError(f"the challenge report is for problem {show(report.get('problem_id'))}, not {show(problem_id)}")
@@ -451,14 +473,16 @@ def run_gate(graph_path: str, manifest_path: str, report_path: Optional[str] = N
     body = load_manifest(manifest_path)
     report = load_challenge_report(report_path, problem_id)
     review = load_assurance_review(review_path, body.get("change_id"))
-    return evaluate_gate(document, body, report, review)
+    return evaluate_gate(document, body, report, review)[0]
 
 
 def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str, Any]],
-                  review: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+                  review: Optional[Dict[str, Any]]) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """Decides on a requirements graph document, a manifest body, and the
-    challenge report and assurance review (each None when not given)."""
+    challenge report and assurance review (each None when not given).
+    Returns the result and the unanswered findings of both records."""
     problem_id, criteria = graph_parts(document)
+    open_items: List[Dict[str, Any]] = []
     violations = check_manifest(body)
     reasons: List[Tuple[str, str, str]] = []  # (rule, effect, message)
 
@@ -539,7 +563,7 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
     if any(a.get("decision") == "rejected" for a in approvals):
         reasons.append(("A-05", "fail", "a person rejected this change"))
     elif risk_class == "high" and not any(
-        a.get("decision") == "approved" and is_text(a.get("by")) and not same_person(a.get("by"), implementer) for a in approvals
+        a.get("decision") == "approved" and independently_approved(a.get("by"), implementer) for a in approvals
     ):
         block("A-05", "a high-risk change needs approval by someone other than the implementer")
     test_changes = body.get("test_changes") if isinstance(body.get("test_changes"), list) else []
@@ -554,6 +578,7 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
         block("A-08", "a high-risk change needs the challenger's report for its problem (--report); run the challenger first")
     if report is not None:
         items = unanswered(report["findings"], challenge_targets(document), CHALLENGE_TARGETS)
+        open_items += [f for f, _ in items if f is not None]
         if items:
             block("A-08", unanswered_reason("challenge report", items))
     if risk_class in REVIEWED_RISKS and review is None:
@@ -563,7 +588,8 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
         if review["reviewed_commit"] != reviewed:
             block("A-10", f"the assurance review is stale: it reviewed commit {show(review['reviewed_commit'])}, "
                           f"not reviewed_commit {show(reviewed)} (write both as the full SHA)")
-        items = unanswered(review["findings"], review_targets(document, body), REVIEW_TARGETS)
+        items = unanswered(review["findings"], review_targets(document, body, criteria), REVIEW_TARGETS)
+        open_items += [f for f, _ in items if f is not None]
         if items:
             block("A-10", unanswered_reason("assurance review", items))
 
@@ -576,7 +602,7 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
         "rules_checked": MANIFEST_RULES + GATE_RULES,
         "violations": [dict(v, input="manifest") for v in violations],
         "checks": per_check,
-    }
+    }, open_items
 
 
 # --- JUnit XML (J-01, J-02) ------------------------------------------------------
@@ -674,9 +700,11 @@ MAX_DEPTH = 3  # levels drawn in the overview; deeper requirements are listed
 
 
 MARK_WORDS = {"✅": "(check mark)", "❌": "(cross mark)", "⛔": "(no-entry mark)"}
-# What GitHub-Flavored Markdown turns into a link without brackets: URLs,
-# www. hosts, and e-mail addresses (its extended autolinks).
-URL_IN_TEXT = re.compile(r"https?://[^\s|]+|www\.[^\s|]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+")
+# What GitHub-Flavored Markdown turns into a link without brackets (its
+# extended autolinks), matched in any letter case as cmark-gfm does: any
+# scheme followed by ://, www. hosts, and e-mail addresses.
+URL_IN_TEXT = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^\s|]+|www\.[^\s|]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+",
+                         re.IGNORECASE)
 MARKDOWN_SPECIALS = ("|", "<", ">", "[", "]", "*", "_", "`", "#", "~")
 
 
@@ -707,7 +735,7 @@ def md(text: Any) -> str:
 
 def code(text: Any) -> str:
     """Untrusted text as a code span outside a table."""
-    value = escape_unsafe(_no_marks(str(text))).replace("`", "'")
+    value = escape_unsafe(_no_marks(str(text)), backslash=False).replace("`", "'")
     return f"`{value}`" if value else "—"
 
 
@@ -717,8 +745,10 @@ def cell_code(text: Any) -> str:
 
 
 def mermaid_text(text: Any) -> str:
-    out = escape_unsafe(_no_marks(str(text)))
-    for raw, safe in (('"', "#quot;"), ("<", "#lt;"), (">", "#gt;")):
+    out = escape_unsafe(_no_marks(str(text)), backslash=False)
+    # "#" goes first: Mermaid reads #name; and #number; as entities, so an
+    # input "#9989;" would otherwise draw a decision mark.
+    for raw, safe in (("#", "#35;"), ('"', "#quot;"), ("<", "#lt;"), (">", "#gt;")):
         out = out.replace(raw, safe)
     return out
 
@@ -732,12 +762,16 @@ def load_problem_card(path: str) -> Dict[str, Any]:
 
 
 def graph_nodes(document: Any) -> List[Dict[str, Any]]:
-    nodes = document.get("requirements") if isinstance(document, dict) else None
-    if not isinstance(nodes, list) or not all(
-        isinstance(n, dict) and is_text(n.get("id")) and isinstance(n.get("children", []), list) for n in nodes
-    ):
-        raise InputError("every requirement needs an id and a children array; check the graph with its own checker first")
-    return nodes
+    """The requirements the card can draw: those with an id, each with only
+    the children that are ids. A malformed requirement is the gate's to
+    report (A-09), so the card shows that reason instead of refusing the
+    graph. Call after graph_parts."""
+    out = []
+    for node in document["requirements"]:
+        if isinstance(node, dict) and is_text(node.get("id")):
+            children = node.get("children", [])
+            out.append(dict(node, children=[c for c in children if isinstance(c, str)] if isinstance(children, list) else []))
+    return out
 
 
 def render_card(card: Dict[str, Any], nodes: List[Dict[str, Any]], body: Dict[str, Any], gate: Dict[str, Any],
@@ -879,11 +913,7 @@ def run_card(problem: str, graph: str, manifest: str, report: Optional[str], rev
     assurance = load_assurance_review(review, body.get("change_id"))
     # The gate decides on both records too (A-08, A-10); the card only shows
     # their unanswered findings.
-    gate = evaluate_gate(document, body, challenge, assurance)
-    findings = [f for f, _ in unanswered(challenge["findings"], challenge_targets(document), CHALLENGE_TARGETS)
-                if f is not None] if challenge else []
-    findings += [f for f, _ in unanswered(assurance["findings"], review_targets(document, body), REVIEW_TARGETS)
-                 if f is not None] if assurance else []
+    gate, findings = evaluate_gate(document, body, challenge, assurance)
     return gate["decision"], render_card(card, graph_nodes(document), body, gate, findings, lang)
 
 

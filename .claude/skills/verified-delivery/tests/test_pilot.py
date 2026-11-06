@@ -11,9 +11,10 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
+
+from support import temp_dir
 
 CHECKER = Path(__file__).resolve().parent.parent / "scripts" / "pilot.py"
 ITEMS = ["request", "rereading", "instructions", "reading", "review", "rework", "approval"]
@@ -45,8 +46,7 @@ def baseline() -> list[dict]:
 
 class PilotTestCase(unittest.TestCase):
     def decide(self, cases: list[dict], registration: dict | None = None) -> tuple[int, dict]:
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(lambda: ([p.unlink() for p in directory.iterdir()], directory.rmdir()))
+        directory = temp_dir(self)
         reg = directory / "prereg.json"
         reg.write_text(json.dumps(registration or prereg()), encoding="utf-8")
         records = directory / "cases.json"
@@ -128,8 +128,7 @@ class PilotReviewFindingTests(PilotTestCase):
     """Regressions for review findings on the pilot decision."""
 
     def raw(self, registration: str, cases: str) -> subprocess.CompletedProcess:
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(lambda: ([p.unlink() for p in directory.iterdir()], directory.rmdir()))
+        directory = temp_dir(self)
         (directory / "r.json").write_text(registration, encoding="utf-8")
         (directory / "c.json").write_text(cases, encoding="utf-8")
         return subprocess.run([sys.executable, "-B", str(CHECKER), "--format", "json", str(directory / "r.json"), str(directory / "c.json")],
@@ -146,6 +145,12 @@ class PilotReviewFindingTests(PilotTestCase):
         proc = self.raw(json.dumps(prereg()), records)
         result = json.loads(proc.stdout)
         self.assertEqual((proc.returncode, {v["rule_id"] for v in result["violations"]}), (1, {"E-00"}))
+
+    def test_minutes_too_large_for_a_float_are_a_format_violation_not_a_crash(self):
+        records = json.dumps({"schema_version": 1, "pilot_cases": baseline()}).replace('"review": 40', '"review": 1' + "0" * 400)
+        proc = self.raw(json.dumps(prereg()), records)
+        result = json.loads(proc.stdout)
+        self.assertEqual((proc.returncode, {v["rule_id"] for v in result["violations"]}), (1, {"E-00"}), proc.stderr)
 
     def test_unhashable_values_are_format_violations_not_crashes(self):
         cases = baseline()
@@ -175,8 +180,7 @@ class PilotReviewFindingTests(PilotTestCase):
         self.assertNotIn('"error"', proc.stdout)
 
     def test_text_output_shows_the_reduction_of_each_stratum(self):
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(lambda: ([p.unlink() for p in directory.iterdir()], directory.rmdir()))
+        directory = temp_dir(self)
         (directory / "r.json").write_text(json.dumps(prereg()), encoding="utf-8")
         (directory / "c.json").write_text(json.dumps({"schema_version": 1, "pilot_cases": baseline()}), encoding="utf-8")
         out = subprocess.run([sys.executable, "-B", str(CHECKER), str(directory / "r.json"), str(directory / "c.json")],
@@ -188,8 +192,7 @@ class PilotSecondReviewTests(PilotTestCase):
     """Regressions for the second review of the stacked pull requests."""
 
     def files(self, cases: list[dict], registration: dict) -> tuple[str, str]:
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, directory)
+        directory = temp_dir(self)
         (directory / "r.json").write_text(json.dumps(registration), encoding="utf-8")
         (directory / "c.json").write_text(json.dumps({"schema_version": 1, "pilot_cases": cases}), encoding="utf-8")
         return str(directory / "r.json"), str(directory / "c.json")
@@ -210,8 +213,7 @@ class PilotSecondReviewTests(PilotTestCase):
         self.assertTrue(results[0].startswith("Result: not_adopted"), out)
 
     def test_runs_in_isolated_mode_and_writes_no_bytecode_next_to_the_scripts(self):
-        copy = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, copy)
+        copy = temp_dir(self)
         shutil.copytree(CHECKER.parent, copy / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
         reg, records = self.files(baseline(), prereg())
         env = {k: v for k, v in os.environ.items() if k != "PYTHONDONTWRITEBYTECODE"}

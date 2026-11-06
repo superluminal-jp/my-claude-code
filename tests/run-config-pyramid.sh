@@ -46,11 +46,11 @@ check_absent_pattern() {
 authored_skills=(
   clarifier
   aws-research
-  change-assurance
+  verified-delivery
   coder
   digital-agency-frontend
   git-workflow
-  goal-refinement
+  requirements-decomposition
   problem-definition
   product-strategy
   pyramid-structure
@@ -61,11 +61,29 @@ authored_skills=(
 # A parent skill declares the skills it applies in a "## Child skills"
 # section of its SKILL.md, one "- `name`" line per child. Prints the
 # declared names, one per line; lines inside code blocks do not count.
+# Code blocks follow CommonMark's fence rules, as the bundled checker of
+# requirements-decomposition reads them: up to three spaces, then three or
+# more backticks or tildes; only the same character, at least as many, with
+# nothing but spaces or tabs after it, closes the block. Written without
+# interval expressions, which some awk implementations lack.
 declared_children() {
   [ -f "$1" ] || return 0
   awk '
-    /^```/ { code = !code; next }
-    code { next }
+    {
+      sub(/\r$/, "")
+      indent = 0
+      while (indent < 3 && substr($0, indent + 1, 1) == " ") indent++
+      rest = substr($0, indent + 1)
+      mark = substr(rest, 1, 1)
+      run = 0
+      if (mark == "`" || mark == "~") { while (substr(rest, run + 1, 1) == mark) run++ }
+      after = substr(rest, run + 1)
+    }
+    fence != "" {
+      if (mark == fence && run >= fence_run && after ~ /^[ \t]*$/) fence = ""
+      next
+    }
+    run >= 3 && !(mark == "`" && index(after, "`") > 0) { fence = mark; fence_run = run; next }
     /^## / { section = ($0 ~ /^## Child skills[[:space:]]*$/); next }
     section && /^- `[[:alnum:]_-]+`/ {
       name = $0
@@ -146,7 +164,7 @@ thinking-lenses.md"
   check_absent_pattern "RULE-02: no config path or slash-command dependency" \
     '(\.claude/|rules/|skills/|SKILL\.md|settings(\.local)?\.json|\.mcp\.json|/speckit-[[:alnum:]-]+)' "$RULE_DIR"
   check_absent_pattern "RULE-03: no named authored-skill routing" \
-    '(`|/)(clarifier|aws-research|change-assurance|coder|digital-agency-frontend|git-workflow|goal-refinement|problem-definition|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
+    '(`|/)(clarifier|aws-research|verified-delivery|coder|digital-agency-frontend|git-workflow|requirements-decomposition|problem-definition|product-strategy|scrum-master)(`|[^[:alnum:]_-])' "$RULE_DIR"
 
   local source target target_name failed=0
   for source in "$RULE_DIR"/*.md; do
@@ -225,10 +243,10 @@ run_skill_contract() {
     "$SKILL_DIR/pyramid-structure/SKILL.md" 'subagent.*(not|never|none).*(conversation)'
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(clarifier|aws-research|change-assurance|coder|digital-agency-frontend|git-workflow|goal-refinement|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging)' \
-    "$SKILL_DIR/clarifier" "$SKILL_DIR/aws-research" "$SKILL_DIR/change-assurance" "$SKILL_DIR/coder" \
+    '\.claude/skills/(clarifier|aws-research|verified-delivery|coder|digital-agency-frontend|git-workflow|requirements-decomposition|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging)' \
+    "$SKILL_DIR/clarifier" "$SKILL_DIR/aws-research" "$SKILL_DIR/verified-delivery" "$SKILL_DIR/coder" \
     "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" \
-    "$SKILL_DIR/goal-refinement" "$SKILL_DIR/problem-definition" \
+    "$SKILL_DIR/requirements-decomposition" "$SKILL_DIR/problem-definition" \
     "$SKILL_DIR/product-strategy" "$SKILL_DIR/pyramid-structure" "$SKILL_DIR/scrum-master" \
     "$SKILL_DIR/secure-logging"
 
@@ -321,6 +339,38 @@ $children
 - \`parent\`"
   check_fixture "PARENT-08: a parent may not declare itself as a child" \
     "$root/f8" '^parent declares itself as a child$'
+
+  # Code blocks follow CommonMark's fence rules: ~~~ fences, up to three
+  # spaces of indentation, and a closing fence at least as long as the
+  # opening one, so an example section inside a fence is not a declaration.
+  cp -R "$root/f1" "$root/f9"
+  write_fixture_skill "$root/f9" parent "Apply \`child-a\` first.
+
+$children
+
+~~~markdown
+## Child skills
+
+- \`ghost\`
+~~~
+
+   \`\`\`
+## Child skills
+
+- \`ghost\`
+   \`\`\`"
+  check_fixture "PARENT-09: an example section inside a tilde or indented fence is not a declaration" "$root/f9" ''
+
+  cp -R "$root/f1" "$root/f10"
+  write_fixture_skill "$root/f10" parent "\`\`\`\`markdown
+\`\`\`
+still code
+\`\`\`\`
+
+$children
+- \`ghost\`"
+  check_fixture "PARENT-10: a shorter fence inside a longer one does not close it" \
+    "$root/f10" '^parent declares ghost, which is not an authored skill$'
 
   rm -rf "$root"
 }

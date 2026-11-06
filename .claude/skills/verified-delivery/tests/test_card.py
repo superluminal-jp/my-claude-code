@@ -6,9 +6,10 @@ import json
 import re
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
+
+from support import temp_file
 
 TESTS_DIR = Path(__file__).resolve().parent
 CHECKER = TESTS_DIR.parent / "scripts" / "assure.py"
@@ -22,11 +23,7 @@ def load(name: str) -> dict:
 
 class CardTestCase(unittest.TestCase):
     def write(self, name: str, doc: dict) -> str:
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(lambda: ([p.unlink() for p in directory.iterdir()], directory.rmdir()))
-        path = directory / name
-        path.write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
-        return str(path)
+        return temp_file(self, name, doc)
 
     def card(self, manifest_change=None, graph: dict | None = None, manifest: dict | None = None,
              report: dict | None = None, lang: str = "en", review: dict | None = None) -> subprocess.CompletedProcess:
@@ -258,7 +255,7 @@ class CardSecondReviewTests(CardTestCase):
 
 
 class CardAssuranceReviewTests(CardTestCase):
-    """spec 064 User Story 3, scenario 7: the card decides with the assurance
+    """The card decides with the assurance
     review as the gate does, and lists its unanswered findings."""
 
     @staticmethod
@@ -290,6 +287,46 @@ class CardAssuranceReviewTests(CardTestCase):
         review = load("assurance-review.json")
         review["assurance_review"]["change_id"] = "CHG-999"
         self.assertEqual(self.card(self.medium, review=review).returncode, 2)
+
+
+class CardCodeReviewFindingTests(CardTestCase):
+    """Regressions for the /code-review findings on the review card."""
+
+    def test_urls_in_any_letter_case_and_ftp_are_code_not_links(self):
+        graph = load("graph.json")
+        graph["requirements"][1]["statement"] = ("see HTTPS://evil.example/login and Http://x.example/a "
+                                                 "and ftp://evil.example/x and WWW.evil.example")
+        out = self.card(graph=graph).stdout
+        for url in ("HTTPS://evil.example/login", "Http://x.example/a", "ftp://evil.example/x", "WWW.evil.example"):
+            with self.subTest(url):
+                self.assertIn(f"`{url}`", out)
+
+    def test_an_entity_code_in_an_id_draws_no_decision_mark_in_the_diagram(self):
+        graph = load("graph.json")
+        graph["requirements"][0]["children"][0] = graph["requirements"][1]["id"] = "REQ-READ #9989; pass"
+        out = self.card(graph=graph).stdout
+        diagram = out.split("```mermaid", 1)[1].split("```", 1)[0]
+        self.assertNotIn("#9989;", diagram)
+        self.assertIn("#35;9989;", diagram)
+
+    def test_backslashes_in_code_are_shown_as_recorded(self):
+        out = self.card(lambda m: check(m, "TEST-LEAF-001")["evidence"].update(ref="C:\\ci\\run.log")).stdout
+        self.assertIn("`C:\\ci\\run.log`", out)
+        self.assertNotIn("C:\\\\ci", out)
+
+    def test_the_card_exits_like_the_gate_on_a_graph_the_gate_blocks(self):
+        def children_not_a_list(g):
+            g["requirements"][2]["children"] = "oops"
+        def id_not_a_string(g):
+            g["requirements"].append({"id": 7, "statement": "s", "decomposition": "LEAF",
+                                      "acceptance": [{"id": "TEST-LEAF-009", "description": "d", "level": "L1"}]})
+        for change in (children_not_a_list, id_not_a_string):
+            with self.subTest(change.__name__):
+                graph = load("graph.json")
+                change(graph)
+                proc = self.card(graph=graph)
+                self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                self.assertIn("A-09", proc.stdout)
 
 
 if __name__ == "__main__":

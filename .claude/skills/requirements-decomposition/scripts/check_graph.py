@@ -75,6 +75,9 @@ RULES_CHECKED: Dict[str, List[str]] = {
 # child, outside code blocks, until the next level-two heading.
 _CHILD_SECTION = re.compile(r"^## Child skills\s*$")
 _CHILD_DECLARATION = re.compile(r"^- `([A-Za-z0-9_-]+)`")
+# A fenced code block as CommonMark defines it: up to three spaces, then a run
+# of at least three backticks or tildes; the rest of the line follows.
+_FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 
 # Characters that could forge or hide lines in the human-readable output
 # (CWE-117): controls, format characters such as bidirectional
@@ -190,6 +193,9 @@ def parse_declaration(text: str) -> Tuple[str, Any, Optional[str]]:
         raise InputError(f"invalid JSON at line {exc.lineno} column {exc.colno}: {exc.msg}") from None
     except RecursionError:
         raise InputError("JSON nesting is too deep to read") from None
+    except ValueError:
+        # Python refuses to convert an integer with too many digits.
+        raise InputError("a number in the input is too long to read") from None
     if not isinstance(document, dict):
         raise InputError("the top level must be a JSON object")
     version = document.get("schema_version")
@@ -501,12 +507,21 @@ def check_skills(raw_nodes: Sequence[Any]) -> List[Violation]:
 def declared_children(text: str) -> List[str]:
     """The names a SKILL.md declares in its "## Child skills" section."""
     names: List[str] = []
-    in_code = in_section = False
+    in_section = False
+    fence: Optional[Tuple[str, int]] = None  # (character, length) of the open fence
     for line in text.split("\n"):
-        if line.startswith("```"):
-            in_code = not in_code
+        line = line[:-1] if line.endswith("\r") else line
+        match = _FENCE.match(line)
+        if fence is not None:
+            # Only a run of the same character, at least as long, with nothing
+            # but spaces or tabs after it, closes the block.
+            if match and match.group(1)[0] == fence[0] and len(match.group(1)) >= fence[1] \
+                    and re.fullmatch(r"[ \t]*", match.group(2)):
+                fence = None
             continue
-        if in_code:
+        # A backtick fence's info string cannot contain a backtick.
+        if match and not (match.group(1)[0] == "`" and "`" in match.group(2)):
+            fence = (match.group(1)[0], len(match.group(1)))
             continue
         if line.startswith("## "):
             in_section = bool(_CHILD_SECTION.match(line))

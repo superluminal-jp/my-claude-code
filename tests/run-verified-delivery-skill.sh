@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Offline contract suite for the change-assurance skill
+# Offline contract suite for the verified-delivery skill
 # (specs/061-change-assurance): the bundled checker's acceptance tests, its
 # example manifest, and its JUnit import. The tests include the four that
 # specs/059 deferred: T-04 (a failed parent check is not complete), T-05 (an
@@ -9,7 +9,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SKILL="$REPO_ROOT/.claude/skills/change-assurance"
+SKILL="$REPO_ROOT/.claude/skills/verified-delivery"
 CHECKER="$SKILL/scripts/assure.py"
 export PYTHONDONTWRITEBYTECODE=1
 
@@ -56,7 +56,7 @@ check_exit "CA-03: the example graph and manifest pass the gate" 0 \
 check_exit "CA-04: the example review card renders with a pass" 0 \
   python3 -B "$CHECKER" card --problem "$SKILL/examples/problem-card.example.json" \
   --graph "$SKILL/examples/requirements-graph.example.json" --manifest "$SKILL/examples/verification-manifest.example.json"
-check_exit "CA-05: the gate passes no graph goal-refinement's checker rejects under a rule the gate depends on (spec 064)" 0 \
+check_exit "CA-05: the gate passes no graph requirements-decomposition's checker rejects under a rule the gate depends on (spec 064)" 0 \
   python3 -B "$REPO_ROOT/tests/assert_assurance_parity.py" "$REPO_ROOT"
 
 echo

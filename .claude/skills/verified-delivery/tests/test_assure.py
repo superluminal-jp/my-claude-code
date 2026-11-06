@@ -11,9 +11,10 @@ import copy
 import json
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
+
+from support import temp_file
 
 TESTS_DIR = Path(__file__).resolve().parent
 SKILL_DIR = TESTS_DIR.parent
@@ -36,11 +37,7 @@ def load(name: str) -> dict:
 
 class AssuranceTestCase(unittest.TestCase):
     def write(self, name: str, content: str | dict) -> str:
-        directory = Path(tempfile.mkdtemp())
-        self.addCleanup(lambda: [p.unlink() for p in directory.iterdir()] and None or directory.rmdir())
-        path = directory / name
-        path.write_text(content if isinstance(content, str) else json.dumps(content), encoding="utf-8")
-        return str(path)
+        return temp_file(self, name, content)
 
     def manifest(self, change=None) -> str:
         doc = load("manifest-pass.json")
@@ -60,8 +57,8 @@ class AssuranceTestCase(unittest.TestCase):
 
 
 REPORT = str(FIXTURES / "challenge-report.json")
-# A medium or high change also needs an answered assurance review (A-10,
-# spec 064); tests of other rules pass this one so that only their rule shows.
+# A medium or high change also needs an answered assurance review (A-10);
+# tests of other rules pass this one so that only their rule shows.
 REVIEW = str(FIXTURES / "assurance-review.json")
 
 
@@ -377,7 +374,7 @@ def node(graph: dict, node_id: str) -> dict:
 
 
 class GraphStructureTests(AssuranceTestCase):
-    """spec 064 User Story 1: the gate does not pass a graph whose structure
+    """The gate does not pass a graph whose structure
     was never checked (A-09)."""
 
     def graph(self, change) -> str:
@@ -432,7 +429,7 @@ class GraphStructureTests(AssuranceTestCase):
 
 
 class FindingTests(AssuranceTestCase):
-    """spec 064 User Story 2: a finding counts as answered only when it is
+    """A finding counts as answered only when it is
     accepted or rejected with a resolution, has its own id, and names a real
     target (A-08)."""
 
@@ -467,7 +464,7 @@ class FindingTests(AssuranceTestCase):
 
 
 class AssuranceReviewTests(AssuranceTestCase):
-    """spec 064 User Story 3: a medium or high change is not accepted before
+    """A medium or high change is not accepted before
     the independent assurance review of its commit is recorded and answered
     (A-10)."""
 
@@ -530,6 +527,58 @@ class AssuranceReviewTests(AssuranceTestCase):
         self.medium(doc["verification_manifest"])
         self.gate("pass", set(), self.write("m.json", doc), graph=str(SKILL_DIR / "examples" / "requirements-graph.example.json"),
                   review=str(SKILL_DIR / "examples" / "assurance-review.example.json"))
+
+
+class CodeReviewFindingTests(AssuranceTestCase):
+    """Regressions for the /code-review findings that change behavior."""
+
+    def test_another_spelling_of_the_implementer_is_not_an_independent_approver(self):
+        # NFKC folds fullwidth letters; format characters such as zero-width
+        # spaces are dropped before the names are compared.
+        for name in ("clau\u200bde", "\uff43\uff4c\uff41\uff55\uff44\uff45", "\u2060Claude\ufeff"):
+            with self.subTest(repr(name)):
+                self.gate("blocked", {"A-05"}, self.manifest(lambda m: (m["risk"].update({"class": "high"}),
+                          m["approvals"].append({"by": name, "decision": "approved", "scope": "all"}))),
+                          report=REPORT, review=REVIEW)
+                self.gate("blocked", {"A-06"}, self.manifest(lambda m: m["test_changes"].append(
+                    {"path": "tests/test_a.py::t", "change": "deleted", "approved_by": name})))
+
+                def waive(m):
+                    entry = check(m, "TEST-PARENT-001")
+                    entry.update(status="not_applicable", reason="統合の経路を変えない", approved_by=name)
+                    entry.pop("evidence")
+                self.gate("blocked", {"A-06"}, self.manifest(waive))
+
+    def test_a_manifest_without_change_id_reports_m_00_even_with_a_review(self):
+        self.gate("blocked", {"M-00"}, self.manifest(lambda m: m.pop("change_id")), review=REVIEW)
+
+    def test_a_number_too_long_to_read_is_an_input_error_not_a_checker_failure(self):
+        text = json.dumps(load("manifest-pass.json")).replace('"change_id": "CHG-001"', '"change_id": ' + "9" * 5000)
+        for command in (("check",), ("gate", str(FIXTURES / "graph.json"))):
+            with self.subTest(command[0]):
+                proc = run(*command, self.write("m.json", text))
+                result = json.loads(proc.stdout)
+                self.assertEqual((proc.returncode, result["status"]), (2, "error"), proc.stderr)
+                self.assertNotIn("internal error", result["error"])
+                self.assertNotIn("Traceback", proc.stderr)
+
+    def test_a_challenge_report_with_a_loose_envelope_is_an_input_error(self):
+        def variant(change):
+            doc = load("challenge-report.json")
+            change(doc)
+            return self.write("report.json", doc)
+        cases = {
+            "no schema_version": lambda d: d.pop("schema_version"),
+            "schema_version 99": lambda d: d.update(schema_version=99),
+            "an extra top-level key": lambda d: d.update(note="x"),
+            "an undefined field": lambda d: d["challenge_report"].update(extra="x"),
+            "no reviewer": lambda d: d["challenge_report"].pop("reviewer"),
+            "context_given not a list": lambda d: d["challenge_report"].update(context_given="all"),
+        }
+        for name, change in cases.items():
+            with self.subTest(name):
+                proc = run("gate", str(FIXTURES / "graph.json"), self.manifest(), "--report", variant(change))
+                self.assertEqual(proc.returncode, 2, proc.stdout)
 
 
 if __name__ == "__main__":

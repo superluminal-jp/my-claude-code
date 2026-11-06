@@ -155,7 +155,7 @@ class RequirementsGraphTests(CheckerTestCase):
         self.assert_violations({"S-07"}, fixture(REQUIREMENTS, "p1-07-invalid-level.json"))
 
     def test_s_12_parent_with_only_l1_criteria_is_rejected(self):
-        # spec 064 FR-001: a parent's own check cannot be a leaf-level check.
+        # A parent's own check cannot be a leaf-level check.
         violations = self.assert_violations({"S-12"}, fixture(REQUIREMENTS, "s-12-parent-with-only-l1.json"))
         self.assertEqual(violations[0]["node_id"], "REQ-P")
 
@@ -291,6 +291,18 @@ class SkillsDirectoryTests(CheckerTestCase):
         bodies.update(overrides)
         return bodies
 
+    def test_a_declaration_inside_a_tilde_or_indented_fence_is_not_read(self):
+        example = "## Child skills\n\n- `ghost`\n"
+        for fence in ("~~~", "   ```", "~~~~"):
+            with self.subTest(repr(fence)):
+                body = f"Example:\n\n{fence}markdown\n{example}{fence}\n"
+                self.assert_passes("--skills-dir", self.make_skills(self.base(parent=body)))
+
+    def test_a_shorter_fence_inside_a_longer_one_does_not_close_it(self):
+        body = "````markdown\n```\nstill code\n````\n\n" + CHILD_SECTION + "- `ghost`\n"
+        violations = self.assert_violations({"S-02"}, "--skills-dir", self.make_skills(self.base(parent=body)))
+        self.assertIn("ghost", violations[0]["message"])
+
     def test_valid_one_level_declaration_passes(self):
         result = self.assert_passes("--skills-dir", self.make_skills(self.base()))
         self.assertEqual(result["graph"], "skills-dir")
@@ -400,6 +412,11 @@ class ReviewFindingTests(CheckerTestCase):
             _requirement("C", "LEAF", []),
         ]
         self.assert_violations({"S-01", "S-04", "S-06"}, self.write_graph(nodes))
+
+    def test_a_number_too_long_to_read_is_an_input_error_not_a_checker_failure(self):
+        path = self.write_temp("graph.json", '{"schema_version": 1, "requirements": [], "x": ' + "9" * 5000 + "}")
+        result = self.assert_input_error(str(path))
+        self.assertNotIn("internal error", result["error"])
 
     def test_children_of_the_wrong_type_are_reported_once(self):
         # Built with a child so that R's own criterion is L2 and only S-00 applies.
