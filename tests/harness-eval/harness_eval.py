@@ -54,10 +54,11 @@ CASE_ID = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 # Every fixture starts with this line, so a fixture started anywhere but an
 # empty directory (the eval's fresh workspace) stops before writing a file.
 FIXTURE_GUARD = '[ -z "$(ls -A .)" ] || { echo "fixture: run me in an empty directory" >&2; exit 1; }'
-NETWORK = re.compile(
-    r"\bgit\s+(remote|push|fetch|pull|clone)\b|\b(curl|wget|ssh|scp|rsync|nc|telnet)\b"
-    r"|\b(pip3?|npm|pnpm|yarn|uv|brew)\s+(install|add)\b"
-)
+# claude plugin eval runs a scaffold script as the user, outside the agent's
+# OS sandbox. So a fixture may only use these commands, outside heredoc bodies.
+FIXTURE_COMMANDS = {"set", "cat", "printf", "mkdir", "git", "chmod"}
+FIXTURE_GIT = {"init", "checkout", "add", "commit"}
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
 
 
 class BuildError(Exception):
@@ -103,8 +104,8 @@ def harness_components(root: Path, files: list[str] | None = None) -> dict[str, 
         parts = rel.split("/")
         if rel == ".claude/CLAUDE.md":
             found["apex"] = rel
-        elif len(parts) == 3 and parts[1] == "rules" and parts[2].endswith(".md"):
-            found["rule:" + parts[2][:-3]] = rel
+        elif len(parts) >= 3 and parts[1] == "rules" and rel.endswith(".md"):
+            found["rule:" + "/".join(parts[2:])[:-3]] = rel
         elif len(parts) == 4 and parts[1] == "skills" and parts[3] == "SKILL.md":
             found["skill:" + parts[2]] = rel
     return found
@@ -153,6 +154,55 @@ def frontmatter(fields: dict) -> str:
 
 
 # ----------------------------------------------------------------------- check
+
+
+def fixture_violations(text: str) -> list[str]:
+    """Why a fixture script could do more than write files into its workspace."""
+    out: list[str] = []
+    terminator = None
+    seen_command = False
+    for n, raw in enumerate(text.splitlines(), start=1):
+        if terminator is not None:
+            if raw == terminator:
+                terminator = None
+            continue
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line == FIXTURE_GUARD:
+            if seen_command:
+                out.append(f"line {n}: the empty-directory guard must be the first command after set")
+            seen_command = True
+            continue
+        words = line.split()
+        if words[0] == "set":
+            continue
+        if not seen_command:
+            out.append(f"line {n}: the first command after set must be the empty-directory guard")
+        seen_command = True
+        if words[0] not in FIXTURE_COMMANDS:
+            out.append(f"line {n}: {words[0]} is not an allowed fixture command")
+        code = HEREDOC.sub("", line)
+        stripped = re.sub(r"'[^']*'", "''", code)
+        if re.search(r"\$\(|`|\||;|&", stripped):
+            out.append(f"line {n}: command substitution, pipes, ; and & are not allowed")
+        for target in re.findall(r">>?\s*(\S+)", stripped):
+            if target.startswith(("/", "~")) or ".." in target.split("/"):
+                out.append(f"line {n}: writes outside the workspace: {target}")
+        if words[0] == "git":
+            rest = words[1:]
+            while rest and rest[0] in ("-c", "-q"):
+                rest = rest[2:] if rest[0] == "-c" else rest[1:]
+            if not rest or rest[0] not in FIXTURE_GIT:
+                out.append(f"line {n}: git {rest[0] if rest else ''} is not an allowed git subcommand")
+        m = HEREDOC.search(line)
+        if m:
+            terminator = m.group(2)
+    if terminator is not None:
+        out.append(f"heredoc {terminator} is never closed")
+    if not seen_command:
+        out.append("no empty-directory guard")
+    return out
 
 
 def _check_basis(where: str, basis, harness: Path, allowed: set[str] | None, out: list[str]) -> None:
@@ -230,6 +280,8 @@ def check_map(cmap: dict, harness: Path, files: list[str] | None, out: list[str]
         _check_basis(f"stage {sid}", st.get("basis", []), harness, None, out)
     for cid in sorted(set(comps) - owned):
         out.append(f"component {cid} owns no stage")
+    if not any(st.get("requires_unused_skill_grader") for st in stages.values()):
+        out.append("no stage sets requires_unused_skill_grader, so over-application is never checked")
 
     for g in cmap.get("boundary_groups", []):
         gid, members = g.get("id"), g.get("members", [])
@@ -322,23 +374,34 @@ def check_suite(suite: dict, cmap: dict, info: dict, harness: Path, suite_root: 
                     out.append(f"{gwhere}: needs tool and input_match")
                     continue
                 _check_examples(gwhere, g["input_match"], "", g.get("examples"), out)
+            elif gtype == "tool_order":
+                for side in ("before", "after"):
+                    s = g.get(side)
+                    if not isinstance(s, dict) or not isinstance(s.get("tool"), str) \
+                            or not isinstance(s.get("input_match"), str):
+                        out.append(f"{gwhere}: {side} needs tool and input_match")
+                        continue
+                    _check_examples(f"{gwhere} {side}", s["input_match"], "", s.get("examples"), out)
             elif gtype == "regex":
                 if not isinstance(g.get("pattern"), str):
                     out.append(f"{gwhere}: needs a pattern")
                     continue
                 _check_examples(gwhere, g["pattern"], g.get("flags", ""), g.get("examples"), out)
             else:
-                out.append(f"{gwhere}: type must be skill, tool, or regex")
+                out.append(f"{gwhere}: type must be skill, tool, tool_order, or regex")
         fixture = sc.get("fixture")
         if fixture is not None:
             text = read_text(suite_root, f"{FIXTURE_DIR}/{fixture}.sh")
             if text is None:
                 out.append(f"{where}: fixture {fixture} does not exist in {FIXTURE_DIR}")
             else:
-                if NETWORK.search(text):
-                    out.append(f"{where}: fixture {fixture} uses the network or a remote")
-                if FIXTURE_GUARD not in text.splitlines():
-                    out.append(f"{where}: fixture {fixture} lacks the empty-directory guard line")
+                for v in fixture_violations(text):
+                    out.append(f"{where}: fixture {fixture}: {v}")
+
+    probed = {g.get("basis", {}).get("file") for s in scenarios if s.get("kind") == "probe"
+              for g in s.get("graders", []) if g.get("type") == "regex" and isinstance(g.get("basis"), dict)}
+    for path in sorted(always_on - probed):
+        out.append(f"the probe does not check that {path} reached the model")
 
     expectation = [s for s in scenarios if s.get("kind") == "expectation"]
     observation = [s for s in scenarios if s.get("kind") == "observation"]
@@ -474,7 +537,7 @@ def extract(repo: Path, sha: str, paths: tuple[str, ...], dest: Path) -> None:
 def always_on(harness: Path) -> list[tuple[str, str]]:
     """(relative path, text) of the apex and the rules, apex first."""
     files = [".claude/CLAUDE.md"] + sorted(
-        p.relative_to(harness).as_posix() for p in (harness / ".claude/rules").glob("*.md"))
+        p.relative_to(harness).as_posix() for p in (harness / ".claude/rules").rglob("*.md"))
     return [(rel, (harness / rel).read_text(encoding="utf-8")) for rel in files if (harness / rel).is_file()]
 
 
@@ -489,6 +552,10 @@ def render_grader(g: dict) -> dict:
             if key in g:
                 fields[key] = g[key]
         return fields
+    if g["type"] == "tool_order":
+        return {"type": "tool_order",
+                "before": {"tool": g["before"]["tool"], "input_match": g["before"]["input_match"]},
+                "after": {"tool": g["after"]["tool"], "input_match": g["after"]["input_match"]}}
     fields = {"type": "regex", "pattern": g["pattern"]}
     if g.get("flags"):
         fields["flags"] = g["flags"]
@@ -528,7 +595,7 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
             raise BuildError(f"{rel} imports another file with @; injecting its text would not expand it")
         if rel.startswith(".claude/rules/") and re.match(r"^---\n(?:.*\n)*?paths\s*:", text):
             raise BuildError(f"{rel} is path-scoped; it would not load in every session")
-        name = f"{i:02d}-{Path(rel).name}"
+        name = f"{i:02d}-" + rel[len(".claude/"):].replace("/", "-")
         chunk = (f"Contents of ~/{rel} (user's private global instructions for all projects):\n\n{text}")
         if len(chunk) >= HOOK_OUTPUT_CAP:
             raise BuildError(f"{rel} is {len(chunk)} characters with its header; a hook can inject fewer than {HOOK_OUTPUT_CAP}")
@@ -598,7 +665,7 @@ def cmd_run(args) -> int:
         print("error: --max-cost-usd must be given and greater than 0; every run is a billed model call",
               file=sys.stderr)
         return 2
-    repo = repo_root()
+    repo = Path(args.repo) if args.repo else repo_root()
     work = Path(tempfile.mkdtemp(prefix="harness-eval-"))
     try:
         b = build(repo, args.harness_ref, args.suite_ref, work)
@@ -618,6 +685,7 @@ def cmd_run(args) -> int:
     version = subprocess.run(["claude", "--version"], capture_output=True, text=True).stdout.strip()
     summary = run_metadata(b, model, args.runs, args.max_cost_usd, command, version)
     summary["validate_exit_code"] = validate.returncode
+    summary["validate_output"] = (validate.stdout + validate.stderr).strip()
     if validate.returncode != 0:
         print(validate.stdout + validate.stderr, file=sys.stderr)
         print(json.dumps(summary, indent=2))
@@ -674,15 +742,39 @@ def load_result(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def compare_dirs(before: Path, after: Path, threshold: float) -> dict:
+    """compare(), plus every reason the two results may not be comparable."""
+    a, b = load_result(before), load_result(after)
+    res = compare(a, b, threshold)
+    problems = []
+    metas = []
+    for label, path in (("before", before), ("after", after)):
+        meta = path / "metadata.json" if path.is_dir() else path.parent / "metadata.json"
+        metas.append(json.loads(meta.read_text(encoding="utf-8")) if meta.is_file() else None)
+        if metas[-1] is None:
+            problems.append(f"{label}: no metadata.json, so the suite and the model cannot be confirmed")
+    for label, result in (("before", a), ("after", b)):
+        if result.get("partial"):
+            problems.append(f"{label}: the result is partial ({result.get('partialReason', 'no reason given')})")
+    if all(metas):
+        for key, name in (("suite_commit", "suite"), ("model", "model")):
+            if metas[0].get(key) != metas[1].get(key):
+                problems.append(f"the {name} differs: {metas[0].get(key)} vs {metas[1].get(key)}")
+    res["problems"] = problems
+    return res
+
+
 def cmd_compare(args) -> int:
-    res = compare(load_result(Path(args.before)), load_result(Path(args.after)), args.threshold)
+    res = compare_dirs(Path(args.before), Path(args.after), args.threshold)
+    for problem in res["problems"]:
+        print(f"PROBLEM {problem}")
     print(f"case\tbefore\tafter\tdelta\tflag (|delta| >= {args.threshold}; a screening mark, not a significance test)")
     for r in res["both"]:
         print(f"{r['case']}\t{r['before']}\t{r['after']}\t{r['delta']}\t{'*' if r['flag'] else ''}")
     for label in ("only_before", "only_after"):
         for name in res[label]:
             print(f"{name}\t({label.replace('_', ' ')})")
-    return 0
+    return 1 if res["problems"] and not args.allow_mismatch else 0
 
 
 # ------------------------------------------------------------------------ main
@@ -708,10 +800,13 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--results-dir", help=f"default: {RESULTS_DIR}/")
     run.add_argument("--dry-run", action="store_true", help="build and validate, print the command, call no model")
     run.add_argument("--keep-build", action="store_true")
+    run.add_argument("--repo", help=argparse.SUPPRESS)
     cmp_ = sub.add_parser("compare", help="per-case score differences between two results")
     cmp_.add_argument("before")
     cmp_.add_argument("after")
     cmp_.add_argument("--threshold", type=float, default=0.34)
+    cmp_.add_argument("--allow-mismatch", action="store_true",
+                      help="exit 0 even when the suites, models, or completeness differ")
     try:
         args = parser.parse_args(argv)
     except SystemExit as exc:

@@ -74,7 +74,10 @@ def valid_suite():
              "prompt": "常時の指示の最後の文を書き出して。",
              "graders": [{"id": "apex-reached", "type": "regex", "pattern": "Keep\\s+unrelated\\s+work",
                           "flags": "i", "basis": {"file": ".claude/CLAUDE.md", "quote": "Keep unrelated work"},
-                          "examples": {"match": ["keep unrelated work."], "no_match": ["keep related work"]}}]},
+                          "examples": {"match": ["keep unrelated work."], "no_match": ["keep related work"]}},
+                         {"id": "rule-reached", "type": "regex", "pattern": "Obtain\\s+approval", "flags": "i",
+                          "basis": {"file": ".claude/rules/one.md", "quote": "Obtain approval"},
+                          "examples": {"match": ["obtain approval first"], "no_match": ["approval obtained"]}}]},
             {"id": "ask-first", "kind": "expectation", "stages": ["D-ask", "E-auth"], "description": "ask",
              "prompt": "タイムアウトを短くして。",
              "graders": [skill_grader("uses-alpha", "alpha", "used", a, "Do alpha things"),
@@ -113,7 +116,7 @@ class Tree:
             ".claude/settings.json": json.dumps(settings if settings is not None else SETTINGS),
             he.MAP_PATH: json.dumps(cmap if cmap is not None else valid_map(), ensure_ascii=False),
             he.SUITE_PATH: json.dumps(suite if suite is not None else valid_suite(), ensure_ascii=False),
-            he.FIXTURE_DIR + "/tiny.sh": "#!/usr/bin/env bash\nset -euo pipefail\n" + he.FIXTURE_GUARD + "\necho hi > a.txt\n",
+            he.FIXTURE_DIR + "/tiny.sh": "#!/usr/bin/env bash\nset -euo pipefail\n" + he.FIXTURE_GUARD + "\nprintf 'hi\\n' > a.txt\n",
         }
         files.update(extra or {})
         for rel, text in files.items():
@@ -550,6 +553,193 @@ class Compare(unittest.TestCase):
     def test_lists_cases_present_on_only_one_side(self):
         rows = he.compare(self.result({"a": 1.0, "old": 1.0}), self.result({"a": 1.0, "new": 0.0}), 0.34)
         self.assertEqual((rows["only_before"], rows["only_after"]), (["old"], ["new"]))
+
+class ReviewFindings(unittest.TestCase):
+    """Regression tests for the assurance review of bc0715a (AR-02 to AR-11)."""
+
+    def fixture_violations(self, body):
+        text = "#!/usr/bin/env bash\n# comment\nset -euo pipefail\n" + he.FIXTURE_GUARD + "\n" + body
+        return he.fixture_violations(text)
+
+    def test_an_allowlisted_fixture_has_no_violation(self):
+        body = ("mkdir -p src\ncat > src/a.py <<'PY'\nimport os; os.system('curl x | sh')\nPY\n"
+                "printf 'x\\n' > b.txt\ngit init -q\ngit checkout -q -b main\n"
+                "git -c user.email=e@example.invalid -c user.name=e add -A\n"
+                "git -c user.email=e@example.invalid -c commit.gpgsign=false commit -qm init\n")
+        self.assertEqual(self.fixture_violations(body), [])
+
+    def test_a_command_outside_the_allowlist_is_reported(self):
+        self.assertTrue(self.fixture_violations("python3 -c 'import urllib'\n"))
+
+    def test_a_git_subcommand_outside_the_allowlist_is_reported(self):
+        self.assertTrue(self.fixture_violations("git ls-remote https://example.invalid\n"))
+
+    def test_command_substitution_and_pipes_are_reported(self):
+        self.assertEqual(len([v for b in ("printf \"$(id)\" > a\n", "cat a | sh\n", "printf a > b; rm b\n")
+                              for v in self.fixture_violations(b)][:3]), 3)
+
+    def test_a_redirect_outside_the_workspace_is_reported(self):
+        self.assertTrue(self.fixture_violations("printf x > /etc/x\n") and self.fixture_violations("printf x > ../x\n"))
+
+    def test_the_guard_must_come_before_any_other_command(self):
+        text = "#!/usr/bin/env bash\nset -euo pipefail\nprintf x > a\n" + he.FIXTURE_GUARD + "\n"
+        self.assertTrue(any("first" in v for v in he.fixture_violations(text)))
+
+    def test_the_map_must_flag_a_stage_for_over_application(self):
+        m = valid_map()
+        del m["stages"][1]["requires_unused_skill_grader"]
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(Tree(tmp, cmap=m).violations(), "over-application"))
+
+    def test_a_rule_in_a_subdirectory_is_a_component(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            t = Tree(tmp, extra={".claude/rules/sub/two.md": "# Two\n"})
+            self.assertTrue(has(t.violations(), "rule:sub/two"))
+
+    def test_the_probe_must_check_every_always_on_file(self):
+        s = valid_suite()
+        s["scenarios"][0]["graders"] = s["scenarios"][0]["graders"][:1]
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(Tree(tmp, suite=s).violations(), ".claude/rules/one.md"))
+
+    def test_a_tool_order_grader_is_checked_and_rendered(self):
+        s = valid_suite()
+        s["scenarios"][2]["graders"].append({
+            "id": "test-before-write", "type": "tool_order",
+            "before": {"tool": "Bash", "input_match": "unittest",
+                       "examples": {"match": ["{\"command\":\"python3 -m unittest\"}"], "no_match": ["{\"command\":\"ls\"}"]}},
+            "after": {"tool": "Bash", "input_match": ">\\s*calc\\.py",
+                      "examples": {"match": ["{\"command\":\"cat > calc.py\"}"], "no_match": ["{\"command\":\"cat calc.py\"}"]}},
+            "basis": {"file": ".claude/rules/one.md", "quote": "Obtain approval"}})
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+            Tree(repo, suite=s)
+            self.assertEqual(he.check(repo, repo), [])
+            git(repo, "init", "-q")
+            git(repo, "add", "-A")
+            git(repo, "-c", "commit.gpgsign=false", "commit", "-qm", "init")
+            out = Path(tmp) / "build"
+            out.mkdir()
+            b = he.build(repo, "HEAD", "HEAD", out)
+            fm = he.parse_frontmatter((b.plugin_dir / "evals/beta-flow/graders/test-before-write.md").read_text())
+            self.assertEqual(fm, {"type": "tool_order", "before": {"tool": "Bash", "input_match": "unittest"},
+                                  "after": {"tool": "Bash", "input_match": ">\\s*calc\\.py"}})
+
+    def test_a_tool_order_side_whose_example_fails_is_reported(self):
+        s = valid_suite()
+        s["scenarios"][2]["graders"].append({
+            "id": "test-before-write", "type": "tool_order",
+            "before": {"tool": "Bash", "input_match": "unittest",
+                       "examples": {"match": ["{\"command\":\"pytest\"}"], "no_match": ["{\"command\":\"ls\"}"]}},
+            "after": {"tool": "Bash", "input_match": "calc",
+                      "examples": {"match": ["calc"], "no_match": ["x"]}},
+            "basis": {"file": ".claude/rules/one.md", "quote": "Obtain approval"}})
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(Tree(tmp, suite=s).violations(), "test-before-write"))
+
+    def test_two_different_commits_build_harness_and_suite_separately(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            first = git(repo, "rev-parse", "HEAD")
+            (repo / ".claude/skills/alpha/SKILL.md").write_text(SKILL_A + "\nSECOND HARNESS\n", encoding="utf-8")
+            s = valid_suite()
+            s["scenarios"][1]["prompt"] = "二番目のシナリオ集の依頼。"
+            (repo / he.SUITE_PATH).write_text(json.dumps(s, ensure_ascii=False), encoding="utf-8")
+            git(repo, "add", "-A")
+            git(repo, "-c", "commit.gpgsign=false", "commit", "-qm", "second")
+            second = git(repo, "rev-parse", "HEAD")
+            out = Path(tmp) / "build"
+            out.mkdir()
+            b = he.build(repo, first, second, out)
+            skill = (b.plugin_dir / "skills/alpha/SKILL.md").read_text()
+            prompt = (b.plugin_dir / "evals/ask-first/prompt.md").read_text()
+            self.assertEqual((b.harness_commit, b.suite_commit, "SECOND HARNESS" in skill, "二番目" in prompt),
+                             (first, second, False, True))
+
+    def test_every_session_start_hook_runs_cat_and_prints_the_file_verbatim(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Build().build(Build().make_repo(tmp), tmp)
+            groups = json.loads((b.plugin_dir / "hooks/hooks.json").read_text())["hooks"]["SessionStart"]
+            outputs = []
+            for h in [h for g in groups for h in g["hooks"]]:
+                self.assertEqual((h["type"], h["command"], len(h["args"])), ("command", "cat", 1))
+                arg = h["args"][0].replace("${CLAUDE_PLUGIN_ROOT}", str(b.plugin_dir))
+                outputs.append(subprocess.run([h["command"], arg], capture_output=True, text=True, check=True).stdout)
+            self.assertEqual((APEX_TEXT in outputs[0], RULE_TEXT in outputs[1]), (True, True))
+
+    def test_the_command_grants_bash_and_nothing_else(self):
+        cmd = he.eval_command(Path("/t/harness"), "opus", 3, 1, Path("/t/out"))
+        start = cmd.index("--allow-tools") + 1
+        end = next(i for i in range(start, len(cmd)) if cmd[i].startswith("--"))
+        self.assertEqual(cmd[start:end], ["Bash"])
+
+    def stub_claude(self, tmp):
+        bindir = Path(tmp) / "bin"
+        bindir.mkdir()
+        stub = bindir / "claude"
+        stub.write_text(
+            "#!/usr/bin/env bash\n"
+            "if [ \"$1\" = \"--version\" ]; then echo '9.9.9 (stub)'; exit 0; fi\n"
+            "if [ \"$1 $2\" = \"plugin validate\" ]; then echo valid; exit 0; fi\n"
+            "if [ \"$1 $2\" = \"plugin eval\" ]; then\n"
+            "  out=''; cases=$(ls \"$3/evals\" | wc -l | tr -d ' ')\n"
+            "  while [ $# -gt 0 ]; do [ \"$1\" = --output-dir ] && out=$2; shift; done\n"
+            "  mkdir -p \"$out\"\n"
+            "  printf '{\"schemaVersion\":1,\"partial\":false,\"discovered\":%s,\"cases\":[{\"name\":\"probe\",\"aggregates\":{\"score\":1.0}}]}' \"$cases\" > \"$out/aggregate-result.json\"\n"
+            "  exit 0\nfi\nexit 3\n", encoding="utf-8")
+        stub.chmod(0o755)
+        return bindir
+
+    def test_a_run_builds_validates_evaluates_and_records_both_commits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            results = Path(tmp) / "results"
+            old_path = os.environ["PATH"]
+            os.environ["PATH"] = str(self.stub_claude(tmp)) + os.pathsep + old_path
+            try:
+                rc = he.main(["run", "--repo", str(repo), "--max-cost-usd", "1", "--results-dir", str(results)])
+            finally:
+                os.environ["PATH"] = old_path
+            (run_dir,) = list(results.iterdir())
+            meta = json.loads((run_dir / "metadata.json").read_text())
+            agg = json.loads((run_dir / "aggregate-result.json").read_text())
+            sha = git(repo, "rev-parse", "HEAD")
+            self.assertEqual((rc, meta["harness_commit"], meta["suite_commit"], meta["validate_exit_code"],
+                              agg["discovered"], meta["case_count"]), (0, sha, sha, 0, 5, 5))
+
+    def write_result(self, root, name, suite, model="opus", partial=False):
+        d = Path(root) / name
+        d.mkdir()
+        (d / "aggregate-result.json").write_text(json.dumps(
+            {"schemaVersion": 1, "partial": partial, "cases": [{"name": "a", "aggregates": {"score": 1.0}}]}))
+        (d / "metadata.json").write_text(json.dumps({"suite_commit": suite, "model": model}))
+        return d
+
+    def test_comparing_results_of_different_suites_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = self.write_result(tmp, "a", "s1"), self.write_result(tmp, "b", "s2")
+            self.assertTrue(any("suite" in p for p in he.compare_dirs(a, b, 0.34)["problems"]))
+
+    def test_comparing_results_of_different_models_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = self.write_result(tmp, "a", "s1"), self.write_result(tmp, "b", "s1", model="sonnet")
+            self.assertTrue(any("model" in p for p in he.compare_dirs(a, b, 0.34)["problems"]))
+
+    def test_a_partial_result_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = self.write_result(tmp, "a", "s1"), self.write_result(tmp, "b", "s1", partial=True)
+            self.assertTrue(any("partial" in p for p in he.compare_dirs(a, b, 0.34)["problems"]))
+
+    def test_matching_results_have_no_problem(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = self.write_result(tmp, "a", "s1"), self.write_result(tmp, "b", "s1")
+            self.assertEqual(he.compare_dirs(a, b, 0.34)["problems"], [])
+
+    def test_compare_exits_non_zero_on_a_mismatch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = self.write_result(tmp, "a", "s1"), self.write_result(tmp, "b", "s2")
+            self.assertEqual(he.main(["compare", str(a), str(b)]), 1)
 
 
 if __name__ == "__main__":
