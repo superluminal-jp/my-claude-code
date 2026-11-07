@@ -238,9 +238,14 @@ jq '. + {
         "AWS_PROFILE": "myprofile",
         "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-6"
       },
-      "enabledPlugins": {"frontend-design@claude-plugins-official": true},
+      "enabledPlugins": {
+        "frontend-design@claude-plugins-official": true,
+        "github@claude-plugins-official": true
+      },
       "agentPushNotifEnabled": true
-    } | .permissions.unrelatedUserKey = true' \
+    } | .permissions.unrelatedUserKey = true
+      | .sandbox.enabled = false
+      | .sandbox.autoAllowBashIfSandboxed = false' \
   "$TARGET/settings.json" >"$TARGET/settings.json.tmp"
 mv "$TARGET/settings.json.tmp" "$TARGET/settings.json"
 
@@ -289,10 +294,28 @@ pass "settings.json merge: a user's undeclared enabledPlugins key survives a rei
   fail "settings.json merge: an undeclared key nested in a shared object survives (recursive merge)"
 pass "settings.json merge: an undeclared key nested in a shared object survives (recursive merge)"
 
-diff <(jq -S '.permissions.deny' "$REPO_ROOT/.claude/settings.json") \
-     <(jq -S '.permissions.deny' "$TARGET/settings.json") >/dev/null ||
+# Compared as strings, not with diff <(...): inside Claude Code's macOS
+# sandbox, /usr/bin/diff cannot open the /dev/fd paths that <(...) creates.
+[ "$(jq -cS '.permissions.deny' "$REPO_ROOT/.claude/settings.json")" = \
+  "$(jq -cS '.permissions.deny' "$TARGET/settings.json")" ] ||
   fail "settings.json merge: repo-declared permissions.deny still matches the repository"
 pass "settings.json merge: repo-declared permissions.deny still matches the repository"
+
+# spec 067: the repo's sandbox and MCP stops win over the user's values for
+# the keys the repo declares, while a user's own key inside sandbox survives.
+[ "$(jq -r '.enabledPlugins["github@claude-plugins-official"]' "$TARGET/settings.json")" = "false" ] ||
+  fail "settings.json merge: the repo's github plugin stop wins over a user's enabled github plugin"
+pass "settings.json merge: the repo's github plugin stop wins over a user's enabled github plugin"
+
+[ "$(jq -r '.sandbox.enabled' "$TARGET/settings.json")" = "true" ] &&
+  [ "$(jq -cS '.sandbox.filesystem, .sandbox.network' "$REPO_ROOT/.claude/settings.json")" = \
+    "$(jq -cS '.sandbox.filesystem, .sandbox.network' "$TARGET/settings.json")" ] ||
+  fail "settings.json merge: the repo's sandbox wins over a user's sandbox.enabled false"
+pass "settings.json merge: the repo's sandbox wins over a user's sandbox.enabled false"
+
+[ "$(jq -c '.sandbox.autoAllowBashIfSandboxed' "$TARGET/settings.json")" = 'false' ] ||
+  fail "settings.json merge: a user's own key inside sandbox survives a reinstall"
+pass "settings.json merge: a user's own key inside sandbox survives a reinstall"
 
 second_run_log="$TEST_ROOT/claude-second-run.log"
 tail -n "+$((lines_before_second_run + 1))" "$CLAUDE_LOG" >"$second_run_log"

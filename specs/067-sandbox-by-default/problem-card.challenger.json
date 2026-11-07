@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-067",
+    "ideal": "Claude Code が利用者のマシンで実行する Bash のコマンドは、既定で OS のサンドボックスの中で動き、資格情報・秘密鍵・接続先は日常作業に要る分しか届かない。それでも、利用者の日常作業(Chromium での表示の確認、Noto Sans のインストール、git の GPG 署名、作業用アカウントでの AWS の操作)はサンドボックスの外に出ずに済み、Bedrock 用のアカウントは作業に使われず、使わないと決めた MCP サーバーにはつながらない",
+    "current": "ユーザー設定(このリポジトリの .claude/settings.json)はサンドボックスを有効にしていない。このリポジトリだけで有効にしたサンドボックスの中では、Chromium は起動の時点で止まり、~/.aws は読めず、~/Library/Fonts には書けない。Bedrock 用に settings.json の env に置いた AWS_PROFILE は、Bash のコマンドにもそのまま渡る。Bash ツールは zsh で動き、bash の書き方による失敗が繰り返し起きている。使わない MCP サーバー(GitHub、bedrock-agentcore)と claude.ai のコネクタ・同期プラグインが、すべてのセッションに読み込まれている",
+    "evidence": [
+      {
+        "source": "リポジトリの .claude/settings.json(main 95668e3)",
+        "observation": "sandbox キーが無い。サンドボックスは、作業者のローカル設定 .claude/settings.local.json でだけ有効だった"
+      },
+      {
+        "source": "サンドボックスの中で chrome-headless-shell を起動(2026-11-07、Claude Code 2.1.319)",
+        "observation": "FATAL: bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.<pid>: Permission denied (1100)。Playwright 1.64.1 の launch も TargetClosedError で失敗した"
+      },
+      {
+        "source": "Claude Code 2.1.319 のバイナリに含まれる Seatbelt の規則",
+        "observation": "(deny default) で始まり、mach-register を許す規則が無い。allowMachLookup が作るのは mach-lookup の規則だけである"
+      },
+      {
+        "source": "このセッションのサンドボックスの設定(読み取りの拒否)",
+        "observation": "~/.aws と **/.aws が読み取りの拒否に入っている(permissions.deny の Read(~/.aws/**) から作られる)。書き込みの許可は作業ディレクトリと一時ディレクトリだけで、~/Library/Fonts と ~/.gnupg を含まない"
+      },
+      {
+        "source": "ToolSearch で見える MCP のツールと ~/.claude.json、~/.claude/plugins(2026-11-07)",
+        "observation": "bedrock-agentcore(ユーザー登録、uvx …@latest)、github プラグイン(接続に失敗中)、claude.ai のコネクタ7件、claude.ai の同期プラグイン2件(productivity、pdf-viewer)が読み込まれている"
+      },
+      {
+        "source": "~/.claude/projects の会話記録、過去90日(2026-11-07 に集計)",
+        "observation": "zsh 固有のエラーは no matches found が342件、= で始まる語の not found が約180件、引用符の無い変数が分割されない no such file or directory が約40件。このセッションでも echo ===== が 2 回失敗した"
+      },
+      {
+        "source": "Claude Code の公式ドキュメント(settings-reference、env-vars、2026-11-07)",
+        "observation": "settings.json の env の値は、Claude Code が起動するすべてのサブプロセスに届く。Bash にだけ別の値を渡す設定キーは無い"
+      },
+      {
+        "source": "利用者の報告(2026-11-07)",
+        "observation": "git コマンドが ~/.gnupg に、aws CLI と boto3 が ~/.aws にアクセスできなかった。settings.json の env の AWS_PROFILE は Bedrock のためだけのアカウントである"
+      }
+    ],
+    "counter_evidence": [
+      {
+        "source": "このマシンの ~/.gnupg と git config(2026-11-07)",
+        "observation": "~/.gnupg は存在せず、git の署名の設定も無い。git の失敗はこのマシンでは再現しておらず、会話記録にも .gnupg の失敗は見つからなかった"
+      },
+      {
+        "source": "このセッションの環境変数と ~/.claude/settings.json(2026-11-07)",
+        "observation": "このセッションは Bedrock を使っておらず、env は空で、AWS_PROFILE は設定されていない"
+      },
+      {
+        "source": "/usr/bin/timeout の存在(2026-11-07)",
+        "observation": "会話記録の command not found: timeout(40件)は、このマシンでは再現しない。zsh と bash の違いではなく、以前の macOS に GNU の timeout が無かったことによる"
+      }
+    ],
+    "gap": "既定の設定では Bash のコマンドが OS の制限なしに動き、使わない MCP サーバーとコネクタもつながる。一方、サンドボックスを有効にすると、利用者の日常作業のうち4つ(Chromium、Noto Sans のインストール、GPG 署名、作業用アカウントでの AWS の操作)が中で動かない。Bedrock 用のアカウントは Bash の作業から切り離されておらず、zsh 固有の書き方の誤りが繰り返されている",
+    "significance": "プロンプトインジェクションで実行されたコマンドが、資格情報や秘密鍵を読み、任意のホストへ送れる。逆に、中で動かない作業は毎回サンドボックスの外での再実行を求め、確認の手間が増えて、外で動かすことが常態になる。誤ったアカウントでの AWS の操作は、取り消しにくい変更や課金につながる",
+    "hypotheses": [
+      "git の失敗は、gpg が ~/.gnupg に一時ファイルを作れないことと、gpg-agent のソケットに接続できないことによる",
+      "aws CLI と boto3 の失敗は、Read の deny から作られた ~/.aws の読み取りの拒否による"
+    ],
+    "out_of_scope": [
+      "サンドボックスの中の Chromium が、認証つきのプロキシ経由で HTTPS のページを読めないこと(観察のみ)",
+      "uvx …@latest で起動する残りの MCP サーバーの供給網のリスク(版の固定は利用者の判断)",
+      "SSH での git push、gh、brew のように、標準の厳しさで外での再実行に回るコマンド",
+      "このマシンへの適用(install.sh の実行、プラグインのアンインストール)。利用者の承認が要る"
+    ],
+    "status": "verified",
+    "status_rationale": "サンドボックスが既定で無効であること、Chromium・~/.aws・~/Library/Fonts の失敗、MCP の読み込み、zsh の失敗は、このマシンで観察した。反証の3件は、git の失敗と Bedrock の AWS_PROFILE がこのマシンで再現しないことを示すが、どちらも設定の構造(書き込みの許可に ~/.gnupg が無い、env が全サブプロセスに届く)から起きる。利用者が別のマシンか Bedrock のセッションで観察したという報告と矛盾しないので、問題は成り立つと判断した。timeout の件は問題から外した"
+  }
+}

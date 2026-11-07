@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "PRB-067",
+    "reviewer": "read-only subagent (Explore), 2026-11-07",
+    "context_given": [
+      "problem card without proposed_solutions (problem-card.challenger.json, first version)",
+      "requirements graph (first version)"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "counterexample",
+        "target": "REQ-BOUNDARY",
+        "severity": "high",
+        "statement": "REQ-BOUNDARY says that no opened exit reaches credentials, but its sibling REQ-AWS-FILES opens read access to ~/.aws/sso/cache and ~/.aws/cli/cache. Those directories hold the SSO access token and cached STS session credentials, with which sso:GetRoleCredentials can be called for every assigned account and role, including the Bedrock account. AC-BOUNDARY-L2 and AC-SECRETS-1 protect only ~/.aws/credentials, so every child and the L2 check pass while a sandboxed, prompt-injected command can read working AWS credentials.",
+        "disposition": "accepted",
+        "resolution": "利用者に説明して決めてもらった(2026-11-08): ~/.aws はサンドボックスから閉じたままにし、aws で始まる1つのコマンドだけを excludedCommands で、審査を経て外で動かす。allowRead と allowWrite から ~/.aws の項目を外し、REQ-AWS-FILES を REQ-AWS-CLI に替え、AC-SECRETS-1 と SBX-03 で ~/.aws の下を開け直していないことを確かめる"
+      },
+      {
+        "id": "CH-02",
+        "kind": "counterexample",
+        "target": "REQ-SOCKETS",
+        "severity": "high",
+        "statement": "REQ-SOCKETS lets sandboxed processes connect to S.gpg-agent, and that agent is started outside the sandbox, so it reads private-keys-v1.d for any client. The agent protocol supports exporting secret keys (KEYWRAP_KEY --export plus EXPORT_KEY). If the key has no passphrase, or pinentry supplies it without user interaction, a sandboxed command can extract the private key. Any sandboxed command can also sign arbitrary data. AC-BOUNDARY-L2 only compares lists of paths.",
+        "disposition": "accepted",
+        "resolution": "利用者に説明して決めてもらった(2026-11-08): サンドボックスの中で署名する方を選び、パスフレーズを覚えている間の任意の署名(パスフレーズの無い鍵では書き出し)の残余のリスクを受け入れた。サンドボックスの外で git commit を動かすと、リポジトリの git フックも外で動くことを比べたうえでの選択である。REQ-BOUNDARY の文を、ファイルとして読めないことに絞り、ソケットを通じた署名を受け入れた残余のリスクと明記した。ADR-0020 に記録する"
+      },
+      {
+        "id": "CH-03",
+        "kind": "counterexample",
+        "target": "REQ-SECRETS",
+        "severity": "medium",
+        "statement": "REQ-GPG-FILES makes all of ~/.gnupg writable, and AC-SECRETS-1 protects it with a fixed denylist. (1) gpgsm.conf (agent-program, dirmngr-program) stays writable and runs a program outside the sandbox later. (2) pubring.kbx and trustdb.gpg stay writable, so a key can be imported with ultimate ownertrust. (3) Only private-keys-v1.d is denied for reading, so a legacy secring.gpg and openpgp-revocs.d stay readable.",
+        "disposition": "accepted",
+        "resolution": "denyWrite に gpgsm.conf、pubring.kbx、pubring.gpg、public-keys.d、trustdb.gpg、secring.gpg、openpgp-revocs.d を、denyRead に secring.gpg と openpgp-revocs.d を加えた(SBX-04、SBX-05)。pubring.kbx と trustdb.gpg を読み取り専用にしても署名が成功することを、一時的な GNUPGHOME で確かめた。keyboxd を使う GnuPG では、サンドボックスの外の keyboxd が公開鍵を取り込めることは範囲外として記録した"
+      },
+      {
+        "id": "CH-04",
+        "kind": "missing_child",
+        "target": "REQ-BOUNDARY",
+        "severity": "medium",
+        "statement": "The sandbox's read rules only deny listed paths. Other credential stores stay readable inside the sandbox when every child holds: ~/.config/gh/hosts.yml, ~/.git-credentials, ~/.netrc, ~/.docker/config.json, ~/.npmrc, ~/.kube/config. The graph has no requirement that lists the protected stores, and the parent is not narrowed.",
+        "disposition": "accepted",
+        "resolution": "~/.git-credentials、~/.netrc、~/.config/gh/hosts.yml、~/.docker/config.json、~/.kube/config を denyRead に加え(spec D10、SBX-04)、REQ-BOUNDARY の文を「列挙した資格情報のファイル」に絞った。~/.npmrc は npm がコマンドのたびに読むので含めない(spec D10)"
+      },
+      {
+        "id": "CH-05",
+        "kind": "counterexample",
+        "target": "REQ-ON",
+        "severity": "medium",
+        "statement": "AC-ON-1, AC-HOSTS-1 and AC-SECRETS-1 inspect only the user settings file. Project and local settings take precedence and can set sandbox.enabled to false or add openings, so the checked file passes while the settings in effect break REQ-BOUNDARY. The parent's word 'by default' is not scoped.",
+        "disposition": "accepted",
+        "resolution": "REQ-ROOT の assumptions に「既定で」はユーザー設定の既定を指すと書き、プロジェクトとローカルの設定による上書きを問題カードの範囲外に記録した。ユーザー設定から止める手段は無い(管理設定か --settings が要る)ので、ADR-0020 に制限として残す"
+      },
+      {
+        "id": "CH-06",
+        "kind": "missing_evidence",
+        "target": "REQ-MCP",
+        "severity": "medium",
+        "statement": "The card records no evidence that deniedMcpServers (with serverUrl or serverCommand), disableClaudeAiConnectors and syncClaudeAiPlugins exist in Claude Code 2.1.319 and take effect in user settings. AC-GITHUB-1, AC-AGENTCORE-1 and AC-CLAUDEAI-1 check only that the keys are present. Only AC-MCP-L2 would catch silent ignoring.",
+        "disposition": "accepted",
+        "resolution": "問題カードの evidence に、公式ドキュメントの適用範囲(deniedMcpServers と disableClaudeAiConnectors は Any file、syncClaudeAiPlugins はユーザー・ローカル・管理)、2.1.319 のバイナリにキーの名前があること、ワークツリーの設定を読み込んだこのセッションで claude.ai のコネクタが止まったことを加えた。キーが効くことの最終の確認は AC-MCP-L2(T011)に残す"
+      },
+      {
+        "id": "CH-07",
+        "kind": "counterexample",
+        "target": "REQ-MCP",
+        "severity": "medium",
+        "statement": "Setting syncClaudeAiPlugins to false stops future syncs, but the productivity and pdf-viewer plugins are already synced. If they stay installed and enabled, REQ-MCP-CLAUDEAI holds while AC-MCP-L2 fails.",
+        "disposition": "rejected",
+        "resolution": "公式ドキュメント(plugins/loading)は、syncClaudeAiPlugins: false で、次の起動のときに同期済みのプラグインを ~/.claude/plugins/.trash/ へ移し、読み込まなくなると述べている。この根拠を問題カードの evidence と AC-CLAUDEAI-1 に加えた。実際に消えることは AC-MCP-L2 で確かめる"
+      },
+      {
+        "id": "CH-08",
+        "kind": "counterexample",
+        "target": "REQ-ROOT",
+        "severity": "medium",
+        "statement": "The ideal says the Bedrock account is not used for work, but REQ-ROOT and REQ-AWS-ENV narrow this to Bash. Values in settings env reach every subprocess, so an AWS-calling stdio MCP server still receives the Bedrock AWS_PROFILE and AWS_BEARER_TOKEN_BEDROCK.",
+        "disposition": "accepted",
+        "resolution": "利用者の用途は --profile 付きの aws CLI と git の署名だけ(2026-11-08)なので、理想と REQ-ROOT を「Bash の作業」に絞り、MCP サーバーとフックに env が届くことを問題カードの範囲外に記録した。残す deploy-on-aws の awsiac と awspricing が Bedrock 用のアカウントで動くこと、awsCredentialExport に移せば子プロセスに届かないことを ADR-0020 と README に書く"
+      },
+      {
+        "id": "CH-09",
+        "kind": "missing_child",
+        "target": "REQ-AWS-ENV",
+        "severity": "low",
+        "statement": "REQ-AWS-ENV removes only AWS_PROFILE, AWS_REGION and AWS_BEARER_TOKEN_BEDROCK. If Bedrock is configured through AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN, or AWS_DEFAULT_REGION, those take precedence and Bash still acts as the Bedrock account.",
+        "disposition": "accepted",
+        "resolution": "Bedrock モードで外す変数を8つ(AWS_PROFILE、AWS_DEFAULT_PROFILE、AWS_REGION、AWS_DEFAULT_REGION、AWS_ACCESS_KEY_ID、AWS_SECRET_ACCESS_KEY、AWS_SESSION_TOKEN、AWS_BEARER_TOKEN_BEDROCK)にし、AC-AWSENV-1(AWS-01〜03)で8つすべてを確かめる"
+      },
+      {
+        "id": "CH-10",
+        "kind": "counterexample",
+        "target": "REQ-AWS-CLI",
+        "severity": "medium",
+        "statement": "AC-AWSFILES-1 and AC-WORK-L2 only check that ~/.aws/config can be read; neither makes an AWS API call. Real calls need network access to SSO OIDC, STS and service endpoints, which REQ-HOSTS does not allow. Separately, nothing records evidence that allowRead re-opens paths under the read denials generated from permissions.deny. (Original target REQ-AWS-FILES, replaced by REQ-AWS-CLI.)",
+        "disposition": "accepted",
+        "resolution": "CH-01 の決定で aws はサンドボックスの外で動くので、AWS のホストの許可と allowRead の開け直しは要らなくなった。REQ-AWS-FILES を REQ-AWS-CLI に替え、AC-WORK-L2 と AC-ROOT-L3 を、aws … --profile X を実際に実行して外で動くことを確かめる形にした(T011)"
+      },
+      {
+        "id": "CH-11",
+        "kind": "false_positive",
+        "target": "PRB-067",
+        "severity": "medium",
+        "statement": "The gap states as fact that GPG signing is a daily task that fails inside the sandbox, but the only support is the user report; the counter-evidence shows no ~/.gnupg here. The verified status for this part rests on reasoning from the settings structure, yet REQ-GPG loosens the sandbox and AC-GPG-L2 cannot run on this machine.",
+        "disposition": "accepted",
+        "resolution": "利用者が用途として署名つきの git commit を名指しし、リスクの説明の後にサンドボックスの中での署名を選んだことを evidence に加えた。gpg が許可していないソケットに接続できないことと、読み取り専用のキーリングで署名できることを観察として加えた。AC-GPG-L2 と SC-005 は、鍵を持つ利用者のマシンでの確認として、未検証のまま残すと明記した"
+      },
+      {
+        "id": "CH-12",
+        "kind": "other",
+        "target": "REQ-ZSH",
+        "severity": "medium",
+        "statement": "The ideal says nothing about the shell, yet the gap includes zsh-specific syntax errors. REQ-ROOT's statement and AC-ROOT-L3 never mention zsh, and AC-ZSH-1 only checks that the hint text is printed, not that the error counts go down.",
+        "disposition": "accepted",
+        "resolution": "理想に「Claude は Bash を動かすシェルに合った書き方をする」を、REQ-ROOT の文と AC-ROOT-L3 に zsh の注意を加えた。誤りの件数の減少は、変更の後の会話記録を同じ方法で数えて確かめると AC-ZSH-1 に書き、この変更の範囲では測れないと明記した"
+      },
+      {
+        "id": "CH-13",
+        "kind": "counterexample",
+        "target": "REQ-CHROMIUM",
+        "severity": "medium",
+        "statement": "REQ-CHROMIUM and the ideal are general, but the children add --single-process only for the slide checker and add a context hint that Claude may ignore. Chromium started by other tools still fails. The card also has no evidence for the --single-process success or for SANDBOX_RUNTIME=1.",
+        "disposition": "accepted",
+        "resolution": "REQ-CHROMIUM の文を「このリポジトリの検査器は中で起動し、ほかの起動のために Claude は知らされる」に絞り、ほかの起動は強制しないことを範囲外に記録した。--single-process での成功と SANDBOX_RUNTIME=1 の観察を問題カードの evidence に加えた"
+      },
+      {
+        "id": "CH-14",
+        "kind": "missing_evidence",
+        "target": "REQ-FONTS",
+        "severity": "low",
+        "statement": "Nothing records which URLs the Noto Sans installer fetches; redirects to other hosts would make the three allowed hosts insufficient, and no L2 check runs a font install inside the sandbox.",
+        "disposition": "accepted",
+        "resolution": "Google Fonts の CSS API が curl に fonts.gstatic.com の TTF を返すことを 2026-11-08 に確かめ、evidence と AC-FONTS-1 に加えた。取得の経路を Google Fonts の2つのホストに決め、raw.githubusercontent.com を許可リストから外した。~/Library/Fonts への実際の書き込みは、利用者のフォントを変えるので T011 でも行わず、設定の検査にとどめる"
+      },
+      {
+        "id": "CH-15",
+        "kind": "other",
+        "target": "REQ-HOSTS",
+        "severity": "low",
+        "statement": "raw.githubusercontent.com serves the content of any public GitHub repository, so any sandboxed command can download attacker-hosted payloads from it without confirmation.",
+        "disposition": "accepted",
+        "resolution": "raw.githubusercontent.com を allowedDomains から外した。残る2つのホストは Google Fonts の配信だけを返す(SBX-07)"
+      },
+      {
+        "id": "CH-16",
+        "kind": "counterexample",
+        "target": "REQ-MCP-GITHUB",
+        "severity": "low",
+        "statement": "The leaf says GitHub MCP is not loaded wherever it is defined, but AC-GITHUB-1 only denies https://api.githubcopilot.com/* and disables the plugin. A locally registered GitHub MCP server under another name still loads.",
+        "disposition": "accepted",
+        "resolution": "REQ-MCP-GITHUB の文を「GitHub がホストする MCP サーバー」に絞り、別の名前のローカルのコマンドとして登録し直したものは範囲外として問題カードに記録した"
+      },
+      {
+        "id": "CH-17",
+        "kind": "missing_evidence",
+        "target": "PRB-067",
+        "severity": "low",
+        "statement": "The ideal refers to MCP servers decided not to be used, but no evidence records that decision. REQ-MCP-CLAUDEAI turns off all seven claude.ai connectors at once.",
+        "disposition": "rejected",
+        "resolution": "利用者は 2026-11-07 の質問で「claude.ai コネクタ全部」を明示して選んだ。その決定を問題カードの evidence に加えた"
+      }
+    ]
+  }
+}

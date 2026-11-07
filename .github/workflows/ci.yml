@@ -28,6 +28,9 @@ jobs:
       - name: Run removed-guardrails regression tests
         run: bash tests/run-removed-guardrails.sh
 
+      - name: Run sandbox settings contract tests
+        run: bash tests/run-sandbox-settings.sh
+
       - name: Run package-safety bundle contract tests
         run: bash tests/run-package-safety-bundle.sh
 

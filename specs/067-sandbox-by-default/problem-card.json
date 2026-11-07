@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-067",
+    "ideal": "install.sh で入るユーザー設定のもとでは、Claude Code が実行する Bash のコマンドは既定で OS のサンドボックスの中で動き、資格情報のファイルと GPG の秘密は中から読めず、確認なしに届くホストは読み取り専用の配信元だけである。それでも利用者の日常作業(Chromium での表示の確認、Noto Sans のインストール、署名つきの git commit、--profile 付きの aws CLI)は、サンドボックスの外に出ないか、審査を経た1つのコマンドとしてだけ外に出て済む。Bash の作業に Bedrock 用のアカウントは使われず、Claude は Bash を動かすシェルに合った書き方をし、使わないと決めた MCP サーバーにはつながらない",
+    "current": "ユーザー設定(このリポジトリの .claude/settings.json)はサンドボックスを有効にしていない。このリポジトリだけで有効にしたサンドボックスの中では、Chromium は起動の時点で止まり、~/.aws は読めず、~/Library/Fonts には書けない。Bedrock 用に settings.json の env に置いた AWS_PROFILE は、Bash のコマンドにもそのまま渡る。Bash ツールは zsh で動き、bash の書き方による失敗が繰り返し起きている。使わない MCP サーバー(GitHub、bedrock-agentcore)と claude.ai のコネクタ・同期プラグインが、すべてのセッションに読み込まれている",
+    "evidence": [
+      {
+        "source": "リポジトリの .claude/settings.json(main 95668e3)",
+        "observation": "sandbox キーが無い。サンドボックスは、作業者のローカル設定 .claude/settings.local.json でだけ有効だった"
+      },
+      {
+        "source": "サンドボックスの中で chrome-headless-shell を起動(2026-11-07、Claude Code 2.1.319)",
+        "observation": "FATAL: bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer.<pid>: Permission denied (1100)。Playwright 1.64.1 の launch も TargetClosedError で失敗した"
+      },
+      {
+        "source": "同じサンドボックスで --single-process を付けて起動(2026-11-07)",
+        "observation": "chrome-headless-shell は --dump-dom で HTML を返し、Playwright は2つのページを開いて Noto Sans JP の幅(320px)と代替フォントの幅(316.8px)で異なる描画をした。HTTPS のページはサンドボックスのプロキシ経由で時間切れになり、平文の HTTP は読めた"
+      },
+      {
+        "source": "サンドボックスの中の env(2026-11-07)",
+        "observation": "サンドボックスの中のコマンドには SANDBOX_RUNTIME=1 が設定されている"
+      },
+      {
+        "source": "Claude Code 2.1.319 のバイナリに含まれる Seatbelt の規則",
+        "observation": "(deny default) で始まり、mach-register を許す規則が無い。allowMachLookup が作るのは mach-lookup の規則だけである"
+      },
+      {
+        "source": "このセッションのサンドボックスの設定(読み取りの拒否、書き込みの許可)",
+        "observation": "~/.aws と **/.aws が読み取りの拒否に入っている(permissions.deny の Read(~/.aws/**) から作られる)。書き込みの許可は作業ディレクトリと一時ディレクトリだけで、~/Library/Fonts と ~/.gnupg を含まない"
+      },
+      {
+        "source": "サンドボックスの中で一時的な GNUPGHOME を使った gpg(2026-11-08)",
+        "observation": "許可していないソケットには接続できず、gpg は agent を起動できなかった(IPC connect call failed)。サンドボックスの外で、pubring.kbx と trustdb.gpg を読み取り専用にしても、gpg 2.5.18 の署名は終了コード 0 で成功した"
+      },
+      {
+        "source": "Google Fonts の CSS API を curl で取得(2026-11-08)",
+        "observation": "Noto Sans JP について、fonts.gstatic.com の TTF の URL を format('truetype') で返した"
+      },
+      {
+        "source": "ToolSearch で見える MCP のツールと ~/.claude.json、~/.claude/plugins(2026-11-07)",
+        "observation": "bedrock-agentcore(ユーザー登録、uvx …@latest)、github プラグイン(接続に失敗中)、claude.ai のコネクタ7件、claude.ai の同期プラグイン2件(productivity、pdf-viewer)が読み込まれている"
+      },
+      {
+        "source": "Claude Code の公式ドキュメント settings-reference と plugins/loading(2026-11-07)と、2.1.319 のバイナリの文字列",
+        "observation": "deniedMcpServers(serverName、serverCommand、serverUrl)と disableClaudeAiConnectors は Any file、syncClaudeAiPlugins はユーザー・ローカル・管理の設定で効く。syncClaudeAiPlugins: false は同期をやめ、同期済みのプラグインを ~/.claude/plugins/.trash/ へ移して読み込まない。これらのキーの名前はバイナリに含まれる"
+      },
+      {
+        "source": "このセッションでワークツリーの設定がプロジェクト設定として読み込まれた後(2026-11-08)",
+        "observation": "claude.ai のコネクタ6件が「管理ポリシーで止められている」と表示され、ツールが外れた"
+      },
+      {
+        "source": "~/.claude/projects の会話記録、過去90日(2026-11-07 に集計)",
+        "observation": "zsh 固有のエラーは no matches found が342件、= で始まる語の not found が約180件、引用符の無い変数が分割されない no such file or directory が約40件。このセッションでも echo ===== が 2 回失敗した"
+      },
+      {
+        "source": "Claude Code の公式ドキュメント(settings-reference、env-vars、2026-11-07)",
+        "observation": "settings.json の env の値は、Claude Code が起動するすべてのサブプロセスに届く。Bash にだけ別の値を渡す設定キーは無い"
+      },
+      {
+        "source": "利用者の報告(2026-11-07)",
+        "observation": "git コマンドが ~/.gnupg に、aws CLI と boto3 が ~/.aws にアクセスできなかった。settings.json の env の AWS_PROFILE は Bedrock のためだけのアカウントである"
+      },
+      {
+        "source": "利用者の決定(2026-11-07、2026-11-08)",
+        "observation": "止める MCP として GitHub、bedrock-agentcore、claude.ai のコネクタ全部、claude.ai の同期プラグインを選んだ。用途は --profile 付きの aws CLI と、署名つきの git commit だけである。aws は1つのコマンドとして外で、署名は中で行うことを、リスクの説明の後に選んだ"
+      }
+    ],
+    "counter_evidence": [
+      {
+        "source": "このマシンの ~/.gnupg と git config(2026-11-07)",
+        "observation": "~/.gnupg は存在せず、git の署名の設定も無い。git の失敗はこのマシンでは再現しておらず、会話記録にも .gnupg の失敗は見つからなかった"
+      },
+      {
+        "source": "このセッションの環境変数と ~/.claude/settings.json(2026-11-07)",
+        "observation": "このセッションは Bedrock を使っておらず、env は空で、AWS_PROFILE は設定されていない"
+      },
+      {
+        "source": "/usr/bin/timeout の存在(2026-11-07)",
+        "observation": "会話記録の command not found: timeout(40件)は、このマシンでは再現しない。zsh と bash の違いではなく、以前の macOS に GNU の timeout が無かったことによる"
+      }
+    ],
+    "gap": "既定の設定では Bash のコマンドが OS の制限なしに動き、使わない MCP サーバーとコネクタもつながる。一方、サンドボックスを有効にすると、利用者の日常作業のうち4つ(Chromium、Noto Sans のインストール、署名つきの git commit、--profile 付きの aws CLI)が中で動かない。Bedrock 用のアカウントは Bash の作業から切り離されておらず、Claude の書くコマンドは Bash を動かす zsh に合っていない",
+    "significance": "プロンプトインジェクションで実行されたコマンドが、資格情報や秘密鍵を読み、任意のホストへ送れる。逆に、中で動かない作業は毎回サンドボックスの外での再実行を求め、確認の手間が増えて、外で動かすことが常態になる。誤ったアカウントでの AWS の操作は、取り消しにくい変更や課金につながる",
+    "hypotheses": [
+      "git の失敗は、gpg が ~/.gnupg に一時ファイルを作れないことと、gpg-agent のソケットに接続できないことによる",
+      "aws CLI と boto3 の失敗は、Read の deny から作られた ~/.aws の読み取りの拒否による"
+    ],
+    "proposed_solutions": [
+      "ユーザー設定でサンドボックスを有効にし、~/.gnupg、~/Library/Fonts、gpg-agent と keyboxd のソケット、Google Fonts だけを開け、GPG の秘密とほかの資格情報のファイルは閉じる",
+      "aws で始まる1つのコマンドだけを excludedCommands で外に出す",
+      "Chromium を --single-process で起動する",
+      "SessionStart のフックで、Bedrock の AWS の変数を Bash から外し、gpg-agent を外で起動し、zsh・Chromium・aws の注意を文脈に足す",
+      "deniedMcpServers、disableClaudeAiConnectors、syncClaudeAiPlugins、enabledPlugins で MCP を止める"
+    ],
+    "out_of_scope": [
+      "サンドボックスの中の Chromium が、認証つきのプロキシ経由で HTTPS のページを読めないこと(観察のみ)",
+      "Claude がほかのプロジェクトで起動する Chromium に --single-process を付けるかどうか(文脈で伝えるだけで、強制しない)",
+      "uvx …@latest で起動する残りの MCP サーバーの供給網のリスク(版の固定は利用者の判断)",
+      "Bedrock モードで、settings.json の env の AWS 変数が stdio の MCP サーバーとフックにも届くこと(残す deploy-on-aws の awsiac と awspricing は Bedrock 用のアカウントで動く)。利用者の用途の外で、awsCredentialExport に移す方法を文書に記録する",
+      "プロジェクトとローカルの設定が、ユーザー設定のサンドボックスを緩められること(Claude Code の設定の優先順位であり、ユーザー設定では止められない)",
+      "GitHub の MCP サーバーを、別の名前のローカルのコマンド(github-mcp-server や Docker)として登録し直したもの",
+      "keyboxd を使う GnuPG で、サンドボックスの中から公開鍵を取り込めること(keyboxd はサンドボックスの外で動く)",
+      "SSH での git push、gh、brew のように、標準の厳しさで外での再実行に回るコマンド",
+      "このマシンへの適用(install.sh の実行、プラグインのアンインストール)。利用者の承認が要る"
+    ],
+    "status": "verified",
+    "status_rationale": "サンドボックスが既定で無効であること、Chromium・~/.aws・~/Library/Fonts の失敗、MCP の読み込み、zsh の失敗は、このマシンで観察した。反証の3件は、git の失敗と Bedrock の AWS_PROFILE がこのマシンで再現しないことを示すが、どちらも設定の構造(書き込みの許可に ~/.gnupg が無い、env が全サブプロセスに届く)から起きる。利用者が別のマシンか Bedrock のセッションで観察したという報告と矛盾しないので、問題は成り立つと判断した。timeout の件は問題から外した"
+  }
+}
