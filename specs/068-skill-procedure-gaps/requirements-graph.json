@@ -41,7 +41,7 @@
         {
           "id": "R0-A5",
           "level": "L3",
-          "description": "この変更自身の記録と試験が、変更後の手順に従う。記録を読むスクリプトが次を確かめる。reviewed_commit より後のコミットは、記録の場所（specs/068-skill-procedure-gaps/）のファイルだけを変える。manifest が引く証跡はすべて git で追跡され、git check-ignore に当たらない。assurance review の記録の statement は、記録の言語（日本語）で書かれている。新しい試験のすべてが、red（main の検査器か、機能のスタブに対して）かミューテーション検査のどちらかで、assertion の失敗になり、どの観測も error（使い方の誤りや鍵の欠け）にならない（mutations.txt を試験ごとに数える）。"
+          "description": "この変更自身の記録と試験が、変更後の手順に従う。記録を読むスクリプトが次を確かめる。reviewed_commit より後のコミットは、記録の場所（specs/068-skill-procedure-gaps/）のファイルだけを変える。manifest が引く証跡はすべて git で追跡され、git check-ignore に当たらない。assurance review の記録の statement は、文ごとに記録の言語（日本語）で書かれている（英字の語が3つ以上ある文は、かなか漢字を含む）。新しい試験のすべて（unittest の試験と tests/assert_delivery_flow.py）が、red（main の検査器か、機能のスタブに対して）かミューテーション検査のどちらかで assertion の失敗になり、どの観測も error（使い方の誤り、鍵の欠け、Python の traceback）にならない（mutations.txt を試験ごとに数える）。"
         }
       ],
       "counterexamples": [
@@ -82,13 +82,13 @@
     },
     {
       "id": "R3",
-      "statement": "verified-delivery の手順とレビュー役の参照（references/reviewer.md）が、直しの後の2回目以降のレビューに渡すものを定める。渡すのは、前回のレビューの記録（指摘と答え）、前回審査したコミットから今回のコミットまでの差分、変わった証跡である。レビュー役には、accepted の指摘が本当に直ったかと、新しい差分に問題が無いかを見させる。前回の答え（resolution）は実装者の主張なので、差分と照らして確かめる対象として渡し、正しいものとして渡さない。requirements graph か risk class が前回から変わったときは、すべての差分を渡す。範囲は context_given に書き、記録の形は変えない。",
+      "statement": "verified-delivery の手順とレビュー役の参照（references/reviewer.md）が、直しの後の2回目以降のレビューに渡すものを定める。渡すのは、前回のレビューの記録（指摘と答え）、前回審査したコミットから今回のコミットまでの差分、変わった証跡である。レビュー役には、accepted の指摘が本当に直ったか、rejected の指摘の答えが本当に成り立つか、新しい差分に問題が無いかを見させる。前回の答え（resolution）は実装者の主張なので、差分と照らして確かめる対象として渡し、正しいものとして渡さない。requirements graph か risk class が前回から変わったときは、すべての差分を渡す。範囲は context_given に書き、記録の形は変えない。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "R3-A1",
           "level": "L1",
-          "description": "対応表の行3で、利用者が、変更後の手順と reviewer.md が上のことを書いていると確かめる。また、差分のレビューのプロンプトが、2つの見るべきことを問うと確かめる。"
+          "description": "対応表の行3で、利用者が、変更後の手順と reviewer.md が上のことを書いていると確かめる。また、差分のレビューのプロンプトが、3つの見るべきことを問うと確かめる。"
         },
         {
           "id": "R3-A2",
@@ -97,7 +97,7 @@
         }
       ],
       "assumptions": [
-        "トークン数が減るかは、レビュー役が差分の外をどれだけ読むかにもよる。R3-A2 は1回の観測である。gate は、差分のレビューとすべての差分のレビューを区別しない（範囲は context_given にだけ書く。利用者の決定）。1回目の後の直しは graph を変えたので、2回目はすべての差分を読む。2回目の後の直しも graph（R1・R8・R0-A5）を変えたので、3回目もすべての差分を読む。"
+        "トークン数が減るかは、レビュー役が差分の外をどれだけ読むかにもよる。R3-A2 は1回の観測である。gate は、差分のレビューとすべての差分のレビューを区別しない（範囲は context_given にだけ書く。利用者の決定）。1回目の後の直しは graph を変えたので、2回目はすべての差分を読む。2回目の後の直しも graph（R1・R8・R0-A5）を変えたので、3回目もすべての差分を読む。3回目の後の直しも graph（R3・R4d・R0-A5）を変えた。"
       ],
       "origin": {
         "kind": "instruction",
@@ -185,13 +185,13 @@
     },
     {
       "id": "R4d",
-      "statement": "requirements-decomposition の手順2が、deploy の後でしか確かめられない条件に stage を付けることを書く。verified-delivery の手順6が、deploy の前に --stage pre_deploy で判定し、deploy の後に残りの検査を集めて受け入れを判定することを書く。2つの参照（checker.md・manifest.md）が、欄と規則を書く。",
+      "statement": "requirements-decomposition の手順2が、deploy の後でしか確かめられない条件に stage を付けることを書く。verified-delivery の手順6が、deploy の前に --stage pre_deploy で判定し、deploy の後に残りの検査を集めて受け入れを判定することを書く。2つの参照（checker.md・manifest.md）が、欄と規則を書く。 challenger.md のプロンプトは、deploy の前に確かめられるのに post_deploy とされた条件を指摘させる。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "R4d-A1",
           "level": "L1",
-          "description": "対応表の行4で、利用者が、2つの手順と2つの参照が上のことを書いていると確かめる。"
+          "description": "対応表の行4で、利用者が、2つの手順と2つの参照と challenger.md のプロンプトが上のことを書いていると確かめる。"
         }
       ]
     },

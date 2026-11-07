@@ -4,8 +4,10 @@ added to verified-delivery:
 
 1. every commit after reviewed_commit changes only the record directory;
 2. every evidence file the manifest cites is tracked by git and not ignored;
-3. every finding statement of the given assurance review records is written
-   in Japanese, the language of the records (it contains kana or kanji);
+3. every sentence of every finding statement of the given assurance review
+   records is written in Japanese, the language of the records: each sentence
+   (split at 。 and at . ! ? followed by a space), with code spans in
+   backticks removed, contains kana or kanji when it has words;
 4. the given red and mutation observations (mutations.sh's output) show
    every red as assertion failures with no error, every mutation caught by an
    assertion, and the script's own result as expected.
@@ -26,6 +28,15 @@ RECORDS = Path(__file__).resolve().parent.parent
 REPO = RECORDS.parent.parent
 PREFIX = str(RECORDS.relative_to(REPO)) + "/"
 JAPANESE = re.compile(r"[぀-ヿ一-鿿]")
+
+
+def sentences(text: str) -> list[str]:
+    """The sentences of a statement, outside code spans, that have words: some
+    kana or kanji, or at least three plain English words (an identifier such
+    as test_name or S-12 alone is not a sentence)."""
+    text = re.sub(r"`[^`]*`", "", text)
+    parts = (part.strip() for part in re.split(r"(?<=。)|(?<=[.!?])\s+", text))
+    return [p for p in parts if JAPANESE.search(p) or len(re.findall(r"(?<![\w-])[A-Za-z]{2,}(?![\w-])", p)) >= 3]
 
 
 def git(*args: str) -> subprocess.CompletedProcess:
@@ -53,7 +64,7 @@ def main(argv: list[str]) -> int:
 
     for path in argv[2:]:
         findings = json.loads(Path(path).read_text(encoding="utf-8"))["assurance_review"]["findings"]
-        english = [f["id"] for f in findings if not JAPANESE.search(f.get("statement", ""))]
+        english = [f["id"] for f in findings if not all(JAPANESE.search(s) for s in sentences(f.get("statement", "")))]
         print(f"3. {Path(path).name}: {len(findings)} findings, statements without Japanese: {english or 'none'}")
         ok &= not english
 

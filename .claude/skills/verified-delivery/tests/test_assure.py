@@ -671,6 +671,23 @@ class StageTests(AssuranceTestCase):
                                    "deciding to deploy it is a person's decision")])
         self.assertEqual(result["left_out"], ["TEST-PARENT-001", "TEST-SYSTEM-001"])
 
+    def test_before_deploy_an_or_parent_whose_own_checks_are_all_post_deploy_is_blocked(self):
+        doc = load("graph.json")
+        root = doc["requirements"][0]
+        root["decomposition"] = "OR"
+        root["selection"] = {"REQ-READ": "reads one order", "REQ-EXPORT": "exports the orders"}
+        for entry in root["acceptance"]:
+            entry["stage"] = "post_deploy"
+        def change(m):
+            for criterion in ("TEST-PARENT-001", "TEST-SYSTEM-001"):
+                check(m, criterion).update(status="not_run")
+                check(m, criterion).pop("evidence")
+        proc = run("gate", self.write("graph.json", doc), self.manifest(change), "--stage", "pre_deploy")
+        result = gate_result(proc.stdout)
+        self.assertEqual([(r["rule_id"], r["message"]) for r in result["reasons"]],
+                         [("A-03", '"REQ-ROOT" (OR) has no L2 or L3 check of its own verified before deploy; '
+                                   "deciding to deploy it is a person's decision")])
+
     def test_before_deploy_a_requirement_whose_checks_are_all_post_deploy_is_blocked(self):
         result = self.deferred_gate(("TEST-LEAF-003",))
         self.assertEqual(result["decision"], "blocked")

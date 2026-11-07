@@ -77,12 +77,16 @@ committed after it; report it only when a commit after the reviewed commit
 changes a file outside <record directory>.
 
 The resolutions in the previous record are the implementer's claims, not
-facts. Check two things only:
+facts. Check three things only:
 
 1. For each finding marked accepted, whether the diff of the fixes really
    removes the problem it states. Report a finding that is not fixed as
    kind "other", naming the previous finding's id.
-2. Whether the diff of the fixes itself has a material problem of the five
+2. For each finding marked rejected, whether its resolution really shows
+   that the problem does not hold, reading the files it names at the new
+   commit. Report a rejection that does not hold as kind "other", naming
+   the previous finding's id.
+3. Whether the diff of the fixes itself has a material problem of the five
    kinds: parent_by_children, evidence_mismatch, uncovered_path,
    weakened_test, or risk_mismatch.
 

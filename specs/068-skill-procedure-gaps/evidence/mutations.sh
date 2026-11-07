@@ -74,6 +74,16 @@ git -C "$REPO" show 9cd7932:.claude/skills/requirements-decomposition/scripts/ch
 git -C "$REPO" show 9cd7932:.claude/skills/verified-delivery/scripts/assure.py > "$WORK/main/verified-delivery/scripts/assure.py"
 for t in $(new_tests "$WORK/main/requirements-decomposition" $RD_CLASSES); do observe red "against main" "$WORK/main/requirements-decomposition" "$t"; done
 for t in $(new_tests "$WORK/main/verified-delivery" $VD_MAIN_CLASSES); do observe red "against main" "$WORK/main/verified-delivery" "$t"; done
+# The flow check (tests/assert_delivery_flow.py) with main's checkers: FAIL when it
+# exits 1 with a FAIL line for each of its checks and no Python traceback.
+mkdir -p "$WORK/main-root/.claude/skills" "$WORK/main-root/tests/fixtures"
+cp -R "$WORK/main/requirements-decomposition" "$WORK/main/verified-delivery" "$WORK/main-root/.claude/skills/"
+cp -R "$REPO/tests/fixtures/delivery-flow" "$WORK/main-root/tests/fixtures/"
+flow_out="$(python3 -B "$REPO/tests/assert_delivery_flow.py" "$WORK/main-root" 2>&1)"; flow_code=$?
+flow_checks="$(printf '%s\n' "$flow_out" | grep -cE '^(ok  |FAIL) ')"; flow_fails="$(printf '%s\n' "$flow_out" | grep -c '^FAIL ')"
+if [ "$flow_code" -eq 1 ] && [ "$flow_fails" -eq "$flow_checks" ] && ! printf '%s' "$flow_out" | grep -q Traceback; then flow=FAIL; else flow=ERROR; bad=1; fi
+printf '%-8s %-38s %-5s %s (%s of %s checks fail)\n' red "against main" "$flow" tests/assert_delivery_flow.py "$flow_fails" "$flow_checks"
+[ "$flow" = FAIL ] && echo tests/assert_delivery_flow.py >> "$COVERED"
 copy_skills "$WORK/stub"
 S="$WORK/stub/verified-delivery/scripts/assure.py"
 replace_once "$S" 'deferrable = post_deploy_criteria(document) if stage == "pre_deploy" else set()' 'deferrable = set()  # stub' || bad=1
@@ -129,10 +139,15 @@ mutate "a Jest file that failed is ignored" verified-delivery assure.py \
 mutate "an id inside a dotted id counts" verified-delivery assure.py \
   '(?![A-Za-z0-9_.-])' '(?![A-Za-z0-9_-])' \
   test_assure.JestTests.test_an_id_inside_a_dotted_longer_id_does_not_count
+mutate "an OR parent is not a parent" verified-delivery assure.py \
+  'if kind in ("AND", "OR") and not any(level in PARENT_LEVELS for level in verified):' \
+  'if kind in ("AND",) and not any(level in PARENT_LEVELS for level in verified):' \
+  $ST.test_before_deploy_an_or_parent_whose_own_checks_are_all_post_deploy_is_blocked
 
 # Every new test must be covered.
 all="$( { new_tests "$REPO/.claude/skills/requirements-decomposition" $RD_CLASSES; \
-          new_tests "$REPO/.claude/skills/verified-delivery" $VD_MAIN_CLASSES $VD_STUB_CLASSES; } | sort -u)"
+          new_tests "$REPO/.claude/skills/verified-delivery" $VD_MAIN_CLASSES $VD_STUB_CLASSES; \
+          echo tests/assert_delivery_flow.py; } | sort -u)"
 uncovered="$(printf '%s\n' "$all" | grep -vxF -f "$COVERED")"
 total="$(printf '%s\n' "$all" | grep -c .)"
 echo "coverage: $((total - $(printf '%s' "$uncovered" | grep -c .))) of $total new tests fail on an assertion in a red or a mutation"

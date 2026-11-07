@@ -27,7 +27,7 @@
 - **前**: VD `SKILL.md` の手順5は「run the review again for that commit」と書き、`references/reviewer.md` は「the diff of the change up to reviewed_commit」を渡すと書く。
 - **後**:
   - VD `SKILL.md:22`（手順5）は、直しのコミットを2回目以降のプロンプトでレビューすると書く。渡すのは、前回のレビューの記録と、前回審査したコミットからの差分だけである。requirements graph か risk class が前回から変わったときは、すべての差分を読み直す。回ごとの記録を残し、gate には最新の記録を渡す。
-  - VD `references/reviewer.md:58-96`（Later rounds）は、2回目以降のプロンプトを持つ。前回の resolution は実装者の主張として渡し、事実として扱わない。見るのは (1) accepted の指摘が本当に直ったか、(2) 直しの差分の5種類の問題、の2つである。範囲は `context_given` に書く。
+  - VD `references/reviewer.md:58-100`（Later rounds）は、2回目以降のプロンプトを持つ。前回の resolution は実装者の主張として渡し、事実として扱わない。見るのは (1) accepted の指摘が本当に直ったか、(2) rejected の指摘の答えが本当に成り立つか、(3) 直しの差分の5種類の問題、の3つである（(2) は3回目のレビューの AR-01 への直し）。範囲は `context_given` に書く。
 
 ## 行4 deploy の前後の判定（R4d-A1）
 
@@ -36,6 +36,7 @@
   - RD `SKILL.md:15`（手順2）は、deploy の後でしか確かめられない条件に `"stage": "post_deploy"` を付けると書く。決めるのは分解の段階（批判の役が見る）で、もっと早く確かめられる条件を移してはならない。各要件と各親の固有の水準に、deploy の前に確かめられる条件を1つは持たせる。
   - VD `SKILL.md:23`（手順6）は、deploy の前は `--stage pre_deploy` で判定すると書く。除いた結果、deploy の前に何も確かめられない要件や、固有の `L2`・`L3` が確かめられない親は止まる（1回目のレビューの AR-01 への直し）。その `pass` は deploy してよいことで、受け入れではない。deploy の後は、残りの検査を記録して `--stage` なしで受け入れを判定する。また、gate を通すためだけに stage を変えることを禁じる。
   - VD `SKILL.md:24`（手順7）は、カードが2つの判定を示すと書く。
+  - RD `references/challenger.md:22-24` は、deploy の前に確かめられるのに post_deploy とされた条件を、批判の役に指摘させる（3回目のレビューの AR-04 への直し）。
   - RD `references/checker.md:40,70` と VD `references/manifest.md:44-46,89` は、欄と規則（S-07、`stage`・`left_out`、カードの表示）を書く。
 
 ## 行5 jest の結果の取り込み（R5-A2）
@@ -52,7 +53,7 @@
 
 - **前**: 2つのプロンプトは英語で、statement の言語を指定しない。challenger.md は「unchanged except for the two paths」で渡すと書く。
 - **後**:
-  - VD `references/reviewer.md:41,91` と RD `references/challenger.md:40` は、プロンプトに「every statement written in <language of the records>」を持つ。RD `references/challenger.md:3` は、渡すとき変えてよいものに言語を加える。
+  - VD `references/reviewer.md:41,95` と RD `references/challenger.md:44` は、プロンプトに「every statement written in <language of the records>」を持つ。RD `references/challenger.md:3` は、渡すとき変えてよいものに言語を加える。
   - VD `SKILL.md:22`（手順5）と RD `SKILL.md:16`（手順3）は、記録の言語を渡し、返った指摘を「as they are」写すと書く。
 
 ## 行7 要件の出所（R7-A2）
@@ -60,7 +61,7 @@
 - **前**: 要件に出所の欄が無く、challenger のプロンプトは指示の要件も solution_as_problem として見る。
 - **後**:
   - RD `SKILL.md:15`（手順2）は、人の指示で入れた要件にだけ `origin` を書くと定める。自分で導いた要件には付けず、`by` にエージェントを書かない。`ref` には指示を読める場所を書く。
-  - RD `references/challenger.md:15-21` は、origin が instruction の要件を与えられた制約として扱わせる。指摘させるのは、ギャップか他の要件と矛盾するとき、`ref` が人の指示を特定しないとき、`by` が人でないときだけである。
+  - RD `references/challenger.md:15-20` は、origin が instruction の要件を与えられた制約として扱わせる。指摘させるのは、ギャップか他の要件と矛盾するとき、`ref` が人の指示を特定しないとき、`by` が人でないときだけである。
   - RD `references/checker.md:40,63` は欄と S-00 を書く。VD `references/manifest.md:89` は、カードが by と ref を示すと書く。
 
 ## 行8 新しい関数の red（R8-A1）

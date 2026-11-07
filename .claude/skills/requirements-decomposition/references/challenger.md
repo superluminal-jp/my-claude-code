@@ -19,6 +19,10 @@ requirement the gap does not call for. Report it (kind "other") only when
 it contradicts the gap or another requirement, when "ref" does not identify
 where a person gave that direction, or when "by" does not name a person.
 
+An acceptance criterion with "stage": "post_deploy" is left out of the
+decision on whether the change may be deployed. Report it (kind "other")
+when it could be verified before the change is deployed.
+
 Look for material errors only:
 
 1. false_positive: is the current state really supported by the evidence,

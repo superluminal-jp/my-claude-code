@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-068",
+    "reviewed_commit": "f52e4e29e363bc78c220e7a81a1c52958c8b5197",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、3回目（すべての差分。2回目の後の直しが graph を変えたため）。使ったトークンは207,348、ツールの呼び出しは39回",
+    "context_given": [
+      "specs/068-skill-procedure-gaps/requirements-graph.json（f52e4e2 の版）",
+      "git diff 9cd7932 f52e4e29e363bc78c220e7a81a1c52958c8b5197（変更のすべての差分）",
+      "specs/068-skill-procedure-gaps/evidence/f52e4e2/ の10のファイル",
+      "verified-delivery の references/reviewer.md の1回目のプロンプト（f52e4e2 の版。記録の場所 specs/068-skill-procedure-gaps/、言語は日本語）"
+    ],
+    "findings": [
+      {"id": "AR-01", "kind": "uncovered_path", "target": "R3-A1", "severity": "medium",
+       "statement": "2回目以降のレビューの手順（references/reviewer.md の Later rounds）は、前回の resolution を「実装者の主張」と言いながら、確かめさせるのを「accepted の指摘が本当に直ったか」と「直しの差分の問題」の2つだけにしている。rejected の指摘の resolution（「成り立たない」という主張）は、どの独立した目も再び確かめない。gate も最新の記録しか読まない（reviewer.md 末尾「The gate reads the latest round's record」、SKILL.md 手順5「gate には最新の記録を渡す」）。そのため、前の回で誤って rejected にされた指摘は、差分に現れない部分については、すべての差分を読み直す従来の方式なら再び見つかったはずのものが、以後の回では誰にも見られなくなる。R3-A1 は手順の文があることだけを確かめ、この経路を扱う受け入れ条件は無い。",
+       "disposition": "accepted",
+       "resolution": "2回目以降のプロンプトの確かめを3つにした。(2) として、rejected の指摘ごとに、その答えが本当に成り立つかを、答えが挙げるファイルを新しいコミットで読んで確かめさせ、成り立たなければ前の指摘の id を挙げて報告させる。verified-delivery の手順5にも、差分の回が accepted の直り・rejected の成り立ち・直しの差分を見ると書いた。graph の R3 の文と R3-A1 も3つに直した。"},
+      {"id": "AR-02", "kind": "evidence_mismatch", "target": "R0-A5", "severity": "medium",
+       "statement": "R0-A5 は「新しい試験のすべてが red かミューテーション検査で assertion の失敗になる」と定めるが、その確かめ（mutations.sh の最後の `all` と records_check.py の項目4の `coverage: 29 of 29`）が数えるのは unittest の5クラス（StageAndOriginTests、StageCardTests、OriginCardTests、StageTests、JestTests）の29件だけである。新しい試験の tests/assert_delivery_flow.py（CA-06）は、red（main の検査器に対する失敗）もミューテーションも mutations.txt に1件も無い。ところがこの試験は、親の検査 R0-A1（L3）、R4-A1・R4-A2（L2）が passed とされる唯一の証跡（delivery-flow.txt）である。子を組み合わせて親を確かめる検査が、失敗しうることを一度も示されておらず、R0-A5 が「全部確かめた」と読める形で合格する。",
+       "disposition": "accepted",
+       "resolution": "mutations.sh に、tests/assert_delivery_flow.py を main の検査器（9cd7932）に対して走らせる red を加え、数える対象に入れた。終了コードが1で、8つの確かめのすべてが FAIL の行になり、Python の traceback が無いことを FAIL（assertion の失敗に当たる）とする。結果は「8 of 8 checks fail」で、数える対象は31件中31件になった。R0-A5 の文にも、unittest の試験と通しの試験の両方を数えると書いた。"},
+      {"id": "AR-03", "kind": "uncovered_path", "target": "R4b-A1", "severity": "low",
+       "statement": "R4b と assure.py の `if kind in (\"AND\", \"OR\") and not any(level in PARENT_LEVELS ...)` は「AND・OR の親の固有の L2・L3 が確かめられないと blocked」と定め、R4b-A1 もそれを挙げる。しかし StageTests が使う tests/fixtures/graph.json は AND（REQ-ROOT）と LEAF だけで、OR の親は1つも無い。delivery-flow の graph も AND だけである。OR の分岐は、`(\"AND\", \"OR\")` を `(\"AND\",)` に変えても、29件のどの試験も失敗しない。mutations.txt のミューテーションにもこの分岐は無い。",
+       "disposition": "accepted",
+       "resolution": "StageTests に test_before_deploy_an_or_parent_whose_own_checks_are_all_post_deploy_is_blocked を加えた。根を OR（selection つき）にし、その固有の L2・L3 をすべて post_deploy にした graph で、deploy の前の判定が「(OR) has no L2 or L3 check of its own」で blocked になることを確かめる。分岐は実装済みで、この試験は最初から通る。そのため、ミューテーション「an OR parent is not a parent」（`(\"AND\", \"OR\")` を `(\"AND\",)` に変える）で試験が assertion で失敗することを示した。"},
+      {"id": "AR-04", "kind": "uncovered_path", "target": "R4", "severity": "low",
+       "statement": "R4 の assumptions は「どの条件を post_deploy にするかは分解の段階で決め、批判の役の審査を受ける。偽ることは検査器では見つけられない」と、stage の付け間違いを批判の役に任せている。しかし差分の references/challenger.md は、origin と言語の文を足しただけで、stage を確かめさせる文も、8つの kind のどれにも stage の付け間違いを当てる記述も無い。stage は書く側の自己申告で、deploy の前の判定を blocked から pass に変える。それを確かめる手順の文も受け入れ条件も無く、R4d-A1 は、手順と参照が stage を書いているかを見るだけである。",
+       "disposition": "accepted",
+       "resolution": "challenger.md のプロンプトに、post_deploy の条件は deploy の前の判定から除かれると説明し、deploy の前に確かめられるものを kind other で指摘させる文を加えた。finding の kind の値は増やさない（check_graph.py の R-01 の値の集合を変えないため）。graph の R4d の文と R4d-A1 に challenger.md のプロンプトを加えた。"},
+      {"id": "AR-05", "kind": "evidence_mismatch", "target": "R0-A5", "severity": "low",
+       "statement": "R0-A5 は assurance review の statement が記録の言語（日本語）で書かれていることを求め、その動機は英語の指摘が日本語の記録に混ざったこと（問題の行6）である。ところが records_check.py の確かめは `JAPANESE = re.compile(r\"[぀-ヿ一-鿿]\")` と `not JAPANESE.search(f.get(\"statement\", \"\"))` で、かな・漢字が1字でもあれば通る。英語の文に日本語の語が混ざった指摘も合格するので、行6が起こした混在を検出できない。この確かめで R0-A5 の「日本語で書かれている」を passed にすると、証跡が主張より弱い。",
+       "disposition": "accepted",
+       "resolution": "records_check.py の項目3を文ごとにした。statement から backtick のコードを除き、句点と「. ! ? の後の空白」で文に分ける。かなか漢字を含むか、英字だけの語が3つ以上ある部分を文とし、どの文もかなか漢字を含むことを求める。「This sentence is English. 次の文は日本語。」の英語の文を見つけることを手で確かめた。1回目と2回目の記録はこの確かめを通る。R0-A5 の文も文ごとに直した。"}
+    ]
+  }
+}
