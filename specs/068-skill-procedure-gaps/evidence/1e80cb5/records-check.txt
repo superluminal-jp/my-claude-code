@@ -1,0 +1,15 @@
+head: 6078463f1b37213f68e76750675a0bce7e9b3092
+1. 15 files changed from 1e80cb5 to HEAD 6078463; outside specs/068-skill-procedure-gaps/: none
+2. specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt: tracked, not ignored
+2. specs/068-skill-procedure-gaps/evidence/1e80cb5/config-pyramid.txt: tracked, not ignored
+2. specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt: tracked, not ignored
+2. specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml: tracked, not ignored
+3. assurance-review-1.b37a71c.json: 5 findings, statements without Japanese: none
+3. assurance-review-2.b9a38d0.json: 3 findings, statements without Japanese: none
+3. assurance-review-3.f52e4e2.json: 5 findings, statements without Japanese: none
+3. assurance-review-4.f972fe7.json: 1 findings, statements without Japanese: none
+3. assurance-review-5.276dca7.json: 0 findings, statements without Japanese: none
+3. assurance-review-6.1e80cb5.json: 0 findings, statements without Japanese: none
+4. mutations.txt: 65 observations, 0 errors, coverage coverage: 38 of 38, script result as expected
+result: all hold
+exit=0

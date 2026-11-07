@@ -61,8 +61,12 @@
       },
       {
         "check_id": "R0-A5",
-        "status": "not_run",
-        "reason": "記録のコミットの後に、記録を読むスクリプト（evidence/records_check.py）で確かめる"
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/records-check.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R1-A1",
@@ -81,8 +85,12 @@
       },
       {
         "check_id": "R3-A2",
-        "status": "not_run",
-        "reason": "6回目のレビューのトークン数を加えて、review-tokens.txt を 1e80cb5 の証跡として作り直す"
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/review-tokens.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R4-A1",

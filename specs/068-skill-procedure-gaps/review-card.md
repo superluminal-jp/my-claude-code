@@ -12,10 +12,10 @@
 
 ## 変更とリスク
 
-- **審査の対象のコミット**: `276dca70c36e78785d905606990b48bb22b42cda`
+- **審査の対象のコミット**: `1e80cb578afb49a688afc20619d91038478d4bb5`
 - **実装担当**: claude
 - **リスク**: medium — 2つの検査器（assure.py・check\_graph.py）の入力の形と命令、すべてのプロジェクトで使う3つのスキルの手順を変える。認証・秘密・個人データ・基盤の権限・公開には触れず、git revert で戻せる。
-- **承認**: Taiki Ogihara (approved): feat/skill-procedure-gaps へのローカルのコミット、レビューと gate の後の push と PR（2026-11-08 の会話の質問「コミット」への回答）; Taiki Ogihara (approved): 4回目の assurance review を、直しが graph を変えたのに差分だけで行う（規則の例外。2026-11-08 の会話の質問「4回目」への回答）; Taiki Ogihara (approved): R0-A3 のために tests/run-mcp-startup.sh を 276dca7 のきれいな worktree でサンドボックスの外で走らせる（PyPI の MCP パッケージを取り寄せて起動する。2026-11-08 の会話の質問「R0-A3」への回答）
+- **承認**: Taiki Ogihara (approved): feat/skill-procedure-gaps へのローカルのコミット、レビューと gate の後の push と PR（2026-11-08 の会話の質問「コミット」への回答）; Taiki Ogihara (approved): 4回目の assurance review を、直しが graph を変えたのに差分だけで行う（規則の例外。2026-11-08 の会話の質問「4回目」への回答）; Taiki Ogihara (approved): 別の作業で書かれた .claude/skills/verified-delivery/README.md・README.ja.md とルートの README の変更を、この変更に取り込む（2026-11-08 の依頼「readmeファイルも取り込み」）
 
 ## 水準ごとの検査
 
@@ -110,27 +110,27 @@ flowchart TD
 
 | 要求 | 検査 | 水準 | 状態 | 証拠 |
 |---|---|---|---|---|
-| R0 | `R0-A1` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt` @ `276dca7` |
+| R0 | `R0-A1` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt` @ `1e80cb5` |
 | R0 | `R0-A2` | L3 | not_run | — |
-| R0 | `R0-A3` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/ci-suites-all.txt` @ `276dca7` |
-| R0 | `R0-A4` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/compat-diff.txt` @ `276dca7` |
-| R0 | `R0-A5` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/records-check.txt` @ `276dca7` |
+| R0 | `R0-A3` | L3 | passed | [ci_job](https://github.com/superluminal-jp/my-claude-code/actions/runs/42426931132/job/128567099823) @ `1e80cb5` |
+| R0 | `R0-A4` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt` @ `1e80cb5` |
+| R0 | `R0-A5` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/records-check.txt` @ `1e80cb5` |
 | R1 | `R1-A1` | L1 | not_run | — |
 | R2 | `R2-A1` | L1 | not_run | — |
 | R3 | `R3-A1` | L1 | not_run | — |
-| R3 | `R3-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/review-tokens.txt` @ `276dca7` |
-| R4 | `R4-A1` | L2 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt` @ `276dca7` |
-| R4 | `R4-A2` | L2 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt` @ `276dca7` |
-| R4a | `R4a-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml` @ `276dca7` |
-| R4b | `R4b-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml` @ `276dca7` |
-| R4c | `R4c-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml` @ `276dca7` |
-| R4c | `R4c-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/compat-diff.txt` @ `276dca7` |
+| R3 | `R3-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/review-tokens.txt` @ `1e80cb5` |
+| R4 | `R4-A1` | L2 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt` @ `1e80cb5` |
+| R4 | `R4-A2` | L2 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt` @ `1e80cb5` |
+| R4a | `R4a-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
+| R4b | `R4b-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
+| R4c | `R4c-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
+| R4c | `R4c-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt` @ `1e80cb5` |
 | R4d | `R4d-A1` | L1 | not_run | — |
-| R5 | `R5-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml` @ `276dca7` |
+| R5 | `R5-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
 | R5 | `R5-A2` | L1 | not_run | — |
 | R6 | `R6-A1` | L1 | not_run | — |
-| R7 | `R7-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml` @ `276dca7` |
+| R7 | `R7-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
 | R7 | `R7-A2` | L1 | not_run | — |
 | R8 | `R8-A1` | L1 | not_run | — |
 | R9 | `R9-A1` | L1 | not_run | — |
-| R9 | `R9-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/config-pyramid.txt` @ `276dca7` |
+| R9 | `R9-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/config-pyramid.txt` @ `1e80cb5` |
