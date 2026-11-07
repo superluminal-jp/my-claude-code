@@ -3,27 +3,38 @@
   "verification_manifest": {
     "change_id": "CHG-068",
     "problem_id": "P-068",
-    "reviewed_commit": "f972fe7376d7719204967a36883b1171cce332cf",
+    "reviewed_commit": "276dca70c36e78785d905606990b48bb22b42cda",
     "implementer": "claude",
     "risk": {
       "class": "medium",
       "rationale": "2つの検査器（assure.py・check_graph.py）の入力の形と命令、すべてのプロジェクトで使う3つのスキルの手順を変える。認証・秘密・個人データ・基盤の権限・公開には触れず、git revert で戻せる。"
     },
-    "approvals": [],
+    "approvals": [
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "feat/skill-procedure-gaps へのローカルのコミット、レビューと gate の後の push と PR（2026-11-08 の会話の質問「コミット」への回答）"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "4回目の assurance review を、直しが graph を変えたのに差分だけで行う（規則の例外。2026-11-08 の会話の質問「4回目」への回答）"
+      }
+    ],
     "checks": [
       {
         "check_id": "R0-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/delivery-flow.txt",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
         "check_id": "R0-A2",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R0-A3",
@@ -35,8 +46,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/compat-diff.txt",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/compat-diff.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
@@ -47,30 +58,30 @@
       {
         "check_id": "R1-A1",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R2-A1",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R3-A1",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R3-A2",
         "status": "not_run",
-        "reason": "1回目から3回目の後の直しはどれも graph を変えたので、2回目から4回目はすべての差分を読む手順になる。差分のレビューの回はまだ無い"
+        "reason": "5回目のレビュー（graph を変えない直しの後なので、規則どおり差分だけ）のトークン数を、3回目（すべての差分）と比べる"
       },
       {
         "check_id": "R4-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/delivery-flow.txt",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
@@ -78,8 +89,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/delivery-flow.txt",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
@@ -87,8 +98,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/unit-tests.junit.xml",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
@@ -96,8 +107,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/unit-tests.junit.xml",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
@@ -105,8 +116,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/unit-tests.junit.xml",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
@@ -114,65 +125,65 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/compat-diff.txt",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/compat-diff.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
         "check_id": "R4d-A1",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R5-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/unit-tests.junit.xml",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
         "check_id": "R5-A2",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R6-A1",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R7-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/unit-tests.junit.xml",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       },
       {
         "check_id": "R7-A2",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R8-A1",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R9-A1",
         "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
       },
       {
         "check_id": "R9-A2",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/f972fe7/config-pyramid.txt",
-          "commit": "f972fe7376d7719204967a36883b1171cce332cf"
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/config-pyramid.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
         }
       }
     ],
