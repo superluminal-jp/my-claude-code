@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-066",
     "problem_id": "P-066",
-    "reviewed_commit": "2822abeb2faed07ca1356479adec0d2c01161801",
+    "reviewed_commit": "f9dbf00b298c8a90301de7849b13b6f018163911",
     "implementer": "claude",
     "risk": {
       "class": "high",
@@ -25,20 +25,20 @@
       {
         "check_id": "R0-A1",
         "status": "not_run",
-        "reason": "基準の実行は課金されるモデルの呼び出しで、件数と費用の上限について利用者の承認を待っている。承認の前には一度も実行していない。"
+        "reason": "R0-A1 が求めるのは起点の実行（1件3回）で、まだしていない。その費用の上限は、利用者の承認を待っている。2026-11-07 に試しの実行（2822abe、24件を1回ずつ）をした。24件すべてが見つかって走り、利用枠の上限で止まった4件を名前で走らせ直した。到達確認は合格し、5つの SessionStart フックが終了コード0で動き、モデルが5ファイルの最後の文を原文のまま書き出した。費用は合計 $6.96 だった（evidence/smoke-2822abe/）。これは仕組みの確かめで、R0-A1 の証拠ではない。"
       },
       {
         "check_id": "R0-A2",
         "status": "not_run",
-        "reason": "R0-A1 の実際の結果が要る。比較の道具そのものは R6-A1 の単体テストで確かめた。"
+        "reason": "R0-A1 の結果がまだない。compare は、試しの実行の実物の結果（aggregate-result.json の cases[].name と cases[].aggregates.score）を読めた。そのうえで、到達確認が0点で採点の前に誤りで止まった実行を含むその結果を、比べられないとして拒んだ。その出力は evidence/f9dbf00/compare-real-trial-result.txt にある。これは形式の確かめで、R0-A2 の証拠ではない。"
       },
       {
         "check_id": "R-SPEC-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/check-real-tree.txt（コードのパスがきれいな状態で、実際の対応表とシナリオ集に harness_eval.py check が違反0件）と specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml の [R-SPEC-A1]",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/check-real-tree.txt（コードのパスがきれいな状態で、実際の対応表とシナリオ集に harness_eval.py check が違反0件）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-SPEC-A1]",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -46,8 +46,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -55,8 +55,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/ci-step.txt（.github/workflows/ci.yml の43–44行目が tests/run-harness-eval.sh を実行する）",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/ci-step.txt（.github/workflows/ci.yml の43–44行目が tests/run-harness-eval.sh を実行する）",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -64,8 +64,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -73,8 +73,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/dry-run.json（git の内容から組み立て、claude plugin validate の終了コード0、24件、組み立てたスキル14件の一覧（skills）、実行のコマンド行を表示、モデルは呼んでいない）と specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml の [R-MEASURE-A1]（claude を差し替えた run の結合テストと、1つのシナリオ集を2つの harness のコミットで走らせて比べる結合テスト）",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/dry-run.json（git の内容から組み立て、claude plugin validate の終了コード0、24件、組み立てたスキル14件の一覧（skills）、実行のコマンド行を表示、モデルは呼んでいない）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-MEASURE-A1]（claude を差し替えた run の結合テストと、1つのシナリオ集を2つの harness のコミットで走らせて比べる結合テスト）",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -82,8 +82,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -91,8 +91,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -100,8 +100,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       },
       {
@@ -109,8 +109,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/066-harness-behavior-baseline/evidence/2822abe/unit-tests.junit.xml",
-          "commit": "2822abeb2faed07ca1356479adec0d2c01161801"
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
         }
       }
     ],

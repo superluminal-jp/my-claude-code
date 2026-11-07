@@ -1,0 +1,3 @@
+commit: 302e2243fcfa6ad87e0d21445fae01c682ff5bc4
+43:      - name: Run harness behavior baseline checks
+44-        run: bash tests/run-harness-eval.sh

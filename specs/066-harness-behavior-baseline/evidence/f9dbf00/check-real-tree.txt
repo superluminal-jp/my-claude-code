@@ -1,0 +1,6 @@
+commit: f9dbf00b298c8a90301de7849b13b6f018163911
+code-path status (excluding specs/066):
+(end of status)
+command: python3 tests/harness-eval/harness_eval.py check
+Result: passed (0 violations)
+exit: 0

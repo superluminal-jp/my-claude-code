@@ -1,0 +1,74 @@
+note: this file was collected by the implementer (claude). The lines above the first blank line were added by the collector and are not tool output; every occurrence of the user's home directory path is replaced with ~. Everything after the first blank line is the tool's output otherwise unchanged.
+commit: 2822abeb2faed07ca1356479adec0d2c01161801; plugin built by 'harness_eval.py run --dry-run' at that commit, then 'claude plugin eval <plugin> --model opus --runs 1 --ablation none --threshold 0 --max-cost-usd N --no-publish --trust-plugin --scaffold --allow-tools Bash --keep-temp --case <name>' for the four cases the usage limit stopped
+
+### case probe-always-on -> /tmp/claude-501/harness-eval-qdhvvg72/results-probe-always-on
+Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+Plugin under test: "harness" (no version) at "/private/tmp/claude-501/harness-eval-qdhvvg72/harness"
+  kept temp: /private/tmp/e-ft7CaG
+⚠ kept /private/tmp/e-ft7CaG: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-ft7CaG/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-ft7CaG /private/tmp/e-ft7CaG/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  probe-always-on run 1/1: score 1.00  $0.20
+    ✓ apex-reached (weight 1): matched informed\s+control\s+of\s+the\s+next\s+decision
+    ✓ clarifier-rule-reached (weight 1): matched Software\s+Engineering\s+Economics
+    ✓ lenses-rule-reached (weight 1): matched Logic\s+of\s+Scientific\s+Discovery
+    ✓ no-tool-used (weight 1): Bash called 0x (expected 0..0)
+    ✓ permissions-rule-reached (weight 1): matched Protection\s+of\s+Information\s+in\s+Computer\s+Systems
+    ✓ pyramid-rule-reached (weight 1): matched Multiple\s+analogies\s+for\s+complex\s+concepts
+✓ probe-always-on  score 1.00  (1 run)  $0.20
+
+CASE             SCORE PASS% RUNS COST    NOTES
+probe-always-on  1.00  100%  1    $0.20   
+
+1 case(s) · 8s · $0.20
+Report: /tmp/claude-501/harness-eval-qdhvvg72/results-probe-always-on/report.html
+exit: 0
+### case obs-[ers]* -> /tmp/claude-501/harness-eval-qdhvvg72/results-obs-ers
+Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+No eval cases found matching --case "obs-[ers]*" under /private/tmp/claude-501/harness-eval-qdhvvg72/harness.
+Run without --case to see all cases.
+exit: 1
+### case obs-execution-plan -> /tmp/claude-501/harness-eval-qdhvvg72/results-obs-execution-plan
+Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+Plugin under test: "harness" (no version) at "/private/tmp/claude-501/harness-eval-qdhvvg72/harness"
+  kept temp: /private/tmp/e-hKllWx
+⚠ kept /private/tmp/e-hKllWx: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-hKllWx/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-hKllWx /private/tmp/e-hKllWx/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  obs-execution-plan run 1/1: score 1.00  $0.25
+    ✓ problem-definition-unused (weight 1): Skill called 0x (expected 0..0)
+✓ obs-execution-plan  score 1.00  (1 run)  $0.25
+
+CASE                SCORE PASS% RUNS COST    NOTES
+obs-execution-plan  1.00  100%  1    $0.25   
+
+1 case(s) · 26s · $0.25
+Report: /tmp/claude-501/harness-eval-qdhvvg72/results-obs-execution-plan/report.html
+exit: 0
+### case obs-root-cause -> /tmp/claude-501/harness-eval-qdhvvg72/results-obs-root-cause
+Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+Plugin under test: "harness" (no version) at "/private/tmp/claude-501/harness-eval-qdhvvg72/harness"
+  kept temp: /private/tmp/e-l91WaV
+⚠ kept /private/tmp/e-l91WaV: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-l91WaV/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-l91WaV /private/tmp/e-l91WaV/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  obs-root-cause run 1/1: score 1.00  $0.19
+    ✓ problem-definition-unused (weight 1): Skill called 0x (expected 0..0)
+    ✓ requirements-decomposition-unused (weight 1): Skill called 0x (expected 0..0)
+✓ obs-root-cause  score 1.00  (1 run)  $0.19
+
+CASE            SCORE PASS% RUNS COST    NOTES
+obs-root-cause  1.00  100%  1    $0.19   
+
+1 case(s) · 23s · $0.19
+Report: /tmp/claude-501/harness-eval-qdhvvg72/results-obs-root-cause/report.html
+exit: 0
+### case obs-solution-choice -> /tmp/claude-501/harness-eval-qdhvvg72/results-obs-solution-choice
+Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+Plugin under test: "harness" (no version) at "/private/tmp/claude-501/harness-eval-qdhvvg72/harness"
+  kept temp: /private/tmp/e-HmHMOw
+⚠ kept /private/tmp/e-HmHMOw: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-HmHMOw/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-HmHMOw /private/tmp/e-HmHMOw/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  obs-solution-choice run 1/1: score 1.00  $0.29
+    ✓ problem-definition-unused (weight 1): Skill called 0x (expected 0..0)
+✓ obs-solution-choice  score 1.00  (1 run)  $0.29
+
+CASE                 SCORE PASS% RUNS COST    NOTES
+obs-solution-choice  1.00  100%  1    $0.29   
+
+1 case(s) · 53s · $0.29
+Report: /tmp/claude-501/harness-eval-qdhvvg72/results-obs-solution-choice/report.html
+exit: 0

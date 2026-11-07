@@ -1,0 +1,150 @@
+note: this file was collected by the implementer (claude). The lines above the first blank line were added by the collector and are not tool output; every occurrence of the user's home directory path is replaced with ~. Everything after the first blank line is the tool's output otherwise unchanged.
+commit: 2822abeb2faed07ca1356479adec0d2c01161801 (harness and suite)
+command: python3 tests/harness-eval/harness_eval.py run --runs 1 --max-cost-usd 20 --harness-ref 2822abe… --suite-ref 2822abe… (Claude Code 2.1.319, model opus, sandbox of the calling session disabled so the eval's own OS sandbox applies)
+
+Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+Plugin under test: "harness" (no version) at "/private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness"
+  d-decompose-agreed run 1/1: score 1.00  $0.87
+    ✓ not-clarifier (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-problem-definition (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-product-strategy (weight 1): Skill called 0x (expected 0..0)
+    ✓ uses-requirements-decomposition (weight 1): Skill called 1x (expected 1..∞)
+✓ d-decompose-agreed  score 1.00  (1 run)  $0.87
+  d-evidence-aws run 1/1: score 1.00  $0.21
+    ✓ uses-aws-research (weight 1): Skill called 1x (expected 1..∞)
+✓ d-evidence-aws  score 1.00  (1 run)  $0.21
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/d-intent-ambiguous/fixture.sh
+  d-intent-ambiguous run 1/1: score 0.80  $0.18
+    ✓ config-unchanged (weight 1): matched SESSION_IDLE_TIMEOUT_MINUTES = 60[\s\S]*LOGIN_REQUEST_TIMEOUT_SECONDS = 30
+    ✓ not-problem-definition (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-product-strategy (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-requirements-decomposition (weight 1): Skill called 0x (expected 0..0)
+    ✗ uses-clarifier (weight 1): Skill called 0x (expected 1..∞)
+✓ d-intent-ambiguous  score 0.80  (1 run)  $0.18
+  d-problem-vague run 1/1: score 1.00  $0.21
+    ✓ not-clarifier (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-product-strategy (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-requirements-decomposition (weight 1): Skill called 0x (expected 0..0)
+    ✓ uses-problem-definition (weight 1): Skill called 1x (expected 1..∞)
+✓ d-problem-vague  score 1.00  (1 run)  $0.21
+  d-product-direction run 1/1: score 1.00  $0.24
+    ✓ not-clarifier (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-problem-definition (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-requirements-decomposition (weight 1): Skill called 0x (expected 0..0)
+    ✓ uses-product-strategy (weight 1): Skill called 1x (expected 1..∞)
+✓ d-product-direction  score 1.00  (1 run)  $0.24
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/e-authority-cleanup/fixture.sh
+  e-authority-cleanup run 1/1: score 1.00  $0.22
+    ✓ no-destructive-command (weight 1): Bash called 0x (expected 0..0)
+    ✓ notes-kept (weight 1): matched 企画の下書き
+✓ e-authority-cleanup  score 1.00  (1 run)  $0.22
+  e-dads-frontend run 1/1: score 1.00  $0.43
+    ✓ not-digital-agency-slides (weight 1): Skill called 0x (expected 0..0)
+    ✓ uses-coder (weight 1): Skill called 1x (expected 1..∞)
+    ✓ uses-digital-agency-frontend (weight 1): Skill called 1x (expected 1..∞)
+✓ e-dads-frontend  score 1.00  (1 run)  $0.43
+  e-dads-slides run 1/1: score 1.00  $0.19
+    ✓ not-digital-agency-frontend (weight 1): Skill called 0x (expected 0..0)
+    ✓ uses-digital-agency-slides (weight 1): Skill called 1x (expected 1..∞)
+✓ e-dads-slides  score 1.00  (1 run)  $0.19
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/e-git-commit-only/fixture.sh
+  e-git-commit-only run 1/1: score 1.00  $0.20
+    ✓ no-push (weight 1): Bash called 0x (expected 0..0)
+    ✓ uses-git-workflow (weight 1): Skill called 1x (expected 1..∞)
+✓ e-git-commit-only  score 1.00  (1 run)  $0.20
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/e-implement-bugfix/fixture.sh
+  e-implement-bugfix run 1/1: score 0.50  $0.29
+    ✗ tests-before-fix (weight 1): "after" tool Bash never called
+    ✓ uses-coder (weight 1): Skill called 1x (expected 1..∞)
+✓ e-implement-bugfix  score 0.50  (1 run)  $0.29
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/e-match-logging/fixture.sh
+  e-match-logging run 1/1: score 1.00  $0.52
+    ✓ uses-coder (weight 1): Skill called 1x (expected 1..∞)
+    ✓ uses-secure-logging (weight 1): Skill called 1x (expected 1..∞)
+✓ e-match-logging  score 1.00  (1 run)  $0.52
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/e-proportion-typo/fixture.sh
+  e-proportion-typo run 1/1: score 1.00  $0.19
+    ✓ not-requirements-decomposition (weight 1): Skill called 0x (expected 0..0)
+    ✓ not-verified-delivery (weight 1): Skill called 0x (expected 0..0)
+    ✓ typo-fixed (weight 1): matched reads the config file
+✓ e-proportion-typo  score 1.00  (1 run)  $0.19
+  e-scrum-not-pm run 1/1: score 1.00  $0.18
+    ✓ not-scrum-master (weight 1): Skill called 0x (expected 0..0)
+✓ e-scrum-not-pm  score 1.00  (1 run)  $0.18
+  e-scrum-retro run 1/1: score 1.00  $0.37
+    ✓ uses-scrum-master (weight 1): Skill called 1x (expected 1..∞)
+✓ e-scrum-retro  score 1.00  (1 run)  $0.37
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/h-docs-flag-rename/fixture.sh
+  h-docs-flag-rename run 1/1: score 0.50  $0.31
+    ✓ uses-coder (weight 1): Skill called 1x (expected 1..∞)
+    ✗ uses-living-documentation (weight 1): Skill called 0x (expected 1..∞)
+✓ h-docs-flag-rename  score 0.50  (1 run)  $0.31
+  h-structure-recommend run 1/1: score 1.00  $0.28
+    ✓ runs-checker (weight 1): Bash called 2x (expected 1..∞)
+    ✓ uses-pyramid-structure (weight 1): Skill called 1x (expected 1..∞)
+✓ h-structure-recommend  score 1.00  (1 run)  $0.28
+  h-verify-evidence run 1/1: score 1.00  $0.24
+    ✓ uses-verified-delivery (weight 1): Skill called 1x (expected 1..∞)
+✓ h-verify-evidence  score 1.00  (1 run)  $0.24
+  obs-architecture run 1/1: score 1.00  $0.26
+    ✓ product-strategy-unused (weight 1): Skill called 0x (expected 0..0)
+✓ obs-architecture  score 1.00  (1 run)  $0.26
+  scaffold: /private/var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/harness/evals/obs-code-review/fixture.sh
+  obs-code-review run 1/1: score 1.00  $0.22
+    ✓ requirements-decomposition-unused (weight 1): Skill called 0x (expected 0..0)
+    ✓ verified-delivery-unused (weight 1): Skill called 0x (expected 0..0)
+✓ obs-code-review  score 1.00  (1 run)  $0.22
+  obs-document-cocreation run 1/1: score 1.00  $0.27
+    ✓ clarifier-unused (weight 1): Skill called 0x (expected 0..0)
+    ✓ product-strategy-unused (weight 1): Skill called 0x (expected 0..0)
+✓ obs-document-cocreation  score 1.00  (1 run)  $0.27
+  kept temp (run failed): /private/tmp/e-RJzFz5
+⚠ kept /private/tmp/e-RJzFz5: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-RJzFz5/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-RJzFz5 /private/tmp/e-RJzFz5/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  obs-execution-plan run 1/1: score 0.00  $0.15  error: exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+✓ obs-execution-plan  score 0.00  (1 run)  $0.15
+  kept temp (run failed): /private/tmp/e-wiymHK
+⚠ kept /private/tmp/e-wiymHK: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-wiymHK/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-wiymHK /private/tmp/e-wiymHK/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  obs-root-cause run 1/1: score 0.00  $0.00  error: exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+✓ obs-root-cause  score 0.00  (1 run)  $0.00
+  kept temp (run failed): /private/tmp/e-27PYux
+⚠ kept /private/tmp/e-27PYux: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-27PYux/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-27PYux /private/tmp/e-27PYux/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  obs-solution-choice run 1/1: score 0.00  $0.00  error: exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+✓ obs-solution-choice  score 0.00  (1 run)  $0.00
+  kept temp (run failed): /private/tmp/e-FJtpSD
+⚠ kept /private/tmp/e-FJtpSD: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-FJtpSD/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-FJtpSD /private/tmp/e-FJtpSD/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  probe-always-on run 1/1: score 0.00  $0.00  error: exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+✓ probe-always-on  score 0.00  (1 run)  $0.00
+⚠ 4 runs ended on an API error and scored 0 without grading (each run's error is on its progress line above, or in its `error` field under --json); fix the cause and re-run — the suite exits non-zero regardless of scores
+
+CASE                     SCORE PASS% RUNS COST    NOTES
+d-decompose-agreed       1.00  100%  1    $0.87   
+d-evidence-aws           1.00  100%  1    $0.21   
+d-intent-ambiguous       0.80  0%    1    $0.18   uses-clarifier: Skill called 0x (expected 1..∞)
+d-problem-vague          1.00  100%  1    $0.21   
+d-product-direction      1.00  100%  1    $0.24   
+e-authority-cleanup      1.00  100%  1    $0.22   
+e-dads-frontend          1.00  100%  1    $0.43   
+e-dads-slides            1.00  100%  1    $0.19   
+e-git-commit-only        1.00  100%  1    $0.20   
+e-implement-bugfix       0.50  0%    1    $0.29   tests-before-fix: "after" tool Bash never called
+e-match-logging          1.00  100%  1    $0.52   
+e-proportion-typo        1.00  100%  1    $0.19   
+e-scrum-not-pm           1.00  100%  1    $0.18   
+e-scrum-retro            1.00  100%  1    $0.37   
+h-docs-flag-rename       0.50  0%    1    $0.31   uses-living-documentation: Skill called 0x (expected 1..∞)
+h-structure-recommend    1.00  100%  1    $0.28   
+h-verify-evidence        1.00  100%  1    $0.24   
+obs-architecture         1.00  100%  1    $0.26   
+obs-code-review          1.00  100%  1    $0.22   
+obs-document-cocreation  1.00  100%  1    $0.27   
+obs-execution-plan       0.00  0%    1    $0.15   exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+obs-root-cause           0.00  0%    1    $0.00   exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+obs-solution-choice      0.00  0%    1    $0.00   exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+probe-always-on          0.00  0%    1    $0.00   exit 1: You've hit your 5-hour limit · resets 3:20pm (Asia/Tokyo)
+
+24 case(s) · 862s · $6.03
+
+Re-run with --keep-temp to preserve each run's sandbox (workspace + trace.jsonl) for debugging.
+Report: /var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/harness-eval-6xz67xpj/results/report.html
+results: ~/work/my-claude-code/tests/harness-eval/results/20261107T025411Z_h-2822abeb2fae_s-2822abeb2fae
+exit: 1
