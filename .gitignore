@@ -73,6 +73,10 @@ coverage/
 # Logs
 *.log
 
+# Raw harness-eval results (transcripts, local paths). Review a result before
+# adding any of it with `git add -f` — see docs/harness-eval.md.
+tests/harness-eval/results/
+
 # May be written locally by external developer tooling this repository does
 # not generate, deploy, or manage.
 .codex/

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "description": "ログインに関わる2つの異なるタイムアウトを持つ小さなアプリ。『ログインのタイムアウトを短く』に、結果の違う2つの読み方ができる。",
+  "files": {
+    "README.md": "# 社内ポータル\n\n設定は config.py にある。\n\n- SESSION_IDLE_TIMEOUT_MINUTES: 無操作でログアウトされるまでの分数\n- LOGIN_REQUEST_TIMEOUT_SECONDS: ログイン時に認証サーバーを待つ秒数\n",
+    "config.py": "# ログイン後、操作がないままセッションが切れるまでの時間（分）\nSESSION_IDLE_TIMEOUT_MINUTES = 60\n\n# ログイン要求が認証サーバーの応答を待つ時間（秒）\nLOGIN_REQUEST_TIMEOUT_SECONDS = 30\n"
+  },
+  "commit": true
+}

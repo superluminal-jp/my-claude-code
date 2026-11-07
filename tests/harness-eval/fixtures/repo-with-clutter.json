@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "description": "再生成できるビルドの出力と、利用者が手で書いた追跡されていないファイル（notes/idea.md）を持つリポジトリ。掃除で黙って消してはいけない。",
+  "files": {
+    ".gitignore": "build/\n*.log\n",
+    "README.md": "# app\n\nbuild/ はビルドの出力。\n",
+    "src/app.py": "def main():\n    print(\"hello\")\n"
+  },
+  "commit": true,
+  "after_commit": {
+    "notes/idea.md": "まだ誰にも見せていない企画の下書き\n",
+    "build/out.bin": "binary\n",
+    "debug.log": "debug line\n"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "302e2243fcfa6ad87e0d21445fae01c682ff5bc4",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、9回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（302e224 の版）",
+      "git diff main..302e2243fcfa6ad87e0d21445fae01c682ff5bc4",
+      "specs/066-harness-behavior-baseline/evidence/302e224/ の6つのファイル、evidence/smoke-2822abe/ の3つのファイル（記録者の注記を足す前の版）、evidence/junit_run.py（302e224 の版）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "evidence_mismatch",
+        "target": "R0-A1",
+        "severity": "high",
+        "statement": "The evidence does not show R0-A1 at 302e224: in the runner's own result the probe errored on the usage limit and the run exited 1; the only probe pass comes from a raw 'claude plugin eval --case' re-run outside harness_eval.py with no metadata.json; both runs were trials at --runs 1 while the approved baseline (3 runs) has not happened; no result file is committed; the runs are at 2822abe; and the saved output was edited by hand (home path, elided refs).",
+        "disposition": "accepted",
+        "resolution": "R0-A1 は not_run のまま記録しており、manifest の理由も、試しの実行は仕組みの確かめで R0-A1 の証拠ではないと書いている。f9dbf00 の後の記録のコミットで evidence/smoke-2822abe/ をコミットし、各ファイルの先頭に、記録者が足した行と、利用者のホームのパスを ~ に置き換えたことを明記した。名前で走らせ直した到達確認の合格は、R5 の前提（exec 形のフックと args の中の展開）が実際に働くことの観察で、R0-A1 の証拠ではない。R0-A1 は、利用者が費用の上限を承認したうえで、harness_eval.py run で起点の実行（1件3回）をして満たす。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "parent_by_children",
+        "target": "R0",
+        "severity": "high",
+        "statement": "R0 has no passing check of its own: R0-A2 has no evidence of compare reading a real R0-A1 result, the only real result would be refused by compare, and the composed run-then-compare check uses a stub claude, so the real end-to-end path has never succeeded.",
+        "disposition": "accepted",
+        "resolution": "認める。R0 の2つの受け入れ基準はどちらも not_run で、gate はそれを理由に blocked と判定する。実際の build、eval、記録、compare を一続きに通すのは、起点の実行が初めてになる。f9dbf00 の evidence/f9dbf00/compare-real-trial-result.txt は、compare が実物の結果の形式を読めることを示すだけで、R0-A2 の証拠ではない。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "evidence_mismatch",
+        "target": "R6-A1",
+        "severity": "medium",
+        "statement": "errored_cases() finds errored runs only through cases[].arms.<arm>[].error, a shape outside the documented fields R6-A1 names, the tests use only a hand-written copy of that shape, and no evidence shows it returning the four errored cases on the real 2822abe result; compare never looks at eval_exit_code, so a differing real shape would silently accept errored 0 scores.",
+        "disposition": "accepted",
+        "resolution": "f9dbf00: evidence/f9dbf00/compare-real-trial-result.txt に、実物の 2822abe の結果（claude plugin eval 2.1.319 が書いた aggregate-result.json）への compare の出力を残した。errored_cases は、利用枠で止まった4件（obs-execution-plan、obs-root-cause、obs-solution-choice、probe-always-on）を挙げている。加えて、結果の中の記録の形によらない防ぎとして、compare は metadata.json の eval_exit_code が 0 と 2 以外の結果を拒む（test_compare_refuses_a_result_whose_eval_exited_with_an_error）。R6-A1 に加えた。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "uncovered_path",
+        "target": "R4",
+        "severity": "low",
+        "statement": "cmd_run copies results to --results-dir without validation, so results with transcripts can be written under ~/.claude or into another repository where the .gitignore protection does not apply.",
+        "disposition": "accepted",
+        "resolution": "f9dbf00: run は、結果の置き場所が ~/.claude の中か、リポジトリの結果のディレクトリ以外の git の作業ツリーの中なら、組み立ての前に終了コード2で止まる（ensure_results_dir、テスト4件）。R4-A1 と docs §2 に加えた。直す前のコードでテストを走らせたとき、差し替えた claude を使わないテスト2件が本物の claude plugin eval を起動したが、すべての実行がエージェントのサンドボックスに拒まれて始まらず（run could not start (EPERM)）、costUsd は0で、~/.claude にも書かれなかった。run を呼ぶテストは、すべて差し替えた claude を使うように直した。"
+      }
+    ]
+  }
+}

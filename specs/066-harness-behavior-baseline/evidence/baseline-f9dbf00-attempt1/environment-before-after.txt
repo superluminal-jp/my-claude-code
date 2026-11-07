@@ -1,0 +1,23 @@
+note: collected by the implementer (claude). The lines above the first blank line were added by the collector and are not tool output; every occurrence of the user's home directory path is replaced with ~. Everything after the first blank line is the tool's output otherwise unchanged.
+what: hash of ~/.claude/CLAUDE.md, settings.json and every file under rules, skills, agents and commands, plus the repository HEAD and status, taken before and after the run
+
+== before
+taken: 2026-11-07T11:18:35Z
+claude-managed-hash: fa8e67210cedb3eebc6e496beb09d0abce970a0344453f3bd6d1a86a908bd170
+claude-managed-files: 596 plus CLAUDE.md and settings.json
+repo HEAD: 6384fef586f25ab027671bc6abb647a1433ccb07
+repo status (tracked and untracked, ignored files excluded):
+ M specs/066-harness-behavior-baseline/requirements-graph.json
+ M specs/066-harness-behavior-baseline/verification-manifest.json
+(end)
+== after
+taken: 2026-11-07T16:21:33Z
+claude-managed-hash: fa8e67210cedb3eebc6e496beb09d0abce970a0344453f3bd6d1a86a908bd170
+claude-managed-files: 596 plus CLAUDE.md and settings.json
+repo HEAD: 6384fef586f25ab027671bc6abb647a1433ccb07
+repo status (tracked and untracked, ignored files excluded):
+ M specs/066-harness-behavior-baseline/requirements-graph.json
+ M specs/066-harness-behavior-baseline/verification-manifest.json
+?? specs/066-harness-behavior-baseline/assurance-review-10.f9dbf00.json
+?? specs/066-harness-behavior-baseline/evidence/smoke-2822abe/extract_probe_trace.py
+(end)

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "0ac8e15d1374c4bad6d2ba613d90d2ae72b8385c",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、7回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（0ac8e15 の版）",
+      "git diff main..0ac8e15d1374c4bad6d2ba613d90d2ae72b8385c",
+      "specs/066-harness-behavior-baseline/evidence/0ac8e15/ の6つのファイルと evidence/junit_run.py（0ac8e15 の版）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "evidence_mismatch",
+        "target": "R-SPEC-A1",
+        "severity": "medium",
+        "statement": "R-SPEC-A1's own L2 check is evidence/0ac8e15/check-real-tree.log, but .gitignore:74 '*.log' ignores it (and unit-tests.log, other-suites.log), so the repository will not carry it; the manifest committed at 0ac8e15 already cites an untracked evidence/112db91/check-real-tree.log. What remains committed are unit tests on synthetic trees.",
+        "disposition": "accepted",
+        "resolution": "4e6b18e: 証拠を .txt の名前で残し（evidence/4e6b18e/check-real-tree.txt、unit-tests.txt、other-suites.txt）、git check-ignore がどれも外さないことを確かめた。manifest の R-SPEC-A1 は check-real-tree.txt を指す。前の回の .log は、その回の記録として作業ツリーに残し、manifest からは指さない。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "uncovered_path",
+        "target": "R1-A1",
+        "severity": "medium",
+        "statement": "harness_components counts only the apex, rules and skills, while install.sh also syncs .claude/agents and .claude/commands; a harness commit that adds an agent or a command is neither reported by check nor stopped by build nor copied, so the run silently measures a harness without it.",
+        "disposition": "accepted",
+        "resolution": "4e6b18e: harness_components が .claude/agents と .claude/commands の各ファイルを agent:<パス> と command:<パス> の部品として数え、check は対応表にないものを報告する。評価はまだこれらを組み立てないので、harness のコミットにあれば組み立てを止める。今のリポジトリにはどちらもない。R1-A1 と R5-A1 に加え、docs/harness-eval.md の冒頭に記した。テスト4件。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "other",
+        "target": "R3-A1",
+        "severity": "low",
+        "statement": "build drops every probe grader whose basis quote is missing, including no-tool-used, which is not a reach grader and does not depend on its quote; when that apex sentence is reworded the guard disappears and the probe no longer shows the reach phrases came from injected context rather than a Bash read.",
+        "disposition": "accepted",
+        "resolution": "4e6b18e: 外すのは届いたことを見る判定（regex）だけにし、no-tool-used のような判定は語句がなくても残す（test_a_non_reach_probe_grader_is_kept_when_its_phrase_is_gone）。R3-A1 の記述も同じ範囲に直した。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "uncovered_path",
+        "target": "R6",
+        "severity": "low",
+        "statement": "No test runs compare's refusal of a non-partial result with cases_missing, and cmd_run's tolerance for missing cases in a partial result is untested because the stub always exits 0 with partial:false.",
+        "disposition": "accepted",
+        "resolution": "4e6b18e: compare が、部分的でないのにシナリオが欠けた結果を拒むこと（test_compare_refuses_a_complete_result_whose_run_missed_suite_cases）と、部分的な実行で欠けたシナリオを記録して0で終わること（test_a_partial_run_that_lacks_cases_records_them_and_succeeds。差し替えた claude が partial: true と終了コード2を返す）のテストを加えた。どちらの実装も 6897bff からあり、テストを加えると合格した。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "uncovered_path",
+        "target": "R5",
+        "severity": "low",
+        "statement": "install.sh installs and enables frontend-design, code-review and skill-creator at user scope, so their skills are selection candidates in the real environment but not in the eval; this difference is missing from docs §4, and the installed code-review plugin covers the obs-code-review request that the map lists as ownerless.",
+        "disposition": "accepted",
+        "resolution": "4e6b18e: docs/harness-eval.md §4 に7点目として、install.sh が入れる公式のプラグイン（frontend-design、code-review、skill-creator）が評価に入らないことと、obs-code-review と e-dads-frontend での選択への影響を記し、対応表の『担い手なし』は harness の中の担い手を指すと明記した。R5 の前提に加えた。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "other",
+        "target": "R0-A1",
+        "severity": "low",
+        "statement": "R0-A1 says the run leaves its results in the repository, but 0ac8e15 gitignores tests/harness-eval/results/, so the L3 evidence will live only in an ignored directory unless someone runs git add -f, and nothing records that step; R0-A1 and R0-A2 are also the only checks for the assumptions the L1/L2 passes defer to them.",
+        "disposition": "accepted",
+        "resolution": "4e6b18e: R0-A1 の記述を、結果を結果のディレクトリに残し、利用者が中身を確かめて選んだファイルをコミットし、証拠はコミットしたファイルを指す、と直した。後半（R0-A1 と R0-A2 だけが確かめる前提がある）は事実で、R0-A1 と R0-A2 が not_run の間、gate は blocked と判定する。"
+      }
+    ]
+  }
+}

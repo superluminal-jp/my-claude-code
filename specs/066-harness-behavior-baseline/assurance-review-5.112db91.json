@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "112db912ed55937a82f19b00d3b92d6c66541135",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、5回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（112db91 の版に、R2 の前提へ利用者が拡大を受け入れた一文を足した、作業ツリーの版）",
+      "git diff main..112db912ed55937a82f19b00d3b92d6c66541135",
+      "specs/066-harness-behavior-baseline/evidence/112db91/ の6つのファイルと evidence/junit_run.py"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "parent_by_children",
+        "target": "R0-A1",
+        "severity": "high",
+        "statement": "Nothing in the evidence exercises R0-A1: dry-run.json is a dry run, the tree at 112db91 has no tests/harness-eval/results, nothing records the user's approval of the scenario list or the cost ceiling, and the 'results:' lines in unit-tests.log come from stub runs. The probe never ran, so R5's runtime assumptions (the hook exec form, about 17,200 characters over 5 hooks) and R0's first counterexample stay untested.",
+        "disposition": "accepted",
+        "resolution": "R0-A1 は not_run のまま記録し、gate はそれを理由に blocked とする。2026-11-07 に利用者が高リスクの残存リスクと試しの実行（24件を1回ずつ、上限 $20）を承認し、manifest の approvals に記録した。到達確認と R5 の実行時の前提は、その試しの実行で確かめる。シナリオ集が代表的かの承認（R2 の前提）は、基準の実行（1件3回）の前に利用者から得る。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "parent_by_children",
+        "target": "R0-A2",
+        "severity": "medium",
+        "statement": "compare has never read a real 'claude plugin eval' result; every input was made up by the tests or the bash stub, and load_result takes sorted(rglob('aggregate-result.json'))[0], whose choice and field layout were never checked against real output.",
+        "disposition": "accepted",
+        "resolution": "R0-A2 は not_run のまま記録し、試しの実行の結果で確かめる。6897bff: load_result は最も浅い aggregate-result.json を読み、同じ深さに2つ以上あれば読まずに止まり、compare は終了コード2で終わる（test_the_shallowest_aggregate_result_is_read、test_two_aggregate_results_at_the_same_depth_are_refused、test_compare_exits_2_on_an_ambiguous_result_directory）。実際の出力の配置と項目は、試しの実行で確かめる。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "uncovered_path",
+        "target": "R0",
+        "severity": "high",
+        "statement": "build() runs the full check of the suite commit's map against the harness commit's tree and raises on any violation (harness_eval.py 668-670), so comparing harness commits fails whenever a change adds, removes or renames a component or edits a quoted phrase; the only cross-commit test keeps components and quotes intact.",
+        "disposition": "accepted",
+        "resolution": "6897bff: build はシナリオ集を自身のコミットの harness で検査し、harness のコミットとの食い違い（対応表にある部品や引用の語句がない）は止めずに Built.drift と metadata.json の harness_drift に記録する。harness のコミットにあって対応表にない部品があれば止める（評価に含めてよいかが分からないため）。R3 と R3-A1 に加え、R0 に反例を加えた。部品を消す変更は消す前のシナリオ集で比べ、改名は今は比べられないことを docs/harness-eval.md §2 に記した。テスト5件（test_a_suite_that_maps_a_component_the_older_harness_lacks_still_builds ほか）。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "R-MEASURE-A1",
+        "severity": "medium",
+        "statement": "dry-run.json's case_count is build() counting the directories it wrote itself and the stub counts evals/ on its own, so nothing shows which cases the real eval finds; the built plugin also carries 11 case.yaml files under skills/*/evals that a recursive discovery would run.",
+        "disposition": "accepted",
+        "resolution": "1点目は認める。6897bff: run は評価の後、結果の cases の名前をシナリオ集の id と照らし、シナリオ集にないものがあるか、部分的でないのに欠けていれば metadata.json の cases_unexpected と cases_missing に記録して1で終わり、compare もその結果を拒む（R3-A1、R6-A1 に加えた）。実際の eval が24件を見つけることは試しの実行で確かめる。2点目は AR-05 の対応でスキルの evals/ を組み立てから除いたので、発見の仕方によらず起きない（6897bff の dry-run の組み立てで、スキルの中の case.yaml は0件）。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "uncovered_path",
+        "target": "R4",
+        "severity": "medium",
+        "statement": "build() copies .claude/skills whole, bringing in six hand-written scaffold scripts (skills/maintaining-living-documentation/evals/*/fixture.sh) that never go through the fixture checks, lack the empty-directory guard and run git without disabling hooks; if --scaffold picks up eval cases inside skills, they run as the user outside the sandbox.",
+        "disposition": "accepted",
+        "resolution": "6897bff: 各スキルの直下の evals/ を組み立てに入れず、生成した evals/ の外に case.yaml が残れば組み立てを止める（test_a_skills_own_eval_suite_and_scaffold_are_not_built）。evals/ はそのスキル自身の評価の資料で、どの SKILL.md も指示として参照していない。R4-A1 と R5 に加え、docs §3 に記した。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "uncovered_path",
+        "target": "R6",
+        "severity": "medium",
+        "statement": "compare_dirs refuses only for missing metadata, partial results, or differing suite, model, claude_version or runs; a failed probe is not a reason, so a later run where injection broke would still be compared and its score changes reported as harness effects.",
+        "disposition": "accepted",
+        "resolution": "6897bff: metadata.json に到達確認のシナリオの名前（probe_cases）を記録し、compare は、到達確認の得点が1でない結果、到達確認のシナリオが結果にない結果、到達確認のないシナリオ集の結果、probe_cases のない記録を、理由を示して拒む（テスト5件）。R6 と R6-A1 に加えた。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "uncovered_path",
+        "target": "R-SPEC",
+        "severity": "low",
+        "statement": "digital-agency-slides' description excludes 'web pages, application interfaces, or dashboards that are not slides', the frontend skill's area, yet e-dads-frontend does not check that slides is unused and e-dads-slides does not check that frontend is unused.",
+        "disposition": "accepted",
+        "resolution": "6897bff: 対応表の E-dads-frontend の根拠に digital-agency-slides の除外の語句を、E-dads-slides の根拠に digital-agency-frontend の除外の語句（Do not use for Power BI artifacts or projects outside React/Tailwind CSS）を加え、e-dads-frontend で slides が、e-dads-slides で frontend が使われないことを判定する。frontend の除外は slides を名指ししないので、互いを名指しで除外し合う境界グループにはしない。"
+      },
+      {
+        "id": "AR-08",
+        "kind": "evidence_mismatch",
+        "target": "R4-A1",
+        "severity": "low",
+        "statement": "No test covers a skill plugin.json that has 'hooks' (the branch at harness_eval.py line 675), although three real skills ship .claude-plugin/plugin.json.",
+        "disposition": "accepted",
+        "resolution": "6897bff: test_a_skill_plugin_json_that_declares_hooks_stops_the_build と、hooks のない plugin.json は組み立てられることのテスト（test_a_skill_plugin_json_without_hooks_builds）を加えた。"
+      },
+      {
+        "id": "AR-09",
+        "kind": "risk_mismatch",
+        "target": "CHG-066",
+        "severity": "medium",
+        "statement": "Neither the requirements graph nor problem-card.json records a risk class, while eval_command adds --scaffold, --trust-plugin and Bash for every scenario, the run writes into the repository and makes billed model calls, and the diff adds a step to the required CI job.",
+        "disposition": "rejected",
+        "resolution": "risk は verification-manifest.json に high と記録している（reviewer.md の手順どおり、レビューに渡す資料に manifest は含めない）。理由に --scaffold の準備スクリプトと課金される実行を挙げ、利用者が 2026-11-07 にその残存リスクを承認した（approvals）。--trust-plugin で信頼されるフックは生成したものだけで、スキルが自前のフックを持てば組み立てを止める（R4-A1）。結果をリポジトリに書くのは評価が終わった後の実行器だけである（R4）。CI に加えた手順はモデルを呼ばず、単体テストと check だけを走らせる。"
+      }
+    ]
+  }
+}
