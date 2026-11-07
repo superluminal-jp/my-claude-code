@@ -1,0 +1,9 @@
+commit: 276dca70c36e78785d905606990b48bb22b42cda (a clean worktree of the commit, outside the Claude Code sandbox; the person approved this run on 2026-11-08)
+PASS awslabs.aws-documentation-mcp-server@latest starts and exits cleanly on EOF
+MCP startup smoke test passed: 1 package(s).
+PASS aws-knowledge has a well-formed https url and headers
+PASS google-developer-knowledge has a well-formed https url and headers
+PASS microsoft-learn has a well-formed https url and headers
+PASS wolfram has a well-formed https url and headers
+MCP http-shape check passed: 4 entr(y/ies).
+exit=0

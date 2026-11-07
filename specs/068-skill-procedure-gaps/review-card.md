@@ -15,7 +15,7 @@
 - **審査の対象のコミット**: `276dca70c36e78785d905606990b48bb22b42cda`
 - **実装担当**: claude
 - **リスク**: medium — 2つの検査器（assure.py・check\_graph.py）の入力の形と命令、すべてのプロジェクトで使う3つのスキルの手順を変える。認証・秘密・個人データ・基盤の権限・公開には触れず、git revert で戻せる。
-- **承認**: Taiki Ogihara (approved): feat/skill-procedure-gaps へのローカルのコミット、レビューと gate の後の push と PR（2026-11-08 の会話の質問「コミット」への回答）; Taiki Ogihara (approved): 4回目の assurance review を、直しが graph を変えたのに差分だけで行う（規則の例外。2026-11-08 の会話の質問「4回目」への回答）
+- **承認**: Taiki Ogihara (approved): feat/skill-procedure-gaps へのローカルのコミット、レビューと gate の後の push と PR（2026-11-08 の会話の質問「コミット」への回答）; Taiki Ogihara (approved): 4回目の assurance review を、直しが graph を変えたのに差分だけで行う（規則の例外。2026-11-08 の会話の質問「4回目」への回答）; Taiki Ogihara (approved): R0-A3 のために tests/run-mcp-startup.sh を 276dca7 のきれいな worktree でサンドボックスの外で走らせる（PyPI の MCP パッケージを取り寄せて起動する。2026-11-08 の会話の質問「R0-A3」への回答）
 
 ## 水準ごとの検査
 
@@ -23,12 +23,11 @@
 |---|---|---|---|---|---|
 | L1 | 8 | 0 | 9 | 0 | 0 |
 | L2 | 2 | 0 | 0 | 0 | 0 |
-| L3 | 3 | 0 | 2 | 0 | 0 |
+| L3 | 4 | 0 | 1 | 0 | 0 |
 
 ## 合格していない検査
 
 - `R0-A2` (L3, R0): not_run
-- `R0-A3` (L3, R0): not_run
 - `R1-A1` (L1, R1): not_run
 - `R2-A1` (L1, R2): not_run
 - `R3-A1` (L1, R3): not_run
@@ -42,7 +41,6 @@
 ## 未解消の事項
 
 - A-03 (blocked): "R0-A2" (L3) is not\_run
-- A-03 (blocked): "R0-A3" (L3) is not\_run
 - A-03 (blocked): "R1-A1" (L1) is not\_run
 - A-03 (blocked): "R2-A1" (L1) is not\_run
 - A-03 (blocked): "R3-A1" (L1) is not\_run
@@ -114,7 +112,7 @@ flowchart TD
 |---|---|---|---|---|
 | R0 | `R0-A1` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt` @ `276dca7` |
 | R0 | `R0-A2` | L3 | not_run | — |
-| R0 | `R0-A3` | L3 | not_run | — |
+| R0 | `R0-A3` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/ci-suites-all.txt` @ `276dca7` |
 | R0 | `R0-A4` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/compat-diff.txt` @ `276dca7` |
 | R0 | `R0-A5` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/276dca7/records-check.txt` @ `276dca7` |
 | R1 | `R1-A1` | L1 | not_run | — |

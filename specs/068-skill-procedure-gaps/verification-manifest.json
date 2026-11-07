@@ -19,6 +19,11 @@
         "by": "Taiki Ogihara",
         "decision": "approved",
         "scope": "4回目の assurance review を、直しが graph を変えたのに差分だけで行う（規則の例外。2026-11-08 の会話の質問「4回目」への回答）"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "R0-A3 のために tests/run-mcp-startup.sh を 276dca7 のきれいな worktree でサンドボックスの外で走らせる（PyPI の MCP パッケージを取り寄せて起動する。2026-11-08 の会話の質問「R0-A3」への回答）"
       }
     ],
     "checks": [
@@ -38,8 +43,12 @@
       },
       {
         "check_id": "R0-A3",
-        "status": "not_run",
-        "reason": "10のうち9つはローカルで合格（ci-suites-local.txt）。run-mcp-startup はサンドボックスが ~/.cache/uv への書き込みを止めて失敗したので、push の後の CI の test ジョブの結果を待つ"
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/ci-suites-all.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+        }
       },
       {
         "check_id": "R0-A4",
