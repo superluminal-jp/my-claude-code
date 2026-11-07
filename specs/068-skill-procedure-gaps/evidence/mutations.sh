@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Two observations for the tests spec 068 added, made on copies in a temporary
 # directory (the repository is only read):
-# 1. red: the new tests at HEAD, run against the checkers of main (9cd7932),
-#    fail on their assertions;
+# 1. red: the new tests at HEAD fail on their assertions (FAIL), with no
+#    error (ERROR, such as a usage error) — against the checkers of main
+#    (9cd7932) where main has the command, and otherwise against HEAD with
+#    the feature replaced by a stub of its final signature that gives a wrong
+#    result (the red coder's TDD section asks for);
 # 2. mutation: the tests that could not fail before the change (they pin
 #    behavior the change must keep, or the change's absence passed them for
 #    another reason) fail when the implementation is broken on purpose.
@@ -21,43 +24,56 @@ copy_skills() {  # copy_skills DEST: the two skills at the working tree of HEAD
   cp -R "$REPO/.claude/skills/requirements-decomposition" "$REPO/.claude/skills/verified-delivery" "$1/"
 }
 
-run_tests() {  # run_tests SKILL_DIR TEST...: prints "failed N" or "passed"
+run_tests() {  # run_tests SKILL_DIR TEST...: prints "failed F, errors E" or "passed"
   local dir="$1"; shift
   local out
   out="$(cd "$dir/tests" && python3 -B -m unittest "$@" 2>&1)"
   if printf '%s' "$out" | grep -q '^OK'; then echo passed; else
-    echo "failed $(printf '%s' "$out" | grep -cE '^(FAIL|ERROR):')"; fi
+    echo "failed $(printf '%s' "$out" | grep -c '^FAIL:'), errors $(printf '%s' "$out" | grep -c '^ERROR:')"; fi
 }
 
-# 1. red against main's checkers
-copy_skills "$WORK/red"
-git -C "$REPO" show 9cd7932:.claude/skills/requirements-decomposition/scripts/check_graph.py > "$WORK/red/requirements-decomposition/scripts/check_graph.py"
-git -C "$REPO" show 9cd7932:.claude/skills/verified-delivery/scripts/assure.py > "$WORK/red/verified-delivery/scripts/assure.py"
-for spec in "requirements-decomposition test_check_graph.StageAndOriginTests" \
-            "verified-delivery test_assure.StageTests" "verified-delivery test_assure.JestTests" \
-            "verified-delivery test_card.StageCardTests" "verified-delivery test_card.OriginCardTests"; do
-  set -- $spec
-  got="$(run_tests "$WORK/red/$1" "$2")"
-  printf 'red      %-45s against main: %s\n' "$2" "$got"
-  case "$got" in failed*) ;; *) bad=1 ;; esac
-done
+replace_once() {  # replace_once FILE OLD NEW
+  python3 -I - "$1" "$2" "$3" <<'EOF'
+import sys
+path, old, new = sys.argv[1:]
+text = open(path, encoding="utf-8").read()
+if text.count(old) != 1:
+    sys.exit(f"the replacement point occurs {text.count(old)} times")
+open(path, "w", encoding="utf-8").write(text.replace(old, new))
+EOF
+}
+
+expect_red() {  # expect_red LABEL DIR TEST: a red is assertion failures and no error
+  local got
+  got="$(run_tests "$2" "$3")"
+  printf 'red      %-45s %s: %s\n' "$3" "$1" "$got"
+  case "$got" in "failed 0,"*|passed) bad=1 ;; *", errors 0") ;; *) bad=1 ;; esac
+}
+
+# 1. red
+copy_skills "$WORK/main"
+git -C "$REPO" show 9cd7932:.claude/skills/requirements-decomposition/scripts/check_graph.py > "$WORK/main/requirements-decomposition/scripts/check_graph.py"
+git -C "$REPO" show 9cd7932:.claude/skills/verified-delivery/scripts/assure.py > "$WORK/main/verified-delivery/scripts/assure.py"
+expect_red "against main" "$WORK/main/requirements-decomposition" test_check_graph.StageAndOriginTests
+expect_red "against main" "$WORK/main/verified-delivery" test_card.StageCardTests
+expect_red "against main" "$WORK/main/verified-delivery" test_card.OriginCardTests
+copy_skills "$WORK/stub"
+replace_once "$WORK/stub/verified-delivery/scripts/assure.py" \
+  'deferrable = post_deploy_criteria(document) if stage == "pre_deploy" else set()' 'deferrable = set()  # stub' || bad=1
+replace_once "$WORK/stub/verified-delivery/scripts/assure.py" \
+  'report = load_json(report_path, "the Jest report")' \
+  'return [{"check_id": c, "status": "not_run", "reason": "stub"} for c, _, _ in criteria]' || bad=1
+expect_red "against a stub of --stage" "$WORK/stub/verified-delivery" test_assure.StageTests
+expect_red "against a stub of collect-jest" "$WORK/stub/verified-delivery" test_assure.JestTests
 
 # 2. mutations: FILE, the text to replace (once), its replacement, the test
 mutate() {
   local name="$1" skill="$2" file="$3" old="$4" new="$5" test="$6"
   rm -rf "$WORK/m"; copy_skills "$WORK/m"
-  if ! python3 -I - "$WORK/m/$skill/scripts/$file" "$old" "$new" <<'EOF'
-import sys
-path, old, new = sys.argv[1:]
-text = open(path, encoding="utf-8").read()
-if text.count(old) != 1:
-    sys.exit(f"the mutation point occurs {text.count(old)} times")
-open(path, "w", encoding="utf-8").write(text.replace(old, new))
-EOF
-  then bad=1; return; fi
+  replace_once "$WORK/m/$skill/scripts/$file" "$old" "$new" || { bad=1; return; }
   got="$(run_tests "$WORK/m/$skill" "$test")"
   printf 'mutation %-45s %s\n' "$name" "$got"
-  case "$got" in failed*) ;; *) bad=1 ;; esac
+  case "$got" in "failed 0,"*|passed) bad=1 ;; *", errors 0") ;; *) bad=1 ;; esac
 }
 
 mutate "origin shape is not checked" requirements-decomposition check_graph.py \
@@ -75,6 +91,9 @@ mutate "the card always shows a decision before deploy" verified-delivery assure
 mutate "a failed post-deploy check is left out" verified-delivery assure.py \
   'elif status == "not_run" and criterion in deferrable:' 'elif criterion in deferrable:' \
   test_assure.StageTests.test_before_deploy_a_failed_blocked_or_missing_post_deploy_check_is_not_left_out
+mutate "nothing verified before deploy passes" verified-delivery assure.py \
+  'deferred = set(left_out)' 'deferred = set()' \
+  test_assure.StageTests.test_before_deploy_a_parent_whose_own_checks_are_all_post_deploy_is_blocked
 mutate "a Jest file that failed to run is ignored" verified-delivery assure.py \
   'all(outcome == "passed" for outcome in outcomes) and not incomplete:' 'all(outcome == "passed" for outcome in outcomes):' \
   test_assure.JestTests.test_a_file_that_failed_outside_its_tests_lets_nothing_pass

@@ -641,6 +641,41 @@ class StageTests(AssuranceTestCase):
         self.assertEqual(self.stage_gate("pass", set(), status="passed")["left_out"], [])
         self.assertEqual(self.stage_gate("pass", set(), status="passed", stage=None)["left_out"], [])
 
+    def deferred_gate(self, post_deploy: tuple[str, ...], stage: str | None = "pre_deploy", status: str = "not_run") -> dict:
+        doc = load("graph.json")
+        for node in doc["requirements"]:
+            for entry in node["acceptance"]:
+                if entry["id"] in post_deploy:
+                    entry["stage"] = "post_deploy"
+        def change(m):
+            for criterion in post_deploy:
+                check(m, criterion).update(status=status)
+                if status != "passed":
+                    check(m, criterion).pop("evidence")
+        proc = run("gate", self.write("graph.json", doc), self.manifest(change), *(["--stage", stage] if stage else []))
+        return json.loads(proc.stdout) | {"exit": proc.returncode}
+
+    def test_before_deploy_a_parent_whose_own_checks_are_all_post_deploy_is_blocked(self):
+        result = self.deferred_gate(("TEST-PARENT-001", "TEST-SYSTEM-001"))
+        self.assertEqual((result["decision"], result["exit"]), ("blocked", 1))
+        self.assertEqual([(r["rule_id"], r["message"]) for r in result["reasons"]],
+                         [("A-03", '"REQ-ROOT" (AND) has no L2 or L3 check of its own verified before deploy; '
+                                   "deciding to deploy it is a person's decision")])
+        self.assertEqual(result["left_out"], ["TEST-PARENT-001", "TEST-SYSTEM-001"])
+
+    def test_before_deploy_a_requirement_whose_checks_are_all_post_deploy_is_blocked(self):
+        result = self.deferred_gate(("TEST-LEAF-003",))
+        self.assertEqual(result["decision"], "blocked")
+        self.assertEqual([(r["rule_id"], r["message"]) for r in result["reasons"]],
+                         [("A-03", '"REQ-EXPORT" has no check verified before deploy; '
+                                   "deciding to deploy it is a person's decision")])
+
+    def test_after_deploy_such_requirements_pass_once_their_checks_pass(self):
+        for stage in ("pre_deploy", None):
+            with self.subTest(stage=stage):
+                result = self.deferred_gate(("TEST-PARENT-001", "TEST-SYSTEM-001", "TEST-LEAF-003"), stage=stage, status="passed")
+                self.assertEqual((result["decision"], result["reasons"]), ("pass", []))
+
     def test_text_output_names_the_stage_and_what_was_left_out(self):
         def change(m):
             check(m, "TEST-SYSTEM-001").update(status="not_run")
@@ -662,9 +697,10 @@ class StageTests(AssuranceTestCase):
     def test_a_requirement_with_an_instruction_origin_is_decided_as_without_one(self):
         doc = load("graph.json")
         doc["requirements"][1]["origin"] = {"kind": "instruction", "by": "owner-a", "ref": "issue 12"}
-        with_origin = json.loads(run("gate", self.write("graph.json", doc), self.manifest()).stdout)
-        without = json.loads(run("gate", str(FIXTURES / "graph.json"), self.manifest()).stdout)
-        self.assertEqual((with_origin["decision"], with_origin["reasons"]), (without["decision"], without["reasons"]))
+        with_origin = run("gate", self.write("graph.json", doc), self.manifest())
+        without = run("gate", str(FIXTURES / "graph.json"), self.manifest())
+        decided = [(p.returncode, json.loads(p.stdout).get("decision"), json.loads(p.stdout).get("reasons")) for p in (with_origin, without)]
+        self.assertEqual(decided[0], decided[1])
 
 
 class JestTestCase(AssuranceTestCase):
@@ -694,9 +730,9 @@ class JestTests(JestTestCase):
     def test_collected_checks_carry_the_commit_ref_and_kind(self):
         checks = json.loads(self.collect(str(FIXTURES / "jest.json"), "--kind", "local_run").stdout)
         passed = next(c for c in checks if c["check_id"] == "TEST-LEAF-001")
-        self.assertEqual(passed["evidence"], {"kind": "local_run", "ref": "https://ci.example.test/runs/9", "commit": SHA})
+        self.assertEqual(passed.get("evidence"), {"kind": "local_run", "ref": "https://ci.example.test/runs/9", "commit": SHA})
         missing = next(c for c in checks if c["check_id"] == "TEST-PARENT-001")
-        self.assertEqual(missing["reason"], "no test names this acceptance id in the Jest report")
+        self.assertEqual(missing.get("reason"), "no test names this acceptance id in the Jest report")
 
     def test_every_status_other_than_passed_or_failed_counts_as_skipped(self):
         for status in ("skipped", "pending", "todo", "disabled", "focused"):

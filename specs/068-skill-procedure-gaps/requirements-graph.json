@@ -31,7 +31,7 @@
         {
           "id": "R0-A3",
           "level": "L3",
-          "description": "CI が走らせる9つのスイート（.github/workflows/ci.yml）が、reviewed_commit で合格する。"
+          "description": "CI の test ジョブが走らせる10のスイート（.github/workflows/ci.yml）が、reviewed_commit で合格する。"
         },
         {
           "id": "R0-A4",
@@ -41,7 +41,7 @@
         {
           "id": "R0-A5",
           "level": "L3",
-          "description": "この変更自身の記録が、変更後の手順に従う。記録を読むスクリプトが次を確かめる。reviewed_commit より後のコミットは、記録の場所（specs/068-skill-procedure-gaps/）のファイルだけを変える。manifest が引く証跡はすべて git で追跡され、git check-ignore に当たらない。assurance review の記録の statement は、記録の言語（日本語）で書かれている。"
+          "description": "この変更自身の記録と試験が、変更後の手順に従う。記録を読むスクリプトが次を確かめる。reviewed_commit より後のコミットは、記録の場所（specs/068-skill-procedure-gaps/）のファイルだけを変える。manifest が引く証跡はすべて git で追跡され、git check-ignore に当たらない。assurance review の記録の statement は、記録の言語（日本語）で書かれている。新しい試験の red の観測（mutations.txt）は assertion の失敗で、使い方や引数の誤りによる失敗を含まない。変更の前に失敗させられない試験は、ミューテーション検査で失敗を示す。"
         }
       ],
       "counterexamples": [
@@ -93,11 +93,11 @@
         {
           "id": "R3-A2",
           "level": "L1",
-          "description": "この変更で1回目のレビューの後に直しのコミットを作ったとき、2回目のレビューを差分で行い、2回のサブエージェントが使ったトークン数を証跡に並べて残す。2回目のトークン数が1回目より少ない。直しが要らなかったときは、理由を書いて not_applicable にする。"
+          "description": "この変更で、すべての差分を読んだレビューの回の後に直しのコミットを作り、そのとき graph と risk class が変わっていなければ、次の回を差分のレビューで行う。2つの回のサブエージェントが使ったトークン数を証跡に並べ、差分の回のほうが少ない。そういう組が1つもできなかったときは、理由を書いて not_applicable にする。"
         }
       ],
       "assumptions": [
-        "トークン数が減るかは、レビュー役が差分の外をどれだけ読むかにもよる。R3-A2 は1回の観測である。gate は、差分のレビューとすべての差分のレビューを区別しない（範囲は context_given にだけ書く。利用者の決定）。"
+        "トークン数が減るかは、レビュー役が差分の外をどれだけ読むかにもよる。R3-A2 は1回の観測である。gate は、差分のレビューとすべての差分のレビューを区別しない（範囲は context_given にだけ書く。利用者の決定）。1回目の後の直しは graph を変えたので、2回目はすべての差分を読む。"
       ],
       "origin": {
         "kind": "instruction",
@@ -130,7 +130,8 @@
       "counterexamples": [
         "check_graph.py は stage を通すが、assure.py が stage を読まず、deploy の前の判定ができない。",
         "deploy の前の判定は pass になるが、カードが受け入れの判定しか示さず、見分けられない。",
-        "deploy の前の判定が、post_deploy の条件の failed や、検査の欠けまで見逃す。"
+        "deploy の前の判定が、post_deploy の条件の failed や、検査の欠けまで見逃す。",
+        "親の固有の L2・L3 の条件がすべて post_deploy で、deploy の前の判定が子の合格だけで pass になる（1回目の assurance review の AR-01）。"
       ],
       "assumptions": [
         "どの条件を post_deploy にするかは分解の段階で決め、批判の役の審査を受ける。deploy の前に確かめられる条件を post_deploy と偽ることは、検査器では見つけられない。"
@@ -155,13 +156,13 @@
     },
     {
       "id": "R4b",
-      "statement": "assure.py の gate が --stage（pre_deploy か acceptance、既定は acceptance）を受ける。pre_deploy では、post_deploy の条件のうち not_run の検査を A-03 の未通過に数えない。それ以外（failed、blocked、検査の欠け、他の規則）は acceptance と同じに判定し、acceptance の判定は変更の前と同じである。stage の値が未定義の graph は読めない入力（exit 2）にする。結果には、判定した stage と、除いた条件の id を出す。",
+      "statement": "assure.py の gate が --stage（pre_deploy か acceptance、既定は acceptance）を受ける。pre_deploy では、post_deploy の条件のうち not_run の検査を A-03 の未通過に数えない。ただし、それで deploy の前に1つも確かめられない要件や、固有の L2・L3 の検査が1つも確かめられない AND・OR の親が残るときは、A-03 で blocked にする（子の合格で親の合格を作らない）。それ以外（failed、blocked、検査の欠け、他の規則）は acceptance と同じに判定し、acceptance の判定は変更の前と同じである。stage の値が未定義の graph は読めない入力（exit 2）にする。結果には、判定した stage と、除いた条件の id を出す。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "R4b-A1",
           "level": "L1",
-          "description": "assure.py の単体試験で、上の各場合（pre_deploy で not_run の post_deploy の条件を除く、failed・blocked・欠けは除かない、acceptance は変わらない、未定義の stage は exit 2、結果の stage と除いた id）が期待どおりになる。"
+          "description": "assure.py の単体試験で、上の各場合（pre_deploy で not_run の post_deploy の条件を除く、failed・blocked・欠けは除かない、除いた結果として確かめられない要件や親の固有の L2・L3 が残ると blocked、acceptance は変わらない、未定義の stage は exit 2、結果の stage と除いた id）が期待どおりになる。"
         }
       ]
     },
@@ -173,7 +174,12 @@
         {
           "id": "R4c-A1",
           "level": "L1",
-          "description": "assure.py の単体試験で、post_deploy の条件のある graph のカードに2つの判定と deploy の可否が出る。条件の無い graph のカードは、変更の前の出力と1字も違わない。"
+          "description": "assure.py の単体試験で、post_deploy の条件のある graph のカードに2つの判定と deploy の可否が出る。条件の無い graph のカードには deploy の前の判定の行が出ない。"
+        },
+        {
+          "id": "R4c-A2",
+          "level": "L1",
+          "description": "post_deploy の条件の無い graph（spec 066 の記録と例の一式、en と ja）のカードが、変更の前（main 9cd7932）と後で1字も違わない。"
         }
       ]
     },

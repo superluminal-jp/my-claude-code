@@ -528,6 +528,7 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
     implementer = body.get("implementer")
     levels: Dict[str, Dict[str, int]] = {level: {} for level in LEVELS}
     by_requirement: Dict[str, List[str]] = {}
+    own_checks: Dict[str, List[Tuple[str, str, str]]] = {}  # requirement -> (criterion, level, status used)
     per_check: List[Dict[str, Any]] = []
     for criterion, level, requirement in criteria:
         entry = checks.get(criterion)
@@ -570,11 +571,27 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
                 block("A-06", f"{show(criterion)} ({level}) is not_applicable without approval by someone other than the implementer")
         levels[level][effective] = levels[level].get(effective, 0) + 1
         by_requirement.setdefault(requirement, []).append(effective)
+        own_checks.setdefault(requirement, []).append((criterion, level, effective))
         per_check.append({"check_id": criterion, "level": level, "requirement": requirement, "status": effective,
                           "evidence": entry.get("evidence") if entry is not None and isinstance(entry.get("evidence"), dict) else None})
     for requirement, effective_statuses in by_requirement.items():
         if all(status == "not_applicable" for status in effective_statuses):
             block("A-03", f"requirement {show(requirement)} has no passed check: every one of its checks is not_applicable")
+    # Leaving post-deploy checks out must not let a requirement, or a parent's
+    # own L2 or L3 check, go unverified before deploy: the children's passes
+    # never stand for a parent's.
+    deferred = set(left_out)
+    decompositions = {n.get("id"): n.get("decomposition") for n in document["requirements"] if isinstance(n, dict)}
+    for requirement, entries in own_checks.items():
+        if not any(criterion in deferred for criterion, _, _ in entries):
+            continue
+        verified = [level for criterion, level, status in entries if criterion not in deferred and status == "passed"]
+        kind = decompositions.get(requirement)
+        if kind in ("AND", "OR") and not any(level in PARENT_LEVELS for level in verified):
+            block("A-03", f"{show(requirement)} ({kind}) has no L2 or L3 check of its own verified before deploy; "
+                          "deciding to deploy it is a person's decision")
+        elif not verified:
+            block("A-03", f"{show(requirement)} has no check verified before deploy; deciding to deploy it is a person's decision")
 
     risk = body.get("risk") if isinstance(body.get("risk"), dict) else {}
     risk_class = risk.get("class")

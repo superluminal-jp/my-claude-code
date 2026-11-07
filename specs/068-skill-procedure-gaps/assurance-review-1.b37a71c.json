@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-068",
+    "reviewed_commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、1回目（すべての差分）。使ったトークンは155,026、ツールの呼び出しは30回",
+    "context_given": [
+      "specs/068-skill-procedure-gaps/requirements-graph.json（b37a71c の版）",
+      "git diff 9cd7932 b37a71c885041c33186ef49171757a9f0bfe6ac4（変更のすべての差分）",
+      "specs/068-skill-procedure-gaps/evidence/b37a71c/ の10のファイル",
+      "verified-delivery の references/reviewer.md の1回目のプロンプト（b37a71c の版。記録の場所 specs/068-skill-procedure-gaps/、言語は日本語）"
+    ],
+    "findings": [
+      {"id": "AR-01", "kind": "uncovered_path", "target": "R4", "severity": "medium",
+       "statement": "gate --stage pre_deploy は、post_deploy で not_run の検査を A-03 から除く(assure.py の `elif status == \"not_run\" and criterion in deferrable: left_out.append(criterion)`)。しかし、AND/OR の親が持つ L2 か L3 の基準が post_deploy だけの場合を、どの基準も試験も扱っていない。graph_structure(A-09)と check_graph の S-12 は stage を見ないので、親の固有の L2/L3 が post_deploy 1件だけの graph は構造の検査を通る。その graph では deploy の前の判定が、親の固有の検査を1つも走らせずに、子の合格だけで pass になる(parent_by_children と同じ形)。LEAF の基準が post_deploy だけの場合も同じで、その要件は deploy の前に何も検証されない。StageTests と delivery-flow の graph はどれも、post_deploy の L3 と並べて、stage の無い L2(TEST-PARENT-001、FLOW-PARENT-001)を同じ親に持つので、この経路を通らない。R4-A1・R4-A2 はこの場合を問わず、R4b の文も禁じていない。",
+       "disposition": "accepted",
+       "resolution": "gate --stage pre_deploy で、検査を除いた結果、deploy の前に合格した検査が1つも無い要件と、合格した固有の L2・L3 の検査が1つも無い AND・OR の親を、A-03 で blocked にした（deploy するかは人の判断になる）。単体試験3件を先に書き、assertion の失敗（pass になる）を見てから直した。ミューテーション「nothing verified before deploy passes」で、規則を外すと試験が失敗することも確かめた。R4b の文と受け入れ条件、R4 の counterexamples、manifest.md、verified-delivery の手順6、requirements-decomposition の手順2（各要件と親の固有の水準に、deploy の前に確かめられる条件を1つは持たせる）を直した。"},
+      {"id": "AR-02", "kind": "evidence_mismatch", "target": "R9-A2", "severity": "medium",
+       "statement": "R9-A2(名前の参照を見る検査 spec 058 の規則が coder の本文に違反を出さない)は passed で、証跡は config-pyramid.txt である。ところがそのファイルの末尾は `Results: 54 passed, 8 failed` で、FAIL が PARENT-02・03・04・05・06・07・08・10 に出ている。これらは spec 058 の親子参照の規則を検出できるかを確かめる fixture そのもの(tests/run-config-pyramid.sh の run_parent_child_fixtures)である。この実行では検出側が働いたと示されていない。PASS の SKILL-05 だけを根拠にしても、検出の fixture が落ちている実行では「違反なし」が空虚かもしれない。失敗が main でも起きる(以前からある、またはサンドボックスのため)ことを示す main の同じ実行も、失敗の理由の説明も証跡に無い。このスイートは .github/workflows/ci.yml にも入っていないので、他に確かめる場所も無い。",
+       "disposition": "accepted",
+       "resolution": "8件の失敗の理由を確かめた。macOS の mktemp -d は雛形を渡さないと TMPDIR を使わず、サンドボックスが書き込みを止める /var/folders/... に作ろうとして失敗し、空のパスの下（/f2 など）に fixture を書こうとして止められる（mkdir: /f2: Operation not permitted）。試験の側の潜在的な不具合で、この変更の範囲外なので直さない。直しのコミットで、このスイートをサンドボックスの外でも走らせ、PARENT の検出の試験を含めて全件が合格した実行を R9-A2 の証跡にする。サンドボックスの中の実行は、main と同じ結果であることを示すために残す。"},
+      {"id": "AR-03", "kind": "evidence_mismatch", "target": "R4c-A1", "severity": "low",
+       "statement": "R4c-A1 は「条件の無い graph のカードは、変更の前の出力と1字も違わない」を求める。manifest は R4c-A1 の証跡に unit-tests.junit.xml だけを引く。その中の該当試験 test_a_graph_without_post_deploy_criteria_has_no_line_before_deploy は、`assertNotIn(\"Before deploy\", out)` など、文字列が無いことを見るだけで、変更の前の出力との同一性を見ていない。同一性を示すのは compat-diff.txt(compat.sh のカード4件)だが、manifest はそれを R0-A4 にしか結びつけていない。そのため、R4c-A1 の passed は、基準の前半(2つの判定と deploy の可否)しか証跡で示さない。",
+       "disposition": "accepted",
+       "resolution": "R4c の受け入れ条件を2つに分けた。R4c-A1 は単体試験（2つの判定と deploy の可否、条件の無い graph に deploy の前の判定の行が出ないこと）、新しい R4c-A2 は、条件の無い graph のカードが変更の前後で1字も違わないことで、証跡は compat-diff.txt である。"},
+      {"id": "AR-04", "kind": "other", "target": "CHG-068", "severity": "low",
+       "statement": "この変更が加えた coder の手順は「import・名前・コンパイル・usage の失敗だけでは red に数えない」と定める。mutations.txt の `red test_assure.StageTests against main: failed 9` と `red test_assure.JestTests against main: failed 11` は、main に `gate --stage` と `collect-jest` が無いための引数エラー(exit 2、標準出力が空)による失敗で、最終形のシグネチャのスタブに対する assertion の失敗ではない。変更自身の記録が、変更後の手順に従っていない。さらに mutations.txt は、manifest のどの検査にも引かれておらず、R8 を変更自身に当てはめた確かめがどの基準にも無い。",
+       "disposition": "accepted",
+       "resolution": "mutations.sh の red の観測を直した。main に命令がある試験は main の検査器に対して、main に命令やオプションが無い StageTests と JestTests は、HEAD の実装を最終形のシグネチャのスタブ（--stage は何も除かない、collect-jest はすべてを not_run にする）に替えて走らせる。そして、各組が assertion の失敗（FAIL）だけで、error（ERROR）が0であることを判定する。その途中で、出力に無い鍵を直接引いて error になっていた2つの試験を、.get で比べて assertion で失敗するように直した（確かめる内容は変えていない）。また、R0-A5 に「新しい試験の red は assertion の失敗で、変更の前に失敗させられない試験はミューテーション検査で失敗を示す（mutations.txt）」を加え、records_check.py が mutations.txt を読んで確かめる。"},
+      {"id": "AR-05", "kind": "evidence_mismatch", "target": "R0-A3", "severity": "low",
+       "statement": "R0-A3 は「CI が走らせる9つのスイート」と書く。しかし .github/workflows/ci.yml の test ジョブの手順は10個(install、digital-agency-frontend、removed-guardrails、sandbox-settings、package-safety-bundle、readme-skill-index、requirements-decomposition、verified-delivery、harness-eval、mcp-startup)で、ci-suites-local.txt も10行(9件が exit=0、run-mcp-startup が exit=1)を示す。manifest の R0-A3 の reason は「9つのうち8つはローカルで合格」と書き、証跡の数と合わない。基準の対象の数が ci.yml と食い違っているので、CI が通ったときに、どの範囲で R0-A3 を passed にするのかが定まらない。",
+       "disposition": "accepted",
+       "resolution": "数え違いだった。R0-A3 を「CI の test ジョブが走らせる10のスイート」に直し、manifest の理由を「10のうち9つはローカルで合格」に直す。R0-A3 は、push の後の CI の test ジョブで10のスイートすべてが合格したときに passed にする。"}
+    ]
+  }
+}
