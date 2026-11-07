@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-068",
+    "problem_id": "P-068",
+    "reviewed_commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4",
+    "implementer": "claude",
+    "risk": {
+      "class": "medium",
+      "rationale": "2つの検査器（assure.py・check_graph.py）の入力の形と命令、すべてのプロジェクトで使う3つのスキルの手順を変える。認証・秘密・個人データ・基盤の権限・公開には触れず、git revert で戻せる。"
+    },
+    "approvals": [],
+    "checks": [
+      {
+        "check_id": "R0-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/delivery-flow.txt",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R0-A2",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R0-A3",
+        "status": "not_run",
+        "reason": "9つのうち8つはローカルで合格（ci-suites-local.txt）。run-mcp-startup はサンドボックスが ~/.cache/uv への書き込みを止めて失敗したので、push の後の CI の結果を待つ"
+      },
+      {
+        "check_id": "R0-A4",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/compat-diff.txt",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R0-A5",
+        "status": "not_run",
+        "reason": "記録のコミットの後に、記録を読むスクリプトで確かめる"
+      },
+      {
+        "check_id": "R1-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R2-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R3-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R3-A2",
+        "status": "not_run",
+        "reason": "1回目の assurance review の結果を待つ"
+      },
+      {
+        "check_id": "R4-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/delivery-flow.txt",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R4-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/delivery-flow.txt",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R4a-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R4b-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R4c-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R4d-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R5-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R5-A2",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R6-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R7-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      },
+      {
+        "check_id": "R7-A2",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R8-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R9-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "R9-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/config-pyramid.txt",
+          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+        }
+      }
+    ],
+    "test_changes": [],
+    "infra_changes": []
+  }
+}

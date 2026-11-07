@@ -1,0 +1,11 @@
+red      test_check_graph.StageAndOriginTests          against main: failed 10
+red      test_assure.StageTests                        against main: failed 9
+red      test_assure.JestTests                         against main: failed 11
+red      test_card.StageCardTests                      against main: failed 4
+red      test_card.OriginCardTests                     against main: failed 1
+mutation origin shape is not checked                   failed 9
+mutation the gate refuses a graph with an origin       failed 1
+mutation the card always shows a decision before deploy failed 1
+mutation a failed post-deploy check is left out        failed 1
+mutation a Jest file that failed to run is ignored     failed 1
+result: every observation as expected
