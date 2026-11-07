@@ -626,6 +626,21 @@ def ensure_outside(path: Path, repo: Path) -> None:
         raise BuildError(f"build directory {p} is not under the temporary directory {tmp}")
 
 
+def ensure_results_dir(path: Path, repo: Path) -> None:
+    """Refuse a results directory in ~/.claude, or in a git work tree outside the repository's ignored results directory."""
+    p = path.resolve()
+    claude = (Path.home() / ".claude").resolve()
+    if p == claude or claude in p.parents:
+        raise BuildError(f"results directory {p} is inside {claude}")
+    ignored = (repo / RESULTS_DIR).resolve()
+    if p == ignored or ignored in p.parents:
+        return
+    for q in (p, *p.parents):
+        if (q / ".git").exists():
+            raise BuildError(f"results directory {p} is inside the git work tree {q}, where git would track "
+                             f"transcripts; only {ignored} is ignored there")
+
+
 def git_out(repo: Path, *args: str) -> bytes:
     res = subprocess.run(["git", "-C", str(repo), *args], capture_output=True)
     if res.returncode != 0:
@@ -857,6 +872,12 @@ def cmd_run(args) -> int:
               file=sys.stderr)
         return 2
     repo = Path(args.repo) if args.repo else repo_root()
+    results_root = Path(args.results_dir) if args.results_dir else repo / RESULTS_DIR
+    try:
+        ensure_results_dir(results_root, repo)
+    except BuildError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     work = Path(tempfile.mkdtemp(prefix="harness-eval-"))
     try:
         b = build(repo, args.harness_ref, args.suite_ref, work)
@@ -916,8 +937,7 @@ def cmd_run(args) -> int:
             print(f"error: runs of these cases ended on an error before grading: {summary['errored_cases']}",
                   file=sys.stderr)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    dest = Path(args.results_dir) if args.results_dir else repo / RESULTS_DIR
-    dest = dest / result_dir_name(b, stamp)
+    dest = results_root / result_dir_name(b, stamp)
     if out_dir.is_dir():
         shutil.copytree(out_dir, dest)
     else:
@@ -1030,6 +1050,11 @@ def compare_dirs(before: Path, after: Path, threshold: float) -> dict:
             problems.append(f"{label}: the eval ran cases outside the suite: {meta['cases_unexpected']}")
         if meta.get("cases_missing") and not result.get("partial"):
             problems.append(f"{label}: the eval did not run these suite cases: {meta['cases_missing']}")
+        # The eval exits 1 when runs end on an error, whatever shape the result
+        # records them in; 2 is the cost ceiling, reported above as partial.
+        if meta.get("eval_exit_code") not in (None, 0, 2):
+            problems.append(f"{label}: the eval exited with code {meta['eval_exit_code']}, so some runs may not "
+                            "have been graded")
     for label, result in (("before", a), ("after", b)):
         if errored_cases(result):
             problems.append(f"{label}: runs of these cases ended on an error before grading, so their score of 0 "

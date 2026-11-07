@@ -1455,5 +1455,53 @@ class SmokeRunFindings(unittest.TestCase):
             self.assertEqual((rc, meta["errored_cases"]), (1, ["probe"]))
 
 
+class ReviewRound9(unittest.TestCase):
+    """Regression tests for the assurance review of 302e224 (round 9)."""
+
+    # AR-03: an eval that exited on an error is refused even if no run carries an error field.
+
+    def test_compare_refuses_a_result_whose_eval_exited_with_an_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(ReviewRound5().problems(tmp, eval_exit_code=1), "the eval exited with code 1"))
+
+    def test_a_clean_or_partial_eval_exit_code_adds_no_such_problem(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertFalse(has(ReviewRound5().problems(tmp, eval_exit_code=0), "the eval exited"))
+
+    # AR-04: results go only where git ignores them, and never into ~/.claude.
+
+    def run_into(self, tmp, results_dir):
+        """`run` with the stub claude first on PATH, so no test can reach the real CLI."""
+        repo = Build().make_repo(tmp)
+        bindir = ReviewFindings().stub_claude(tmp)
+        with mock.patch.dict(os.environ, {"PATH": str(bindir) + os.pathsep + os.environ["PATH"]}):
+            return he.main(["run", "--repo", str(repo), "--max-cost-usd", "1", "--results-dir", str(results_dir)])
+
+    def test_a_results_directory_inside_the_claude_config_is_refused(self):
+        target = Path.home() / ".claude" / "harness-eval-results-check"
+        with tempfile.TemporaryDirectory() as tmp:
+            rc = self.run_into(tmp, target)
+        self.assertEqual((rc, target.exists()), (2, False))
+
+    def test_a_results_directory_inside_another_git_work_tree_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            other = Path(tmp) / "other"
+            other.mkdir()
+            git(other, "init", "-q")
+            rc = self.run_into(tmp, other / "out")
+            self.assertEqual((rc, (other / "out").exists()), (2, False))
+
+    def test_the_repositorys_ignored_results_directory_is_accepted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            he.ensure_results_dir(repo / he.RESULTS_DIR, repo)
+
+    def test_a_results_directory_elsewhere_in_the_repository_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            with self.assertRaisesRegex(he.BuildError, "git work tree"):
+                he.ensure_results_dir(repo / "docs" / "results", repo)
+
+
 if __name__ == "__main__":
     unittest.main()

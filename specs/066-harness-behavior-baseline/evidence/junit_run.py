@@ -169,6 +169,13 @@ TAGS = {
     "test_a_case_whose_run_ended_on_an_error_is_listed": "R6-A1",
     "test_compare_refuses_a_result_with_runs_that_ended_on_an_error": "R6-A1",
     "test_a_run_records_the_cases_whose_runs_ended_on_an_error_and_fails": "R3-A1",
+    # Round 9 (assurance review of 302e224).
+    "test_compare_refuses_a_result_whose_eval_exited_with_an_error": "R6-A1",
+    "test_a_clean_or_partial_eval_exit_code_adds_no_such_problem": "R6-A1",
+    "test_a_results_directory_inside_the_claude_config_is_refused": "R4-A1",
+    "test_a_results_directory_inside_another_git_work_tree_is_refused": "R4-A1",
+    "test_the_repositorys_ignored_results_directory_is_accepted": "R4-A1",
+    "test_a_results_directory_elsewhere_in_the_repository_is_refused": "R4-A1",
 }
 
 
