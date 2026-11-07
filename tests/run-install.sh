@@ -115,6 +115,10 @@ assert_file_equals "$REPO_ROOT/.claude/CLAUDE.md" "$TARGET/CLAUDE.md" \
   "CLAUDE.md matches the repository"
 assert_file_equals "$REPO_ROOT/.claude/settings.json" "$TARGET/settings.json" \
   "settings.json matches the repository"
+# The user chose a fixed main-session effort over the model default.
+[ "$(jq -r '.effortLevel' "$TARGET/settings.json")" = "xhigh" ] ||
+  fail "settings.json fixes the main session's effort at xhigh"
+pass "settings.json fixes the main session's effort at xhigh"
 assert_file_equals "$REPO_ROOT/install.sh" "$TARGET/install.sh" \
   "installed install.sh matches the repository"
 

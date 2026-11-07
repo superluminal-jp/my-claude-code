@@ -18,12 +18,21 @@ projects while preserving unrelated user files.
 
 - **`.claude/CLAUDE.md`** — Persistent user memory: one governing outcome and
   its three lifecycle branches (define, execute, hand off), plus a generic
-  multi-match algorithm for applying every independently matching capability.
-  It names no rule, skill, or server — the design rationale is in
-  [`docs/claude-config-design.md`](docs/claude-config-design.md)
-- **`.claude/settings.json`** — User-level Claude Code settings: the
-  credential deny list, the OS sandbox turned on for every Bash command with
-  only the openings everyday work needs, three `SessionStart` hooks, and the
+  multi-match algorithm for applying every independently matching capability,
+  and a delegation policy. Under that policy, without waiting for the user to
+  ask, Claude hands checks with long output, read-only searches, and one fully
+  specified change repeated across many files to subagents on `haiku`, and
+  independent tasks that need judgment to subagents on `sonnet`, unless
+  writing the subagent's instructions would take about as many tokens as doing
+  the work. Claude keeps decisions and the judgment that the work is complete
+  on the main conversation's model. `.claude/CLAUDE.md` names no rule, skill,
+  or server — the design
+  rationale is in [`docs/claude-config-design.md`](docs/claude-config-design.md)
+- **`.claude/settings.json`** — User-level Claude Code settings: the main
+  conversation's model (`opus`) and its reasoning effort level, fixed at
+  `xhigh` (the highest level the settings file accepts) by `effortLevel`; the
+  credential deny list; the OS sandbox turned on for every Bash command with
+  only the openings everyday work needs; three `SessionStart` hooks; and the
   MCP servers it stops (see [Sandbox and session hooks](#sandbox-and-session-hooks)
   and [MCP Servers](#mcp-servers))
 - **`.claude/rules/`** — Always-on universal rules, each kept to what changes
@@ -366,8 +375,8 @@ After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
 bash tests/run-config-pyramid.sh
 ```
 
-It checks the configuration pyramid offline: the apex's three branches,
-exactly four rule files that name no other rule, skill, or config path, and
+It checks the configuration pyramid offline: the apex's three branches and
+its delegation policy, exactly four rule files that name no other rule, skill, or config path, and
 authored skills that describe their own exclusion boundary and name no
 other skill except the children a parent skill declares. It also runs that
 parent-child rule against fixture skills it builds in a temporary

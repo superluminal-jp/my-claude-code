@@ -150,6 +150,10 @@ run_apex_contract() {
     '(\.claude/|rules/|skills/|SKILL\.md|settings(\.local)?\.json|\.mcp\.json|/speckit-[[:alnum:]-]+)' "$APEX"
   check_absent_pattern "APEX-08: no environment-specific server registry" \
     '(aws-documentation|aws-knowledge|bedrock-agentcore|strands-agents|google-developer-knowledge|microsoft-learn)' "$APEX"
+  check_contains "APEX-09: delegates volume work to smaller-model subagents without waiting for the user" "$APEX" \
+    'without waiting for the user to ask.*subagent.*haiku.*sonnet'
+  check_contains "APEX-10: keeps the judgment that the work is complete on the main conversation's model" "$APEX" \
+    "judgment that the work is complete on the main conversation's model"
 }
 
 run_rule_contract() {
