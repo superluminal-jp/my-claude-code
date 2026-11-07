@@ -1,0 +1,68 @@
+commit: 1e80cb578afb49a688afc20619d91038478d4bb5 (a clean worktree of the commit)
+red      against main                           FAIL  test_check_graph.StageAndOriginTests.test_a_criterion_may_be_pre_deploy_post_deploy_or_without_a_stage
+red      against main                           PASS  test_check_graph.StageAndOriginTests.test_a_malformed_origin_is_rejected_under_s_00
+red      against main                           FAIL  test_check_graph.StageAndOriginTests.test_an_instruction_origin_with_who_and_where_passes
+red      against main                           FAIL  test_check_graph.StageAndOriginTests.test_an_undefined_stage_is_rejected_under_s_07
+red      against main                           FAIL  test_check_graph.StageAndOriginTests.test_the_stage_and_origin_fixtures_pass_and_fail_as_named
+red      against main                           FAIL  test_card.StageCardTests.test_a_failure_before_deploy_is_shown_and_deploy_is_not_offered
+red      against main                           PASS  test_card.StageCardTests.test_a_graph_without_post_deploy_criteria_has_no_line_before_deploy
+red      against main                           FAIL  test_card.StageCardTests.test_after_deploy_with_every_check_passed_both_decisions_pass
+red      against main                           FAIL  test_card.StageCardTests.test_both_decisions_are_shown_and_the_person_decides_whether_to_deploy
+red      against main                           FAIL  test_card.StageCardTests.test_japanese_labels_for_the_decision_before_deploy
+red      against main                           FAIL  test_card.OriginCardTests.test_a_requirement_directed_by_a_person_shows_who_and_where
+red      against a stub of the feature          PASS  test_assure.StageTests.test_a_passed_post_deploy_check_passes_at_both_stages
+red      against a stub of the feature          PASS  test_assure.StageTests.test_a_requirement_with_an_instruction_origin_is_decided_as_without_one
+red      against a stub of the feature          PASS  test_assure.StageTests.test_acceptance_still_counts_the_post_deploy_check
+red      against a stub of the feature          PASS  test_assure.StageTests.test_after_deploy_such_requirements_pass_once_their_checks_pass
+red      against a stub of the feature          PASS  test_assure.StageTests.test_an_undefined_stage_in_the_graph_or_the_option_is_an_input_error
+red      against a stub of the feature          PASS  test_assure.StageTests.test_before_deploy_a_criterion_without_a_stage_is_not_left_out
+red      against a stub of the feature          PASS  test_assure.StageTests.test_before_deploy_a_failed_blocked_or_missing_post_deploy_check_is_not_left_out
+red      against a stub of the feature          FAIL  test_assure.StageTests.test_before_deploy_a_parent_whose_own_checks_are_all_post_deploy_is_blocked
+red      against a stub of the feature          FAIL  test_assure.StageTests.test_before_deploy_a_post_deploy_check_that_has_not_run_is_left_out
+red      against a stub of the feature          FAIL  test_assure.StageTests.test_before_deploy_a_requirement_whose_checks_are_all_post_deploy_is_blocked
+red      against a stub of the feature          FAIL  test_assure.StageTests.test_before_deploy_an_or_parent_whose_own_checks_are_all_post_deploy_is_blocked
+red      against a stub of the feature          FAIL  test_assure.StageTests.test_text_output_names_the_stage_and_what_was_left_out
+red      against a stub of the feature          FAIL  test_assure.JestTests.test_a_file_that_failed_outside_its_tests_lets_nothing_pass
+red      against a stub of the feature          FAIL  test_assure.JestTests.test_a_report_jest_could_not_have_written_is_an_input_error
+red      against a stub of the feature          FAIL  test_assure.JestTests.test_an_id_inside_a_dotted_longer_id_does_not_count
+red      against a stub of the feature          FAIL  test_assure.JestTests.test_an_interrupted_or_failed_run_lets_nothing_pass
+red      against a stub of the feature          FAIL  test_assure.JestTests.test_assertions_map_to_acceptance_ids
+red      against a stub of the feature          FAIL  test_assure.JestTests.test_collected_checks_carry_the_commit_ref_and_kind
+red      against a stub of the feature          FAIL  test_assure.JestTests.test_every_status_other_than_passed_or_failed_counts_as_skipped
+mutation origin shape is not checked            FAIL  test_check_graph.StageAndOriginTests.test_a_malformed_origin_is_rejected_under_s_00
+mutation the gate refuses an origin             FAIL  test_assure.StageTests.test_a_requirement_with_an_instruction_origin_is_decided_as_without_one
+mutation the card always shows before deploy    FAIL  test_card.StageCardTests.test_a_graph_without_post_deploy_criteria_has_no_line_before_deploy
+mutation a failed post-deploy check left out    FAIL  test_assure.StageTests.test_before_deploy_a_failed_blocked_or_missing_post_deploy_check_is_not_left_out
+mutation nothing verified before deploy passes  FAIL  test_assure.StageTests.test_before_deploy_a_parent_whose_own_checks_are_all_post_deploy_is_blocked
+mutation nothing verified before deploy passes  FAIL  test_assure.StageTests.test_before_deploy_a_requirement_whose_checks_are_all_post_deploy_is_blocked
+mutation passed post-deploy checks unverified   FAIL  test_assure.StageTests.test_after_deploy_such_requirements_pass_once_their_checks_pass
+mutation acceptance leaves checks out too       FAIL  test_assure.StageTests.test_acceptance_still_counts_the_post_deploy_check
+mutation every criterion is post-deploy         FAIL  test_assure.StageTests.test_before_deploy_a_criterion_without_a_stage_is_not_left_out
+mutation the post_deploy stage is refused       FAIL  test_assure.StageTests.test_a_passed_post_deploy_check_passes_at_both_stages
+mutation an undefined stage is accepted         FAIL  test_assure.StageTests.test_an_undefined_stage_in_the_graph_or_the_option_is_an_input_error
+mutation a Jest file that failed is ignored     FAIL  test_assure.JestTests.test_a_file_that_failed_outside_its_tests_lets_nothing_pass
+mutation an id inside a dotted id counts        FAIL  test_assure.JestTests.test_an_id_inside_a_dotted_longer_id_does_not_count
+mutation an OR parent is not a parent           FAIL  test_assure.StageTests.test_before_deploy_an_or_parent_whose_own_checks_are_all_post_deploy_is_blocked
+mutation the graph checker refuses origin       FAIL  flow: decomposition gate is ready with the challenge recorded (origin is accepted)
+mutation collect-jest gives a wrong result      FAIL  flow: collect-jest passes the three criteria the Jest run names and leaves the post-deploy one not_run
+mutation collect-jest gives a wrong result      FAIL  flow: [R4-A1] before deploy, the gate passes and leaves out only the post-deploy check
+mutation collect-jest gives a wrong result      FAIL  flow: [R4-A1] for acceptance, the gate is blocked by the post-deploy check alone
+mutation collect-jest gives a wrong result      FAIL  flow: [R4-A1] the card shows both decisions, offers the deploy decision, and names who directed REQ-DEV-HOURLY
+mutation collect-jest gives a wrong result      FAIL  flow: after deploy, with the post-deploy evidence recorded, the gate passes
+mutation collect-jest gives a wrong result      FAIL  flow: after deploy, the card shows the pass mark and both decisions pass
+mutation nothing is left out before deploy      FAIL  flow: [R4-A1] before deploy, the gate passes and leaves out only the post-deploy check
+mutation nothing is left out before deploy      FAIL  flow: [R4-A1] the card shows both decisions, offers the deploy decision, and names who directed REQ-DEV-HOURLY
+mutation acceptance leaves checks out too       FAIL  flow: [R4-A1] for acceptance, the gate is blocked by the post-deploy check alone
+mutation acceptance leaves checks out too       FAIL  flow: [R4-A1] the card shows both decisions, offers the deploy decision, and names who directed REQ-DEV-HOURLY
+mutation a failed post-deploy check is hidden   FAIL  flow: [R4-A2] a failed post-deploy check fails the decision before deploy too
+mutation the post_deploy stage is refused       FAIL  flow: collect-jest passes the three criteria the Jest run names and leaves the post-deploy one not_run
+mutation the post_deploy stage is refused       FAIL  flow: [R4-A1] before deploy, the gate passes and leaves out only the post-deploy check
+mutation the post_deploy stage is refused       FAIL  flow: [R4-A1] for acceptance, the gate is blocked by the post-deploy check alone
+mutation the post_deploy stage is refused       FAIL  flow: [R4-A1] the card shows both decisions, offers the deploy decision, and names who directed REQ-DEV-HOURLY
+mutation the post_deploy stage is refused       FAIL  flow: [R4-A2] a failed post-deploy check fails the decision before deploy too
+mutation the post_deploy stage is refused       FAIL  flow: after deploy, with the post-deploy evidence recorded, the gate passes
+mutation the post_deploy stage is refused       FAIL  flow: after deploy, the card shows the pass mark and both decisions pass
+mutation the card never shows before deploy     FAIL  flow: [R4-A1] the card shows both decisions, offers the deploy decision, and names who directed REQ-DEV-HOURLY
+mutation the card never shows before deploy     FAIL  flow: after deploy, the card shows the pass mark and both decisions pass
+coverage: 38 of 38 new tests fail on an assertion in a red or a mutation
+result: every observation as expected

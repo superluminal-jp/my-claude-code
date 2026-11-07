@@ -1,0 +1,29 @@
+R3-A2: the tokens each assurance review round used (spec 068)
+
+Source: the usage line ("subagent_tokens", "tool_uses", "duration_ms") of the
+harness's task notification for each review subagent (Explore, sonnet, effort
+xhigh), copied by hand on 2026-11-08. The same numbers are in each round's
+"reviewer" field.
+
+round  record                              scope                                         tokens   tool uses  seconds
+1      assurance-review-1.b37a71c.json     whole diff 9cd7932..b37a71c                   155,026  30         283
+2      assurance-review-2.b9a38d0.json     whole diff 9cd7932..b9a38d0 (graph changed)   204,164  35         509
+3      assurance-review-3.f52e4e2.json     whole diff 9cd7932..f52e4e2 (graph changed)   207,348  39         444
+4      assurance-review-4.f972fe7.json     fix diff f52e4e2..f972fe7 (graph changed;     95,315   19         185
+                                           whole-diff rule waived by the person)
+5      assurance-review-5.276dca7.json     fix diff f972fe7..276dca7 (graph and risk     84,845   12         116
+                                           unchanged, so by the rule)
+6      assurance-review-6.1e80cb5.json     fix diff 276dca7..1e80cb5 (the README files,  118,364  28         174
+                                           668 lines; graph and risk unchanged, so by
+                                           the rule)
+
+Comparison for R3-A2: round 5, the round the rule makes a fix-diff review,
+used 84,845 tokens against 207,348 for round 3, the last whole-diff round
+before it (41%). Round 4, a fix-diff review by the person's exception, used
+95,315 (46%), and round 6, whose fix diff added two 334-line READMEs, used
+118,364 (57%).
+
+How far this holds: it is one change. Round 5 followed a fix-diff round
+(round 4), not a whole-diff round directly; the whole-diff round it is
+compared with is round 3. The fix diffs of rounds 4 and 5 were small (3 and 2
+files of code); round 6 shows a larger fix diff costing more.

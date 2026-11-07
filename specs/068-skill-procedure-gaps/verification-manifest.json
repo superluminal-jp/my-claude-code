@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-068",
     "problem_id": "P-068",
-    "reviewed_commit": "276dca70c36e78785d905606990b48bb22b42cda",
+    "reviewed_commit": "1e80cb578afb49a688afc20619d91038478d4bb5",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -23,7 +23,7 @@
       {
         "by": "Taiki Ogihara",
         "decision": "approved",
-        "scope": "R0-A3 のために tests/run-mcp-startup.sh を 276dca7 のきれいな worktree でサンドボックスの外で走らせる（PyPI の MCP パッケージを取り寄せて起動する。2026-11-08 の会話の質問「R0-A3」への回答）"
+        "scope": "別の作業で書かれた .claude/skills/verified-delivery/README.md・README.ja.md とルートの README の変更を、この変更に取り込む（2026-11-08 の依頼「readmeファイルも取り込み」）"
       }
     ],
     "checks": [
@@ -32,8 +32,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -45,9 +45,9 @@
         "check_id": "R0-A3",
         "status": "passed",
         "evidence": {
-          "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/ci-suites-all.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "kind": "ci_job",
+          "ref": "https://github.com/superluminal-jp/my-claude-code/actions/runs/42426931132/job/128567099823",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -55,18 +55,14 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/compat-diff.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
         "check_id": "R0-A5",
-        "status": "passed",
-        "evidence": {
-          "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/records-check.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
-        }
+        "status": "not_run",
+        "reason": "記録のコミットの後に、記録を読むスクリプト（evidence/records_check.py）で確かめる"
       },
       {
         "check_id": "R1-A1",
@@ -85,20 +81,16 @@
       },
       {
         "check_id": "R3-A2",
-        "status": "passed",
-        "evidence": {
-          "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/review-tokens.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
-        }
+        "status": "not_run",
+        "reason": "6回目のレビューのトークン数を加えて、review-tokens.txt を 1e80cb5 の証跡として作り直す"
       },
       {
         "check_id": "R4-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -106,8 +98,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/delivery-flow.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -115,8 +107,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -124,8 +116,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -133,8 +125,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -142,8 +134,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/compat-diff.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -156,8 +148,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -175,8 +167,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/unit-tests.junit.xml",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       },
       {
@@ -199,8 +191,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/config-pyramid.txt",
-          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/config-pyramid.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
         }
       }
     ],
