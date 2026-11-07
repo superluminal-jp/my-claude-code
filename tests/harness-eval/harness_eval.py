@@ -66,7 +66,12 @@ FIXTURE_KEYS = {"schema_version", "description", "files", "commit", "after_commi
 PATH_PART = re.compile(r"^[A-Za-z0-9._-]+$")
 # A path part that would let git run code or change what git runs, compared
 # in lower case because the default macOS file system ignores letter case.
-FORBIDDEN_PARTS = {".", "..", ".git", ".gitattributes", ".gitmodules"}
+FORBIDDEN_PARTS = {".", "..", ".git", ".gitattributes", ".gitmodules",
+                   # What Claude Code reads as project configuration or
+                   # instructions. The eval documents that a run loads none of
+                   # these, even from a scaffold; refusing them keeps it so if
+                   # that ever changes.
+                   ".claude", ".claude-plugin", ".mcp.json", "claude.md", "claude.local.md"}
 GIT_SAFE = "-c core.hooksPath=/dev/null"
 GIT_IDENTITY = GIT_SAFE + " -c user.email=eval@example.invalid -c user.name=eval"
 # Tools a scenario may list; anything else is granted only by eval_command.
@@ -912,6 +917,16 @@ def cmd_run(args) -> int:
         shutil.copytree(out_dir, dest)
     else:
         dest.mkdir(parents=True)
+    # File tools (Read, Glob, Grep) run outside the eval's OS sandbox, so name
+    # every result file that mentions the real home directory before anyone adds
+    # results to git.
+    home = str(Path.home())
+    summary["home_path_files"] = sorted(
+        p.relative_to(dest).as_posix() for p in dest.rglob("*")
+        if p.is_file() and home in p.read_text(encoding="utf-8", errors="ignore"))
+    if summary["home_path_files"]:
+        print(f"warning: these result files mention {home}; read them before adding any to git: "
+              f"{summary['home_path_files']}", file=sys.stderr)
     (dest / "metadata.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(f"results: {dest}")
     if not args.keep_build:

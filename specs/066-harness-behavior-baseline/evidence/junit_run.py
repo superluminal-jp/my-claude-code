@@ -149,6 +149,22 @@ TAGS = {
     "test_a_non_reach_probe_grader_is_kept_when_its_phrase_is_gone": "R3-A1",
     "test_compare_refuses_a_complete_result_whose_run_missed_suite_cases": "R6-A1",
     "test_a_partial_run_that_lacks_cases_records_them_and_succeeds": "R3-A1",
+    # Round 8 (assurance review of 4e6b18e).
+    "test_fixture_paths_that_claude_code_reads_as_configuration_are_refused": "R4-A1",
+    "test_ordinary_fixture_paths_are_still_accepted": "R4-A1",
+    "test_a_case_yaml_elsewhere_in_a_skill_stops_the_build": "R4-A1",
+    "test_a_build_directory_outside_the_temporary_directory_is_refused": "R4-A1",
+    "test_a_scenario_without_graders_is_reported": "R2-A1",
+    "test_a_non_probe_scenario_without_stages_is_reported": "R2-A1",
+    "test_a_grader_without_basis_is_reported": "R2-A1",
+    "test_a_basis_with_an_empty_quote_is_reported": "R2-A1",
+    "test_a_stage_without_basis_is_reported": "R1-A1",
+    "test_a_boundary_group_without_basis_is_reported": "R1-A1",
+    "test_a_boundary_group_quote_absent_from_its_file_is_reported": "R1-A1",
+    "test_a_boundary_group_with_one_member_is_reported": "R1-A1",
+    "test_a_boundary_group_member_outside_the_map_is_reported": "R1-A1",
+    "test_a_run_records_result_files_that_mention_the_real_home_directory": "R4-A1",
+    "test_a_run_whose_results_do_not_mention_the_home_directory_records_none": "R4-A1",
 }
 
 

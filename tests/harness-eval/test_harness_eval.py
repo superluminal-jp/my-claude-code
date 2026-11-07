@@ -691,6 +691,7 @@ if [ "$1 $2" = "plugin eval" ]; then
   for c in ${STUB_ONLY:-$(ls "$dir/evals")} ${STUB_EXTRA_CASE:-}; do
     cases="$cases{\"name\":\"$c\",\"aggregates\":{\"score\":1.0}},"
   done
+  [ -n "${STUB_LEAK:-}" ] && printf 'read %s/.ssh/config\n' "$HOME" > "$out/transcript.txt"
   partial=false; [ -n "${STUB_PARTIAL:-}" ] && partial=true
   printf '{"schemaVersion":1,"partial":%s,"discovered":%s,"cases":[%s]}' "$partial" "$discovered" "${cases%,}" > "$out/aggregate-result.json"
   [ "$partial" = true ] && exit 2
@@ -1331,6 +1332,99 @@ class ReviewRound7(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             rc, meta = self.r5.run_with_stub(tmp, STUB_ONLY="probe", STUB_PARTIAL="1")
             self.assertEqual((rc, len(meta["cases_missing"]), meta["eval_exit_code"]), (0, 4, 2))
+
+
+class ReviewRound8(unittest.TestCase):
+    """Regression tests for the assurance review of 4e6b18e (round 8)."""
+
+    # AR-02: fixture data must not write what Claude Code reads as configuration.
+
+    def test_fixture_paths_that_claude_code_reads_as_configuration_are_refused(self):
+        bad = [".claude/settings.json", ".Claude/hooks.json", "CLAUDE.md", "sub/claude.md", "CLAUDE.local.md",
+               ".mcp.json", "x/.claude-plugin/plugin.json"]
+        fd = FixtureData()
+        self.assertEqual([p for p in bad if not has(he.fixture_data_violations(fd.data(files={p: "x\n"})), "unsafe path")], [])
+
+    def test_ordinary_fixture_paths_are_still_accepted(self):
+        fd = FixtureData()
+        self.assertEqual(he.fixture_data_violations(fd.data(files={"docs/claude-notes.md": "x\n", "README.md": "x\n"})), [])
+
+    # AR-03: the two untested guards of the build.
+
+    def test_a_case_yaml_elsewhere_in_a_skill_stops_the_build(self):
+        extra = {".claude/skills/alpha/extra/case.yaml": 'schema_version: "1.1"\n'}
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(he.BuildError, "eval cases outside the generated evals/"):
+                Build().build(Build().make_repo(tmp, extra=extra), tmp)
+
+    def test_a_build_directory_outside_the_temporary_directory_is_refused(self):
+        with self.assertRaisesRegex(he.BuildError, "not under the temporary directory"):
+            he.ensure_outside(Path("/usr/share/harness-eval-check"), Path("/nonexistent-repo"))
+
+    # AR-04: the scenario rules R2-A1 names.
+
+    def suite_violations(self, edit):
+        s = valid_suite()
+        edit(s["scenarios"][1])
+        with tempfile.TemporaryDirectory() as tmp:
+            return Tree(tmp, suite=s).violations()
+
+    def test_a_scenario_without_graders_is_reported(self):
+        self.assertTrue(has(self.suite_violations(lambda sc: sc.update(graders=[])),
+                            "scenario ask-first: needs at least one grader"))
+
+    def test_a_non_probe_scenario_without_stages_is_reported(self):
+        self.assertTrue(has(self.suite_violations(lambda sc: sc.update(stages=[])), "scenario ask-first: names no stage"))
+
+    def test_a_grader_without_basis_is_reported(self):
+        self.assertTrue(has(self.suite_violations(lambda sc: sc["graders"][0].pop("basis")),
+                            "grader uses-alpha: needs a basis with file and quote"))
+
+    def test_a_basis_with_an_empty_quote_is_reported(self):
+        self.assertTrue(has(self.suite_violations(lambda sc: sc["graders"][0]["basis"].update(quote=" ")),
+                            "grader uses-alpha: basis needs a file and a non-empty quote"))
+
+    # AR-05: the map rules R1-A1 names for stages and boundary groups.
+
+    def map_violations(self, edit):
+        m = valid_map()
+        edit(m)
+        with tempfile.TemporaryDirectory() as tmp:
+            return Tree(tmp, cmap=m).violations()
+
+    def test_a_stage_without_basis_is_reported(self):
+        self.assertTrue(has(self.map_violations(lambda m: m["stages"][0].update(basis=[])),
+                            "stage D-ask: needs a basis with file and quote"))
+
+    def test_a_boundary_group_without_basis_is_reported(self):
+        self.assertTrue(has(self.map_violations(lambda m: m["boundary_groups"][0].update(basis=[])),
+                            "boundary group G-ab: needs a basis with file and quote"))
+
+    def test_a_boundary_group_quote_absent_from_its_file_is_reported(self):
+        self.assertTrue(has(self.map_violations(lambda m: m["boundary_groups"][0]["basis"][0].update(quote="Not here")),
+                            "boundary group G-ab: quote not found"))
+
+    def test_a_boundary_group_with_one_member_is_reported(self):
+        self.assertTrue(has(self.map_violations(lambda m: m["boundary_groups"][0].update(members=["skill:alpha"])),
+                            "boundary group G-ab: needs two or more skill components"))
+
+    def test_a_boundary_group_member_outside_the_map_is_reported(self):
+        self.assertTrue(has(self.map_violations(
+            lambda m: m["boundary_groups"][0].update(members=["skill:alpha", "skill:zeta"])),
+            "boundary group G-ab: needs two or more skill components"))
+
+    # AR-06: file tools run outside the OS sandbox, so a run records where the
+    # real home directory's path shows up in its results.
+
+    def test_a_run_records_result_files_that_mention_the_real_home_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, meta = ReviewRound5().run_with_stub(tmp, STUB_LEAK="1")
+            self.assertEqual((rc, meta["home_path_files"]), (0, ["transcript.txt"]))
+
+    def test_a_run_whose_results_do_not_mention_the_home_directory_records_none(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, meta = ReviewRound5().run_with_stub(tmp)
+            self.assertEqual((rc, meta["home_path_files"]), (0, []))
 
 
 if __name__ == "__main__":
