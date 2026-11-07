@@ -594,6 +594,16 @@
             "file": ".claude/CLAUDE.md",
             "quote": "Apply every independently matching capability, never collapse a compound request to one."
           }
+        },
+        {
+          "id": "not-digital-agency-slides",
+          "type": "skill",
+          "skill": "digital-agency-slides",
+          "expect": "unused",
+          "basis": {
+            "file": ".claude/skills/digital-agency-slides/SKILL.md",
+            "quote": "Do not use for web pages, application interfaces, or dashboards that are not slides"
+          }
         }
       ]
     },
@@ -614,6 +624,16 @@
           "basis": {
             "file": ".claude/skills/digital-agency-slides/SKILL.md",
             "quote": "Use for slide decks, briefing material, and presentation documents that must follow DADS"
+          }
+        },
+        {
+          "id": "not-digital-agency-frontend",
+          "type": "skill",
+          "skill": "digital-agency-frontend",
+          "expect": "unused",
+          "basis": {
+            "file": ".claude/skills/digital-agency-frontend/SKILL.md",
+            "quote": "Do not use for Power BI artifacts or projects outside React/Tailwind CSS"
           }
         }
       ]

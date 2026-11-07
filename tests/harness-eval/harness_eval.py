@@ -29,7 +29,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -85,6 +85,11 @@ class Built:
     case_count: int
     harness_ref: str
     suite_ref: str
+    # Where the suite, written for its own commit, no longer matches the
+    # harness commit (a component or a quoted phrase it lacks). Recorded, not fatal.
+    drift: list[str] = field(default_factory=list)
+    probe_cases: list[str] = field(default_factory=list)
+    case_ids: list[str] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------- helpers
@@ -664,10 +669,22 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     harness_sha, suite_sha = resolve(repo, harness_ref), resolve(repo, suite_ref)
     src_h, src_s = out_dir / "src-harness", out_dir / "src-suite"
     extract(repo, harness_sha, (".claude",), src_h)
-    extract(repo, suite_sha, SUITE_PATHS, src_s)
-    violations = check(src_h, src_s)
+    extract(repo, suite_sha, SUITE_PATHS + (".claude",), src_s)
+    # The suite must hold against the harness it was written for, its own commit.
+    violations = check(src_s, src_s)
     if violations:
-        raise BuildError("the map or the suite has violations:\n  " + "\n  ".join(violations))
+        raise BuildError("the map or the suite has violations at the suite commit:\n  " + "\n  ".join(violations))
+    # Every component at the harness commit must be in the map, or whether it
+    # may enter the eval (in_eval) is unknown; fail safe rather than include it.
+    cmap = json.loads((src_s / MAP_PATH).read_text(encoding="utf-8"))
+    mapped = {c.get("id") for c in cmap.get("components", []) if isinstance(c, dict)}
+    unmapped = sorted(set(harness_components(src_h)) - mapped)
+    if unmapped:
+        raise BuildError(f"the harness commit has components the suite's map does not name: {', '.join(unmapped)}; "
+                         "whether they may enter the eval is unknown, so use a suite commit whose map names them")
+    # Anything else the harness commit lacks (a component the suite maps, a
+    # quoted phrase) is what a before-and-after comparison measures.
+    drift = check(src_h, src_s)
 
     # The plugin's only hooks are the generated ones, which --trust-plugin trusts.
     for found in (src_h / ".claude/skills").rglob("*"):
@@ -680,7 +697,6 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
                 declares = any(re.match(r"^hooks\s*:", line) for line in lines[1:end])
         if declares:
             raise BuildError(f"{found.relative_to(src_h)} declares hooks; the eval would run them as trusted")
-    cmap = json.loads((src_s / MAP_PATH).read_text(encoding="utf-8"))
     left_out = {c["id"][len("skill:"):] for c in cmap.get("components", [])
                 if c.get("id", "").startswith("skill:") and c.get("in_eval") is False}
     plugin = out_dir / PLUGIN_NAME
@@ -689,8 +705,21 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
         "name": PLUGIN_NAME,
         "description": f"Whole-harness behavior baseline: .claude/ at {harness_sha[:12]}, suite at {suite_sha[:12]}.",
     }, indent=2) + "\n", encoding="utf-8")
-    shutil.copytree(src_h / ".claude/skills", plugin / "skills",
-                    ignore=lambda d, names: [n for n in names if Path(d) == src_h / ".claude/skills" and n in left_out])
+    # A skill's own evals/ is test material, not instructions, and its
+    # hand-written scaffold scripts would run as the user under --scaffold.
+    skills_root = src_h / ".claude/skills"
+
+    def ignore(d: str, names: list[str]) -> list[str]:
+        if Path(d) == skills_root:
+            return [n for n in names if n in left_out]
+        if Path(d).parent == skills_root:
+            return [n for n in names if n == "evals"]
+        return []
+
+    shutil.copytree(skills_root, plugin / "skills", ignore=ignore)
+    stray = sorted(p.relative_to(plugin).as_posix() for p in (plugin / "skills").rglob("case.yaml"))
+    if stray:
+        raise BuildError(f"eval cases outside the generated evals/ would also run: {', '.join(stray)}")
 
     (plugin / "context").mkdir()
     hooks = []
@@ -733,7 +762,9 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
         for g in sc["graders"]:
             (case / "graders" / f"{g['id']}.md").write_text(frontmatter(render_grader(g)), encoding="utf-8")
     count = sum(1 for p in evals.iterdir() if p.is_dir())
-    return Built(plugin, harness_sha, suite_sha, count, harness_ref, suite_ref)
+    return Built(plugin, harness_sha, suite_sha, count, harness_ref, suite_ref, drift=drift,
+                 probe_cases=[sc["id"] for sc in suite["scenarios"] if sc.get("kind") == "probe"],
+                 case_ids=[sc["id"] for sc in suite["scenarios"]])
 
 
 # ------------------------------------------------------------------------- run
@@ -754,7 +785,8 @@ def run_metadata(b: Built, model: str, runs: int, max_cost_usd: float, command: 
     return {"harness_ref": b.harness_ref, "harness_commit": b.harness_commit,
             "suite_ref": b.suite_ref, "suite_commit": b.suite_commit,
             "model": model, "runs": runs, "max_cost_usd": max_cost_usd,
-            "case_count": b.case_count, "claude_version": claude_version, "command": command}
+            "case_count": b.case_count, "case_ids": b.case_ids, "probe_cases": b.probe_cases,
+            "harness_drift": b.drift, "claude_version": claude_version, "command": command}
 
 
 def result_dir_name(b: Built, stamp: str) -> str:
@@ -777,6 +809,8 @@ def cmd_run(args) -> int:
     except BuildError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+    for line in b.drift:
+        print(f"note: the harness commit differs from the suite's: {line}", file=sys.stderr)
     model = args.model
     if model is None:
         settings = json.loads((work / "src-harness/.claude/settings.json").read_text(encoding="utf-8"))
@@ -807,6 +841,21 @@ def cmd_run(args) -> int:
     if res.returncode == 2:
         summary["note"] = "the cost ceiling stopped the run; the result is partial"
         print("warning: the cost ceiling stopped the run; the result is partial", file=sys.stderr)
+    # The eval must have run exactly the suite's cases: none of its own, none lost.
+    cases_ok = False
+    try:
+        result = load_result(out_dir)
+    except (OSError, ValueError) as exc:
+        summary["result_error"] = str(exc)
+        print(f"error: {exc}", file=sys.stderr)
+    else:
+        found = {c.get("name") for c in result.get("cases", [])}
+        summary["cases_missing"] = sorted(set(b.case_ids) - found)
+        summary["cases_unexpected"] = sorted(str(n) for n in found - set(b.case_ids))
+        cases_ok = not summary["cases_unexpected"] and (result.get("partial") or not summary["cases_missing"])
+        if not cases_ok:
+            print(f"error: the eval's cases differ from the suite's: missing {summary['cases_missing']}, "
+                  f"unexpected {summary['cases_unexpected']}", file=sys.stderr)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     dest = Path(args.results_dir) if args.results_dir else repo / RESULTS_DIR
     dest = dest / result_dir_name(b, stamp)
@@ -818,7 +867,9 @@ def cmd_run(args) -> int:
     print(f"results: {dest}")
     if not args.keep_build:
         shutil.rmtree(work, ignore_errors=True)
-    return 0 if res.returncode in (0, 2) else res.returncode
+    if res.returncode not in (0, 2):
+        return res.returncode
+    return 0 if cases_ok else 1
 
 
 # --------------------------------------------------------------------- compare
@@ -842,11 +893,17 @@ def compare(before: dict, after: dict, threshold: float) -> dict:
 
 
 def load_result(path: Path) -> dict:
+    """The aggregate result in `path`: the shallowest one, and only if it is the only one at its depth."""
     if path.is_dir():
-        found = sorted(path.rglob("aggregate-result.json"))
+        found = list(path.rglob("aggregate-result.json"))
         if not found:
             raise FileNotFoundError(f"no aggregate-result.json under {path}")
-        path = found[0]
+        depth = min(len(p.relative_to(path).parts) for p in found)
+        top = sorted(p for p in found if len(p.relative_to(path).parts) == depth)
+        if len(top) > 1:
+            raise ValueError(f"several aggregate-result.json under {path} at the same depth: "
+                             + ", ".join(p.relative_to(path).as_posix() for p in top))
+        path = top[0]
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -871,12 +928,36 @@ def compare_dirs(before: Path, after: Path, threshold: float) -> dict:
                 problems.append(f"{key} is missing from a metadata.json, so the {name} cannot be confirmed")
             elif metas[0][key] != metas[1][key]:
                 problems.append(f"the {name} differs: {metas[0][key]} vs {metas[1][key]}")
+    # A result whose probe did not pass may have measured Claude without the
+    # always-on files, and a run that found other cases measured another suite.
+    for label, meta, result in zip(("before", "after"), metas, (a, b)):
+        if meta is None:
+            continue
+        if not isinstance(meta.get("probe_cases"), list):
+            problems.append(f"{label}: probe_cases is missing from metadata.json, so the probe cannot be confirmed")
+        elif not meta["probe_cases"]:
+            problems.append(f"{label}: the suite has no probe, so nothing shows the always-on files reached the model")
+        else:
+            scores = _scores(result)
+            for case in meta["probe_cases"]:
+                score = scores.get(case)
+                if not isinstance(score, (int, float)) or score < 1 - 1e-9:
+                    problems.append(f"{label}: the probe {case} did not pass in every run (score {score}), "
+                                    "so the always-on files may not have reached the model")
+        if meta.get("cases_unexpected"):
+            problems.append(f"{label}: the eval ran cases outside the suite: {meta['cases_unexpected']}")
+        if meta.get("cases_missing") and not result.get("partial"):
+            problems.append(f"{label}: the eval did not run these suite cases: {meta['cases_missing']}")
     res["problems"] = problems
     return res
 
 
 def cmd_compare(args) -> int:
-    res = compare_dirs(Path(args.before), Path(args.after), args.threshold)
+    try:
+        res = compare_dirs(Path(args.before), Path(args.after), args.threshold)
+    except (OSError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     for problem in res["problems"]:
         print(f"PROBLEM {problem}")
     print(f"case\tbefore\tafter\tdelta\tflag (|delta| >= {args.threshold}; a screening mark, not a significance test)")

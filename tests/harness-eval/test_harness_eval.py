@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import harness_eval as he  # noqa: E402
@@ -677,16 +678,24 @@ class ReviewFindings(unittest.TestCase):
         bindir = Path(tmp) / "bin"
         bindir.mkdir()
         stub = bindir / "claude"
-        stub.write_text(
-            "#!/usr/bin/env bash\n"
-            "if [ \"$1\" = \"--version\" ]; then echo '9.9.9 (stub)'; exit 0; fi\n"
-            "if [ \"$1 $2\" = \"plugin validate\" ]; then echo valid; exit 0; fi\n"
-            "if [ \"$1 $2\" = \"plugin eval\" ]; then\n"
-            "  out=''; cases=$(ls \"$3/evals\" | wc -l | tr -d ' ')\n"
-            "  while [ $# -gt 0 ]; do [ \"$1\" = --output-dir ] && out=$2; shift; done\n"
-            "  mkdir -p \"$out\"\n"
-            "  printf '{\"schemaVersion\":1,\"partial\":false,\"discovered\":%s,\"cases\":[{\"name\":\"probe\",\"aggregates\":{\"score\":1.0}}]}' \"$cases\" > \"$out/aggregate-result.json\"\n"
-            "  exit 0\nfi\nexit 3\n", encoding="utf-8")
+        # The stub reports one passing case per built case directory, unless
+        # STUB_ONLY names the cases to report or STUB_EXTRA_CASE adds one.
+        stub.write_text(r'''#!/usr/bin/env bash
+if [ "$1" = "--version" ]; then echo '9.9.9 (stub)'; exit 0; fi
+if [ "$1 $2" = "plugin validate" ]; then echo valid; exit 0; fi
+if [ "$1 $2" = "plugin eval" ]; then
+  dir=$3; out=''; discovered=$(ls "$dir/evals" | wc -l | tr -d ' ')
+  while [ $# -gt 0 ]; do [ "$1" = --output-dir ] && out=$2; shift; done
+  mkdir -p "$out"
+  cases=''
+  for c in ${STUB_ONLY:-$(ls "$dir/evals")} ${STUB_EXTRA_CASE:-}; do
+    cases="$cases{\"name\":\"$c\",\"aggregates\":{\"score\":1.0}},"
+  done
+  printf '{"schemaVersion":1,"partial":false,"discovered":%s,"cases":[%s]}' "$discovered" "${cases%,}" > "$out/aggregate-result.json"
+  exit 0
+fi
+exit 3
+''', encoding="utf-8")
         stub.chmod(0o755)
         return bindir
 
@@ -713,7 +722,7 @@ class ReviewFindings(unittest.TestCase):
         (d / "aggregate-result.json").write_text(json.dumps(
             {"schemaVersion": 1, "partial": partial, "cases": [{"name": "a", "aggregates": {"score": 1.0}}]}))
         (d / "metadata.json").write_text(json.dumps({"suite_commit": suite, "model": model,
-                                                     "claude_version": "1", "runs": 3}))
+                                                     "claude_version": "1", "runs": 3, "probe_cases": ["a"]}))
         return d
 
     def test_comparing_results_of_different_suites_is_refused(self):
@@ -823,7 +832,7 @@ class CompareRound2(unittest.TestCase):
         d.mkdir()
         (d / "aggregate-result.json").write_text(json.dumps(
             {"schemaVersion": 1, "partial": False, "cases": [{"name": "a", "aggregates": {"score": 1.0}}]}))
-        base = {"suite_commit": "s", "model": "opus", "claude_version": "1", "runs": 3}
+        base = {"suite_commit": "s", "model": "opus", "claude_version": "1", "runs": 3, "probe_cases": ["a"]}
         base.update(meta)
         (d / "metadata.json").write_text(json.dumps(base))
         return d
@@ -934,6 +943,218 @@ class ReviewRound4(unittest.TestCase):
             self.assertEqual(he.check(repo, repo), [])
             with self.assertRaisesRegex(he.BuildError, "hooks"):
                 Build().build(repo, tmp)
+
+
+SKILL_D = "---\nname: delta\ndescription: Do delta things.\n---\n\n# Delta\n"
+
+
+class ReviewRound5(unittest.TestCase):
+    """Regression tests for the assurance review of 112db91 (round 5)."""
+
+    def commit(self, repo, message):
+        git(repo, "add", "-A")
+        git(repo, "-c", "commit.gpgsign=false", "commit", "-qm", message)
+        return git(repo, "rev-parse", "HEAD")
+
+    def build_refs(self, repo, tmp, harness_ref, suite_ref):
+        out = Path(tmp) / "build"
+        out.mkdir()
+        return he.build(repo, harness_ref, suite_ref, out)
+
+    def add_delta(self, repo):
+        """Add a skill and give it a stage, as adding an owner for a gap would."""
+        (repo / ".claude/skills/delta").mkdir()
+        (repo / ".claude/skills/delta/SKILL.md").write_text(SKILL_D, encoding="utf-8")
+        m = valid_map()
+        m["components"].append({"id": "skill:delta", "path": ".claude/skills/delta/SKILL.md"})
+        m["stages"][0]["owners"].append("skill:delta")
+        (repo / he.MAP_PATH).write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
+
+    # AR-03: one suite must run against an older and a newer harness.
+
+    def test_a_suite_that_maps_a_component_the_older_harness_lacks_still_builds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            self.add_delta(repo)
+            self.assertEqual(he.check(repo, repo), [])
+            after = self.commit(repo, "add delta")
+            b = self.build_refs(repo, tmp, before, after)
+            self.assertEqual(((b.plugin_dir / "skills/delta").exists(), has(b.drift, "skill:delta")), (False, True))
+
+    def test_a_quote_the_older_harness_lacks_is_recorded_not_fatal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            (repo / ".claude/skills/alpha/SKILL.md").write_text(
+                SKILL_A.replace("Do alpha things", "Do alpha work"), encoding="utf-8")
+            suite = (repo / he.SUITE_PATH).read_text(encoding="utf-8").replace("Do alpha things", "Do alpha work")
+            (repo / he.SUITE_PATH).write_text(suite, encoding="utf-8")
+            self.assertEqual(he.check(repo, repo), [])
+            after = self.commit(repo, "reword alpha")
+            b = self.build_refs(repo, tmp, before, after)
+            self.assertTrue(has(b.drift, "Do alpha work"))
+
+    def test_the_same_commit_for_both_has_no_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(Build().build(Build().make_repo(tmp), tmp).drift, [])
+
+    def test_a_harness_component_the_suite_does_not_map_stops_the_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            self.add_delta(repo)
+            after = self.commit(repo, "add delta")
+            with self.assertRaisesRegex(he.BuildError, "skill:delta"):
+                self.build_refs(repo, tmp, after, before)
+
+    def test_a_suite_inconsistent_with_its_own_commit_stops_a_cross_commit_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            s = CheckScenarios().three_compound()
+            s["scenarios"][1]["stages"].append("X-typo")
+            (repo / he.SUITE_PATH).write_text(json.dumps(s, ensure_ascii=False), encoding="utf-8")
+            after = self.commit(repo, "typo")
+            with self.assertRaisesRegex(he.BuildError, "X-typo"):
+                self.build_refs(repo, tmp, before, after)
+
+    def test_the_drift_and_the_probe_cases_are_recorded_in_the_run_metadata(self):
+        b = he.Built(Path("/p"), "h" * 40, "s" * 40, 1, "a", "b",
+                     drift=["x"], probe_cases=["probe"], case_ids=["probe"])
+        meta = he.run_metadata(b, "opus", 1, 1.0, [], "v")
+        self.assertEqual((meta["harness_drift"], meta["probe_cases"], meta["case_ids"]), (["x"], ["probe"], ["probe"]))
+
+    # AR-05: eval material bundled inside a skill never enters the build.
+
+    def test_a_skills_own_eval_suite_and_scaffold_are_not_built(self):
+        extra = {".claude/skills/alpha/evals/x/case.yaml": 'schema_version: "1.1"\nname: "x"\n',
+                 ".claude/skills/alpha/evals/x/prompt.md": "do x\n",
+                 ".claude/skills/alpha/evals/x/fixture.sh": "git init\n"}
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Build().build(Build().make_repo(tmp, extra=extra), tmp)
+            evals = b.plugin_dir / "evals"
+            stray = [p for p in b.plugin_dir.rglob("*") if p.is_file() and evals not in p.parents]
+            stray = [p for p in stray if p.name in ("case.yaml", "fixture.sh")]
+            self.assertEqual(((b.plugin_dir / "skills/alpha/evals").exists(), stray), (False, []))
+
+    def test_the_skill_files_outside_evals_are_still_copied(self):
+        extra = {".claude/skills/alpha/evals/x/case.yaml": 'schema_version: "1.1"\n'}
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Build().build(Build().make_repo(tmp, extra=extra), tmp)
+            self.assertEqual((b.plugin_dir / "skills/alpha/scripts/tool.py").read_text(), "print('alpha')\n")
+
+    # AR-08: the plugin.json branch of the trusted-hook guard.
+
+    def test_a_skill_plugin_json_that_declares_hooks_stops_the_build(self):
+        extra = {".claude/skills/alpha/.claude-plugin/plugin.json": json.dumps({"name": "alpha", "hooks": "./h.json"})}
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp, extra=extra)
+            self.assertEqual(he.check(repo, repo), [])
+            with self.assertRaisesRegex(he.BuildError, r"plugin\.json declares hooks"):
+                Build().build(repo, tmp)
+
+    def test_a_skill_plugin_json_without_hooks_builds(self):
+        extra = {".claude/skills/alpha/.claude-plugin/plugin.json": json.dumps({"name": "alpha"})}
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Build().build(Build().make_repo(tmp, extra=extra), tmp)
+            self.assertTrue((b.plugin_dir / "skills/alpha/.claude-plugin/plugin.json").is_file())
+
+    # AR-06: a result whose probe did not pass measures no harness.
+
+    def write(self, root, name, probe_score=1.0, cases=None, **meta):
+        d = Path(root) / name
+        d.mkdir()
+        if cases is None:
+            cases = [{"name": "probe", "aggregates": {"score": probe_score}}, {"name": "a", "aggregates": {"score": 1.0}}]
+        (d / "aggregate-result.json").write_text(json.dumps({"schemaVersion": 1, "partial": False, "cases": cases}))
+        base = {"suite_commit": "s", "model": "opus", "claude_version": "1", "runs": 3, "probe_cases": ["probe"]}
+        base.update(meta)
+        (d / "metadata.json").write_text(json.dumps({k: v for k, v in base.items() if v is not None}))
+        return d
+
+    def problems(self, tmp, **after):
+        return he.compare_dirs(self.write(tmp, "a"), self.write(tmp, "b", **after), 0.34)["problems"]
+
+    def test_a_result_whose_probe_did_not_pass_in_every_run_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(self.problems(tmp, probe_score=0.8333), "the probe probe did not pass"))
+
+    def test_a_result_without_its_probe_case_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cases = [{"name": "a", "aggregates": {"score": 1.0}}]
+            self.assertTrue(has(self.problems(tmp, cases=cases), "the probe probe did not pass"))
+
+    def test_metadata_without_the_probe_cases_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(self.problems(tmp, probe_cases=None), "probe_cases"))
+
+    def test_a_suite_without_a_probe_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(self.problems(tmp, probe_cases=[]), "no probe"))
+
+    def test_passing_probes_on_both_sides_are_no_problem(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(self.problems(tmp), [])
+
+    # AR-02: which aggregate-result.json a result directory means.
+
+    def test_the_shallowest_aggregate_result_is_read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            (d / "aggregate-result.json").write_text(json.dumps({"cases": [{"name": "top"}]}))
+            (d / "a/b").mkdir(parents=True)
+            (d / "a/b/aggregate-result.json").write_text(json.dumps({"cases": [{"name": "nested"}]}))
+            self.assertEqual(he.load_result(d)["cases"][0]["name"], "top")
+
+    def test_two_aggregate_results_at_the_same_depth_are_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            for sub in ("a", "b"):
+                (d / sub).mkdir()
+                (d / sub / "aggregate-result.json").write_text(json.dumps({"cases": []}))
+            with self.assertRaisesRegex(ValueError, "aggregate-result.json"):
+                he.load_result(d)
+
+    def test_compare_exits_2_on_an_ambiguous_result_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.write(tmp, "a")
+            amb = Path(tmp) / "amb"
+            for sub in ("x", "y"):
+                (amb / sub).mkdir(parents=True)
+                (amb / sub / "aggregate-result.json").write_text(json.dumps({"cases": []}))
+            self.assertEqual(he.main(["compare", str(a), str(amb)]), 2)
+
+    # AR-04: a run checks that the eval ran exactly the suite's cases.
+
+    def run_with_stub(self, tmp, **env):
+        repo = Build().make_repo(tmp)
+        results = Path(tmp) / "results"
+        bindir = ReviewFindings().stub_claude(tmp)
+        patched = {"PATH": str(bindir) + os.pathsep + os.environ["PATH"], **env}
+        with mock.patch.dict(os.environ, patched):
+            rc = he.main(["run", "--repo", str(repo), "--max-cost-usd", "1", "--results-dir", str(results)])
+        (run_dir,) = list(results.iterdir())
+        return rc, json.loads((run_dir / "metadata.json").read_text())
+
+    def test_a_run_whose_cases_match_the_suite_succeeds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, meta = self.run_with_stub(tmp)
+            self.assertEqual((rc, meta["cases_missing"], meta["cases_unexpected"]), (0, [], []))
+
+    def test_a_run_whose_result_has_a_case_outside_the_suite_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, meta = self.run_with_stub(tmp, STUB_EXTRA_CASE="stray")
+            self.assertEqual((rc, meta["cases_unexpected"]), (1, ["stray"]))
+
+    def test_a_complete_run_that_lacks_a_suite_case_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, meta = self.run_with_stub(tmp, STUB_ONLY="probe")
+            self.assertEqual((rc, len(meta["cases_missing"])), (1, 4))
+
+    def test_compare_refuses_a_result_whose_run_found_unexpected_cases(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(self.problems(tmp, cases_unexpected=["stray"]), "stray"))
 
 
 if __name__ == "__main__":

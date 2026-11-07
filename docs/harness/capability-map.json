@@ -362,6 +362,10 @@
         {
           "file": ".claude/skills/digital-agency-frontend/SKILL.md",
           "quote": "Use for DADS components, Japanese government or public-service interfaces"
+        },
+        {
+          "file": ".claude/skills/digital-agency-slides/SKILL.md",
+          "quote": "Do not use for web pages, application interfaces, or dashboards that are not slides"
         }
       ]
     },
@@ -376,6 +380,10 @@
         {
           "file": ".claude/skills/digital-agency-slides/SKILL.md",
           "quote": "Use for slide decks, briefing material, and presentation documents that must follow DADS"
+        },
+        {
+          "file": ".claude/skills/digital-agency-frontend/SKILL.md",
+          "quote": "Do not use for Power BI artifacts or projects outside React/Tailwind CSS"
         }
       ]
     },
