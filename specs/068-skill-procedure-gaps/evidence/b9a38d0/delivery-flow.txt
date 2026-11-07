@@ -1,0 +1,11 @@
+commit: b9a38d0bb8e1c1ad185395f6d00d54a450594825
+ok   decomposition gate is ready with the challenge recorded (origin is accepted)
+ok   collect-jest passes the three criteria the Jest run names and leaves the post-deploy one not_run
+ok   [R4-A1] before deploy, the gate passes and leaves out only the post-deploy check
+ok   [R4-A1] for acceptance, the gate is blocked by the post-deploy check alone
+ok   [R4-A1] the card shows both decisions, offers the deploy decision, and names who directed REQ-DEV-HOURLY
+ok   [R4-A2] a failed post-deploy check fails the decision before deploy too
+ok   after deploy, with the post-deploy evidence recorded, the gate passes
+ok   after deploy, the card shows the pass mark and both decisions pass
+all checks hold (R0-A1: the flow as a whole)
+exit=0

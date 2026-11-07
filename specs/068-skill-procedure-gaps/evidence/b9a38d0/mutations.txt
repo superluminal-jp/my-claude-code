@@ -1,0 +1,13 @@
+commit: b9a38d0bb8e1c1ad185395f6d00d54a450594825
+red      test_check_graph.StageAndOriginTests          against main: failed 10, errors 0
+red      test_card.StageCardTests                      against main: failed 4, errors 0
+red      test_card.OriginCardTests                     against main: failed 1, errors 0
+red      test_assure.StageTests                        against a stub of --stage: failed 4, errors 0
+red      test_assure.JestTests                         against a stub of collect-jest: failed 20, errors 0
+mutation origin shape is not checked                   failed 9, errors 0
+mutation the gate refuses a graph with an origin       failed 1, errors 0
+mutation the card always shows a decision before deploy failed 1, errors 0
+mutation a failed post-deploy check is left out        failed 1, errors 0
+mutation nothing verified before deploy passes         failed 1, errors 0
+mutation a Jest file that failed to run is ignored     failed 1, errors 0
+result: every observation as expected

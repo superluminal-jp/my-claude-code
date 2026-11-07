@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-068",
     "problem_id": "P-068",
-    "reviewed_commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4",
+    "reviewed_commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -16,8 +16,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/delivery-flow.txt",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/delivery-flow.txt",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -28,21 +28,21 @@
       {
         "check_id": "R0-A3",
         "status": "not_run",
-        "reason": "9つのうち8つはローカルで合格（ci-suites-local.txt）。run-mcp-startup はサンドボックスが ~/.cache/uv への書き込みを止めて失敗したので、push の後の CI の結果を待つ"
+        "reason": "10のうち9つはローカルで合格（ci-suites-local.txt）。run-mcp-startup はサンドボックスが ~/.cache/uv への書き込みを止めて失敗したので、push の後の CI の test ジョブの結果を待つ"
       },
       {
         "check_id": "R0-A4",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/compat-diff.txt",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/compat-diff.txt",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
         "check_id": "R0-A5",
         "status": "not_run",
-        "reason": "記録のコミットの後に、記録を読むスクリプトで確かめる"
+        "reason": "記録のコミットの後に、記録を読むスクリプト（evidence/records_check.py）で確かめる"
       },
       {
         "check_id": "R1-A1",
@@ -62,15 +62,15 @@
       {
         "check_id": "R3-A2",
         "status": "not_run",
-        "reason": "1回目の assurance review の結果を待つ"
+        "reason": "1回目の後の直しは graph を変えたので、2回目はすべての差分を読む。差分のレビューの回ができるかは、2回目の結果による"
       },
       {
         "check_id": "R4-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/delivery-flow.txt",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/delivery-flow.txt",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -78,8 +78,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/delivery-flow.txt",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/delivery-flow.txt",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -87,8 +87,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/unit-tests.junit.xml",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -96,8 +96,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/unit-tests.junit.xml",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -105,8 +105,17 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/unit-tests.junit.xml",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
+        }
+      },
+      {
+        "check_id": "R4c-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/compat-diff.txt",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -119,8 +128,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/unit-tests.junit.xml",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -138,8 +147,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/unit-tests.junit.xml",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/unit-tests.junit.xml",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       },
       {
@@ -162,8 +171,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/068-skill-procedure-gaps/evidence/b37a71c/config-pyramid.txt",
-          "commit": "b37a71c885041c33186ef49171757a9f0bfe6ac4"
+          "ref": "specs/068-skill-procedure-gaps/evidence/b9a38d0/config-pyramid.txt",
+          "commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825"
         }
       }
     ],
