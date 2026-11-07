@@ -1,0 +1,34 @@
+commit: f9dbf00b298c8a90301de7849b13b6f018163911
+sandbox: Claude Code Bash sandbox (macOS Seatbelt); plain 'mktemp -d', process substitution, a headless browser launch and the uv cache are denied here. run-install and run-mcp-startup passed in CI at 1784e6c (https://github.com/superluminal-jp/my-claude-code/actions/runs/42330773095)
+== run-config-pyramid exit=1
+mktemp: mkdtemp failed on /var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/tmp.6snIaDfCBG: Operation not permitted
+mkdir: /f1: Operation not permitted
+mkdir: /f1: Operation not permitted
+== run-digital-agency-frontend-skill exit=0
+Results: [0;32m74 passed[0m, [0;31m0 failed[0m
+== run-digital-agency-slides-skill exit=1
+[0;31mFAIL[0m UNIT: deck.py unit assertions pass
+      FAIL UNIT-08 a page with no slides reports instead of crashing — TargetClosedError: BrowserType.launch: Target page, context or browser has been closed
+[0;31mFAIL[0m LINT: findings match each fixture
+== run-install exit=1
+diff: /dev/fd/63: Operation not permitted
+FAIL: settings.json merge: repo-declared permissions.deny still matches the repository
+== run-mcp-startup exit=1
+FAIL awslabs.aws-documentation-mcp-server@latest did not start cleanly
+error: failed to open file `~/.cache/uv/sdists-v9/.git`: Operation not permitted (os error 1)
+== run-note-body-conversion exit=0
+== run-note-write-guard exit=0
+== run-package-safety-bundle exit=0
+Results: 21 passed, 0 failed
+== run-readme-skill-index exit=0
+Results: 33 passed, 0 failed
+== run-removed-guardrails exit=0
+Results: 4 passed, 0 failed
+== run-requirements-decomposition-skill exit=0
+Results: 5 passed, 0 failed
+== run-secure-logging-skill exit=1
+mktemp: mkdtemp failed on /var/folders/26/5tb11tqx04529yxb_1zb68k40000gn/T/tmp.DciYQvESLD: Operation not permitted
+mkdir: /skills: Operation not permitted
+[0;31mFAIL[0m PL-04: claude plugin validate --strict accepts SKILL.md as a skill
+== run-verified-delivery-skill exit=0
+Results: 5 passed, 0 failed

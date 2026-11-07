@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "P-066",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07）。challenger.md の指示文を2つのパス以外は変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/problem-card.challenger.json（proposed_solutions を除いた写し、初版）",
+      "specs/066-harness-behavior-baseline/requirements-graph.json（初版）"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "counterexample",
+        "target": "R0",
+        "severity": "high",
+        "statement": "理想は変更の前と後での確認を求めるが、R0 とその子は1つのコミットの測定しか支えない。harness のコミットとシナリオ集の版を別々に選んで記録する要件がなく、同じシナリオ集を2つのコミットで走らせる要件もない。",
+        "disposition": "accepted",
+        "resolution": "R0 を『同じシナリオ集を harness の別々のコミットで実行して比べられる』に改め、R0-A1 に両方のコミットの記録を加えた。R3 に harness とシナリオ集の参照を別々に指定し、それぞれ git の内容から組み立てる要件を加えた。引用した語句が後で変わる場合は、その時点のシナリオ集の検査が失敗して期待の見直しを強いる。比較は同じシナリオ集のコミットで行う。"
+      },
+      {
+        "id": "CH-02",
+        "kind": "missing_child",
+        "target": "R0",
+        "severity": "medium",
+        "statement": "モデルの出力は実行ごとに揺れる。実行ごとの結果やばらつきの記録も、2つのコミットの差をいつ良化・悪化と数えるかの定義もない。",
+        "disposition": "accepted",
+        "resolution": "R3 に実行ごとの結果を残すことを加え、比較の道具 R6 を子に加えた。R6 は差が決めた幅以上のシナリオに印をつけ、それが統計的な有意ではないと明記する。R0-A2 で実際の結果を読めることを確かめる。"
+      },
+      {
+        "id": "CH-03",
+        "kind": "missing_child",
+        "target": "R0",
+        "severity": "medium",
+        "statement": "判定が良い振る舞いと悪い振る舞いを区別できるかを確かめる要件がない。どんな答えも受け入れる判定でも合格が記録される。",
+        "disposition": "accepted",
+        "resolution": "R2 に、各判定の正規表現が合うべき例と合ってはいけない例を持ち、その通りに判定されることを加えた。確かめるのは正規表現の部分で、min と max を含む判定の意味は eval の実行器のものとして前提に記した。"
+      },
+      {
+        "id": "CH-04",
+        "kind": "counterexample",
+        "target": "R2",
+        "severity": "medium",
+        "statement": "R2-A1 は引用した語句がファイルにあることしか見ず、それが期待を支えるか、期待する部品のものかを見ない。",
+        "disposition": "accepted",
+        "resolution": "引用元のファイルが、そのシナリオの段階の担い手か apex のものであることを R2-A1 に加えた。語句が期待を意味の上で支えるかは機械では判定できないので、利用者による一覧の承認（R2 の前提）と assurance review に残す。"
+      },
+      {
+        "id": "CH-05",
+        "kind": "counterexample",
+        "target": "R-SPEC",
+        "severity": "high",
+        "statement": "段階ごとに1シナリオでは、重なる部品の境界の取り違えも、些細な依頼への重い手順の過剰適用も測られない。",
+        "disposition": "accepted",
+        "resolution": "R1 に、互いの description で除外し合う部品を境界グループとして記すことを加えた。R-SPEC-A1 に、境界グループのスキルを期待するシナリオは同じグループの他のスキル（宣言された子を除く）が使われないことも判定すること、過剰適用を判定するシナリオが1つ以上あることを加えた。"
+      },
+      {
+        "id": "CH-06",
+        "kind": "counterexample",
+        "target": "R-SPEC",
+        "severity": "medium",
+        "statement": "担い手のない段階にシナリオがないので、後で担い手を加えたときに変更前の測定がない。",
+        "disposition": "accepted",
+        "resolution": "R-SPEC-A1 を、観測できない理由を記していないすべての段階にシナリオを求める形に改め、担い手のない段階には観測のシナリオ（どの部品が使われたかを記録するが、欠陥とは数えない）を求めた。"
+      },
+      {
+        "id": "CH-07",
+        "kind": "counterexample",
+        "target": "R5",
+        "severity": "high",
+        "statement": "R5 は CLAUDE.md、ルール、追跡されたスキルだけを harness とし、hooks、permissions、settings.json、agents、追跡されていないスキル（speckit-*）を扱わない。",
+        "disposition": "accepted",
+        "resolution": "R5 に、settings.json の最上位の各項目を評価に含めるか除くかを理由とともに分類し、分類にない項目があれば失敗することを加えた。speckit-* については前提に事実を記した。gitignore されたプロジェクトごとの生成物で、install.sh が ~/.claude から取り除き、~/.claude/skills に speckit-* が0件であることを観測した。したがって利用者の全プロジェクトに入る harness の一部ではない。agents/ と commands/ はこのリポジトリに元がない（README）。"
+      },
+      {
+        "id": "CH-08",
+        "kind": "counterexample",
+        "target": "R5",
+        "severity": "high",
+        "statement": "R5 は性質ではなく仕組み（会話の開始時の注入）を固定し、本文が同じことしか確かめない。名前空間、パス、@ の取り込み、paths の前付け、出力の切り詰め、SessionStart が plugin eval で動くかが、結果を変えうる。",
+        "disposition": "accepted",
+        "resolution": "R5 を『モデルに届く指示が同じ』という性質に改めた。R5-A1 に、ファイルごとに別のフック出力で10,000字未満（公式文書の上限）、@ の取り込みがない、paths の前付けがない、を加えた。R0-A1 の到達確認を、5ファイルそれぞれに固有の語句が届くことに強めた。SessionStart が plugin eval で動くかはこの到達確認で実行時に確かめる。名前空間の違いと効き方の同一性は未検証の前提として R5 に記した。"
+      },
+      {
+        "id": "CH-09",
+        "kind": "missing_evidence",
+        "target": "R2",
+        "severity": "medium",
+        "statement": "plugin eval の判定から、どのスキルが呼ばれたかが見えるという証拠が記録されていない。",
+        "disposition": "accepted",
+        "resolution": "問題カードの evidence と R2 の前提に、公式文書の tool_used 判定（tool: Skill と input_match、min: 0 と max: 0）と既存の skill-fired 判定を出典として記した。"
+      },
+      {
+        "id": "CH-10",
+        "kind": "counterexample",
+        "target": "R4",
+        "severity": "medium",
+        "statement": "R4-A1 は組み立て先と旗しか見ず、作業領域、ネットワーク、資格情報（GH_TOKEN など）を扱わない。また R4 は実リポジトリへの書き込みを禁じ、R3 は結果をリポジトリに残すことを求め、境界が書かれていない。",
+        "disposition": "accepted",
+        "resolution": "R4 に外部のネットワークに出ないことを加え、R4-A1 に、追加で許す道具が Bash だけでネットワークの許可を含まないこと、準備スクリプトが git remote やネットワークを使わないことを加えた。前提に、公式文書の環境変数の許可リストとネットワークの制限を記した。結果をリポジトリに残すのは評価の後の実行器だけ、と R4 の記述に境界を書いた。"
+      },
+      {
+        "id": "CH-11",
+        "kind": "missing_evidence",
+        "target": "R4",
+        "severity": "low",
+        "statement": "--no-publish、--max-cost-usd、claude plugin validate が想定どおりに存在し働くという証拠がない。",
+        "disposition": "accepted",
+        "resolution": "claude plugin eval --help（2.1.319）の観測を evidence に加えた。--max-cost-usd は新しい実行の前に確かめる上限で、超過は実行中の件数分に限られる、と R4 の前提に正確に記した。"
+      },
+      {
+        "id": "CH-12",
+        "kind": "missing_evidence",
+        "target": "P-066",
+        "severity": "medium",
+        "statement": "既存の2つの eval が実際に claude plugin eval で実行されるという記録がない。",
+        "disposition": "accepted",
+        "resolution": "両方の eval が plugin eval の形式（case.yaml の schema_version \"1.1\"）で書かれ、README が plugin eval での実行を指示していることを evidence に加えた。"
+      },
+      {
+        "id": "CH-13",
+        "kind": "missing_evidence",
+        "target": "P-066",
+        "severity": "low",
+        "statement": "全体の振る舞いの証拠が60件の検査と2つの eval だけという主張は、.claude/skills の深さ3までの検索に基づく。他の workflow も見ていない。",
+        "disposition": "accepted",
+        "resolution": "tests/、.github/、.claude/skills を claude -p と plugin eval で検索し、workflow が ci.yml と dependabot-automerge.yml の2つで後者がテストを実行しないことを evidence に加えた。"
+      },
+      {
+        "id": "CH-14",
+        "kind": "solution_as_problem",
+        "target": "P-066",
+        "severity": "medium",
+        "statement": "ギャップの『一か所にも書かれておらず』と R0 の『一か所に書かれ』は手段であり、R1-A2（JSON から Markdown を生成）や R1-A3（CI）を要件に持ち込んでいる。",
+        "disposition": "accepted",
+        "resolution": "ギャップと現在の状態を『検査できる形で定まっておらず、繰り返し観測する手段もない』に改め、R0 と R-SPEC から『一か所』を除いた。R1-A2 は要件から外した。R1-A3（CI）は、今後の変更で対応表がずれないことを支えるので残した。全部品が段階に現れる規則も、現れない部品は測られないという理由を R1 の前提に記して残した。"
+      },
+      {
+        "id": "CH-15",
+        "kind": "missing_child",
+        "target": "R0",
+        "severity": "medium",
+        "statement": "『代表的な依頼の集合』を定める子がない。harness 自身の記述から作るので、利用者の実際の依頼（日本語、複数の関心事の組合せ）を反映しない。",
+        "disposition": "accepted",
+        "resolution": "R2 に依頼文を日本語で書くこと、複合のシナリオを3件以上含むことを加えた。代表性は基準の実行前に利用者が一覧を承認して確かめると R2 の前提に記した。履歴から代表性を補うかは利用者が決める点として R1 の前提に記した。"
+      },
+      {
+        "id": "CH-16",
+        "kind": "counterexample",
+        "target": "R3",
+        "severity": "medium",
+        "statement": "作業ツリーではなくコミットの内容から組み立てる要件がないので、未コミットの変更で走らせた結果が HEAD のものとして記録されうる。",
+        "disposition": "accepted",
+        "resolution": "R3 に、どちらの参照も作業ツリーではなく git の内容から組み立てることを加え、R3-A1 に作業ツリーにだけある変更が組み立てた中身に入らないことの確かめを加えた。"
+      }
+    ]
+  }
+}

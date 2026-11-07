@@ -110,6 +110,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | 常時ロードの指示が通すべき判断基準と、各ファイルが意図的に置いていないもの |
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、サーバー追加時の更新箇所 |
+| [`docs/harness-eval.md`](docs/harness-eval.md) | harness 全体の振る舞いの基準。対応表とシナリオ集の検査、2つのコミットを費用の上限の下で `claude plugin eval` にかけて比べる手順、実際の環境との違い |
+| [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | 作業の各段階の担い手、担い手のない段階、互いに除外し合うスキル、各段階を覆うシナリオ（`capability-map.json` から生成） |
 | [`docs/adr/`](docs/adr/) | アーキテクチャ決定記録 — Accepted 後は不変で、supersede のみ |
 
 ## ユーザー設定としてインストール
@@ -186,7 +188,7 @@ my-claude-code/
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち8本を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち9本を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── .claude/                        # インストーラーが管理する Claude パスの正本
@@ -323,6 +325,20 @@ bash tests/run-note-body-conversion.sh # Node.js が必要
 どちらもスクリプトから切り出したロジックを検査し、macOS を必要としない。
 Notes.app への呼び出しそのものは対象外。`apple-reminders` には自動テストがない。
 
+`.claude/` 配下（apex、ルール、スキル）か、harness 全体の振る舞いの基準の
+対応表・シナリオ集を変更したら:
+
+```sh
+bash tests/run-harness-eval.sh
+```
+
+モデルを呼ばずに、次を検査する。すべてのルールとスキルが
+[`docs/harness/capability-map.json`](docs/harness/capability-map.json) に現れること。
+引用した語句が、引用元のファイルにまだあること。作業の各段階に
+[`tests/harness-eval/scenarios.json`](tests/harness-eval/scenarios.json) のシナリオがあること。
+シナリオそのものを実行するとモデルの呼び出しに費用がかかり、費用の上限
+（`harness_eval.py run --max-cost-usd N`）が要る。[`docs/harness-eval.md`](docs/harness-eval.md) を参照。
+
 `.claude/skills/` のスキルを追加・削除・改名したとき、またはどちらかの README を
 編集したら:
 
@@ -366,10 +382,10 @@ end-to-end セクションはさらにネットワーク接続を必要としま
 
 ## リポジトリのセキュリティ自動化
 
-上記のうち8本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+上記のうち9本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
 自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
 `run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、
-`run-readme-skill-index.sh`、`run-requirements-decomposition-skill.sh`、`run-verified-delivery-skill.sh`、`run-mcp-startup.sh`。
+`run-readme-skill-index.sh`、`run-requirements-decomposition-skill.sh`、`run-verified-delivery-skill.sh`、`run-harness-eval.sh`、`run-mcp-startup.sh`。
 それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
 する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
 

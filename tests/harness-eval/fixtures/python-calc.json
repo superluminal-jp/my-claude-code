@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "description": "README の仕様（空のリストには 0.0）を破っている関数と、その場合を覆わない既存のテスト。",
+  "files": {
+    "README.md": "# calc\n\nmean() は数のリストの平均を返す。空のリストには 0.0 を返す。\n",
+    "calc.py": "def mean(values):\n    \"\"\"Return the arithmetic mean of values.\"\"\"\n    return sum(values) / len(values)\n",
+    "test_calc.py": "import unittest\n\nfrom calc import mean\n\n\nclass MeanTest(unittest.TestCase):\n    def test_mean_of_three_numbers(self):\n        self.assertEqual(mean([1, 2, 3]), 2)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+  },
+  "commit": true
+}

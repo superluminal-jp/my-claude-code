@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "description": "ユーザー名とパスワードを扱い、ログを出さないログインの関数。",
+  "files": {
+    "auth.py": "def login(username, password, users):\n    \"\"\"Return True when the user exists and the password matches.\"\"\"\n    user = users.get(username)\n    if user is None or user[\"password\"] != password:\n        return False\n    return True\n"
+  },
+  "commit": true
+}

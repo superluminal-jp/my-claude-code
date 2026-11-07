@@ -156,6 +156,8 @@ and skills carry their own sources inline instead.
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | The test each always-on instruction must pass, and what each file deliberately omits |
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, and what to update when a server is added |
+| [`docs/harness-eval.md`](docs/harness-eval.md) | The whole-harness behavior baseline: how to check the capability map and scenario suite, run the suite with `claude plugin eval` against two commits under a cost ceiling, and compare the results, and where the eval differs from a real session |
+| [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | Which component owns each stage of the work, which stages have no owner, which skills exclude one another, and which scenarios cover each stage (generated from `capability-map.json`) |
 | [`docs/adr/`](docs/adr/) | Architecture decision records — immutable once Accepted, only superseded |
 
 ## Install as user configuration
@@ -227,7 +229,7 @@ my-claude-code/
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs eight tests/run-*.sh suites on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs nine tests/run-*.sh suites on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
@@ -370,6 +372,22 @@ bash tests/run-note-body-conversion.sh # requires Node.js
 Both test logic pulled out of the scripts and need no macOS. The calls into
 Notes.app itself are not covered. `apple-reminders` has no automated suite.
 
+After changing anything under `.claude/` (the apex, a rule, or a skill), or
+the capability map or scenario suite of the whole-harness behavior baseline:
+
+```sh
+bash tests/run-harness-eval.sh
+```
+
+It checks, without calling a model, that every rule and skill appears in
+[`docs/harness/capability-map.json`](docs/harness/capability-map.json), that
+every quoted phrase still exists in the file it cites, and that each stage of
+the work has a scenario in
+[`tests/harness-eval/scenarios.json`](tests/harness-eval/scenarios.json).
+Running the scenarios themselves is a billed model call and needs a cost
+ceiling (`harness_eval.py run --max-cost-usd N`); see
+[`docs/harness-eval.md`](docs/harness-eval.md).
+
 After adding, removing, or renaming a skill under `.claude/skills/`, or
 editing either README:
 
@@ -418,12 +436,12 @@ configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-Eight of the suites above also run automatically in CI
+Nine of the suites above also run automatically in CI
 (`.github/workflows/ci.yml`) on every push and pull request to `main`:
 `run-install.sh`, `run-digital-agency-frontend-skill.sh`,
 `run-removed-guardrails.sh`, `run-package-safety-bundle.sh`,
 `run-readme-skill-index.sh`, `run-requirements-decomposition-skill.sh`,
-`run-verified-delivery-skill.sh`, and
+`run-verified-delivery-skill.sh`, `run-harness-eval.sh`, and
 `run-mcp-startup.sh`. The others run only when you run them. `main` is
 protected by a repository ruleset
 (`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)

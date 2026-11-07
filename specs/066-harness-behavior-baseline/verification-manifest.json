@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-066",
+    "problem_id": "P-066",
+    "reviewed_commit": "f9dbf00b298c8a90301de7849b13b6f018163911",
+    "implementer": "claude",
+    "risk": {
+      "class": "high",
+      "rationale": "run は、--scaffold で生成した準備スクリプトを、エージェントのサンドボックスの外で利用者として動かし、課金されるモデルの呼び出しでエージェント（Bash を許す）を利用者の機械で動かす。準備はデータから決まった型で生成し、パスと git のフックを制限するが、利用者として動くことに変わりはないので high とする（2回目の保証レビュー AR-07）。.claude/ は変えず、認証・認可、決済、インフラの権限には触れない。ファイルを読む道具（Read、Glob、Grep）は eval の OS サンドボックスの外で動くので、モデルが利用者のホームの絶対パスを読めば、秘密情報が結果の対話の記録に残りうる（8回目の保証レビュー AR-06）。run はそうした結果のファイルを記録する。評価の生の結果（対話の記録を含む）はリポジトリの中に書くが、git の追跡から外す。コミットや push で公開するかは、利用者が中身を確かめて決める。追加はすべてファイルの削除で戻せる。"
+    },
+    "approvals": [
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "高リスクの残存リスク（--scaffold で生成した準備スクリプトがエージェントのサンドボックスの外で利用者として動くこと、課金されるモデルの呼び出し）と、試しの実行（24件を1回ずつ、費用の上限 $20）。2026-11-07、この変更の会話での回答。基準の実行（1件3回）の費用の上限は、試しの実測を見て別に承認を得る。"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "8回目の保証レビュー（AR-06）で分かった残存リスク（ファイルを読む道具 Read、Glob、Grep が eval の OS サンドボックスの外で動き、ホームの絶対パスを読まれれば内容が手元の結果に残りうること）を受け入れ、2822abe のまま試しの実行（24件を1回ずつ、上限 $20、実行のときにエージェントのサンドボックスを外す）に進むこと、9回目の保証レビューを実行の後に行うこと、ブランチの push と main への PR の作成。2026-11-07、この変更の会話での回答。"
+      }
+    ],
+    "checks": [
+      {
+        "check_id": "R0-A1",
+        "status": "not_run",
+        "reason": "R0-A1 が求めるのは起点の実行（1件3回）で、まだしていない。その費用の上限は、利用者の承認を待っている。2026-11-07 に試しの実行（2822abe、24件を1回ずつ）をした。24件すべてが見つかって走り、利用枠の上限で止まった4件を名前で走らせ直した。到達確認は合格し、5つの SessionStart フックが終了コード0で動き、モデルが5ファイルの最後の文を原文のまま書き出した。費用は合計 $6.96 だった（evidence/smoke-2822abe/）。これは仕組みの確かめで、R0-A1 の証拠ではない。"
+      },
+      {
+        "check_id": "R0-A2",
+        "status": "not_run",
+        "reason": "R0-A1 の結果がまだない。compare は、試しの実行の実物の結果（aggregate-result.json の cases[].name と cases[].aggregates.score）を読めた。そのうえで、到達確認が0点で採点の前に誤りで止まった実行を含むその結果を、比べられないとして拒んだ。その出力は evidence/f9dbf00/compare-real-trial-result.txt にある。これは形式の確かめで、R0-A2 の証拠ではない。"
+      },
+      {
+        "check_id": "R-SPEC-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/check-real-tree.txt（コードのパスがきれいな状態で、実際の対応表とシナリオ集に harness_eval.py check が違反0件）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-SPEC-A1]",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R1-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R1-A3",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/ci-step.txt（.github/workflows/ci.yml の43–44行目が tests/run-harness-eval.sh を実行する）",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R2-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R-MEASURE-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/dry-run.json（git の内容から組み立て、claude plugin validate の終了コード0、24件、組み立てたスキル14件の一覧（skills）、実行のコマンド行を表示、モデルは呼んでいない）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-MEASURE-A1]（claude を差し替えた run の結合テストと、1つのシナリオ集を2つの harness のコミットで走らせて比べる結合テスト）",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R3-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R4-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R5-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      },
+      {
+        "check_id": "R6-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml",
+          "commit": "f9dbf00b298c8a90301de7849b13b6f018163911"
+        }
+      }
+    ],
+    "test_changes": [
+      {
+        "path": "tests/harness-eval/test_harness_eval.py::CheckScenarios::test_a_fixture_that_uses_the_network_is_reported",
+        "change": "deleted",
+        "approved_by": "Taiki Ogihara"
+      },
+      {
+        "path": "tests/harness-eval/test_harness_eval.py::CheckScenarios::test_a_fixture_without_the_empty_directory_guard_is_reported",
+        "change": "deleted",
+        "approved_by": "Taiki Ogihara"
+      }
+    ],
+    "infra_changes": []
+  }
+}

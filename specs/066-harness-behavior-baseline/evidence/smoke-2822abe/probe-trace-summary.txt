@@ -1,0 +1,18 @@
+note: extracted by the implementer (claude) with a short script from the kept trace.jsonl; it lists the SessionStart hook events and the assistant's text verbatim.
+source: trace.jsonl of the probe-always-on re-run (kept with --keep-temp)
+system hook_started: SessionStart:startup exit_code=None
+system hook_started: SessionStart:startup exit_code=None
+system hook_started: SessionStart:startup exit_code=None
+system hook_started: SessionStart:startup exit_code=None
+system hook_started: SessionStart:startup exit_code=None
+system hook_response: SessionStart:startup exit_code=0
+system hook_response: SessionStart:startup exit_code=0
+system hook_response: SessionStart:startup exit_code=0
+system hook_response: SessionStart:startup exit_code=0
+system hook_response: SessionStart:startup exit_code=0
+assistant text:
+- ~/.claude/CLAUDE.md: Report actions, limits, unresolved risks, and work left undone plainly so the user retains informed control of the next decision.
+- ~/.claude/rules/pyramid-principle.md: Multiple analogies for complex concepts: antidotes for analogy-induced misconception in advanced knowledge acquisition
+- ~/.claude/rules/thinking-lenses.md: The Logic of Scientific Discovery
+- ~/.claude/rules/clarifier.md: Software Engineering Economics
+- ~/.claude/rules/permissions.md: The Protection of Information in Computer Systems

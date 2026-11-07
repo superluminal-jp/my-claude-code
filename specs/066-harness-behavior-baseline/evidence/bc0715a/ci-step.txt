@@ -1,0 +1,4 @@
+commit: bc0715a02380a30f08667a953e382572bf072dc3
+command: git show HEAD:.github/workflows/ci.yml | grep -n -A1 'harness behavior'
+43:      - name: Run harness behavior baseline checks
+44-        run: bash tests/run-harness-eval.sh

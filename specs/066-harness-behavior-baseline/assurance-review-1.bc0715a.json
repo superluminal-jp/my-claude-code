@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "bc0715a02380a30f08667a953e382572bf072dc3",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、1回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（bc0715a の時点の版）",
+      "git diff main..bc0715a02380a30f08667a953e382572bf072dc3",
+      "specs/066-harness-behavior-baseline/evidence/bc0715a/ の unit-tests.junit.xml、unit-tests.log、check-real-tree.log、dry-run.json、ci-step.txt、other-suites.log と evidence/junit_run.py"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "other",
+        "target": "R0",
+        "severity": "high",
+        "statement": "Neither of R0's two L3 criteria (R0-A1, R0-A2) has any evidence at bc0715a. dry-run.json has \"dry_run\": true, and the evidence has no aggregate-result.json, metadata.json or compare output. R0's first counterexample (always-on not injected) is still open: the only runtime check that SessionStart injection works under claude plugin eval is the probe inside R0-A1, which has never run. R0 must stay blocked.",
+        "disposition": "accepted",
+        "resolution": "R0-A1 と R0-A2 は manifest で not_run として記録し、gate はそれを理由に blocked と判定する。到達確認を含む基準の実行は、件数と費用の上限を利用者が承認してから行う。合格した子の検査で R0 の代わりにしていない。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "parent_by_children",
+        "target": "R-MEASURE-A1",
+        "severity": "medium",
+        "statement": "R-MEASURE-A1 stops before the eval (return on args.dry_run). (a) case_count is counted by build() itself, not by claude plugin eval discovering the cases; (b) dry-run.json keeps only validate's exit code, not its output; (c) the persistence path (results copy, metadata.json) and compare are covered only by unit tests on helpers.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: dry-run の記録に validate の出力を残すようにした（それで問題にならない警告が見えるようになった）。claude を差し替えた結合テスト（test_a_run_builds_validates_evaluates_and_records_both_commits）で、組み立て、validate、eval の起動、結果と両方のコミットの記録までを一続きに確かめる。claude plugin eval 自身がシナリオを見つけて読み込むことは R0-A1 の実際の実行でしか示せないので、R-MEASURE-A1 の記述に結合テストを加えたうえで、残りを R0-A1 に委ねる。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "evidence_mismatch",
+        "target": "R3-A1",
+        "severity": "medium",
+        "statement": "Every build test calls he.build(repo, \"HEAD\", \"HEAD\", out); test_refs_resolve_to_commit_shas asserts (sha, sha) on a one-commit repo, and dry-run.json uses HEAD for both refs. A bug that swaps the refs or extracts both from the same SHA would pass.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: 2つの別々のコミットから harness とシナリオ集を組み立て、中身と SHA が入れ替わらないことを確かめるテスト（test_two_different_commits_build_harness_and_suite_separately）を加えた。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "R4-A1",
+        "severity": "medium",
+        "statement": "test_the_command_grants_only_bash checks a one-element slice after --allow-tools, so `--allow-tools Bash Write Edit Agent` would still pass.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: --allow-tools の後ろから次の旗までのすべての値が ['Bash'] であることを確かめるテスト（test_the_command_grants_bash_and_nothing_else）を加えた。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "evidence_mismatch",
+        "target": "R5-A1",
+        "severity": "medium",
+        "statement": "The injection test reads the file named in args from disk; it never runs the hook and never asserts type == command or command == cat. No evidence shows the always-on text reaching the session.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: 各フックが type: command、command: cat、引数1つであることを確かめ、実際にその命令を実行して出力に本文が含まれることを確かめるテスト（test_every_session_start_hook_runs_cat_and_prints_the_file_verbatim）を加えた。Claude Code の中で本文が会話に届くことは R0-A1 の到達確認に残る。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "R2-A1",
+        "severity": "medium",
+        "statement": "R2-A1 requires each basis file to be an owner of the scenario's stages or the apex, but check_suite also accepts a stage's basis files and a boundary group's basis files; the real suite passes only under that relaxed rule (e.g. d-intent-ambiguous/not-problem-definition, every obs-* grader).",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: R2 の記述と R2-A1 を実装した規則（担い手か apex、段階の根拠のファイル、期待するスキルの境界グループの根拠のファイル）に書き直し、広げた理由を R2 の前提に記した。実装の途中での仕様の変更として利用者に判断を仰ぐ。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "other",
+        "target": "R2-A1",
+        "severity": "medium",
+        "statement": "(1) d-intent-ambiguous/asks-a-question ([?？] on last_message) passes a reply that edits config.py and ends with a question, and can fail a clarification asked through AskUserQuestion; nothing checks config.py is unchanged. (2) e-implement-bugfix/runs-tests passes when tests run only after the fix, though tool_order is available.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: (1) を config.py の2つの値が変わっていないことの判定に、(2) を tool_order（テストの実行が calc.py への書き込みより前）に置き換えた。tool_order の前後それぞれに合う例と合わない例を持たせ、check が確かめる。Bash での書き込みの見分けがよく使う書き方に限られることは docs/harness-eval.md に記した。"
+      },
+      {
+        "id": "AR-08",
+        "kind": "uncovered_path",
+        "target": "R0",
+        "severity": "medium",
+        "statement": "compare and load_result read only aggregate-result.json and ignore metadata.json, so they never check that suite_commit or model match, nor whether a result is partial; matching suites is only a documented procedure.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: compare は metadata.json を読み、シナリオ集のコミットかモデルが違う結果、metadata.json のない結果、部分的な結果を、理由を示して0以外で終える（--allow-mismatch で数字だけ見られる）。R6 の記述と R6-A1 に加えた。"
+      },
+      {
+        "id": "AR-09",
+        "kind": "uncovered_path",
+        "target": "R4-A1",
+        "severity": "medium",
+        "statement": "eval_command always passes --scaffold and --trust-plugin, and the plugin-evals docs say a scaffold_script runs as the user, outside the agent's sandbox. R4's assumption is false for fixtures/*.sh and the docs present them as isolated. The only controls are a denylist regex that misses e.g. git ls-remote, python -c with urllib, npx, and a guard accepted anywhere in the file.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: 公式文書のこの事実に合わせて R4 の前提と docs/harness-eval.md §3 を正した。check の拒否の一覧を許可リスト（set、cat、printf、mkdir、chmod と git の init、checkout、add、commit）に改め、コマンド置換、パイプ、; と &、作業領域の外への書き込みを禁じ、空のディレクトリの確認を最初の命令に限った。manifest の risk の理由にも記した。"
+      },
+      {
+        "id": "AR-10",
+        "kind": "other",
+        "target": "R-SPEC-A1",
+        "severity": "low",
+        "statement": "Clause (4) is enforced only for stages flagged requires_unused_skill_grader; deleting the flag silently turns the rule off, and any unused-skill grader satisfies it.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: requires_unused_skill_grader を持つ段階が対応表に1つもなければ check が失敗するようにした。判定の対象が『重い』手順かどうかは意味の判断で、機械では確かめない。"
+      },
+      {
+        "id": "AR-11",
+        "kind": "uncovered_path",
+        "target": "R0-A1",
+        "severity": "low",
+        "statement": "harness_components counts a rule only at .claude/rules/<name>.md and always_on globs non-recursively, so a rule in a subdirectory escapes the map, injection and probe; no check requires a probe grader for every always-on file.",
+        "disposition": "accepted",
+        "resolution": "d4d9fae: .claude/rules の下位のディレクトリのルールも部品と注入の対象に数え、到達確認シナリオが常時ロードのすべてのファイルを判定することを check が求めるようにした。"
+      },
+      {
+        "id": "AR-12",
+        "kind": "other",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "The regression evidence at bc0715a includes two failures (run-config-pyramid and run-install exit 1), attributed to the local sandbox, with no clean rerun or CI run log; ci-step.txt shows only that the step exists.",
+        "disposition": "accepted",
+        "resolution": "ローカルのサンドボックスでは run-config-pyramid（mktemp -d が拒まれる）と run-install（プロセス置換が拒まれる）を通せず、サンドボックスの外での再実行は auto mode の分類器に拒まれた。この変更は .claude/ もこの2つのスクリプトも変えていない。manifest はこの2つを合格と主張しない。CI での実行には push が要り、push は利用者が決める。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "6897bffbd66736a7d36ebefb6712d5a2f523cde0",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、6回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（6897bff の版）",
+      "git diff main..6897bffbd66736a7d36ebefb6712d5a2f523cde0",
+      "specs/066-harness-behavior-baseline/evidence/6897bff/ の6つのファイルと evidence/junit_run.py（作業ツリーの版）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "parent_by_children",
+        "target": "R-MEASURE-A1",
+        "severity": "medium",
+        "statement": "Neither of R-MEASURE-A1's checks uses two different commits: dry-run.json has the same SHA for harness and suite and no drift, the integration test asserts harness_commit == suite_commit (so a swap would pass), and no test runs `run` at two harness commits against one suite and compares both results.",
+        "disposition": "accepted",
+        "resolution": "0ac8e15: test_two_harness_commits_run_on_one_suite_and_compare_cleanly を加えた。claude を差し替えて、1つのシナリオ集（部品を足した後）を harness の2つのコミット（足す前と後）で run し、その2つの結果を compare_dirs が問題なく比べることを確かめる。harness_commit と suite_commit が違う値で記録されることも確かめるので、2つの項目の取り違えはこのテストで落ちる。R-MEASURE-A1 に加えた。このテストは 6897bff のコードのまま合格した（足りなかったのは検査で、組み合わせの欠陥ではなかった）。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "uncovered_path",
+        "target": "R0-A2",
+        "severity": "medium",
+        "statement": "compare refuses any result whose probe score is below 1 and the probe graders come from the suite, so a harness change that adds or removes an always-on rule or rewrites the end of CLAUDE.md or a rule makes one side fail the probe; the only override, --allow-mismatch, also switches off every other check, so changes to the always-on instructions cannot be compared on one suite.",
+        "disposition": "accepted",
+        "resolution": "0ac8e15: 到達確認の判定のうち、引用の語句が harness のコミットにないものは組み立てから外し、Built.probe_unchecked と metadata.json の probe_unchecked に記録する。compare は外した判定を拒まずに NOTE として示し、残った判定が全実行で合格していることを求める。届いたことを見る判定が1つも残らなければ組み立てを止める。これで、常時ロードのファイルの末尾を変える変更と、ファイルを足す変更は新しいシナリオ集で、消す変更は古いシナリオ集で、--allow-mismatch なしに比べられる。テスト4件。R3-A1 と R6-A1 に加え、docs §2 に記した。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "evidence_mismatch",
+        "target": "R-MEASURE-A1",
+        "severity": "medium",
+        "statement": "No passed evidence rules out R-MEASURE's counterexample (the real eval reads another eval directory and runs no scenario): dry-run.json counts directories the runner wrote and the stub derives its discovered count itself. Also the manifest says dry-run.json shows 'スキル14件', but dry-run.json contains no skill count.",
+        "disposition": "accepted",
+        "resolution": "2点のうち2点目を認め、1点目は退ける。1点目: R-MEASURE-A1 の基準は、モデルを呼ばない組み立てが評価ディレクトリに全シナリオを入れることと、claude を差し替えた一続きの動作であり、実際の CLI による発見は含まない。実際の eval が別のディレクトリを読んでシナリオを走らせない場合、run は結果の cases をシナリオ集と照らして cases_missing を記録し、1で終わる（6897bff、R3-A1）。その反例は実行の失敗として現れる。実際の CLI での確かめは R0-A1 で行い、R0-A1 が not_run の間 R0 は合格しない。2点目: 0ac8e15 で、結果の記録（dry-run.json を含む）に組み立てたスキルの一覧 skills を入れた。evidence/0ac8e15/dry-run.json では14件である。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "R5-A1",
+        "severity": "medium",
+        "statement": "R5-A1 is passed for 'each always-on file is injected verbatim as the output of its own SessionStart hook', but its test expands ${CLAUDE_PLUGIN_ROOT} itself and runs cat directly; nothing shows Claude Code accepts exec-form args on a command hook or expands the variable inside args, and if either fails cat echoes the hook's stdin and the eval measures Claude without the harness.",
+        "disposition": "accepted",
+        "resolution": "認める。L1 のテストが示すのは、フックの設定と、cat がその本文を出力することまでである。0ac8e15 の requirements-graph.json で、R5-A1 の記述をこの範囲に直し、Claude Code が実際に注入することは R0-A1 の到達確認で確かめると明記した。exec 形と args の中の展開が未検証であることは、R5 の前提にもとから記している。claude plugin validate は組み立てた hooks.json を受け付けた（validate_exit_code 0）が、これは形式の確かめにとどまる。注入が働かなければ到達確認が落ち、compare はその結果を拒む（6897bff）。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "uncovered_path",
+        "target": "R5-A1",
+        "severity": "low",
+        "statement": "In the cross-commit build the harness-commit check became non-fatal, so an unclassified settings.json key at the harness commit is only a drift note, while a component missing from the map still stops the build.",
+        "disposition": "accepted",
+        "resolution": "0ac8e15: harness のコミットの settings.json に、対応表が分類していない項目があると組み立てを止める（test_a_harness_settings_key_the_map_does_not_classify_stops_the_build）。R3-A1 の記述に加え、検査は R5-A1（settings.json の各項目の分類）に結びつけた。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "The test-to-criterion mapping in evidence/6897bff/unit-tests.junit.xml comes from an uncommitted junit_run.py (22 tags added after the commit), which code_paths_clean cannot reveal because it excludes specs/066; the manifest committed at 6897bff still names 112db91 and has no approvals.",
+        "disposition": "accepted",
+        "resolution": "0ac8e15: junit_run.py をコードと同じコミットに置き、このファイル自身に未コミットの変更があれば code_paths_clean が false になるようにした（evidence/0ac8e15/unit-tests.junit.xml は true）。manifest は、reviewed_commit として自分を含むコミットを名指せない。そのため、変更のコミットの直後の記録のコミットに置く。gate は作業ツリーの manifest を読む。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "risk_mismatch",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "The risk rationale says the change does not touch publication, yet run copies the whole output (report.html with transcripts) into tests/harness-eval/results/, which is not gitignored in a repository with a GitHub origin; --no-publish only stops publication to claude.ai and nothing checks result content before commit and push.",
+        "disposition": "accepted",
+        "resolution": "0ac8e15: tests/harness-eval/results/ を .gitignore に加え（test_the_results_directory_is_ignored_by_git）、docs §2 に、基準として残すときは中身を確かめて必要なファイルだけを git add -f で加え、push するかは利用者が決めると記した。manifest の risk の理由を、生の結果はリポジトリの中に書くが追跡から外し、公開するかは利用者が中身を確かめて決める、と直した。R4 と R4-A1 に加えた。"
+      }
+    ]
+  }
+}

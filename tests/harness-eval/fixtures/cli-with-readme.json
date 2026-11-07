@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "description": "公開の --verbose フラグを README に書いている CLI。",
+  "files": {
+    "README.md": "# greet\n\n    python3 cli.py [--verbose]\n\n- `--verbose`: 詳しい出力を出す。\n",
+    "cli.py": "import argparse\n\n\ndef main(argv=None):\n    parser = argparse.ArgumentParser(description=\"Print a greeting.\")\n    parser.add_argument(\"--verbose\", action=\"store_true\", help=\"print details\")\n    args = parser.parse_args(argv)\n    if args.verbose:\n        print(\"starting\")\n    print(\"hello\")\n\n\nif __name__ == \"__main__\":\n    main()\n"
+  },
+  "commit": true
+}
