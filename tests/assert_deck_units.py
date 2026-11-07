@@ -67,6 +67,17 @@ def main(argv: list[str]) -> int:
     check("UNIT-05 report_findings counts errors, not warnings", deck.report_findings(findings, stream) == 2)
     check("UNIT-06 the summary line states both counts", "2 error(s), 1 warning(s)" in stream.getvalue(), stream.getvalue())
 
+    # Claude Code's macOS sandbox refuses the Mach service registration
+    # Chromium makes at startup, so the browser must run as one process there
+    # (spec 067). Outside that sandbox, the launch is left alone.
+    chromium_args = getattr(deck, "chromium_args", None)
+    check("UNIT-09 macOS sandbox launches Chromium as one process",
+          chromium_args is not None and chromium_args({"SANDBOX_RUNTIME": "1"}, "darwin") == ["--single-process"])
+    check("UNIT-10 the Linux sandbox adds no Chromium flag",
+          chromium_args is not None and chromium_args({"SANDBOX_RUNTIME": "1"}, "linux") == [])
+    check("UNIT-11 macOS outside the sandbox adds no Chromium flag",
+          chromium_args is not None and chromium_args({}, "darwin") == [])
+
     # A missing deck is a usage mistake, not a traceback.
     try:
         code = deck.main(["lint", "/nonexistent/deck.html"])

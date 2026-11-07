@@ -1,8 +1,8 @@
 # MCP サーバー — 背景と参照先
 
-このリポジトリは MCP サーバーをユーザー設定に取り込まない。`install.sh` は MCP サーバーを登録も削除もせず、MCP サーバーを同梱するプラグイン（`github` / `deploy-on-aws` / `microsoft-docs`）もインストールしない。必要なサーバーは各ユーザーが自分で登録する（手順は README の「MCP Servers」節、判断の経緯は [ADR-0016](adr/0016-do-not-install-mcp-servers-at-user-scope.md)）。`.claude/` 配下のルールとスキルも、特定の MCP サーバー名を前提にしない。
+このリポジトリは MCP サーバーをユーザー設定に取り込まない。`install.sh` は MCP サーバーを登録も削除もせず、MCP サーバーを同梱するプラグイン（`github` / `deploy-on-aws` / `microsoft-docs`）もインストールしない。必要なサーバーは各ユーザーが自分で登録する（手順は README の「MCP Servers」節、判断の経緯は [ADR-0016](adr/0016-do-not-install-mcp-servers-at-user-scope.md)）。`.claude/` 配下のルールとスキルも、特定の MCP サーバー名を前提にしない。ただし `.claude/settings.json` は、使わないと決めたサーバーを読み込ませない設定を持つ（§5、[ADR-0021](adr/0021-block-mcp-servers-by-settings.md)）。
 
-`.mcp.json` は、このリポジトリ内で作業するときのプロジェクトスコープ定義であり、ユーザーが自分で登録するときの参照カタログでもある。本書はその背景（`.mcp.json` に何が書けるのか、各サーバーの情報がどこから来ているのか、サーバーを増やしたとき何を更新するのか）を持つ。
+`.mcp.json` は、このリポジトリ内で作業するときのプロジェクトスコープ定義であり、ユーザーが自分で登録するときの参照カタログでもある。本書はその背景（`.mcp.json` に何が書けるのか、各サーバーの情報がどこから来ているのか、サーバーを増やしたとき何を更新するのか、どのサーバーを止めているのか）を持つ。
 
 本書は `.claude/rules/` にも `.claude/skills/` にもないため自動ロードされない。読むのは人間で、Claude が読むのは必要になったときだけである。
 
@@ -55,7 +55,33 @@ stdio の 1 件（`aws-documentation`）は PyPI のパッケージメタデー�
 1. **本書の表** — ベンダー公式リファレンスを追加・削除する。stdio なら PyPI メタデータ、HTTP ならベンダーの公式ページから取る。推測で URL を書かない。
 2. **README / README.ja の「MCP Servers」節** — ユーザーが自分で実行する `claude mcp add -s user …` のコマンド例。
 
-`.claude/` 配下のルールとスキルにはサーバー名を書かない。ユーザーが入れていないサーバーを前提にした指示になるためである。
+`.claude/` 配下のルールとスキルにはサーバー名を書かない。ユーザーが入れていないサーバーを前提にした指示になるためである。止めるサーバーを増やす・減らすときは、`.claude/settings.json` のキー、§5 の表、`tests/run-sandbox-settings.sh` の MCP-* を同じ変更で更新する。
+
+## 5. 止めているサーバーと、棚卸しの結果
+
+`.claude/settings.json` は、次のサーバーを、どこで定義されていても読み込ませない。ユーザー設定から効くキーだけを使う（`deniedMcpServers` と `disableClaudeAiConnectors` はどの設定ファイルからも効き、`syncClaudeAiPlugins` はユーザー・ローカル・管理の設定から効く）[1]。
+
+| 止めるもの | キー | 理由 |
+|---|---|---|
+| GitHub がホストする MCP サーバー | `deniedMcpServers` の `serverUrl: https://api.githubcopilot.com/*` | 使っていない。GitHub の作業は `gh` CLI で足りる |
+| `github` プラグイン | `enabledPlugins` の `github@claude-plugins-official: false` | 上のサーバーを同梱するだけのプラグインである |
+| `bedrock-agentcore` | `deniedMcpServers` の `serverName` と `serverCommand` | Claude Code が持つ AWS の認証情報で、AWS の実際のリソースを作成・変更・削除し、AWS でコードを実行する。起動のたびに `uvx …@latest` で最新版を実行する |
+| claude.ai のコネクタ（Gmail、Google Calendar、Google Drive、Notion、Moneytree、Claude Docs、Wolfram） | `disableClaudeAiConnectors: true` | 私的なデータと外部の文章が Bash と同じセッションにそろうと、プロンプトインジェクションでデータを持ち出す経路になる |
+| claude.ai から同期されるプラグイン（`productivity`、`pdf-viewer`） | `syncClaudeAiPlugins: false` | SaaS の MCP サーバー（Slack、Notion、Asana、Linear、Atlassian、monday、ClickUp）を、さらにすべてのセッションに持ち込む。`false` にすると、同期済みのものも `~/.claude/plugins/.trash/` へ移されて読み込まれない |
+
+2026-11-07 の棚卸しで残したもの（ドキュメントの検索か計算に使う）:
+
+| サーバー | 定義の場所 | 注意 |
+|---|---|---|
+| `aws-knowledge` | ユーザー登録、`.mcp.json`、`deploy-on-aws` プラグイン（`awsknowledge`） | HTTP、認証なし |
+| `aws-documentation` | ユーザー登録、`.mcp.json` | 起動のたびに `uvx …@latest` で最新版を実行する |
+| `strands-agents` | ユーザー登録 | 起動のたびに `uvx …@latest` で最新版を実行する |
+| `google-developer-knowledge` | ユーザー登録、`.mcp.json` | API キーを環境変数 `GOOGLE_DEV_KNOWLEDGE_API_KEY` から渡す |
+| `microsoft-learn` | ユーザー登録、`.mcp.json`、`microsoft-docs` プラグイン | HTTP、認証なし。2か所で同じサーバーを定義している |
+| `wolfram` | ユーザー登録、`.mcp.json` | 計算の内容を Wolfram に送る |
+| `deploy-on-aws`（`awsiac`、`awspricing`） | プラグイン | 起動のたびに `uvx …@latest` で最新版を実行する。AWS の API を、Claude Code の環境の AWS の認証情報で呼ぶ。Bedrock のセッションでは Bedrock 用のアカウントになる（[ADR-0020](adr/0020-enable-sandbox-by-default.md)） |
+
+MCP サーバーはサンドボックスの外で動く。`uvx …@latest` で起動するサーバーは、公開されたばかりの悪意ある版も、起動のたびにサンドボックスの制限なしに実行する。版を固定するかどうかは、各ユーザーが自分の登録で決める（このリポジトリは登録しない。ADR-0016）。
 
 ## References
 

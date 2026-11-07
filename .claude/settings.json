@@ -18,7 +18,92 @@
       "Read(~/.aws/**)"
     ]
   },
+  "sandbox": {
+    "enabled": true,
+    "excludedCommands": [
+      "aws *"
+    ],
+    "filesystem": {
+      "allowWrite": [
+        "~/.gnupg",
+        "~/Library/Fonts"
+      ],
+      "denyWrite": [
+        "~/.gnupg/private-keys-v1.d",
+        "~/.gnupg/secring.gpg",
+        "~/.gnupg/openpgp-revocs.d",
+        "~/.gnupg/pubring.kbx",
+        "~/.gnupg/pubring.gpg",
+        "~/.gnupg/public-keys.d",
+        "~/.gnupg/trustdb.gpg",
+        "~/.gnupg/gpg.conf",
+        "~/.gnupg/gpg-agent.conf",
+        "~/.gnupg/gpgsm.conf",
+        "~/.gnupg/common.conf",
+        "~/.gnupg/dirmngr.conf",
+        "~/.gnupg/scdaemon.conf",
+        "~/.gnupg/keyboxd.conf",
+        "~/.gnupg/sshcontrol",
+        "~/.gnupg/trustlist.txt",
+        "~/.gnupg/scd-event"
+      ],
+      "denyRead": [
+        "~/.gnupg/private-keys-v1.d",
+        "~/.gnupg/secring.gpg",
+        "~/.gnupg/openpgp-revocs.d",
+        "~/.git-credentials",
+        "~/.netrc",
+        "~/.config/gh/hosts.yml",
+        "~/.docker/config.json",
+        "~/.kube/config"
+      ]
+    },
+    "network": {
+      "allowUnixSockets": [
+        "~/.gnupg/S.gpg-agent",
+        "~/.gnupg/S.keyboxd"
+      ],
+      "allowedDomains": [
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ]
+    }
+  },
+  "enabledPlugins": {
+    "github@claude-plugins-official": false
+  },
+  "deniedMcpServers": [
+    { "serverUrl": "https://api.githubcopilot.com/*" },
+    { "serverName": "bedrock-agentcore" },
+    { "serverCommand": ["uvx", "awslabs.amazon-bedrock-agentcore-mcp-server@latest"] }
+  ],
+  "disableClaudeAiConnectors": true,
+  "syncClaudeAiPlugins": false,
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"${CLAUDE_ENV_FILE:-}\" ] || exit 0; case \"${CLAUDE_CODE_USE_BEDROCK:-}\" in 1|true|TRUE|True|yes|on) printf '%s\\n' 'unset AWS_PROFILE AWS_DEFAULT_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_BEARER_TOKEN_BEDROCK' >>\"$CLAUDE_ENV_FILE\" ;; esac; exit 0",
+            "timeout": 5,
+            "statusMessage": "Removing Bedrock AWS variables from Bash commands..."
+          },
+          {
+            "type": "command",
+            "command": "command -v gpgconf >/dev/null 2>&1 || exit 0; [ -d \"${GNUPGHOME:-$HOME/.gnupg}\" ] || exit 0; gpgconf --launch gpg-agent >/dev/null 2>&1; exit 0",
+            "timeout": 10,
+            "statusMessage": "Starting gpg-agent outside the sandbox..."
+          },
+          {
+            "type": "command",
+            "command": "s=\"${CLAUDE_CODE_SHELL:-${SHELL:-}}\"; case \"${s##*/}\" in zsh*) printf '%s\\n' 'The Bash tool runs commands in zsh, not bash. Write them so zsh accepts them: (1) quote or escape *, ?, and [ that are not meant to match files, URLs included, because zsh stops on an unmatched glob with \"no matches found\"; (2) never start a word with = (zsh expands =word to the path of a command, so echo ===== fails), quote it instead; (3) zsh does not split an unquoted $VAR into words, so keep a command with arguments in an array, cmd=(python3 -m pkg) then \"${cmd[@]}\", not in a string. bash-only syntax such as ${!name} and read -a fails too.' ;; esac; [ \"$(uname -s 2>/dev/null)\" = Darwin ] && printf '%s\\n' 'On macOS the Bash sandbox refuses the Mach service registration that Chromium makes at startup, so Chromium, Chrome, Playwright, and Puppeteer abort inside it with bootstrap_check_in ... Permission denied (1100). Launch the browser with --single-process (Playwright: args=[\"--single-process\"]) to keep it inside the sandbox instead of rerunning it outside. Inside the sandbox it loads local files and plain HTTP; HTTPS through the sandbox proxy may time out.'; command -v aws >/dev/null 2>&1 && printf '%s\\n' 'aws commands run outside the sandbox only when the Bash call is one aws command with no pipe, &&, ;, or $(...); otherwise they run inside, where ~/.aws cannot be read. Name the AWS profile with --profile on every aws command.'; exit 0",
+            "timeout": 5,
+            "statusMessage": "Adding shell and sandbox notes..."
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Skill",

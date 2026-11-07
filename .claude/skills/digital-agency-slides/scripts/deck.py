@@ -18,7 +18,7 @@ import argparse
 import json
 import os
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -52,6 +52,18 @@ class Inspection:
     previews: list[bytes]
 
 
+def chromium_args(environ: Mapping[str, str], platform: str) -> list[str]:
+    """Extra Chromium flags for the environment the checker runs in.
+
+    Claude Code's macOS sandbox (which marks its commands with
+    SANDBOX_RUNTIME=1) refuses the Mach service registration Chromium makes at
+    startup, so the browser aborts unless it runs as a single process.
+    """
+    if platform == "darwin" and environ.get("SANDBOX_RUNTIME") == "1":
+        return ["--single-process"]
+    return []
+
+
 def inspect(deck_path: Path, options: dict[str, Any], *, want_previews: bool) -> Inspection:
     try:
         from playwright.sync_api import sync_playwright
@@ -64,6 +76,9 @@ def inspect(deck_path: Path, options: dict[str, Any], *, want_previews: bool) ->
     executable = options.get("chromium_path") or os.environ.get("DECK_CHROMIUM")
     if executable:
         launch_kwargs["executable_path"] = executable
+    extra_args = chromium_args(os.environ, sys.platform)
+    if extra_args:
+        launch_kwargs["args"] = extra_args
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(**launch_kwargs)

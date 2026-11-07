@@ -18,7 +18,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   （定義・実行・引き渡し）、および独立に一致するすべての能力を適用する汎用マルチマッチ
   アルゴリズムだけを持つ。ルール・スキル・サーバーの名前は一切含まない — 設計根拠は
   [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
-- **`.claude/settings.json`**: Claude Code のユーザーレベル設定
+- **`.claude/settings.json`**: Claude Code のユーザーレベル設定。資格情報の読み取りの
+  拒否、Bash のすべてのコマンドにかける OS のサンドボックス（日常作業に要る出口だけを
+  開ける）、3つの `SessionStart` フック、止める MCP サーバーを持つ（後述
+  「サンドボックスとセッション開始のフック」「MCP サーバー」参照）
 - **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
   推論の完全性（4つの推論セルフチェック: 依存と並行・条件と分岐・反復・推論）、権限と安全性
@@ -109,7 +112,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 | ドキュメント | 内容 |
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | 常時ロードの指示が通すべき判断基準と、各ファイルが意図的に置いていないもの |
-| [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、サーバー追加時の更新箇所 |
+| [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、`settings.json` で止めているサーバー、サーバー追加時の更新箇所 |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | harness 全体の振る舞いの基準。対応表とシナリオ集の検査、2つのコミットを費用の上限の下で `claude plugin eval` にかけて比べる手順、実際の環境との違い |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | 作業の各段階の担い手、担い手のない段階、互いに除外し合うスキル、各段階を覆うシナリオ（`capability-map.json` から生成） |
 | [`docs/adr/`](docs/adr/) | アーキテクチャ決定記録 — Accepted 後は不変で、supersede のみ |
@@ -130,7 +133,8 @@ bash path/to/my-claude-code/install.sh
 インストーラーは MCP サーバーの登録・更新・削除を行わず、MCP サーバーを同梱する
 プラグインもインストールしません。必要なものは各自で追加してください（後述
 「MCP サーバー」参照）。以前のバージョンのインストーラーなどで登録済みの
-ユーザースコープ MCP サーバーは、そのまま残ります。
+ユーザースコープ MCP サーバーは、そのまま残ります。ただし `settings.json` は、
+いくつかのサーバーの読み込みを止めます（一覧は「MCP サーバー」）。
 
 ### 重要: 上書き置換（削除同期）について
 
@@ -150,9 +154,13 @@ bash path/to/my-claude-code/install.sh
   （`permissions` のような共有オブジェクトの内部まで再帰的にマージするため、例えば
   `permissions.deny` は強制されたまま保たれ、同じオブジェクト内の他のキーは影響を
   受けません）。一方、このリポジトリが宣言していないトップレベルのキー——
-  `/setup-bedrock` が書き込む `env` や、`enabledPlugins`、
-  `agentPushNotifEnabled`、その他ユーザーやCLI自身が追加したキー——はそのまま
-  保持されます。
+  `/setup-bedrock` が書き込む `env` や、`agentPushNotifEnabled`、その他ユーザーや
+  CLI自身が追加したキー——はそのまま保持されます。`enabledPlugins` について
+  このリポジトリが宣言するのは `github@claude-plugins-official: false` だけで、
+  ほかの項目は残ります。このリポジトリが宣言する配列（`permissions.deny`、
+  `sandbox` のパスの一覧、`hooks.SessionStart`、`deniedMcpServers`）は、ユーザーの
+  配列と合わさらず置き換わります。それらへの自分の追加は、Claude Code がユーザー
+  スコープと合わせて読むプロジェクトかローカルの設定に置いてください。
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側の置換対象パスでも
   削除されます。
 - `agents/` と `commands/` はこのリポジトリに元ファイルがなく、以前のバージョンが
@@ -188,12 +196,12 @@ my-claude-code/
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち9本を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち10本を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── .claude/                        # インストーラーが管理する Claude パスの正本
     ├── CLAUDE.md                   # 達成目標: 定義 → 実行 → 引き渡し。設計根拠は docs/
-    ├── settings.json               # Claude Code のユーザーレベル設定
+    ├── settings.json               # ユーザーレベル設定: deny、サンドボックス、SessionStart フック、止める MCP
     ├── rules/                      # 常時ロード: 毎セッション読み込む、独立した4つの関心事
     │   ├── clarifier.md            # 要件確実性: 確認するか進めるか
     │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
@@ -255,6 +263,7 @@ bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
 bash tests/run-digital-agency-slides-skill.sh
 bash tests/run-removed-guardrails.sh
+bash tests/run-sandbox-settings.sh
 ```
 
 [`.claude/skills/secure-logging/`](.claude/skills/secure-logging/) を変更したら:
@@ -376,15 +385,24 @@ end-to-end セクションはさらにネットワーク接続を必要としま
 アンカーされた `Read` ルールでなければなりません。単一の先頭スラッシュは
 `install.sh` がユーザースコープへ複製した時点で別のパスに解決されるためです。
 
+`run-sandbox-settings.sh` は、`.claude/settings.json` の `sandbox`、`SessionStart`、
+MCP のキーを [spec 067](specs/067-sandbox-by-default/spec.md) に照らして検査します。
+開け直した場所のどれも `~/.aws/credentials` や GPG の秘密鍵に届かないこと、
+開けたパス・ソケット・ホストがレビュー済みのものとちょうど一致すること、止めた
+MCP サーバーが止まったままであることを確かめます。各 `SessionStart` フックも、
+一時的な HOME と stub のコマンドで `sh`・`bash`・`zsh` のもとで実行します。
+Claude Code がこれらのキーに従うかは、`install.sh` の後の新しいセッションで
+手作業で確かめます。
+
 `run-install.sh` は隔離した HOME と外部コマンドの stub を使います。
 `run-mcp-startup.sh` だけは設定済み MCP サーバーの起動コマンドを実行するため
 ネットワーク接続が必要で、それ以外はローカル検証です。
 
 ## リポジトリのセキュリティ自動化
 
-上記のうち9本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+上記のうち10本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
 自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
-`run-removed-guardrails.sh`、`run-package-safety-bundle.sh`、
+`run-removed-guardrails.sh`、`run-sandbox-settings.sh`、`run-package-safety-bundle.sh`、
 `run-readme-skill-index.sh`、`run-requirements-decomposition-skill.sh`、`run-verified-delivery-skill.sh`、`run-harness-eval.sh`、`run-mcp-startup.sh`。
 それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
 する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
@@ -413,6 +431,78 @@ end-to-end セクションはさらにネットワーク接続を必要としま
   原因は特定できておらず、AWS形式の認証情報についてはこのリポジトリの
   secret scanningを検証済みの安全網として扱わないでください。
 
+## サンドボックスとセッション開始のフック
+
+`settings.json` は Claude Code の OS サンドボックスを有効にします。サンドボックスは、
+Claude が実行する Bash のコマンドを、許したファイルとホストだけに閉じ込める仕組みです
+（macOS では Seatbelt）。厳しさは標準です。中で動かないコマンドは、通常の権限の確認
+（auto モードの判定か、確認のプロンプト）を経て外で再実行でき、許可リストにないホストは
+権限モードに従って決まります。Claude のファイルツール、MCP サーバー、フックは
+サンドボックスの外で動きます。決定は [ADR-0020](docs/adr/0020-enable-sandbox-by-default.md)、
+要件は [spec 067](specs/067-sandbox-by-default/spec.md) にあります。
+
+想定した日常作業の動き方:
+
+| 作業 | どこで動くか | 開けるもの | 閉じたままのもの |
+|---|---|---|---|
+| 署名つきの `git commit`（GnuPG） | 中 | `~/.gnupg` への書き込み、`S.gpg-agent` と `S.keyboxd` のソケット | 秘密鍵（`private-keys-v1.d`、`secring.gpg`）と失効証明書の読み取り。それらとキーリング、`trustdb.gpg`、gpg・gpgsm・gpg-agent のすべての設定ファイル、scdaemon が実行する `scd-event` への書き込み |
+| `aws … --profile X` | 外。権限の確認を経る（`excludedCommands: ["aws *"]`） | サンドボックスの中には何も開けない | サンドボックスの中のすべてのコマンドから `~/.aws` 全体。Claude の Read ツールからも読めない |
+| Chromium、Playwright | 中。`--single-process` で起動する | 追加なし | — |
+| Google Fonts からの Noto Sans のインストール | 中 | `~/Library/Fonts` への書き込み、`fonts.googleapis.com` と `fonts.gstatic.com` への確認なしの接続 | ほかのホストは権限モードで決まる |
+
+ファイルツールの deny に加えて、サンドボックスの中のコマンドは `~/.git-credentials`、
+`~/.netrc`、`~/.config/gh/hosts.yml`、`~/.docker/config.json`、`~/.kube/config` も
+読めません。`aws` のコマンドがサンドボックスの外に出るのは、Bash の呼び出し全体がその
+1つのコマンドであるときだけです。パイプ、`&&`、`;`、`$(...)` でつないだものは中に残り、
+`~/.aws` を読めません。
+
+セッションの開始時に、`settings.json` に直接書いた3つの `SessionStart` フックが
+サンドボックスの外で動きます:
+
+- **Bedrock の変数を Bash から外す。** Claude Code が Amazon Bedrock 経由で Claude を
+  呼ぶとき（`CLAUDE_CODE_USE_BEDROCK`）、Bash のコマンドは `AWS_PROFILE`、
+  `AWS_DEFAULT_PROFILE`、`AWS_REGION`、`AWS_DEFAULT_REGION`、`AWS_ACCESS_KEY_ID`、
+  `AWS_SECRET_ACCESS_KEY`、`AWS_SESSION_TOKEN`、`AWS_BEARER_TOKEN_BEDROCK` を
+  引き継ぎません。`--profile` を付け忘れた `aws` のコマンドが、Bedrock 用の
+  アカウントとして動くことはありません。
+- **gpg-agent。** `gpgconf` と `~/.gnupg` があれば、gpg-agent をサンドボックスの外で
+  起動します。サンドボックスの中の署名つきの `git commit` は、鍵を読めて
+  パスフレーズの入力を出せるこの agent につながります。
+- **Claude への注意。** Bash ツールが zsh で動くとき（`CLAUDE_CODE_SHELL`、なければ
+  `SHELL`）、そのことと、Claude のコマンドを最も多く壊した zsh の3つの落とし穴
+  （一致しないグロブ、`=` で始まる語、zsh が分割しない引用符なしの変数）を伝えます。
+  macOS では、サンドボックスの中の Chromium に `--single-process` が要ることを
+  伝えます。`aws` CLI があれば、`aws` を1つのコマンドで実行し、プロファイルを
+  `--profile` で指定するよう伝えます。
+
+この設計で受け入れたリスクと、既知の制限（macOS、Claude Code 2.1.319 で確認）:
+
+- gpg-agent がパスフレーズを覚えている間は、サンドボックスの中のどのコマンドも、
+  ソケットを通じてあなたの鍵で署名できます。パスフレーズの無い鍵なら書き出しも
+  できます。代わりに `git commit` を外で動かすと、リポジトリの git フックも外で
+  動きます。
+- `settings.json` の `env` は、Bash だけでなくフックと stdio の MCP サーバーにも
+  届きます。そのため Bedrock のセッションでは、`deploy-on-aws` の AWS を呼ぶ MCP
+  サーバーが Bedrock 用のアカウントとして動きます。Bedrock の認証情報を
+  `env.AWS_PROFILE` ではなく `awsCredentialExport`（例:
+  `aws configure export-credentials --profile <bedrock> --format process`）で渡せば、
+  どの子プロセスにもプロファイルは届きません。
+- プロジェクトとローカルの設定は、このファイルが設定したサンドボックスを緩められます。
+  止められるのは管理設定だけです。
+- Chromium（と Playwright、Puppeteer）は、`--single-process` で起動しないと、
+  サンドボックスの中で起動の時点で止まります。`digital-agency-slides` のスライドの
+  検査器は自分でこのフラグを付けます。それ以外は呼び出す側が付ける必要があります。
+  サンドボックスのプロキシ経由では、平文の HTTP は読めましたが、HTTPS は時間切れに
+  なりました。
+- macOS の `mktemp` は、テンプレートを渡さないと `$TMPDIR` を使わず、サンドボックスの
+  中で失敗します。それを呼ぶスクリプト（Spec Kit の `setup-plan.sh` など）は外での
+  再実行が要ります。
+- サンドボックスの中では、`/usr/bin/diff` は `<(...)` が作る `/dev/fd` のパスを
+  開けません。
+- GnuPG の許可は `~/.gnupg` を前提にしています。`GNUPGHOME` を別の場所にしている
+  場合、署名は外での再実行に回ります。keyboxd を使う場合、公開鍵の取り込みは
+  keyboxd のソケットを通るので止まりません。
+
 ## MCP サーバー
 
 このリポジトリは MCP サーバーをユーザー設定に取り込みません。`install.sh` は
@@ -440,6 +530,16 @@ claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.
 claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/mcp
 ```
 
+`settings.json` は、次のサーバーを、どこで定義されていても読み込ませません
+（[ADR-0021](docs/adr/0021-block-mcp-servers-by-settings.md)）:
+
+| 止めるもの | 方法 | 理由 |
+|---|---|---|
+| GitHub がホストする MCP サーバーと `github` プラグイン | `deniedMcpServers` の URL（`https://api.githubcopilot.com/*`）、`enabledPlugins` の `false` | 使っていない。作業は `gh` CLI で足りる |
+| `bedrock-agentcore` | `deniedMcpServers` の名前とコマンド | Claude Code が持つ AWS の認証情報で、AWS の実際のリソースを作成・変更・削除し、AWS でコードを実行する |
+| claude.ai のコネクタ（Gmail、Google Calendar、Google Drive、Notion、Moneytree、Claude Docs、Wolfram） | `disableClaudeAiConnectors: true` | 私的なデータと外部の文章が Bash と同じセッションにそろうと、プロンプトインジェクションでデータを持ち出す経路になる |
+| claude.ai から同期されるプラグイン（`productivity`、`pdf-viewer`） | `syncClaudeAiPlugins: false` | SaaS の MCP サーバーを、さらにすべてのセッションに持ち込む |
+
 ## プラグイン
 
 `install.sh` は Anthropic 公式マーケットプレイス `claude-plugins-official`
@@ -452,7 +552,7 @@ claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/m
 
 MCP サーバーを同梱するプラグインは、MCP サーバーと同じく必要に応じて各自で
 追加してください。インストーラーはインストールも削除もしません。同じ
-マーケットプレイスには、たとえば `github`（GitHub 公式 MCP サーバー、GitHub）、
+マーケットプレイスには、たとえば
 `deploy-on-aws`（AWS アーキテクチャ図 + デプロイ/IaC skill と AWS の MCP サーバー。
 デプロイ/AWS CLI 変更系操作は
 [`.claude/rules/permissions.md`](.claude/rules/permissions.md) により毎回確認が必要、AWS）、
@@ -470,10 +570,12 @@ claude plugin install skill-creator@claude-plugins-official
 MCP サーバーを同梱するプラグインを入れる場合:
 
 ```sh
-claude plugin install github@claude-plugins-official
 claude plugin install deploy-on-aws@claude-plugins-official
 claude plugin install microsoft-docs@claude-plugins-official
 ```
+
+同じマーケットプレイスの `github` プラグインは `settings.json` で無効にし、その
+サーバーも拒否しています（「MCP サーバー」参照）。
 
 ## プロジェクト単位の上書き
 

@@ -1,0 +1,237 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-067",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "install.sh で入るユーザー設定のもとで、Bash のコマンドは既定でサンドボックスの中で動き、利用者の日常作業は中で、または審査を経た aws の1つのコマンドとしてだけ外で済み、Bash の作業に Bedrock 用のアカウントは使われず、Claude は zsh に合った書き方を知らされ、止めると決めた MCP にはつながらない",
+      "decomposition": "AND",
+      "children": ["REQ-BOUNDARY", "REQ-WORK", "REQ-AWS-ENV", "REQ-ZSH", "REQ-MCP", "REQ-INSTALL", "REQ-DOCS"],
+      "assumptions": [
+        "設定のキーとその意味は、2026-11-07 に読んだ Claude Code 2.1.319 の公式ドキュメントのとおりに働く",
+        "利用者のマシンは macOS である",
+        "「既定で」はユーザー設定の既定を指す。プロジェクトとローカルの設定はそれを変えられる(Claude Code の設定の優先順位)"
+      ],
+      "acceptance": [
+        {
+          "id": "AC-ROOT-L3",
+          "description": "install.sh を適用した後の新しいセッションで、(a) サンドボックスの中で Chromium を --single-process で起動できる、(b) aws … --profile X が審査を経てサンドボックスの外で動く、(c) Bedrock モードなら Bash の AWS_PROFILE が未設定である、(d) 止めた MCP のツールが現れない、(e) zsh の注意と Chromium の注意が文脈にある、を確かめる(SC-002〜SC-004)",
+          "level": "L3"
+        }
+      ],
+      "counterexamples": [
+        "リポジトリの settings.json は正しいが、install.sh のマージが利用者の既存の sandbox の配列で上書きされず、古い値が残る",
+        "設定のキーの名前が Claude Code の版で変わり、テストは通るが Claude Code が黙って無視する",
+        "CLAUDE_ENV_FILE の行がサンドボックスの中のコマンドには効かず、フックのテストは通るが Bash は Bedrock の AWS_PROFILE を使う"
+      ]
+    },
+    {
+      "id": "REQ-BOUNDARY",
+      "statement": "サンドボックスは既定で有効で、開けた書き込み・ソケット・ホストを通っても、~/.aws、列挙した資格情報のファイル、GPG の秘密鍵と失効証明書をファイルとして読めず、GPG のキーリング・信頼度・設定に書けず、確認なしで書き込めるホストが無い。gpg-agent のソケットを通じた署名は、利用者が受け入れた残余のリスクである",
+      "decomposition": "AND",
+      "children": ["REQ-ON", "REQ-SECRETS", "REQ-SOCKETS", "REQ-HOSTS"],
+      "acceptance": [
+        {
+          "id": "AC-BOUNDARY-L2",
+          "description": "設定の検査で、開けた書き込み(~/.gnupg、~/Library/Fonts)、ソケット、ホストの一覧と、守る場所の一覧(読ませない8件、書かせない17件、~/.aws)を突き合わせ、開けた場所が守る場所を含まないこと、~/.aws の下を開け直していないことを確かめる",
+          "level": "L2"
+        }
+      ],
+      "counterexamples": [
+        "~/.gnupg に書けるので、gpgsm.conf の agent-program を書き換え、サンドボックスの外の gpgsm に任意のプログラムを実行させられる",
+        "gpg-agent のソケットに接続できるので、パスフレーズを覚えている間に任意のデータへ署名できる(受け入れた残余のリスク)"
+      ]
+    },
+    {
+      "id": "REQ-ON",
+      "statement": "ユーザー設定はサンドボックスを有効にし、厳しさは標準(サンドボックス外への再実行を禁じず、許可リストの外を一律には拒まない)である",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-ON-1", "description": "sandbox.enabled が true で、allowUnsandboxedCommands は false でなく、network.strictAllowlist は true でない(SBX-01、SBX-02)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-SECRETS",
+      "statement": "サンドボックスは ~/.aws と列挙した資格情報のファイル、GPG の秘密鍵・旧形式の秘密鍵束・失効証明書を読ませず、GPG の秘密・キーリング・信頼度のデータベース・設定ファイルに書かせない",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-SECRETS-1", "description": "allowRead と allowWrite のどの項目も ~/.aws の下と ~ を含まない。denyRead に GPG の3件と ~/.git-credentials、~/.netrc、~/.config/gh/hosts.yml、~/.docker/config.json、~/.kube/config がある。denyWrite に GPG の17件(秘密、キーリング、trustdb.gpg、gpg・gpg-agent・gpgsm・common・dirmngr・scdaemon・keyboxd の .conf、sshcontrol、trustlist.txt、scd-event)がある(SBX-03〜SBX-05)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-SOCKETS",
+      "statement": "サンドボックスは gpg-agent と keyboxd のソケットにだけ接続を許す",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-SOCKETS-1", "description": "allowUnixSockets はちょうど ~/.gnupg/S.gpg-agent と ~/.gnupg/S.keyboxd で、allowAllUnixSockets は true でない(SBX-06)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-HOSTS",
+      "statement": "確認なしで接続できるホストは、Google Fonts の2つだけである",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-HOSTS-1", "description": "allowedDomains はちょうど fonts.googleapis.com と fonts.gstatic.com である(SBX-07)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-WORK",
+      "statement": "利用者の日常作業のうち、Chromium、Noto Sans のインストール、署名つきの git commit はサンドボックスの中で済み、--profile 付きの aws CLI は審査を経た1つのコマンドとしてだけ外で動く",
+      "decomposition": "AND",
+      "children": ["REQ-CHROMIUM", "REQ-FONTS", "REQ-GPG", "REQ-AWS-CLI"],
+      "acceptance": [
+        {
+          "id": "AC-WORK-L2",
+          "description": "変更を適用した新しいセッションで、サンドボックスの中から Chromium を起動し、aws … --profile X を1つのコマンドとして実行し、前者は外での再実行を求められず、後者は権限の確認を経て外で動くことを確かめる(AC-ROOT-L3 の a と b)。GPG の署名は鍵を持つマシンで確かめる(AC-GPG-L2)",
+          "level": "L2"
+        }
+      ],
+      "counterexamples": [
+        "allowWrite に ~/Library/Fonts があっても、フォントを取りに行くホストが許可リストに無く、取得が毎回確認になる",
+        "~/.gnupg に書けても、gpg-agent がサンドボックスの中で起動され、秘密鍵を読めずに署名が失敗する",
+        "aws をパイプでつないだため外に出ず、~/.aws を読めずに失敗する"
+      ]
+    },
+    {
+      "id": "REQ-CHROMIUM",
+      "statement": "このリポジトリのスライドの検査器はサンドボックスの中で Chromium を起動し、ほかの起動のために、Claude は --single-process が要ることを知らされる",
+      "decomposition": "AND",
+      "children": ["REQ-CHROMIUM-DECK", "REQ-CHROMIUM-NOTE"],
+      "acceptance": [
+        {"id": "AC-CHROMIUM-L2", "description": "macOS のサンドボックスの中で、変更後のスライドの検査器が Chromium を起動し、レポートを返す(tests/assert_deck_units.py の UNIT-08 と、tests/run-digital-agency-slides-skill.sh の LINT-*)", "level": "L2"}
+      ],
+      "counterexamples": [
+        "検査器は --single-process を付けるが、Claude がほかのプロジェクトで書く Playwright のコードには付かない(文脈で伝えるだけで、強制しない)"
+      ]
+    },
+    {
+      "id": "REQ-CHROMIUM-DECK",
+      "statement": "スライドの検査器は、macOS のサンドボックスの中でだけ Chromium に --single-process を付ける",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-DECK-1", "description": "chromium_args は darwin かつ SANDBOX_RUNTIME=1 のとき ['--single-process'] を返し、linux や SANDBOX_RUNTIME が無いときは空を返す(UNIT-09〜11)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-CHROMIUM-NOTE",
+      "statement": "macOS のセッションでは、サンドボックスの中の Chromium に --single-process が要ることが Claude の文脈に入る",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-NOTE-1", "description": "文脈のフックは、uname が Darwin のとき --single-process を含む文を出し、Linux のときは出さない(NOTE-02、NOTE-05)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-FONTS",
+      "statement": "サンドボックスの中で、Noto Sans の TTF を Google Fonts から取得して ~/Library/Fonts に置ける",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-FONTS-1", "description": "allowWrite に ~/Library/Fonts があり、allowedDomains に fonts.googleapis.com と fonts.gstatic.com がある(SBX-07、SBX-09)。Google Fonts の CSS API が curl に TTF の URL を返すことは 2026-11-08 に観察した", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-GPG",
+      "statement": "サンドボックスの中の git が、サンドボックスの外の gpg-agent で署名できる",
+      "decomposition": "AND",
+      "children": ["REQ-GPG-FILES", "REQ-GPG-AGENT"],
+      "acceptance": [
+        {"id": "AC-GPG-L2", "description": "GPG の鍵を持つマシンで、変更を適用した新しいセッションから署名つきのコミットを作る(このマシンには ~/.gnupg が無いので、利用者のマシンでの確認として残す。SC-005)", "level": "L2"}
+      ],
+      "counterexamples": [
+        "GNUPGHOME が ~/.gnupg 以外を指していて、許可が及ばない",
+        "gpg-agent はすでにサンドボックスの中で起動されていて、外での起動が何もしない"
+      ]
+    },
+    {
+      "id": "REQ-GPG-FILES",
+      "statement": "サンドボックスの中の gpg は ~/.gnupg にロックファイルを作れ、gpg-agent と keyboxd のソケットに接続できる。署名に要らないキーリングと信頼度のデータベースには書けない",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-GPGFILES-1", "description": "allowWrite に ~/.gnupg があり、allowUnixSockets に S.gpg-agent と S.keyboxd がある(SBX-06、SBX-09)。pubring.kbx と trustdb.gpg を読み取り専用にしても gpg 2.5.18 の署名が成功することは、2026-11-08 に一時的な GNUPGHOME で観察した", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-GPG-AGENT",
+      "statement": "セッションの開始時に、gpgconf と ~/.gnupg があれば、gpg-agent をサンドボックスの外で起動する",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-AGENT-1", "description": "gpgconf のスタブと HOME/.gnupg を与えると、フックはスタブを --launch gpg-agent で呼ぶ。~/.gnupg が無いとき、または gpgconf が無いときは呼ばずに 0 で終わる(GPG-01〜03)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-AWS-CLI",
+      "statement": "aws で始まる1つのコマンドだけが、権限の確認を経てサンドボックスの外で動き、~/.aws はサンドボックスの中から読めないままである。Claude は、aws を1つのコマンドで実行し --profile を付けるよう知らされる",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-AWSCLI-1", "description": "excludedCommands はちょうど [\"aws *\"] で、~/.aws の下を開け直していない(SBX-03、SBX-10)。aws CLI があるとき、文脈のフックは「1つの aws コマンド」と「--profile」を含む文を出す(NOTE-06)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-AWS-ENV",
+      "statement": "Bedrock モードでは、Bash のコマンドは AWS の8つの変数を引き継がない。Bedrock モードでなければ、Bash の環境は変わらない",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-AWSENV-1", "description": "環境のフックを CLAUDE_CODE_USE_BEDROCK が 1、true、0、空のときに sh・bash・zsh で実行し、CLAUDE_ENV_FILE を source した後に残る8つの変数の数が 0、0、8、8 になる。CLAUDE_ENV_FILE が無ければ何もしない(AWS-01〜03)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-ZSH",
+      "statement": "Bash ツールのシェルが zsh のときだけ、zsh であることと、失敗しやすい3種類の書き方が Claude の文脈に入る",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-ZSH-1", "description": "文脈のフックは、CLAUDE_CODE_SHELL か SHELL が zsh のとき、グロブ、= で始まる語、単語分割の3点を含む文を出す。bash のときは出さない。CLAUDE_CODE_SHELL は SHELL より優先する(NOTE-01、NOTE-03、NOTE-04)。誤りの件数が減るかは、変更の後の会話記録を同じ方法で数えて確かめる(この変更の範囲では測れない)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-MCP",
+      "statement": "GitHub がホストする MCP サーバー、bedrock-agentcore、claude.ai のコネクタ、claude.ai の同期プラグインにつながらない",
+      "decomposition": "AND",
+      "children": ["REQ-MCP-GITHUB", "REQ-MCP-AGENTCORE", "REQ-MCP-CLAUDEAI"],
+      "acceptance": [
+        {"id": "AC-MCP-L2", "description": "変更を適用した新しいセッションで、mcp__github、mcp__bedrock-agentcore、mcp__claude_ai_*、plugin_productivity、plugin_pdf-viewer のツールが1つも現れない(AC-ROOT-L3 の d)", "level": "L2"}
+      ],
+      "counterexamples": [
+        "GitHub の MCP を、別の名前のローカルのコマンド(github-mcp-server や Docker)で登録し直すと、URL の拒否に当たらない(範囲外として記録)"
+      ]
+    },
+    {
+      "id": "REQ-MCP-GITHUB",
+      "statement": "GitHub がホストする MCP サーバー(https://api.githubcopilot.com/)は、どこで定義されていても読み込まれず、github プラグインは無効である",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-GITHUB-1", "description": "deniedMcpServers に serverUrl https://api.githubcopilot.com/* があり、enabledPlugins の github@claude-plugins-official が false である(MCP-01、MCP-02)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-MCP-AGENTCORE",
+      "statement": "bedrock-agentcore は読み込まれない",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-AGENTCORE-1", "description": "deniedMcpServers に serverName bedrock-agentcore と、そのコマンドの serverCommand がある(MCP-03、MCP-04)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-MCP-CLAUDEAI",
+      "statement": "claude.ai のコネクタは読み込まれず、claude.ai からプラグインを同期せず、同期済みのものも読み込まない",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-CLAUDEAI-1", "description": "disableClaudeAiConnectors が true、syncClaudeAiPlugins が false である(MCP-05、MCP-06)。後者は同期済みのプラグインを ~/.claude/plugins/.trash/ へ移して読み込まない(公式ドキュメント plugins/loading)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-INSTALL",
+      "statement": "install.sh は、利用者が自分で書いた settings.json のキーを残したまま、この変更の設定を入れる",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-INSTALL-1", "description": "利用者の env、ほかのプラグインのキー、sandbox の中の利用者のキーを持つ settings.json に install.sh を実行すると、それらが残り、github@claude-plugins-official が false、sandbox の filesystem と network がリポジトリの値になる(tests/run-install.sh)", "level": "L1"}
+      ]
+    },
+    {
+      "id": "REQ-DOCS",
+      "statement": "README(英日)、docs/mcp-servers.md、docs/claude-config-design.md、ADR が、振る舞いと受け入れた制限を記述する",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "AC-DOCS-1", "description": "README の英日の見出しの構造がそろい、run-readme-skill-index.sh が通り、ADR-0020 と ADR-0021 が制限(HTTPS のプロキシ、GNUPGHOME、SANDBOX_RUNTIME への依存、gpg-agent での署名、MCP サーバーに届く env、プロジェクト設定による上書き)を記録している(読んで確かめる)", "level": "L1"}
+      ]
+    }
+  ]
+}

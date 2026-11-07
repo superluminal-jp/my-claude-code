@@ -112,6 +112,7 @@ decision: fix it, or say in the hand-off why it stays.
 | `heading-skip` on a card title | A block title was written as `h4` under the slide's `h2` | Make it an `h3` |
 | `deck-long` on a deck with few points | Evidence was given slides of its own | Move it onto its point's slide, or to the appendix |
 | Chromium will not launch | Playwright's browser build does not match | `--chromium PATH`, or re-run `scripts/setup.sh` |
+| Chromium aborts with `bootstrap_check_in … Permission denied (1100)` | The macOS command sandbox refuses the Mach service registration Chromium makes at startup | `deck.py` already launches it with `--single-process` when the command runs in that sandbox (`SANDBOX_RUNTIME=1`); a browser launched any other way needs the same flag |
 
 ## Dependencies
 

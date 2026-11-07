@@ -10,7 +10,9 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 帰結として、原則をどれだけ巧く書いても保証にはならない。だから `CLAUDE.md` の各原則は「徳目」ではなく**観測可能な義務**として書かれている — transcript や diff で第三者が確認できる形。「正確であれ」は検証不能だが、「実行したコマンドと出力を示せ」は検証できる。検証できないものは当てにできない。
 
-強制が必要な項目は設定側へ移してある。資格情報の読み取り拒否がその唯一の実例で、経緯と受け入れた副作用は [ADR-0014](adr/0014-restore-credential-deny-rules.md) にある。hooks とガードレールスクリプトを全廃した経緯は [ADR-0005](adr/0005-remove-claude-hooks.md) と [ADR-0007](adr/0007-remove-scripts.md)。
+強制が必要な項目は設定側へ移してある。実例は3つある。ファイルツールに対する資格情報の読み取り拒否(経緯と受け入れた副作用は [ADR-0014](adr/0014-restore-credential-deny-rules.md))、Bash のコマンドを OS の制限で閉じ込めるサンドボックス、使わない MCP サーバーの拒否である([ADR-0020](adr/0020-enable-sandbox-by-default.md)、[ADR-0021](adr/0021-block-mcp-servers-by-settings.md))。hooks とガードレールスクリプトを全廃した経緯は [ADR-0005](adr/0005-remove-claude-hooks.md) と [ADR-0007](adr/0007-remove-scripts.md)。
+
+例外として、`settings.json` の `SessionStart` フックが、条件に当たるセッションにだけ短い注意を文脈に足す(Bash ツールが zsh のとき、macOS のとき、aws CLI があるとき)。中身は §2 の問い「これが無いと Claude は間違えるか」を、会話記録とこのマシンでの観察で通したものに限る(zsh の3種類の誤り、サンドボックスの中の Chromium、サンドボックスの外に出る aws の書き方)。条件に当たらない環境では何も足さないので、ルールとして全セッションに課金しない。経緯は ADR-0020。
 
 ## 2. 常時ロードに残す判断基準
 

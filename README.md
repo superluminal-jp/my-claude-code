@@ -21,7 +21,11 @@ projects while preserving unrelated user files.
   multi-match algorithm for applying every independently matching capability.
   It names no rule, skill, or server — the design rationale is in
   [`docs/claude-config-design.md`](docs/claude-config-design.md)
-- **`.claude/settings.json`** — User-level Claude Code settings
+- **`.claude/settings.json`** — User-level Claude Code settings: the
+  credential deny list, the OS sandbox turned on for every Bash command with
+  only the openings everyday work needs, three `SessionStart` hooks, and the
+  MCP servers it stops (see [Sandbox and session hooks](#sandbox-and-session-hooks)
+  and [MCP Servers](#mcp-servers))
 - **`.claude/rules/`** — Always-on universal rules, each kept to what changes
   Claude's decisions and nothing else, and each supporting exactly one apex
   branch: requirements-certainty clarification triggers, reasoning
@@ -155,7 +159,7 @@ and skills carry their own sources inline instead.
 | Document | Covers |
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | The test each always-on instruction must pass, and what each file deliberately omits |
-| [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, and what to update when a server is added |
+| [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, which servers `settings.json` stops, and what to update when a server is added |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | The whole-harness behavior baseline: how to check the capability map and scenario suite, run the suite with `claude plugin eval` against two commits under a cost ceiling, and compare the results, and where the eval differs from a real session |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | Which component owns each stage of the work, which stages have no owner, which skills exclude one another, and which scenarios cover each stage (generated from `capability-map.json`) |
 | [`docs/adr/`](docs/adr/) | Architecture decision records — immutable once Accepted, only superseded |
@@ -176,6 +180,8 @@ The installer does not register, update, or remove MCP servers, and does not
 install plugins that bundle one. Add whichever you need yourself (see
 [MCP Servers](#mcp-servers)); servers already registered at user scope, for
 example by an earlier version of this installer, are left as they are.
+`settings.json` does stop a few of them from loading; the list is in
+[MCP Servers](#mcp-servers).
 
 Re-running is safe: it re-syncs managed paths and re-checks the plugins.
 
@@ -192,8 +198,13 @@ Re-running is safe: it re-syncs managed paths and re-checks the plugins.
   value wins — recursing into shared objects, so e.g. `permissions.deny`
   stays enforced even if a sibling key under `permissions` is your own. A
   top-level key the repo does not declare — `env` (as written by
-  `/setup-bedrock`, say), `enabledPlugins`, `agentPushNotifEnabled`, or
-  anything else you or the CLI added — is left untouched.
+  `/setup-bedrock`, say), `agentPushNotifEnabled`, or anything else you or
+  the CLI added — is left untouched. Under `enabledPlugins` the repo declares
+  only `github@claude-plugins-official: false`; your other entries stay. An
+  array the repo declares (`permissions.deny`, the `sandbox` path lists,
+  `hooks.SessionStart`, `deniedMcpServers`) replaces yours rather than being
+  combined with it, so put your own additions to those in project or local
+  settings, which Claude Code combines with the user scope.
 - Files removed from this repository are also removed from `~/.claude` under
   the replaced managed paths.
 - `agents/` and `commands/` have no source in this repository; they stay
@@ -229,12 +240,12 @@ my-claude-code/
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs nine tests/run-*.sh suites on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs ten tests/run-*.sh suites on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
     ├── CLAUDE.md                   # Governing proposition: define → execute → hand off; rationale → docs/
-    ├── settings.json               # User-level Claude Code settings
+    ├── settings.json               # User-level settings: deny list, sandbox, SessionStart hooks, MCP stops
     ├── rules/                      # Always-on: loaded every session, 4 independent concerns
     │   ├── clarifier.md            # Requirements certainty: when to ask vs proceed
     │   ├── thinking-lenses.md      # Reasoning completeness: four self-checks applied every task
@@ -296,6 +307,7 @@ bash tests/run-install.sh
 bash tests/run-digital-agency-frontend-skill.sh
 bash tests/run-digital-agency-slides-skill.sh
 bash tests/run-removed-guardrails.sh
+bash tests/run-sandbox-settings.sh
 ```
 
 After changing [`.claude/skills/secure-logging/`](.claude/skills/secure-logging/):
@@ -430,16 +442,27 @@ allowed — an `allow` or `ask` tier fails — and every `deny` entry must be a
 would resolve to a different path once `install.sh` copies the file to user
 scope.
 
+`run-sandbox-settings.sh` checks the `sandbox`, `SessionStart`, and MCP keys
+of `.claude/settings.json` against [spec 067](specs/067-sandbox-by-default/spec.md):
+that nothing under `~/.aws` is re-opened and the GPG secrets and other
+credential files stay closed, that the opened paths, sockets, hosts, and
+excluded commands are exactly the reviewed ones, and
+that the stopped MCP servers stay stopped. It also runs each `SessionStart`
+hook under `sh`, `bash`, and `zsh` with a scratch home and stub commands.
+Whether Claude Code honours these keys is checked by hand in a new session
+after `install.sh`.
+
 `run-install.sh` uses an isolated home and stubbed external commands. All suites
 except `run-mcp-startup.sh` are local checks; the startup suite exercises the
 configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-Nine of the suites above also run automatically in CI
+Ten of the suites above also run automatically in CI
 (`.github/workflows/ci.yml`) on every push and pull request to `main`:
 `run-install.sh`, `run-digital-agency-frontend-skill.sh`,
-`run-removed-guardrails.sh`, `run-package-safety-bundle.sh`,
+`run-removed-guardrails.sh`, `run-sandbox-settings.sh`,
+`run-package-safety-bundle.sh`,
 `run-readme-skill-index.sh`, `run-requirements-decomposition-skill.sh`,
 `run-verified-delivery-skill.sh`, `run-harness-eval.sh`, and
 `run-mcp-startup.sh`. The others run only when you run them. `main` is
@@ -473,6 +496,81 @@ just alert:
   unconfirmed; don't treat this repo's secret scanning as a verified safety
   net for AWS-shaped credentials specifically until that's resolved.
 
+## Sandbox and session hooks
+
+`settings.json` turns on Claude Code's OS sandbox, which confines every Bash
+command Claude runs to the files and hosts it allows (Seatbelt on macOS). The
+strictness is the standard one: a command that cannot run inside may be
+retried outside after the usual permission check (the auto-mode classifier,
+or a prompt), and a host outside the allowlist is decided by the permission
+mode. Claude's file tools, MCP servers, and hooks run outside the sandbox.
+The decision is [ADR-0020](docs/adr/0020-enable-sandbox-by-default.md); the
+requirements are [spec 067](specs/067-sandbox-by-default/spec.md).
+
+How the everyday work it was built for runs:
+
+| Work | Where it runs | What is opened | What stays closed |
+|---|---|---|---|
+| Signed `git commit` (GnuPG) | Inside | Writes to `~/.gnupg`; the `S.gpg-agent` and `S.keyboxd` sockets | Reading the private keys (`private-keys-v1.d`, `secring.gpg`) and revocation certificates; writing them, the keyrings, `trustdb.gpg`, every gpg, gpgsm, and gpg-agent configuration file, and the `scd-event` script scdaemon runs |
+| `aws … --profile X` | Outside, after the permission check (`excludedCommands: ["aws *"]`) | Nothing inside the sandbox | All of `~/.aws` for every sandboxed command; Claude's Read tool cannot read it either |
+| Chromium, Playwright | Inside, launched with `--single-process` | Nothing extra | — |
+| Installing Noto Sans from Google Fonts | Inside | Writes to `~/Library/Fonts`; `fonts.googleapis.com` and `fonts.gstatic.com` without asking | Any other host is decided by the permission mode |
+
+Every sandboxed command is also kept from reading `~/.git-credentials`,
+`~/.netrc`, `~/.config/gh/hosts.yml`, `~/.docker/config.json`, and
+`~/.kube/config`, on top of the file tools' deny list. An `aws` command leaves
+the sandbox only when the whole Bash call is that one command; one joined
+with a pipe, `&&`, `;`, or `$(...)` stays inside and cannot read `~/.aws`.
+
+Three `SessionStart` hooks, each a short command written into
+`settings.json`, run outside the sandbox when a session starts:
+
+- **Bedrock variables out of Bash.** When Claude Code reaches Claude through
+  Amazon Bedrock (`CLAUDE_CODE_USE_BEDROCK`), Bash commands do not inherit
+  `AWS_PROFILE`, `AWS_DEFAULT_PROFILE`, `AWS_REGION`, `AWS_DEFAULT_REGION`,
+  `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, or
+  `AWS_BEARER_TOKEN_BEDROCK`, so an `aws` command that forgets `--profile`
+  does not act as the Bedrock account.
+- **gpg-agent.** When `gpgconf` and `~/.gnupg` exist, the hook starts
+  gpg-agent outside the sandbox, so a signing `git commit` inside it reaches
+  an agent that can read the keys and show a passphrase prompt.
+- **Notes for Claude.** When the Bash tool runs zsh (`CLAUDE_CODE_SHELL`, or
+  else `SHELL`), Claude is told so, with the three zsh pitfalls that broke
+  its commands most often: unmatched globs, words starting with `=`, and
+  unquoted variables that zsh does not split. On macOS it is told that
+  Chromium needs `--single-process` inside the sandbox. When the `aws` CLI is
+  installed, it is told to run `aws` as one command and to name the profile
+  with `--profile`.
+
+Risks accepted with this design, and known limits, measured on macOS with
+Claude Code 2.1.319:
+
+- While gpg-agent remembers your passphrase, any sandboxed command can sign
+  data with your key through its socket; with a key that has no passphrase,
+  it could also export it. Running `git commit` outside the sandbox instead
+  would run the repository's git hooks outside too.
+- `env` in `settings.json` reaches hooks and stdio MCP servers as well as
+  Bash. In a Bedrock session, the AWS-calling MCP servers of `deploy-on-aws`
+  therefore act as the Bedrock account. Giving Bedrock its credentials with
+  `awsCredentialExport` (for example
+  `aws configure export-credentials --profile <bedrock> --format process`)
+  instead of `env.AWS_PROFILE` keeps the profile away from every subprocess.
+- Project and local settings can loosen the sandbox this file sets; only
+  managed settings can stop that.
+- Chromium (and Playwright, Puppeteer) aborts at startup in the sandbox
+  unless launched with `--single-process`. The slide checker of
+  `digital-agency-slides` adds the flag itself; anything else has to pass it.
+  Through the sandbox's proxy, Chromium loaded plain HTTP but timed out on
+  HTTPS.
+- `mktemp` without a template ignores `$TMPDIR` on macOS and fails in the
+  sandbox; scripts that call it, such as Spec Kit's `setup-plan.sh`, need to
+  be retried outside.
+- `/usr/bin/diff` cannot open the `/dev/fd` paths that `<(...)` creates
+  inside the sandbox.
+- The GnuPG openings assume `~/.gnupg`; with `GNUPGHOME` elsewhere, signing
+  falls back to running outside. With keyboxd, importing public keys goes
+  through the keyboxd socket and is not stopped.
+
 ## MCP Servers
 
 This repository does not install MCP servers into your user configuration.
@@ -500,6 +598,16 @@ claude mcp add -s user \
 claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
 claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/mcp
 ```
+
+`settings.json` stops these from loading, wherever they are defined
+([ADR-0021](docs/adr/0021-block-mcp-servers-by-settings.md)):
+
+| Stopped | How | Why |
+|---|---|---|
+| GitHub's MCP server and the `github` plugin | `deniedMcpServers` by URL (`https://api.githubcopilot.com/*`); `enabledPlugins` `false` | Not used; the `gh` CLI covers the work |
+| `bedrock-agentcore` | `deniedMcpServers` by name and by command | Creates, changes, and deletes live AWS resources and runs code in AWS with whatever AWS credentials Claude Code holds |
+| claude.ai connectors (Gmail, Google Calendar, Google Drive, Notion, Moneytree, Claude Docs, Wolfram) | `disableClaudeAiConnectors: true` | Private data and outside text in the same session as Bash is a path for prompt injection to carry data out |
+| Plugins synced from claude.ai (`productivity`, `pdf-viewer`) | `syncClaudeAiPlugins: false` | Bring further SaaS MCP servers into every session |
 
 ## Plugins
 
@@ -529,15 +637,16 @@ same marketplace carries, for example:
 
 | Plugin | Author | Bundles |
 |---|---|---|
-| `github` | GitHub | Official GitHub MCP server (issues, PRs, repo search) |
 | `deploy-on-aws` | AWS | AWS architecture diagrams + deploy/IaC skills, with AWS MCP servers. Its deploy and mutating AWS CLI operations still require confirmation on every use per [`.claude/rules/permissions.md`](.claude/rules/permissions.md) |
 | `microsoft-docs` | Microsoft | Official Microsoft/Azure/.NET docs MCP server + skills |
 
 ```sh
-claude plugin install github@claude-plugins-official
 claude plugin install deploy-on-aws@claude-plugins-official
 claude plugin install microsoft-docs@claude-plugins-official
 ```
+
+The same marketplace's `github` plugin is disabled by `settings.json`, and its
+server denied (see [MCP Servers](#mcp-servers)).
 
 ## Overriding per project
 
