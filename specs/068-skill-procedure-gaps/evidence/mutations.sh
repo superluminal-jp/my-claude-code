@@ -7,7 +7,8 @@
 #    final signature that gives a wrong result;
 # 2. mutation: against HEAD with the implementation broken on purpose, for
 #    the tests the red cannot fail (they pin behavior the change must keep,
-#    or the stub passes them for another reason).
+#    or the stub passes them for another reason);
+# 3. the flow check's own checks, each under a mutation of HEAD.
 # A test is covered when it FAILs (an assertion) in at least one of these; an
 # ERROR (such as a usage error or a missing key) never counts and is reported.
 # Usage: mutations.sh. Exit 0 when every new test is covered and nothing ERRORs.
@@ -74,16 +75,6 @@ git -C "$REPO" show 9cd7932:.claude/skills/requirements-decomposition/scripts/ch
 git -C "$REPO" show 9cd7932:.claude/skills/verified-delivery/scripts/assure.py > "$WORK/main/verified-delivery/scripts/assure.py"
 for t in $(new_tests "$WORK/main/requirements-decomposition" $RD_CLASSES); do observe red "against main" "$WORK/main/requirements-decomposition" "$t"; done
 for t in $(new_tests "$WORK/main/verified-delivery" $VD_MAIN_CLASSES); do observe red "against main" "$WORK/main/verified-delivery" "$t"; done
-# The flow check (tests/assert_delivery_flow.py) with main's checkers: FAIL when it
-# exits 1 with a FAIL line for each of its checks and no Python traceback.
-mkdir -p "$WORK/main-root/.claude/skills" "$WORK/main-root/tests/fixtures"
-cp -R "$WORK/main/requirements-decomposition" "$WORK/main/verified-delivery" "$WORK/main-root/.claude/skills/"
-cp -R "$REPO/tests/fixtures/delivery-flow" "$WORK/main-root/tests/fixtures/"
-flow_out="$(python3 -B "$REPO/tests/assert_delivery_flow.py" "$WORK/main-root" 2>&1)"; flow_code=$?
-flow_checks="$(printf '%s\n' "$flow_out" | grep -cE '^(ok  |FAIL) ')"; flow_fails="$(printf '%s\n' "$flow_out" | grep -c '^FAIL ')"
-if [ "$flow_code" -eq 1 ] && [ "$flow_fails" -eq "$flow_checks" ] && ! printf '%s' "$flow_out" | grep -q Traceback; then flow=FAIL; else flow=ERROR; bad=1; fi
-printf '%-8s %-38s %-5s %s (%s of %s checks fail)\n' red "against main" "$flow" tests/assert_delivery_flow.py "$flow_fails" "$flow_checks"
-[ "$flow" = FAIL ] && echo tests/assert_delivery_flow.py >> "$COVERED"
 copy_skills "$WORK/stub"
 S="$WORK/stub/verified-delivery/scripts/assure.py"
 replace_once "$S" 'deferrable = post_deploy_criteria(document) if stage == "pre_deploy" else set()' 'deferrable = set()  # stub' || bad=1
@@ -144,10 +135,46 @@ mutate "an OR parent is not a parent" verified-delivery assure.py \
   'if kind in ("AND",) and not any(level in PARENT_LEVELS for level in verified):' \
   $ST.test_before_deploy_an_or_parent_whose_own_checks_are_all_post_deploy_is_blocked
 
+# 3. the flow check (tests/assert_delivery_flow.py), check by check: each of its
+# checks must print FAIL under a mutation that keeps every command and option
+# (so no usage error), with no Python traceback.
+flow_mutate() {  # flow_mutate NAME SKILL FILE OLD NEW
+  local name="$1" skill="$2" file="$3" old="$4" new="$5" out line check
+  rm -rf "$WORK/fm"; mkdir -p "$WORK/fm/.claude/skills" "$WORK/fm/tests/fixtures"
+  copy_skills "$WORK/fm/.claude/skills"
+  cp -R "$REPO/tests/fixtures/delivery-flow" "$WORK/fm/tests/fixtures/"
+  replace_once "$WORK/fm/.claude/skills/$skill/scripts/$file" "$old" "$new" || { bad=1; return; }
+  out="$(python3 -B "$REPO/tests/assert_delivery_flow.py" "$WORK/fm" 2>&1)"
+  if printf '%s' "$out" | grep -q Traceback; then
+    printf '%-8s %-38s %-5s %s\n' mutation "$name" ERROR tests/assert_delivery_flow.py; bad=1; return
+  fi
+  while IFS= read -r line; do
+    check="$(printf '%s' "$line" | sed -E 's/^FAIL (.*)(: .*)?$/\1/; s/: .*$//')"
+    printf '%-8s %-38s %-5s %s\n' mutation "$name" FAIL "flow: $check"
+    echo "flow: $check" >> "$COVERED"
+  done < <(printf '%s\n' "$out" | grep '^FAIL ')
+}
+AS=verified-delivery
+flow_mutate "the graph checker refuses origin" requirements-decomposition check_graph.py \
+  '"counterexamples", "selection", "origin"}' '"counterexamples", "selection"}'
+flow_mutate "collect-jest gives a wrong result" $AS assure.py \
+  'report = load_json(report_path, "the Jest report")' \
+  'return [{"check_id": c, "status": "not_run", "reason": "stub"} for c, _, _ in criteria]'
+flow_mutate "nothing is left out before deploy" $AS assure.py \
+  'deferrable = post_deploy_criteria(document) if stage == "pre_deploy" else set()' 'deferrable = set()'
+flow_mutate "acceptance leaves checks out too" $AS assure.py \
+  'deferrable = post_deploy_criteria(document) if stage == "pre_deploy" else set()' 'deferrable = post_deploy_criteria(document)'
+flow_mutate "a failed post-deploy check is hidden" $AS assure.py \
+  'elif status == "failed":' 'elif status == "failed" and criterion not in deferrable:'
+flow_mutate "the post_deploy stage is refused" $AS assure.py \
+  'CRITERION_STAGES = ("pre_deploy", "post_deploy")' 'CRITERION_STAGES = ("pre_deploy",)'
+flow_mutate "the card never shows before deploy" $AS assure.py \
+  'if post_deploy_criteria(document) else None' 'if False else None'
+
 # Every new test must be covered.
 all="$( { new_tests "$REPO/.claude/skills/requirements-decomposition" $RD_CLASSES; \
           new_tests "$REPO/.claude/skills/verified-delivery" $VD_MAIN_CLASSES $VD_STUB_CLASSES; \
-          echo tests/assert_delivery_flow.py; } | sort -u)"
+          python3 -B "$REPO/tests/assert_delivery_flow.py" "$REPO" | sed -nE 's/^ok   (.*)$/flow: \1/p'; } | sort -u)"
 uncovered="$(printf '%s\n' "$all" | grep -vxF -f "$COVERED")"
 total="$(printf '%s\n' "$all" | grep -c .)"
 echo "coverage: $((total - $(printf '%s' "$uncovered" | grep -c .))) of $total new tests fail on an assertion in a red or a mutation"

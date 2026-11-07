@@ -24,6 +24,17 @@ SHA = "2b4d6f8a0c2e4a6b8d0f2a4c6e8b0d2f4a6c8e0b"
 POST_DEPLOY = "FLOW-PROD-001"
 
 
+def parsed(out: str) -> Dict[str, Any]:
+    """A checker's JSON result with the fields the checks read filled in when
+    it printed none, so a broken checker fails a check instead of raising."""
+    try:
+        result = json.loads(out)
+    except ValueError:
+        result = None
+    result = result if isinstance(result, dict) else {}
+    return {"decision": None, "challenge": None, "left_out": None, "reasons": []} | result
+
+
 def run(*args: str) -> Tuple[int, str]:
     proc = subprocess.run([sys.executable, "-B", "-I", *args], capture_output=True, text=True, timeout=120)
     return proc.returncode, proc.stdout
@@ -57,19 +68,20 @@ def main(argv: List[str]) -> int:
 
         def gate(path: str, *extra: str) -> Dict[str, Any]:
             code, out = run(assure, "--format", "json", "gate", graph, path, "--report", report, "--review", review, *extra)
-            result = json.loads(out)
-            result["exit"] = code
-            return result
+            return parsed(out) | {"exit": code}
 
         code, out = run(check_graph, "--format", "json", "--gate", card, graph, report)
-        decided = json.loads(out)
+        decided = parsed(out)
         expect("decomposition gate is ready with the challenge recorded (origin is accepted)",
-               code == 0 and decided["decision"] == "ready" and decided["challenge"] == "recorded", decided.get("reasons"))
+               code == 0 and decided["decision"] == "ready" and decided["challenge"] == "recorded", decided["reasons"])
 
         code, out = run(assure, "collect-jest", str(flow / "jest.json"), "--graph", graph, "--commit", SHA,
                         "--ref", "evidence/2b4d6f8/jest.json", "--kind", "local_run")
-        collected = json.loads(out) if code == 0 else []
-        statuses = {c["check_id"]: c["status"] for c in collected}
+        try:
+            collected = json.loads(out) if code == 0 else []
+        except ValueError:
+            collected = []
+        statuses = {c.get("check_id"): c.get("status") for c in collected if isinstance(c, dict)}
         expect("collect-jest passes the three criteria the Jest run names and leaves the post-deploy one not_run",
                statuses == {"FLOW-PARENT-001": "passed", "FLOW-PROD-001": "not_run", "FLOW-LEAF-001": "passed", "FLOW-LEAF-002": "passed"},
                statuses)
