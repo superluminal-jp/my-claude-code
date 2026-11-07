@@ -278,6 +278,7 @@ my-claude-code/
         ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
         ├── verified-delivery/      # Parent skill: evidence per acceptance criterion -> pass/fail/blocked gate
         │   ├── SKILL.md            #   playbook and its child skills
+        │   ├── README.md           #   how it works, for first-time users (README.ja.md: Japanese)
         │   ├── references/         #   manifest format and rules, assurance reviewer prompt
         │   ├── scripts/            #   assure.py (read-only, standard library only)
         │   └── tests/              #   acceptance tests and fixtures

@@ -226,6 +226,7 @@ my-claude-code/
         ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
         ├── verified-delivery/      # 親スキル: 受け入れ条件ごとの証拠 → pass/fail/blocked の判定
         │   ├── SKILL.md            #   手順と子スキル
+        │   ├── README.md           #   初めて使う人向けの仕組みの説明(README.ja.md: 日本語)
         │   ├── references/         #   検証の記録の形式と規則、保証レビュー役への指示文
         │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)
         │   └── tests/              #   受け入れテストとフィクスチャ
