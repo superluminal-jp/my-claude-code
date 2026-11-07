@@ -98,5 +98,6 @@ Decisions and specs I share in this chat stay binding until I change them. If a 
 | Skills (git, specs, decision records, Apple apps, design system, Scrum) | Procedures that need tools and files ChatGPT does not have here. |
 | Full coder skill (types, doc sync, quality gates) | Reduced to one line: the owner uses ChatGPT for business writing, not code. |
 | Living-documentation and repository rules | Apply only inside a code repository. |
+| Delegation of checks, searches, and repeated edits to subagents on smaller models | ChatGPT has no subagents. |
 | Context-free read of deliverables by a subagent | ChatGPT has no subagents; the obligation to name what each word refers to is kept in More about you. |
 | Memory conventions | ChatGPT manages memory itself. |
