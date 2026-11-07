@@ -71,7 +71,19 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 
 ### 3.3 廃止したルール
 
-`rules/model-routing.md`（作業の単位ごとに、モデルの能力層と推論の労力を選ぶルール）は、利用者が不要と判断し、[spec 058](../specs/058-parent-skill-references/spec.md) で削除した。移動先はなく、戻すときは Git の履歴から復元する。削除後は、サブエージェントのモデルと労力を選ぶ常時ロードの指示がない。サブエージェントのモデルは、呼び出しのときに渡す `model` の指定、エージェントの定義の `model` 欄、環境変数 `CLAUDE_CODE_SUBAGENT_MODEL`、呼び出し元の会話のモデルの順で決まる [3]。
+`rules/model-routing.md`（作業の単位ごとに、モデルの能力層と推論の労力を選ぶルール）は、利用者が不要と判断し、[spec 058](../specs/058-parent-skill-references/spec.md) で削除した。移動先はなく、戻すときは Git の履歴から復元する。
+
+2026-11-07、利用者がトークン使用料の節約と処理の高速化を求めたため、サブエージェント（メインの会話から起動され、別の文脈で作業して結果だけを返す Claude）への委任の指示を、ルールのファイルではなく `.claude/CLAUDE.md` の「Execute under control」の1項目として加えた。削除した `rules/model-routing.md` は作業の種類ごとのモデルの選び方を広く並べていたが、新しい項目は委任してよい作業の条件と報告の形に絞り、次の3点を決めている。
+
+- 委任する作業と渡す先を、種類で決める。出力の長い確認（テスト、ビルド、lint）、読み取り専用の検索、仕様の確定した同じ変更を多数のファイルに繰り返す作業の3種は `haiku`（小型で安価なモデルの別名）に、判断を要する独立した作業は `sonnet`（中位のモデルの別名）に渡す。ただし、指示文（サブエージェントに渡す作業の指示）を書くトークンが、メインの会話が自分で作業するトークンと同じくらいになるとき、例えば小さな変更1件や出力の短い確認は、メインの会話が自分で行う。委任には、指示文を書くトークンと、サブエージェントが空の文脈から始めてファイルを読み直すトークンがかかるためである。
+- 判断、設計、コードレビュー、作業が完了したかの判定はメインの会話のモデルに残す。サブエージェントが確認のコマンドを実行してもよいが、実行した各コマンドとその終了コードを報告させ、失敗した出力は原文のまま引用させる。完了は、メインの会話のモデルがその報告から判定する。`haiku` が出力を誤って要約しても、メインの会話のモデルがその要約を根拠に完了と判定しないようにするためである。
+- 利用者に求められるのを待たずに委任するよう、この項目で指示する。Claude Code の既定のシステムプロンプトは、利用者が求めない限りサブエージェントを起動しないよう指示している（2.1.319 で確認）。`.claude/CLAUDE.md` の指示はこの既定より優先されるため、この項目が既定を上書きする。`rules/model-routing.md` は委任するときのモデルの選び方を書いていたが、この既定を上書きする指示を持たなかった。
+
+モデルは、エージェントの定義ファイル（`install.sh` が `~/.claude/agents/` へ同期する `.claude/agents/`）でなく、Claude が Agent ツールを呼ぶときに渡す `model` と `effort` の指定で選ぶ。定義を置けばモデルを確実に固定でき、確認だけをするエージェントから編集の道具を外せる。しかし利用者は、新しいファイルを置かない指示文だけの方式を選んだ。会話の記録に、`model` の指定なしに起動されてメインの会話と同じモデルで動いたサブエージェントが見つかったら、定義を置く方式に移る。
+
+メインの会話の effort（推論の深さとトークンの消費量を決める段階。low, medium, high, xhigh, max がある）は、`.claude/settings.json` の `effortLevel` で `xhigh` に固定した。effort を課題ごとに自動で切り替える設定はなく、何も設定しないとモデルの既定値で動く（Opus 5.5 は `medium`）[4]。`effortLevel` は、利用者が `/effort` などでモデルごとに保存した段階（`modelSettings`）がないモデルにだけ効き、環境変数 `CLAUDE_CODE_EFFORT_LEVEL` やセッション中の指定はさらに優先される [4]。
+
+サブエージェントのモデルは、呼び出しのときに渡す `model` の指定、エージェントの定義の `model` 欄、環境変数 `CLAUDE_CODE_SUBAGENT_MODEL`、呼び出し元の会話のモデルの順で決まり、先に挙げたものほど優先される [3]。
 
 ## 4. 番号ではなく名前で参照する
 
@@ -109,3 +121,4 @@ Claude Code は `CLAUDE.md` と `.claude/rules/` を **advisory（助言）** �
 1. Claude Code — How Claude remembers your project: <https://code.claude.com/docs/en/memory>
 2. Claude Code — Best practices: <https://code.claude.com/docs/en/best-practices>
 3. Claude Code — Create custom subagents, "Choose a model": <https://code.claude.com/docs/en/sub-agents>
+4. Claude Code — Model configuration, "Adjust effort level": <https://code.claude.com/docs/en/model-config#adjust-effort-level>
