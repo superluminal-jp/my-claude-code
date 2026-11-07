@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "description": "リモートのない main のリポジトリで、app.py に未コミットの変更が1つある。",
+  "files": {
+    "app.py": "def greet(name):\n    return \"hello \" + name\n"
+  },
+  "commit": true,
+  "after_commit": {
+    "app.py": "def greet(name):\n    return f\"hello, {name}\"\n"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "afb2a63e90ce5faaadc9d7db8ec1760707fe2230",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、3回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（afb2a63 の時点の版）",
+      "git diff main..afb2a63e90ce5faaadc9d7db8ec1760707fe2230",
+      "specs/066-harness-behavior-baseline/evidence/afb2a63/ の6つのファイルと evidence/junit_run.py"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "uncovered_path",
+        "target": "R4-A1",
+        "severity": "high",
+        "statement": "The fixture path check is case-sensitive: PATH_PART allows upper case and FORBIDDEN_PARTS holds only lower-case names, so {\".GIT/config\": \"[core] fsmonitor = <cmd>\"} passes; on case-insensitive APFS it lands in .git/config before git init, and git add honours core.fsmonitor as the user outside the sandbox. test_unsafe_paths_are_reported tries only lower case.",
+        "disposition": "accepted",
+        "resolution": "44b6b8e: 禁じるパスの部分を小文字にして比べる（.GIT、.Git、.GITATTRIBUTES などを拒む）。test_git_paths_are_refused_in_any_letter_case を加えた。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "evidence_mismatch",
+        "target": "R4-A1",
+        "severity": "medium",
+        "statement": "git init -q and git checkout -q -b main run without -c core.hooksPath=/dev/null; the test keeps only add and commit lines; hooks copied from init.templateDir or a global hooksPath may fire on the HEAD update.",
+        "disposition": "accepted",
+        "resolution": "44b6b8e: 生成するスクリプトの git の4つの命令すべてに -c core.hooksPath=/dev/null を付け、init には -c init.templateDir= を付けてテンプレートを使わない。test_every_git_command_in_the_scaffold_disables_hooks_and_templates を加え、docs を合わせた。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "uncovered_path",
+        "target": "R4",
+        "severity": "high",
+        "statement": "e-notes-create and e-reminders-add tell the agent to write into the user's real Notes.app folder and Reminders list; Bash is granted and the skills drive osascript/JXA and EventKit, whose writes go through Apple Events/XPC; nothing shows claude plugin eval blocks them.",
+        "disposition": "accepted",
+        "resolution": "44b6b8e: 2つのシナリオを除き、対応表の E-notes と E-reminders に観測しない理由（利用者の実際のデータを変えうること、サンドボックスが Apple Events と EventKit を止めるかは確かめていないこと）を記した。R4 の前提と docs §4 に記した。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "uncovered_path",
+        "target": "R4-A1",
+        "severity": "medium",
+        "statement": "Each scenario's allowed_tools is copied unchecked into prompt.md; a scenario listing WebFetch, Write, Edit or Agent would pass check and the build.",
+        "disposition": "accepted",
+        "resolution": "44b6b8e: check が、各シナリオの allowed_tools を読み取りだけの道具（Read、Glob、Grep、NotebookRead、Skill、AskUserQuestion、TodoWrite）に限る。test_a_scenario_granting_a_tool_beyond_read_only_is_reported を加えた。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "parent_by_children",
+        "target": "R0",
+        "severity": "high",
+        "statement": "There is no evidence for R0's own L3 criteria, no recorded approval, and R5's runtime assumptions (SessionStart under plugin eval, exec-form args, ${CLAUDE_PLUGIN_ROOT} in args) stay unverified with R0-A1.",
+        "disposition": "accepted",
+        "resolution": "R0-A1 と R0-A2 は manifest で not_run と記録し、gate はそれを理由に blocked と判定する。承認は基準の実行の前に利用者から得て approvals に記録する。R5 の実行時の前提は、R0-A1 の到達確認で確かめる。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "R-MEASURE-A1",
+        "severity": "medium",
+        "statement": "case_count is counted by build() over the directories it wrote; validate_output says nothing about evals/ or hooks; the stub hard-codes the evals location, so zero discovery by the real eval is not ruled out.",
+        "disposition": "accepted",
+        "resolution": "差し替えた claude では、本物の eval が評価ディレクトリを見つけることを示せない。R-MEASURE-A1 の証拠は組み立てと validate と結合の範囲だと認め、発見は R0-A1 の実際の実行（結果の cases の数が26ではなく24であること）で確かめる。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "evidence_mismatch",
+        "target": "R6-A1",
+        "severity": "medium",
+        "statement": "No test creates a result without metadata.json, and compare_dirs compares keys with .get, so a metadata.json missing runs or claude_version compares as None == None.",
+        "disposition": "accepted",
+        "resolution": "44b6b8e: metadata.json のない結果の拒否のテスト（test_a_result_without_metadata_is_refused）を加えた。比べる項目がどちらかの metadata.json にないときも拒むようにし、test_metadata_missing_a_compared_key_is_refused を加えた。既存のテストの metadata.json に4つの項目すべてを書くようにした。"
+      },
+      {
+        "id": "AR-08",
+        "kind": "risk_mismatch",
+        "target": "CHG-066",
+        "severity": "medium",
+        "statement": "No risk class is recorded in the graph or spec, though run passes --scaffold and --trust-plugin (trusting hooks and skills from any --harness-ref); R4-A1 does not bound --trust-plugin.",
+        "disposition": "accepted",
+        "resolution": "risk は verification-manifest.json で high と記録している（レビューに渡した資料には manifest を含めなかった）。44b6b8e: --trust-plugin で信頼されるフックを、生成した注入のフックだけに限り、harness のスキルが hooks.json か plugin.json の hooks を持つと組み立てを止める（test_a_skill_that_carries_its_own_hooks_stops_the_build）。R4-A1 に加えた。"
+      },
+      {
+        "id": "AR-09",
+        "kind": "other",
+        "target": "R-SPEC-A1",
+        "severity": "low",
+        "statement": "e-proportion-typo and e-scrum-not-pm have only 'unused' graders, so an agent that does nothing scores 1.0.",
+        "disposition": "accepted",
+        "resolution": "44b6b8e: e-proportion-typo に、README.md の誤字が直ったことの判定（typo-fixed）を加えた。e-scrum-not-pm は Scrum の領域が使われないことだけを見る境界のシナリオで、一般の報告書の作成の担い手は harness にないので、正しく作れたかの判定は置かない。"
+      },
+      {
+        "id": "AR-10",
+        "kind": "other",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "run-install (CI-required) and run-config-pyramid exit 1 from the sandbox and were not rerun cleanly; no CI run result exists.",
+        "disposition": "accepted",
+        "resolution": "前の回と同じ。ローカルのサンドボックスでは通せず、外での再実行は拒まれた。この変更は .claude/ もこの2つのスクリプトも変えていない。CI での確かめには push が要り、利用者が決める。"
+      }
+    ]
+  }
+}

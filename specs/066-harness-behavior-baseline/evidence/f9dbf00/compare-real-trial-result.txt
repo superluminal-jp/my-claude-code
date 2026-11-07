@@ -1,0 +1,36 @@
+commit: f9dbf00b298c8a90301de7849b13b6f018163911
+command: python3 tests/harness-eval/harness_eval.py compare tests/harness-eval/results/20261107T025411Z_h-2822abeb2fae_s-2822abeb2fae tests/harness-eval/results/20261107T025411Z_h-2822abeb2fae_s-2822abeb2fae
+input: the real result of the trial run at 2822abe (aggregate-result.json written by claude plugin eval 2.1.319; its metadata.json records eval_exit_code 1)
+
+PROBLEM before: the probe probe-always-on did not pass in every run (score 0), so the always-on files may not have reached the model
+PROBLEM before: the eval exited with code 1, so some runs may not have been graded
+PROBLEM after: the probe probe-always-on did not pass in every run (score 0), so the always-on files may not have reached the model
+PROBLEM after: the eval exited with code 1, so some runs may not have been graded
+PROBLEM before: runs of these cases ended on an error before grading, so their score of 0 is not a measurement: ['obs-execution-plan', 'obs-root-cause', 'obs-solution-choice', 'probe-always-on']
+PROBLEM after: runs of these cases ended on an error before grading, so their score of 0 is not a measurement: ['obs-execution-plan', 'obs-root-cause', 'obs-solution-choice', 'probe-always-on']
+case	before	after	delta	flag (|delta| >= 0.34; a screening mark, not a significance test)
+d-decompose-agreed	1	1	0	
+d-evidence-aws	1	1	0	
+d-intent-ambiguous	0.8	0.8	0.0	
+d-problem-vague	1	1	0	
+d-product-direction	1	1	0	
+e-authority-cleanup	1	1	0	
+e-dads-frontend	1	1	0	
+e-dads-slides	1	1	0	
+e-git-commit-only	1	1	0	
+e-implement-bugfix	0.5	0.5	0.0	
+e-match-logging	1	1	0	
+e-proportion-typo	1	1	0	
+e-scrum-not-pm	1	1	0	
+e-scrum-retro	1	1	0	
+h-docs-flag-rename	0.5	0.5	0.0	
+h-structure-recommend	1	1	0	
+h-verify-evidence	1	1	0	
+obs-architecture	1	1	0	
+obs-code-review	1	1	0	
+obs-document-cocreation	1	1	0	
+obs-execution-plan	0	0	0	
+obs-root-cause	0	0	0	
+obs-solution-choice	0	0	0	
+probe-always-on	0	0	0	
+exit: 1

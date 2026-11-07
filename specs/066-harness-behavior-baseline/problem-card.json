@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "P-066",
+    "ideal": "harness を変える人が、変更の前と後で、代表的な依頼の集合について、Claude が harness 全体（常時ロードの apex と4ルール、全スキル）の下で意図した部品を選び、その部品の記述が約束する観測できる振る舞いをするかを確かめられる。",
+    "current": "harness は部品ごとに設計・検査されている。依頼に対する期待は各部品の description に分散していて、部品をまたいだ期待（どの依頼でどの部品を選び、どれを選ばないか）は、検査できる形ではどこにも定まっていない。全体の振る舞いの証拠は、ファイル中の語句の有無を見る60件の構造検査と、2つのスキルをそれぞれ単体で読み込んで評価する eval だけである。構造検査は CI で実行されていない。",
+    "gap": "代表的な依頼に対して、harness 全体の下で期待される部品の選択と観測できる振る舞いが検査できる形で定まっておらず、実際の振る舞いを繰り返し観測する手段もない。そのため、harness への変更の前と後で振る舞いを比べられず、変更が全体を良くしたか悪くしたかを証拠で示せない。",
+    "significance": "2026年8月から11月7日までに .claude/ へ124件の commit があったが、どれも全体の振る舞いへの効果では確かめられていない。利用者が優先した理想は振る舞いの質であり、受け持ちの網羅、共通の語彙、負荷の予算に対する今後の変更も、振る舞いの基準がなければ効果を判定できない。",
+    "status": "verified",
+    "evidence": [
+      {
+        "source": "bash tests/run-config-pyramid.sh（2026-11-07、main 95668e3）",
+        "observation": "60件すべて合格。検査は check_contains・check_absent_pattern・ファイルの有無による語句と構造の検査で、Claude を実行するものはない。RULE-13 は 'Never explain by metaphor' の語句の有無、ROUTE-01〜13 は description に正規表現が合うかを見る。"
+      },
+      {
+        "source": "find .claude/skills -maxdepth 3 -iname '*eval*'",
+        "observation": "eval を持つのは pyramid-structure と maintaining-living-documentation の2つだけ。git ls-files で追跡されているスキルは16。"
+      },
+      {
+        "source": "https://code.claude.com/docs/en/plugin-evals（web-fetch で読んだ）",
+        "observation": "claude plugin eval の各実行は一時的なホームと設定で動き、利用者の設定、hooks、CLAUDE.md、他のプラグイン、スキルを読み込まない。したがって既存の2つの eval は、harness 全体を読み込んだ状態を測っていない。"
+      },
+      {
+        "source": ".github/workflows/ci.yml",
+        "observation": "CI の手順は8本で、tests/run-config-pyramid.sh を含まない。"
+      },
+      {
+        "source": "docs/claude-config-design.md §5、docs/ 配下",
+        "observation": "層と分類軸の表はあるが、作業の段階からそれを受け持つ部品への対応表や、依頼ごとに期待する振る舞いの記述はない。"
+      },
+      {
+        "source": "git log --since=2026-08-01 --format=%ad -- .claude（月ごとに数えた）",
+        "observation": "8月33件、9月19件、10月31件、11月（7日まで）41件、計124件。"
+      },
+      {
+        "source": ".claude/skills/pyramid-structure/README.md の Evals 節、.claude/skills/maintaining-living-documentation/evals/*/case.yaml",
+        "observation": "既存の2つの eval はどちらも claude plugin eval の形式（case.yaml の schema_version \"1.1\"、prompt.md と graders/）で書かれ、README は claude plugin eval で実行するよう指示している。したがって公式文書の隔離の記述がそのまま当てはまる。"
+      },
+      {
+        "source": "grep -rlE 'claude -p|plugin eval' tests .github .claude/skills、ls .github/workflows/",
+        "observation": "モデルを呼ぶ検査は、上の2つの eval のほかに tests/ と .github/workflows/（ci.yml と dependabot-automerge.yml の2つ）に見つからない。dependabot-automerge.yml はテストを実行しない。"
+      },
+      {
+        "source": "claude plugin eval --help（Claude Code 2.1.319）",
+        "observation": "--no-publish（報告を claude.ai に公開しない）、--max-cost-usd（新しい実行を始める前に確かめる上限。超過は実行中の件数分に限られる）、--allow-tools、--scaffold、--trust-plugin が存在する。claude plugin validate も存在する。"
+      },
+      {
+        "source": "https://code.claude.com/docs/en/plugin-evals（grader の種類）",
+        "observation": "tool_used grader は tool: Skill と input_match（入力の JSON への正規表現）で、どのスキルが呼ばれたかを判定できる。min: 0 と max: 0 で使われなかったことも判定できる。tool_order と regex（target: last_message または trace）もある。独自のコードの grader はない。"
+      }
+    ],
+    "counter_evidence": [
+      {
+        "source": "docs/claude-config-design.md §5、ADR-0015",
+        "observation": "層ごとの依存方向、参照の許可と禁止、スキルの2軸という構造の仕様は書かれている。"
+      },
+      {
+        "source": ".claude/skills/pyramid-structure/evals/",
+        "observation": "出力構成という一つの関心事については、モデルを動かす振る舞いの評価がある。"
+      },
+      {
+        "source": "tests/run-config-pyramid.sh ROUTE-01〜13",
+        "observation": "いくつかの意図した振り分け（例: 汎用のプロジェクト管理は Scrum の対象外）は、description への検査として書かれている。"
+      }
+    ],
+    "status_rationale": "反証側の観測は、構造の仕様、一つの部品の振る舞い、description の文言についてのものである。harness 全体を読み込んだ状態で、依頼に対する部品の選択と振る舞いを検査できる形で定めたものも測ったものもないことは、どれも否定しない。既存の2つの eval が plugin eval で単体のスキルだけを読み込むことも確かめた。そのため verified とする。",
+    "hypotheses": [
+      "根本原因の分析、解決策の評価、実行計画は、problem-definition と requirements-decomposition が別の能力の仕事として除外しているが、受け持つ自作スキルがない。そのため、これらの依頼で選ばれる部品が定まらない。",
+      "定義段階に6部品（clarifier ルール、clarifier、problem-definition、product-strategy、requirements-decomposition、verified-delivery の手順1–2）、出力構成に2部品（pyramid-principle ルール、pyramid-structure）があり、選択が揺れる、または過剰に適用される。",
+      "閾値の語（material、nontrivial、substantive、risky）とリスク分類が部品ごとに違うため、同じ依頼に対する手順の重さが部品によって食い違う。"
+    ],
+    "proposed_solutions": [
+      "作業の段階からそれを受け持つ部品への対応表を、機械で検査できる形で docs/ に置く。",
+      "対応表の各段階について、依頼と、期待する部品の選択と、観測できる振る舞いを、根拠となる部品の記述を引いて書いた基準シナリオ集を作る。",
+      ".claude/ から harness を一つのプラグインとして一時ディレクトリに組み立て（常時ロード部分は SessionStart フックで注入）、claude plugin eval の隔離された実行でシナリオ集を走らせる実行器を作る。"
+    ],
+    "out_of_scope": [
+      "対応表やシナリオで見つかった欠落・重複・語彙の不一致の修正（後続の変更で、この基準を使って行う）",
+      "強制の配置（hooks、permissions）の変更",
+      "chatgpt-system-prompt.md、claude-ai-system-prompt.md、team/",
+      "このリポジトリが管理しない、利用者が別に有効にしたプラグインと MCP サーバー",
+      "モデルを呼ぶ評価を CI で走らせること"
+    ]
+  }
+}

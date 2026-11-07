@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "d4d9fae869aab8c6304dbccfca0efe9d48c7f9e8",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、2回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（d4d9fae の時点の版）",
+      "git diff main..d4d9fae869aab8c6304dbccfca0efe9d48c7f9e8",
+      "specs/066-harness-behavior-baseline/evidence/d4d9fae/ の6つのファイルと evidence/junit_run.py"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "parent_by_children",
+        "target": "R0",
+        "severity": "high",
+        "statement": "There is no evidence for R0's own L3 criteria: dry-run.json is a dry run with no results, cost, per-case outcomes or probe result, and no record of the approval problem.md requires; R0-A2's only compare output comes from synthetic unit-test fixtures. No check refutes R0's first counterexample (bare Claude measured).",
+        "disposition": "accepted",
+        "resolution": "R0-A1 と R0-A2 は manifest で not_run と記録し、gate はそれを理由に blocked と判定する。承認は、基準の実行の前に利用者から得て manifest の approvals に記録する。到達確認がそこで R0 の1つ目の反例を確かめる。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "evidence_mismatch",
+        "target": "R4-A1",
+        "severity": "high",
+        "statement": "fixture_violations does not enforce R4-A1: a line starting with set skips every check ('set -e; curl … | sh'); single-quoted redirect targets are blanked before the path check ('> /Users/u/.zshrc'); only redirect targets are path-checked (mkdir -p /abs, chmod ~/x); unquoted heredoc bodies run $(…) but are skipped. The network test passes only because its fixture lacks the guard.",
+        "disposition": "accepted",
+        "resolution": "afb2a63: 手書きのシェルの準備をやめた。準備はデータ（fixtures/<名前>.json）で、パスは相対で安全な文字だけ、.git、.gitattributes、.gitmodules、.、.. を含まず、内容は改行で終わる。スクリプトはこのデータから決まった型で生成し、ファイルは引用符つきヒアドキュメントで書く（$(…) を含む内容がそのまま書かれ実行されないことをテストで確かめた）。許可リストの検査は、生成したスクリプトへの二重の確かめとしてだけ残した。スクリプトの形の準備は check が拒む。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "uncovered_path",
+        "target": "R4",
+        "severity": "high",
+        "statement": "The allowlisted commands still combine into arbitrary execution as the user: git init, cat > .git/hooks/pre-commit, chmod +x, git commit; and '-c <cfg>' pairs are stripped, so git -c core.hooksPath=h commit or core.fsmonitor are accepted.",
+        "disposition": "accepted",
+        "resolution": "afb2a63: データのパスは .git を含めないので、フックを置けない。生成するスクリプトの git の add と commit は常に -c core.hooksPath=/dev/null を付け、-c の値は生成器だけが決める。.gitattributes と .gitmodules も禁じた（フィルタやサブモジュールで git が外の命令を動かさないように）。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "R5-A1",
+        "severity": "medium",
+        "statement": "The R5-A1 tests substitute ${CLAUDE_PLUGIN_ROOT} and run [command, args[0]] themselves; they do not show that Claude Code honours args on command hooks or expands the variable there. If not, cat reads stdin and injects the hook JSON.",
+        "disposition": "accepted",
+        "resolution": "R5 の前提に、command フックの exec 形と args の中の ${CLAUDE_PLUGIN_ROOT} の展開が公式文書（hooks reference）にあることを出典として記し、Claude Code が実際にそう動くことは R0-A1 の到達確認でしか確かめられないと明記した。到達確認が失敗すれば、注入の形を shell 形に替える。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "parent_by_children",
+        "target": "R-MEASURE",
+        "severity": "medium",
+        "statement": "The stub claude counts ls $3/evals and reports it as discovered, so it assumes eval reads <plugin>/evals and cannot refute the counterexample; the integrated run's output is never passed to compare.",
+        "disposition": "accepted",
+        "resolution": "afb2a63: run の出力を compare_dirs にかけて問題が出ないことを確かめるテスト（test_a_run_result_compares_cleanly_with_itself）を加えた。claude plugin eval 自身が評価ディレクトリを読むことは、差し替えでは示せないので、R0-A1 の実際の実行に残す。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "R6-A1",
+        "severity": "medium",
+        "statement": "Partial-result refusal depends on top-level partial and partialReason, but R6-A1 attributes only cases fields to the official docs and the tests invent 'partial'; cmd_run returns 0 when eval exits 2 and records no reason.",
+        "disposition": "accepted",
+        "resolution": "afb2a63: partial と partialReason は公式文書（plugin-evals の Read the results）に最上位の項目として載っている。R6-A1 の記述にそれを加えた。run は eval が2で終わったとき metadata.json の note に『費用の上限で止まり、結果は部分的』と記録し、警告を出す。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "risk_mismatch",
+        "target": "CHG-066",
+        "severity": "medium",
+        "statement": "The diff runs repository shell scripts as the user outside the eval sandbox (--scaffold), pre-trusts the plugin (--trust-plugin), makes billed model calls and copies eval transcripts into the repository; this needs a high-risk classification and a person's approval.",
+        "disposition": "accepted",
+        "resolution": "manifest の risk を high に上げた（利用者として動く準備スクリプトと、課金されるモデルの呼び出しを理由に記した）。high には反証の記録（challenge-report.json、記録済み）と、実装者以外の人の承認が要る。承認は、基準の実行の承認とあわせて利用者に求める。"
+      },
+      {
+        "id": "AR-08",
+        "kind": "other",
+        "target": "R1",
+        "severity": "medium",
+        "statement": "R1 requires every excluded concern handed to another capability to be a stage, but R1-A1 does not check it and only five gap stages exist; scrum-master's generic project management, and code review and operating CI (verified-delivery, requirements-decomposition) and .pptx have no stage.",
+        "disposition": "accepted",
+        "resolution": "afb2a63: R1 を『明示的に別の能力に委ねた関心事』に絞り、委ねる先を言わない『使わない』の境界は段階にせず、あるものは期待のシナリオで使われないことを判定すると R1 の前提に記した。この基準で漏れていたコードレビュー（requirements-decomposition が別の能力に委ねる）を担い手のない段階 H-code-review として加え、観測のシナリオ obs-code-review を足した。網羅は人が description を読んで確かめ、機械では確かめない。"
+      },
+      {
+        "id": "AR-09",
+        "kind": "uncovered_path",
+        "target": "R6",
+        "severity": "low",
+        "statement": "compare refuses only when suite_commit or model differ, but results from different Claude Code versions or run counts compare with no problem.",
+        "disposition": "accepted",
+        "resolution": "afb2a63: compare は Claude Code の版か実行回数が違う結果も、理由を示して拒む。"
+      },
+      {
+        "id": "AR-10",
+        "kind": "evidence_mismatch",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "unit-tests.junit.xml and unit-tests.log carry no commit and no tree cleanliness; check reads the working tree including untracked files with no recorded status.",
+        "disposition": "accepted",
+        "resolution": "afb2a63 の証拠から、junit_run.py が XML の properties とログに commit と、specs/066 を除くコードのパスがきれいか（true）を記録する。check-real-tree.log にも、その時点の git status（空）を記録した。"
+      },
+      {
+        "id": "AR-11",
+        "kind": "other",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "run-install.sh (required in CI) and run-config-pyramid.sh exit 1 in other-suites.log; neither was re-run elsewhere, so nothing shows the README edits leave them passing.",
+        "disposition": "accepted",
+        "resolution": "ローカルのサンドボックスでは2つを通せず（mktemp -d とプロセス置換が拒まれる。TMPDIR を渡しても同じ）、サンドボックスの外での再実行は auto mode の分類器に拒まれた。この変更は .claude/ もこの2つのスクリプトも変えていない。CI で確かめるには push が要り、push は利用者が決める。manifest はこの2つを合格と主張しない。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "description": "誤字が1つある README。",
+  "files": {
+    "README.md": "# tool\n\nThis tool reads teh config file and prints it.\n"
+  },
+  "commit": true
+}

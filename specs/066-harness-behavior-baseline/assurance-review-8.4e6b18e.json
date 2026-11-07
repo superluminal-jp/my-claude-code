@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "4e6b18e8b9e8c8852b7bf46500fed418076e1fd9",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、8回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（4e6b18e の版）",
+      "git diff main..4e6b18e8b9e8c8852b7bf46500fed418076e1fd9",
+      "specs/066-harness-behavior-baseline/evidence/4e6b18e/ の6つのファイルと evidence/junit_run.py（4e6b18e の版）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "other",
+        "target": "R0",
+        "severity": "high",
+        "statement": "Neither L3 criterion has evidence: R0-A1 and R0-A2 are not_run, the only runs are the dry run and stub runs, and the approved trial run has not happened, so nothing shows the exec-form hooks inject the always-on files, the eval finds the 24 cases, the generated graders are accepted, or compare reads a real result.",
+        "disposition": "accepted",
+        "resolution": "R0-A1 と R0-A2 は not_run のまま記録し、gate はそれを理由に blocked とする。5回目のレビューに重大な指摘があったので、利用者に試しの実行の前にもう一度確かめると約束しており、8回目の対応の後にその確認を求める。指摘に挙がった実行時の前提は、その試しの実行で確かめる。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "uncovered_path",
+        "target": "R4",
+        "severity": "medium",
+        "statement": "fixture_data_violations refuses only '.', '..', '.git', '.gitattributes', '.gitmodules', so fixture data can write .claude/settings.json, CLAUDE.md or .mcp.json into the workspace, giving project hooks, MCP servers or instructions a path to run or reach the model.",
+        "disposition": "accepted",
+        "resolution": "コードが動く経路は成り立たない。公式文書（plugin-evals の What a run can access）は『no .claude/ directory, CLAUDE.md, or .mcp.json loads from above the workspace or inside it, even one a scaffold_script wrote』と書く。それでも 2822abe で、準備のデータがこれらの名前（.claude、.claude-plugin、.mcp.json、CLAUDE.md、CLAUDE.local.md。大文字と小文字を区別しない）を書くことを拒み、CLI の振る舞いが変わっても安全なほうに倒れるようにした（test_fixture_paths_that_claude_code_reads_as_configuration_are_refused）。R4-A1 と R4 の前提に加えた。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "evidence_mismatch",
+        "target": "R4-A1",
+        "severity": "medium",
+        "statement": "No test reaches the build's 'eval cases outside the generated evals/' branch, and the 'not under the temporary directory' branch of ensure_outside has no test.",
+        "disposition": "accepted",
+        "resolution": "2822abe: test_a_case_yaml_elsewhere_in_a_skill_stops_the_build と test_a_build_directory_outside_the_temporary_directory_is_refused を加えた。どちらの実装も前からあり、テストを加えると合格した。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "R2-A1",
+        "severity": "low",
+        "statement": "No test triggers 'needs at least one grader', 'names no stage', 'needs a basis' or 'basis needs a file and a non-empty quote'.",
+        "disposition": "accepted",
+        "resolution": "2822abe: その4つの規則を、規則に固有の文言で確かめるテストを加えた（test_a_scenario_without_graders_is_reported ほか3件）。どれも実装は前からあり、合格した。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "evidence_mismatch",
+        "target": "R1-A1",
+        "severity": "low",
+        "statement": "No test covers a stage or boundary group with no basis, a boundary group quote missing from its file, or a boundary group with fewer than two skill components or members outside the map.",
+        "disposition": "accepted",
+        "resolution": "2822abe: その規則を、規則に固有の文言で確かめるテスト5件を加えた（test_a_stage_without_basis_is_reported ほか）。どれも実装は前からあり、合格した。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "risk_mismatch",
+        "target": "CHG-066",
+        "severity": "low",
+        "statement": "The risk rationale says the change does not touch secrets, but permissions (the Read deny list for .env, *.pem, .ssh, .aws) is left out with the reason that the OS sandbox blocks reads of the home directory, while Read, Glob and Grep are given to every non-probe scenario and nothing shows those tools cannot reach absolute paths in the real home.",
+        "disposition": "accepted",
+        "resolution": "認める。公式文書の Sandboxing は『The sandbox covers shell commands only. Claude's file tools, MCP servers, and hooks run outside it』と書き、plugin-evals はファイルを読む道具が作業領域に限られるとは書いていない。2822abe: run は結果のファイルのうち利用者のホームのパスを含むものを metadata.json の home_path_files に記録して警告する（テスト2件）。対応表の permissions の理由、docs §3 と §4、R4 の前提を正し、manifest の risk の理由から『秘密情報に触れない』を外して、この残存リスクを書いた。利用者には、試しの実行の前の確認でこのリスクを伝える。"
+      }
+    ]
+  }
+}

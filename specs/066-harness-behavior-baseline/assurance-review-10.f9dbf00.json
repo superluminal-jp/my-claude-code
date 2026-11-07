@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-066",
+    "reviewed_commit": "f9dbf00b298c8a90301de7849b13b6f018163911",
+    "reviewer": "読み取りと検索だけを行う新しいサブエージェント（Explore 型、2026-11-07、10回目）。reviewer.md の指示文を、変更の id と3つのパスのほかは変えずに渡した。",
+    "context_given": [
+      "specs/066-harness-behavior-baseline/requirements-graph.json（f9dbf00 の版）",
+      "git diff main..f9dbf00b298c8a90301de7849b13b6f018163911",
+      "specs/066-harness-behavior-baseline/evidence/f9dbf00/ の7つのファイル、evidence/smoke-2822abe/ の3つのファイル、evidence/junit_run.py"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "evidence_mismatch",
+        "target": "R0-A1",
+        "severity": "high",
+        "statement": "None of the supplied files shows R0-A1: the only real run is the trial at 2822abe under --runs 1, its probe errored on the usage limit and the eval exited 1, the only probe pass comes from a raw claude plugin eval --case re-run outside harness_eval.py, nothing is committed under tests/harness-eval/results/, and the smoke files are implementer-collected transcripts with the extraction script unrecorded.",
+        "disposition": "accepted",
+        "resolution": "R0-A1 は not_run のまま記録している。2026-11-07 に利用者が起点の実行（24件を3回ずつ、上限 $30）を f9dbf00 のまま走らせることを承認し、harness_eval.py run で実行を始めた。結果は実行器の検査（シナリオの集合、誤りで止まった実行、ホームのパス）を通り、利用者が選んだファイルをコミットしてから R0-A1 の証拠にする。到達確認の要約を作ったスクリプトは evidence/smoke-2822abe/extract_probe_trace.py に残し、保存した要約をそのまま再現することを確かめた。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "evidence_mismatch",
+        "target": "R0-A2",
+        "severity": "medium",
+        "statement": "compare-real-trial-result.txt compares the trial result with itself, so every delta is 0 and the flag and one-side listing are never exercised; the input is the 2822abe trial, not an R0-A1 baseline.",
+        "disposition": "accepted",
+        "resolution": "認める。その出力は形式の確かめにとどまり、manifest の R0-A2 の理由にも、R0-A2 の証拠ではないと書いている。R0-A2 は、起点の実行の結果を読み込んで確かめる。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "evidence_mismatch",
+        "target": "CHG-066",
+        "severity": "medium",
+        "statement": "The verification-manifest.json committed at f9dbf00 has reviewed_commit 2822abe and cites evidence/2822abe/unit-tests.junit.xml (153 tests), which lacks the tests for the clauses 302e224 and f9dbf00 added; the newer f9dbf00 JUnit covers them but the manifest in the diff does not point to it.",
+        "disposition": "rejected",
+        "resolution": "manifest は、reviewed_commit として自分を含むコミットを名指せない。そのため、変更のコミットの直後の記録のコミットに置く（6回目の AR-06 と同じ）。f9dbf00 の直後の記録のコミット 6384fef の manifest は、reviewed_commit を f9dbf00 とし、162件のテストを含む evidence/f9dbf00/unit-tests.junit.xml を指す。gate は作業ツリーの manifest を読む。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "parent_by_children",
+        "target": "R-MEASURE-A1",
+        "severity": "medium",
+        "statement": "R-MEASURE's 'without changing the user's environment and under a cost ceiling' rests only on R4-A1's command-line unit tests and the sandbox assumption; the composed checks use a stub claude that ignores the ceiling, and no evidence from the real trial shows ~/.claude, the home directory, or the repository unchanged afterwards.",
+        "disposition": "accepted",
+        "resolution": "起点の実行の前と後で、~/.claude の harness の管理下のファイル（CLAUDE.md、settings.json、rules、skills、agents、commands）の内容のハッシュと、リポジトリの状態を記録し、変わっていないことを起点の実行の証拠に加える。費用の上限が効いたことは、結果の costUsd が上限を超えていないことで示す。ホーム全体の不変は、範囲が広すぎて記録しない。R4 の前提（エージェントの Bash は eval の OS サンドボックスの中で動く）は、公式文書に頼ったままである。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "other",
+        "target": "R0-A1",
+        "severity": "low",
+        "statement": "The probe cannot rule out a source other than the injection: its only tool grader is limited to Bash, Read, Glob and Grep run outside the eval's OS sandbox and could read an installed ~/.claude copy, keeping them out depends on allowed_tools: [], and the trace summary was filtered so it cannot exclude a Read call; separately skill_pattern accepts the bare skill name.",
+        "disposition": "accepted",
+        "resolution": "1点目は認め、確かめた。evidence/smoke-2822abe/extract_probe_trace.py は assistant のすべての tool_use を出力する。到達確認の走らせ直しの記録には tool_use が0件で、Read も呼ばれていない。また、eval の実行のホームは一時のディレクトリなので（公式文書）、~/.claude はその中を指す。実際の ~/.claude を読むには絶対パスが要り、到達確認の依頼はそれを与えない。2点目は退ける。eval では利用者のスキルは読み込まれない（公式文書: 『Your user settings, hooks, CLAUDE.md files, MCP servers, other installed plugins, memory, and skills are absent』）。名前空間のない名前を受け付けるのは、ふだんの環境の名前に合わせるためで、評価の中でほかのスキルを誤って数えることはない。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "uncovered_path",
+        "target": "R0",
+        "severity": "low",
+        "statement": "R0 claims the same suite can be run on separate harness commits and compared, which fails for a change that renames or replaces a component; docs admit it but no assumption, counterexample or criterion in requirements-graph.json records the limit.",
+        "disposition": "accepted",
+        "resolution": "要求の記録の R0 の前提に、部品の名前を変える変更は同じシナリオ集で前後を比べられないことと、その理由、足す変更と消す変更の比べ方を書いた。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "uncovered_path",
+        "target": "R4",
+        "severity": "low",
+        "statement": "The run's protections cover only the results directory: the eval keeps run directories in /private/tmp for failed runs (and trace.jsonl transcripts with --keep-temp), and --dry-run and --keep-build leave the build directory in the temp directory; no criterion covers these.",
+        "disposition": "accepted",
+        "resolution": "要求の記録の R4 の前提に、実行器が守るのは結果のディレクトリだけであることと、eval と実行器が一時ディレクトリに残すもの、それがホームのパスの記録の対象外であることを書いた。試しの実行で残った /private/tmp/e-* のディレクトリは、利用者に報告する。docs/harness-eval.md への同じ記述は、変更のコミットを動かすと起点の実行の証拠が対象のコミットから外れるので、次に変更のコミットを作るときに加える。"
+      }
+    ]
+  }
+}
