@@ -602,6 +602,59 @@ class GateReviewFindingTests(CheckerTestCase):
         self.assertIn("C-01 [card] PRB-001:", text)
 
 
+class StageAndOriginTests(CheckerTestCase):
+    """An acceptance criterion's optional stage, and a requirement's optional
+    origin (references/checker.md)."""
+
+    def graph(self, stage=None, origin=None, drop_stage=True, drop_origin=True) -> str:
+        nodes = [_requirement("REQ-ROOT", "AND", ["REQ-A", "REQ-B"]), _requirement("REQ-A", "LEAF", []),
+                 _requirement("REQ-B", "LEAF", [])]
+        if not drop_stage:
+            nodes[0]["acceptance"][0]["stage"] = stage
+        if not drop_origin:
+            nodes[1]["origin"] = origin
+        doc = {"schema_version": 2, "problem_id": "PRB-001", "requirements": nodes}
+        return str(self.write_temp("graph.json", json.dumps(doc)))
+
+    def test_a_criterion_may_be_pre_deploy_post_deploy_or_without_a_stage(self):
+        for stage in ("pre_deploy", "post_deploy"):
+            with self.subTest(stage=stage):
+                self.assert_passes(self.graph(stage, drop_stage=False))
+        self.assert_passes(self.graph())
+
+    def test_an_undefined_stage_is_rejected_under_s_07(self):
+        for stage in ("after_deploy", "", "POST_DEPLOY", 1, None, ["post_deploy"]):
+            with self.subTest(stage=stage):
+                violations = self.assert_violations({"S-07"}, self.graph(stage, drop_stage=False))
+                self.assertEqual(violations[0]["node_id"], "REQ-ROOT")
+
+    def test_the_stage_and_origin_fixtures_pass_and_fail_as_named(self):
+        self.assert_passes(fixture(REQUIREMENTS, "valid-stage-and-origin.json"))
+        self.assert_violations({"S-07"}, fixture(REQUIREMENTS, "s-07-undefined-stage.json"))
+
+    def test_an_instruction_origin_with_who_and_where_passes(self):
+        self.assert_passes(self.graph(origin={"kind": "instruction", "by": "owner-a", "ref": "conversation 2026-11-08, question 4"},
+                                      drop_origin=False))
+
+    def test_a_malformed_origin_is_rejected_under_s_00(self):
+        good = {"kind": "instruction", "by": "owner-a", "ref": "issue 12"}
+        cases = {
+            "missing by": {k: v for k, v in good.items() if k != "by"},
+            "missing ref": {k: v for k, v in good.items() if k != "ref"},
+            "empty by": dict(good, by=" "),
+            "empty ref": dict(good, ref=""),
+            "by not a string": dict(good, by=["owner-a"]),
+            "another kind": dict(good, kind="problem"),
+            "missing kind": {k: v for k, v in good.items() if k != "kind"},
+            "undefined field": dict(good, approved=True),
+            "not an object": "instruction",
+        }
+        for name, origin in cases.items():
+            with self.subTest(case=name):
+                violations = self.assert_violations({"S-00"}, self.graph(origin=origin, drop_origin=False))
+                self.assertEqual(violations[0]["node_id"], "REQ-A")
+
+
 def _requirement(node_id: str, decomposition: str, children: list[str]) -> dict:
     return {
         "id": node_id,

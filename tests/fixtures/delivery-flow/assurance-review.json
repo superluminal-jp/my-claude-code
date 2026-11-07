@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-FLOW",
+    "reviewed_commit": "2b4d6f8a0c2e4a6b8d0f2a4c6e8b0d2f4a6c8e0b",
+    "reviewer": "read-only subagent, 2026-11-08 (round 2, a delta review)",
+    "context_given": [
+      "requirements-graph.json (unchanged since round 1)",
+      "assurance-review-1.json: the round 1 findings and their resolutions, given as claims to check",
+      "git diff 1a3c5e7b9d1f3a5c7e9b1d3f5a7c9e1b3d5f7a9c..2b4d6f8a0c2e4a6b8d0f2a4c6e8b0d2f4a6c8e0b",
+      "evidence/2b4d6f8/jest.json"
+    ],
+    "findings": [
+      {"id": "AR-01", "kind": "evidence_mismatch", "target": "FLOW-LEAF-002", "severity": "low",
+       "statement": "round 1 の AR-02 は accepted だが、差分の schedule.test.js は毎時0分の予定があることだけを見ていて、ほかの予定が無いことを見ていない。",
+       "disposition": "rejected",
+       "resolution": "2b4d6f8 の schedule.test.js の12行目が toHaveLength(1) で予定がちょうど1件であることを確かめているので、成り立たない。"}
+    ]
+  }
+}

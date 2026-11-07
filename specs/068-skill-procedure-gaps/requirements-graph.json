@@ -1,0 +1,287 @@
+{
+  "schema_version": 2,
+  "problem_id": "P-068",
+  "requirements": [
+    {
+      "id": "R0",
+      "statement": "verified-delivery・requirements-decomposition・coder の手順と、2つの検査器（assure.py・check_graph.py）が、第4節の表の9つの穴をそれぞれ前もって決めていて、次に同じスキルを使う案件で、その9つが記録の形への指摘や手作業にならない。",
+      "decomposition": "AND",
+      "children": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9"
+      ],
+      "acceptance": [
+        {
+          "id": "R0-A1",
+          "level": "L3",
+          "description": "通しの試験が、1つの架空の案件を、変更後の2つの検査器で頭から終わりまで進めて合格する。その案件は、origin が instruction の要件と post_deploy の受け入れ条件を持つ graph、Jest の --json の結果、前回のコミットからの差分を context_given に書いた2回目のレビューの記録を持つ。進め方は次の順である。check_graph.py --gate が ready、collect-jest の出力から作った manifest で gate --stage pre_deploy が pass、gate（既定）が post_deploy の条件1件だけを理由に blocked、card が2つの判定を示す。deploy の後の証跡を加えると gate が pass になる。"
+        },
+        {
+          "id": "R0-A2",
+          "level": "L3",
+          "description": "利用者が、表の9行それぞれについて、変更前の本文と変更後の本文（ファイルと行）を並べた対応表（evidence の procedure-map.md）を読む。そして、どの行の穴も手順か検査器で決まっていること、行どうしの決め方が互いに矛盾しないこと（たとえば、差分のレビュー・記録だけのコミット・deploy の前の判定が、gate の A-02 と A-10 と食い違わないこと）を確かめる。"
+        },
+        {
+          "id": "R0-A3",
+          "level": "L3",
+          "description": "CI が走らせる9つのスイート（.github/workflows/ci.yml）が、reviewed_commit で合格する。"
+        },
+        {
+          "id": "R0-A4",
+          "level": "L3",
+          "description": "specs/ にある既存の requirements graph のすべてで、変更の前（main 9cd7932）と後の check_graph.py の終了コードと違反が同じになる。また、spec 066 の記録で、変更の前と後の assure.py gate の判定と理由が同じになる。"
+        },
+        {
+          "id": "R0-A5",
+          "level": "L3",
+          "description": "この変更自身の記録が、変更後の手順に従う。記録を読むスクリプトが次を確かめる。reviewed_commit より後のコミットは、記録の場所（specs/068-skill-procedure-gaps/）のファイルだけを変える。manifest が引く証跡はすべて git で追跡され、git check-ignore に当たらない。assurance review の記録の statement は、記録の言語（日本語）で書かれている。"
+        }
+      ],
+      "counterexamples": [
+        "各行の文は足されたが、互いに矛盾する。たとえば、差分のレビューの記録が A-10 の「reviewed_commit のレビュー」を満たさない。",
+        "検査器に新しい欄を加えた結果、既存の記録（specs/059〜067）が退けられるようになる。",
+        "coder の文が親のスキルを名前で参照し、名前の参照の検査（spec 058）に落ちる。",
+        "検査器の試験は通るが、手順が新しい欄や命令を使う場面を書かず、次の案件で使われない。"
+      ],
+      "assumptions": [
+        "文章だけの穴（行1・2・3・6・8・9 と、行4・5・7 の手順の文）の意味は、自動では確かめられない。そこで、利用者が対応表で確かめる。coder の手順に従い、語句があるかだけを見る試験は作らない。",
+        "risk は medium とする。2つの検査器の入力の形と、すべてのプロジェクトで使う3つのスキルの手順を変えるが、認証・秘密・基盤の権限には触れず、git revert で戻せる。",
+        "R0-A5 は1つの案件（この変更）での観測で、次の案件でエージェントが新しい手順に従うことを示すものではない。指摘が変更そのものの問題に集中したかを測ることは、pilot（対象外）に属する。"
+      ]
+    },
+    {
+      "id": "R1",
+      "statement": "verified-delivery の手順が、変更を先にコミットしてそれを reviewed_commit とし、記録をその後の記録だけのコミットに入れることを定める。記録とは、変更の記録の場所（problem card・graph・manifest・レビューの記録・証跡・カードを置くディレクトリ）のファイルである。また、gate の前に git diff --name-only で、reviewed_commit から HEAD までに記録の場所の外の変更が無いことを確かめるよう定める。レビュー役のプロンプトは、記録がそれを含むコミットより前のコミットを指すのは正しいと伝え、reviewed_commit より後のコミットが記録の場所の外を変えているときだけ指摘させる。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R1-A1",
+          "level": "L1",
+          "description": "対応表の行1で、利用者が、変更後の verified-delivery の手順とレビュー役のプロンプトが上のことを書いていると確かめる。また、記録が別のコミットを指すことを指摘する理由が残っていないと確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "statement": "verified-delivery の手順が、生の証跡（ログ・レポート）を .txt か道具の形式の拡張子（.xml・.json）で記録の場所に保存するよう定める。コミットの前に git check-ignore で1つも無視されないことを、記録のコミットの後に git ls-files --error-unmatch で manifest が引く証跡がすべて追跡されていることを、確かめるよう定める。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R2-A1",
+          "level": "L1",
+          "description": "対応表の行2で、利用者が、変更後の手順が証跡のファイル名と、git check-ignore と git ls-files で確かめることを書いていると確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "statement": "verified-delivery の手順とレビュー役の参照（references/reviewer.md）が、直しの後の2回目以降のレビューに渡すものを定める。渡すのは、前回のレビューの記録（指摘と答え）、前回審査したコミットから今回のコミットまでの差分、変わった証跡である。レビュー役には、accepted の指摘が本当に直ったかと、新しい差分に問題が無いかを見させる。前回の答え（resolution）は実装者の主張なので、差分と照らして確かめる対象として渡し、正しいものとして渡さない。requirements graph か risk class が前回から変わったときは、すべての差分を渡す。範囲は context_given に書き、記録の形は変えない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R3-A1",
+          "level": "L1",
+          "description": "対応表の行3で、利用者が、変更後の手順と reviewer.md が上のことを書いていると確かめる。また、差分のレビューのプロンプトが、2つの見るべきことを問うと確かめる。"
+        },
+        {
+          "id": "R3-A2",
+          "level": "L1",
+          "description": "この変更で1回目のレビューの後に直しのコミットを作ったとき、2回目のレビューを差分で行い、2回のサブエージェントが使ったトークン数を証跡に並べて残す。2回目のトークン数が1回目より少ない。直しが要らなかったときは、理由を書いて not_applicable にする。"
+        }
+      ],
+      "assumptions": [
+        "トークン数が減るかは、レビュー役が差分の外をどれだけ読むかにもよる。R3-A2 は1回の観測である。gate は、差分のレビューとすべての差分のレビューを区別しない（範囲は context_given にだけ書く。利用者の決定）。"
+      ],
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-08 の会話で、Claude の質問「再レビュー」に推奨の案を選んだ回答"
+      }
+    },
+    {
+      "id": "R4",
+      "statement": "deploy の後でしか確かめられない受け入れ条件を、deploy の前の判定と受け入れの判定で分けて扱える。レビューカードで「deploy してよい状態」と「受け入れ済み」を見分けられる。",
+      "decomposition": "AND",
+      "children": [
+        "R4a",
+        "R4b",
+        "R4c",
+        "R4d"
+      ],
+      "acceptance": [
+        {
+          "id": "R4-A1",
+          "level": "L2",
+          "description": "例の一式（post_deploy の受け入れ条件を1つ持つ graph と、その検査が not_run の manifest）で、次がすべて成り立つ。check_graph.py がその graph を通す。assure.py gate --stage pre_deploy が pass になる。assure.py gate（既定）が blocked になり、その理由は post_deploy の条件1件だけである。card が受け入れの判定と deploy の前の判定を両方示す。"
+        },
+        {
+          "id": "R4-A2",
+          "level": "L2",
+          "description": "同じ一式で post_deploy の検査を failed にすると、gate --stage pre_deploy も fail になる。deploy の前の判定は、deploy の後の検査の失敗を隠さない。"
+        }
+      ],
+      "counterexamples": [
+        "check_graph.py は stage を通すが、assure.py が stage を読まず、deploy の前の判定ができない。",
+        "deploy の前の判定は pass になるが、カードが受け入れの判定しか示さず、見分けられない。",
+        "deploy の前の判定が、post_deploy の条件の failed や、検査の欠けまで見逃す。"
+      ],
+      "assumptions": [
+        "どの条件を post_deploy にするかは分解の段階で決め、批判の役の審査を受ける。deploy の前に確かめられる条件を post_deploy と偽ることは、検査器では見つけられない。"
+      ],
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-08 の会話で、Claude の質問「deploy 前後」に推奨の案を選んだ回答"
+      }
+    },
+    {
+      "id": "R4a",
+      "statement": "check_graph.py が、受け入れ条件の任意の stage を受け付ける。値が pre_deploy・post_deploy 以外なら S-07 の違反にする。stage の無い条件は pre_deploy として扱う。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R4a-A1",
+          "level": "L1",
+          "description": "check_graph.py の単体試験で、stage が post_deploy・pre_deploy・無しの graph は違反なしで通る。未定義の値（別の文字列、文字列以外）は S-07 で退けられる。"
+        }
+      ]
+    },
+    {
+      "id": "R4b",
+      "statement": "assure.py の gate が --stage（pre_deploy か acceptance、既定は acceptance）を受ける。pre_deploy では、post_deploy の条件のうち not_run の検査を A-03 の未通過に数えない。それ以外（failed、blocked、検査の欠け、他の規則）は acceptance と同じに判定し、acceptance の判定は変更の前と同じである。stage の値が未定義の graph は読めない入力（exit 2）にする。結果には、判定した stage と、除いた条件の id を出す。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R4b-A1",
+          "level": "L1",
+          "description": "assure.py の単体試験で、上の各場合（pre_deploy で not_run の post_deploy の条件を除く、failed・blocked・欠けは除かない、acceptance は変わらない、未定義の stage は exit 2、結果の stage と除いた id）が期待どおりになる。"
+        }
+      ]
+    },
+    {
+      "id": "R4c",
+      "statement": "assure.py の card は、post_deploy の条件を持つ graph では、受け入れの判定の下に deploy の前の判定を示す。受け入れが blocked で、deploy の前の判定が pass のときは、「人が決めること」に、deploy してよいかと、deploy の後に残りの検査を集めて受け入れを判定することを出す。post_deploy の条件の無い graph のカードは、変更の前と同じである。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R4c-A1",
+          "level": "L1",
+          "description": "assure.py の単体試験で、post_deploy の条件のある graph のカードに2つの判定と deploy の可否が出る。条件の無い graph のカードは、変更の前の出力と1字も違わない。"
+        }
+      ]
+    },
+    {
+      "id": "R4d",
+      "statement": "requirements-decomposition の手順2が、deploy の後でしか確かめられない条件に stage を付けることを書く。verified-delivery の手順6が、deploy の前に --stage pre_deploy で判定し、deploy の後に残りの検査を集めて受け入れを判定することを書く。2つの参照（checker.md・manifest.md）が、欄と規則を書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R4d-A1",
+          "level": "L1",
+          "description": "対応表の行4で、利用者が、2つの手順と2つの参照が上のことを書いていると確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "statement": "assure.py の collect-jest が、Jest の --json の出力を読み、collect-junit と同じ対応づけ（受け入れ条件の id が、試験の名前に独立した語として現れる）で検査を出す。1つのファイルが実行できなかったか、実行が中断されたときは、合格を出さない（not_run）。形の読めない入力は exit 2 にする。verified-delivery の手順4と manifest.md が、この命令を書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R5-A1",
+          "level": "L1",
+          "description": "assure.py の単体試験で、次が期待どおりになる。試験の状態の対応（passed、failed、それ以外は skipped として not_run）、id の対応づけ、実行できなかったファイル、中断された実行、形の読めない入力。"
+        },
+        {
+          "id": "R5-A2",
+          "level": "L1",
+          "description": "対応表の行5で、利用者が、手順4と manifest.md が collect-jest の使い方と限界を書いていると確かめる。"
+        }
+      ],
+      "assumptions": [
+        "Jest の --json の形は、Jest のソース（packages/jest-test-result/src/formatTestResults.ts と types.ts、main、2026-11-08 に読んだ）の型から取った。この変更の試験は、その型に沿って作った JSON で確かめ、実際の Jest の実行の出力では確かめない。"
+      ]
+    },
+    {
+      "id": "R6",
+      "statement": "レビュー役（reviewer.md）と批判の役（challenger.md）のプロンプトが、statement を記録の言語で書くよう求める欄を持つ。2つのスキルの手順が、渡す言語と、返った指摘を原文のまま写すことを書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R6-A1",
+          "level": "L1",
+          "description": "対応表の行6で、利用者が、2つのプロンプトと2つの手順が上のことを書いていると確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "statement": "check_graph.py が、要件の任意の origin を受け付ける。kind が instruction で、by と ref が空でない文字列のときだけ通し、他の形は S-00 の違反にする。requirements-decomposition の手順2は、問題からではなく人の指示で入れた要件にだけ origin を書くよう求める。by には指示した人を書き、エージェントの名前を書いてはならない。ref には、指示を読める場所（会話の日付と質問、issue、決定の記録）を書く。challenger.md のプロンプトは、origin が instruction の要件を与えられた制約として扱い、ギャップか他の要件と矛盾するときだけ指摘させる。ただし、ref が人の指示を特定しないか、by が人でないときは、指摘させる。assure.py の gate は、origin のある graph を、無い graph と同じに判定する。card は、origin が instruction の要件に、by と ref を示す。名前を挙げられた人が、自分の指示でない要件に気づけるようにするためである。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R7-A1",
+          "level": "L1",
+          "description": "単体試験で、正しい origin を持つ graph は check_graph.py を通る。by か ref の欠け、別の kind、未定義の欄、オブジェクト以外は S-00 で退けられる。origin のある graph の assure.py gate の判定は、origin を除いた graph と同じである。card は、origin が instruction の要件の by と ref を示す。"
+        },
+        {
+          "id": "R7-A2",
+          "level": "L1",
+          "description": "対応表の行7で、利用者が、手順2と challenger.md のプロンプトが上のこと（自分で導いた要件に origin を付けないこと、ref と by の確かめ方を含む）を書いていると確かめる。"
+        }
+      ],
+      "counterexamples": [
+        "エージェントが自分で入れた要件に origin を付け、批判の役の指摘を抑える。検査器は by と ref の中身を確かめられないので、手順の禁止、批判の役の確かめ、カードに出して名前を挙げられた人が見ることで防ぐ。"
+      ],
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-08 の会話で、Claude の質問「要件の出所」に推奨の案を選んだ回答"
+      }
+    },
+    {
+      "id": "R8",
+      "statement": "coder の手順が、まだ無い関数・モジュール・エンドポイントの red を、最終形のシグネチャのスタブ（誤った値を返すか、未実装の例外を投げる）に対する assertion の失敗として取ると定める。import・名前・コンパイルの失敗だけでは red に数えない。変更の前に assertion で失敗させられない検査は、実装をわざと壊して失敗を確かめ（ミューテーション検査）、元に戻す。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R8-A1",
+          "level": "L1",
+          "description": "対応表の行8で、利用者が、変更後の coder の TDD 節と変更の手順が上のことを書いていると確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "statement": "verified-delivery の手順と requirements-decomposition の手順2が、spec（spec-kit の spec.md など）も書くリポジトリでも、受け入れ条件を requirements graph にだけ書き、spec はその受け入れ条件の id を引くと定める。coder の SDD 節は、spec-kit の手順に従うことと矛盾しないように、受け入れ条件を検査器で判定する要求グラフのある変更では、そのグラフを受け入れ条件の正本とし、spec.md はその id を引くと書く。そのとき、ほかのスキルを名前で参照しない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "R9-A1",
+          "level": "L1",
+          "description": "対応表の行9で、利用者が、verified-delivery の手順、requirements-decomposition の手順2、coder の SDD 節が上のことを書き、3つが同じことを言い、coder の同じ節の中で spec-kit の手順に従う文と衝突しないと確かめる。"
+        },
+        {
+          "id": "R9-A2",
+          "level": "L1",
+          "description": "名前の参照を見る検査（spec 058 の規則）が、変更後の coder の本文に違反を出さない。"
+        }
+      ],
+      "assumptions": [
+        "spec-kit の speckit-analyze などが、id だけを引く spec.md を不整合と見るかは、この変更では確かめない。"
+      ],
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-08 の会話で、Claude の質問「spec-kit」に推奨の案を選んだ回答"
+      }
+    }
+  ]
+}

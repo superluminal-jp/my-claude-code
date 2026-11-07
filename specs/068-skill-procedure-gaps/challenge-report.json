@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "P-068",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08",
+    "context_given": [
+      "specs/068-skill-procedure-gaps/problem-card.challenger.json（proposed_solutions を除いた problem card の写し、最初の版）",
+      "specs/068-skill-procedure-gaps/requirements-graph.json（最初の版）",
+      "references/challenger.md のプロンプト（2つのパスのほかは変えずに）"
+    ],
+    "findings": [
+      {"id": "CH-01", "kind": "missing_evidence", "target": "P-068", "severity": "medium",
+       "statement": "status は verified だが、9行のうち行4（deploy 前の gate が blocked）、行5（jest の JSON を手で起こした）、行7（指示の要件が「手段」と指摘された）、行8（red が import 失敗だけ）、行9（2度書き）は、会話に貼られた表という1つの情報源にしか根拠が無い。リポジトリの記録（spec 066 の AR-01、AR-03 と assurance-review の context_given）が裏づけるのは行1・2・3・6だけである。spec 066 は deploy も jest も spec.md も無い案件なので、手順の本文に欠けがあることは確かめられても、その欠けが実際に指摘や手作業を生んだことは確かめられない。「記録が別のコミットを指すと2回」の2回目、「約20万トークン × 3回」、行4・5・7・8・9 が起きた案件の特定も記録に無い。表が不正確なら、R4・R5・R7・R8・R9 の検査器と手順の大きな変更は、起きていない問題への対処になる。",
+       "disposition": "accepted",
+       "resolution": "status_rationale を書き直し、根拠の範囲を分けた。current（手順と検査器が9つのことを決めていない）は9行すべてをスキルの本文と検査器のコードで確かめた。その穴が指摘や手作業を生んだことは、行2・3・6 では spec 066 の記録でも確かめたが、行1・4・5・7・8・9 では利用者の報告だけが根拠である、と書いた。報告は、その案件を進めた利用者自身のもので、問題文として合意されている。status は verified のままにする（current は本文とコードで確かめた事実を述べる）。problem.md にも同じ区別を書いた。"},
+      {"id": "CH-02", "kind": "solution_as_problem", "target": "P-068", "severity": "medium",
+       "statement": "ideal は「手順が…前もって決めている」、gap は「手順が…決めておらず」で、どちらも手順を足すという手段の有無を述べている。観測できる状態の差ではない。差は significance にだけ出てくる（レビューのトークンと時間が記録の形に使われる）。また gap の「その穴がレビューの指摘と手作業になって出た」は、原因の主張を事実として gap に入れている。current の9項目は「Xが書かれていない」という形で、各項目が解決策（ファイル名の規則、stage の欄、collect-jest、スタブによる red）を前提にしている。さらに current と gap は「手順」だけを言うが、R4・R5・R7 は assure.py と check_graph.py のコードを変える（行4・5・7は検査器に機能が無いことが原因）。手順の本文だけを直せば gap は閉じるのに、R4・R5・R7 の検査器変更は問題から導かれない。",
+       "disposition": "accepted",
+       "resolution": "一部を受け入れた。current を「3つのスキルの手順と、同梱の2つの検査器（assure.py・check_graph.py）が、案件で要った次のことを決めていない」に直し、検査器を問題の範囲に含めた（problem.md の範囲は、はじめから2つの検査器を含む）。ideal と gap は、利用者が合意した問題文の言葉のまま残す（手順1は合意した問題文を写すよう求める）。「手順が決めているか」はスキルの観測できる状態で、手段（更新する、足す）ではない。gap の後半は、spec 066 の AR-01 などの観測で裏づけている。R4・R5・R7 の検査器の変更は、問題から一意に導いたものではなく、2026-11-08 に利用者が、手順の文だけで直す案を含む選択肢から選んだ決定である（行4・7。行5は Claude が示した既定に利用者が異を唱えなかった）。行4のカードの見分けは、カードが検査器の出力なので、手順の文だけでは閉じない。"},
+      {"id": "CH-03", "kind": "alternative_cause", "target": "P-068", "severity": "medium",
+       "statement": "行1・2は「手順が書いていないので、レビュー役が余計な指摘をした」と読まれているが、同じ証拠は別の読み方とも合う。AR-01（.log が *.log に当たってコミットされない）は本物の欠陥で、レビューが役目を果たした例であり、原因はこのリポジトリの .gitignore:74 で、他のリポジトリでは起きない。AR-03（f9dbf00 の manifest が 2822abe を指す）は、2822abe から f9dbf00 までに記録以外の変更があったかどうかが記録されていない。変更があったなら、レビュー役の evidence_mismatch は正しい指摘であり、R1 の「前のコミットを指すのは正しい」という伝え方は本物の不一致を隠す方向に働く。指摘が誤検知だったことを示す観測が無い。",
+       "disposition": "accepted",
+       "resolution": "git log 2822abe..f9dbf00 で確かめると、間に tests/harness-eval/harness_eval.py などのコードの変更があった。そこで AR-03 を evidence から counter_evidence へ移し、正しい指摘で行1の例ではないと書いた。行1の根拠は利用者の報告と、記録はそれを含むコミットの SHA を書けないという事実である。AR-01 は本物の欠陥だと書き直した。手順が証跡のファイル名を決めていないので起きた欠陥であり、R2 はそれを前もって防ぐ（利用者の報告では、別のリポジトリでも全体の gitignore で同じことが起きた）。R1 のプロンプトの文は、reviewed_commit より後のコミットが記録の場所の外を変えているときは指摘させる形にし、本物の不一致を隠さないようにした。"},
+      {"id": "CH-04", "kind": "counterexample", "target": "R0", "severity": "medium",
+       "statement": "子がすべて満たされても、親（次の案件で9つの穴が指摘や手作業にならない）が成り立たない場合がある。行1・2・3・6・8・9 と、行4・5・7 の手順の文は、「利用者が、実装者自身の書いた対応表を読んで、文があると確かめる」（L1/L3）だけが受け入れ条件である。assumptions も、意味は自動では確かめられないと認めている。レビュー役・批判の役・coder が新しい文に従うこと（statement の言語、直しの後は差分だけを見る、red はスタブで取る）を確かめる動作の試験が無い。たとえば、レビュー役が言語の欄を無視して英語で返し、「原文のまま写す」ので、日本語の記録に英語が混ざることは変わらない。R0-A1 の架空の案件が通すのは検査器の動きだけで、手順の行動は通さない。ideal の「指摘が変更の問題に集中する」を測る受け入れ条件も無い（pilot は対象外）。",
+       "disposition": "accepted",
+       "resolution": "R0 に R0-A5（L3）を加えた。この変更自身の記録が変更後の手順に従うこと（reviewed_commit より後のコミットが記録の場所だけを変える、証跡が追跡され無視されない、assurance review の statement が日本語）を、記録を読むスクリプトで確かめる。R3 に R3-A2 を加え、差分のレビューのトークン数を測る。どちらも1つの案件の観測で、次の案件でエージェントが従うことの証明ではない、と R0 の assumptions に書いた。指摘が変更の問題に集中したかを測ることは、pilot（対象外）のままにする。"},
+      {"id": "CH-05", "kind": "missing_child", "target": "R1", "severity": "medium",
+       "statement": "R1 と R2 は手順の文だけで、assure.py の gate が確かめる規則は無い。R1 の「gate の前に reviewed_commit から HEAD までに記録以外の変更が無いことを確かめる」は、手順を読む側の作業である。「記録」にあたるパスの集合も定義されていない。R2 の git check-ignore による確認も、手順の文だけである。手順の文が正しく書かれていても、記録だけのコミットにコードの変更が混ざる、無視される拡張子や場所に証跡が置かれる、といったことは gate を通り、AR-01・AR-03 と同じ指摘が再び起きる。gate が reviewed_commit から HEAD までの差分が記録のパスだけであること、manifest が指す証跡がコミットされていて無視されていないことを確かめる子の要件が無い。",
+       "disposition": "accepted",
+       "resolution": "一部を受け入れた。R1 で「記録」を、変更の記録の場所（problem card・graph・manifest・レビューの記録・証跡・カードを置くディレクトリ）のファイルと定め、確かめ方を git diff --name-only と書いた。R2 に、記録のコミットの後に git ls-files --error-unmatch で manifest が引く証跡がすべて追跡されていることを確かめる手順を加えた。gate の規則は加えない。assure.py は、入力のファイルだけを読み、プロセスを起こさないことを契約にしている（references/manifest.md）ので、git の履歴を読めない。代わりに、レビュー役のプロンプトが、reviewed_commit より後のコミットが記録の場所の外を変えていれば指摘させる。"},
+      {"id": "CH-06", "kind": "missing_evidence", "target": "R3", "severity": "medium",
+       "statement": "R3 は、直しの後のレビューに渡す範囲を差分に絞れば約20万トークンの費用が減ると見込んでいるが、その根拠が記録に無い。10回すべてで全差分を渡したことは分かっていても、トークンが差分の大きさで決まったのか、レビュー役が自分でリポジトリを読み、試験を走らせたことで決まったのかは分かっていない。差分に絞ってもレビュー役が同じだけ読むなら、費用は変わらない。反対に、前回の指摘と答えを渡すことで、レビュー役の独立した見方が前回の答えに引きずられる。範囲は context_given に書くだけで、assure.py の gate は差分だけのレビューと全体のレビューを区別できない。費用への効果を確かめる受け入れ条件が R3 に無い（R3-A1 は文があるかだけ）。",
+       "disposition": "accepted",
+       "resolution": "R3-A2 を加えた。この変更で直しのコミットを作ったら、2回目のレビューを差分で行い、2回のトークン数を証跡に並べ、2回目が少ないことを確かめる（1回の観測であることは R3 の assumptions に書いた）。R3 に、前回の答え（resolution）は実装者の主張なので、差分と照らして確かめる対象として渡し、正しいものとして渡さないと加えた。gate が2つのレビューを区別しないことは、範囲を context_given に書き、記録の形を変えないという利用者の決定によるので、そのままにし、R3 の assumptions に書いた。"},
+      {"id": "CH-07", "kind": "counterexample", "target": "R7", "severity": "medium",
+       "statement": "origin は記録を書く側が自分で付ける欄で、by と ref は空でない文字列でありさえすればよい。実際に人が指示したことを検査器は確かめられない。challenger.md は、origin が instruction の要件を「与えられた制約」として扱い、ギャップか他の要件と矛盾するときだけ指摘させる。そのため、エージェントが自分で入れた要件（手段を問題にしたもの）に origin: instruction と適当な by・ref を付けると、challenger の solution_as_problem・false_positive の指摘を抑えられる。子がすべて成り立つ（正しい形の origin、手順の文、challenger の文）のに、挑戦の役の効き目が下がる。ref が実在する指示を指すこと、または人の確認を要することが、要件に入っていない。",
+       "disposition": "accepted",
+       "resolution": "R7 に3つを加えた。手順2は、人の指示で入れた要件にだけ origin を書かせ、by に指示した人（エージェントでない）を、ref に指示を読める場所を書かせる。challenger.md のプロンプトは、ref が人の指示を特定しないか、by が人でないときは指摘させる。card は、origin が instruction の要件に by と ref を示し、名前を挙げられた人が自分の指示でない要件に気づけるようにする（R7-A1 に card の試験を加えた）。検査器が中身を確かめられないことは、R7 の counterexamples に書いた。"},
+      {"id": "CH-08", "kind": "counterexample", "target": "R9", "severity": "medium",
+       "statement": "R9 は、受け入れ条件を graph にだけ書き、spec.md は id を引くと定めるが、spec-kit の手順（speckit-specify・speckit-analyze・speckit-checklist）は spec.md に受け入れの場面と成功基準を持つことを前提にしている。coder の SDD 節は現状「spec-kit のプロジェクトでは spec-kit の手順に従う」と書いており、それと「graph が正本」が同じ節の中で衝突する。R9-A1 は2つの本文が互いに同じことを言うかどうかだけを見る。spec-kit の手順に沿って進めると、受け入れ条件が spec.md に無いことを speckit-analyze が不整合として指摘する場合がある。その場合でも R9 のすべての子は成り立つ。また、graph の作成を所有する requirements-decomposition の手順に、spec.md との関係が入っていない。そのスキルと spec-kit だけを使う案件では、coder の文が読まれない限り2度書きが残る。",
+       "disposition": "accepted",
+       "resolution": "R9 に requirements-decomposition の手順2を加え、spec（spec-kit の spec.md など）も書くリポジトリでも受け入れ条件を graph にだけ書き、spec はその id を引くと定めた。coder の SDD 節は、spec-kit の手順に従う文と矛盾しない形（受け入れ条件の置き場所だけを例外にする）で書くことを R9 に加え、R9-A1 で同じ節の中の衝突も確かめる。speckit-analyze が id だけを引く spec.md を不整合と見るかは、この変更では確かめない、と R9 の assumptions に書いた。"},
+      {"id": "CH-09", "kind": "missing_evidence", "target": "R5", "severity": "low",
+       "statement": "collect-jest の試験（R5-A1）は、状態の対応、実行できなかったファイル、中断された実行、形の読めない入力を、ここで作った Jest の JSON で確かめる。行5の案件で実際に出た Jest の --json の出力は、証跡にも試験の入力にも記録されていない。Jest のバージョン、複数 project の構成、`--outputFile`、todo・disabled の状態、スイートの実行失敗の形が実際の出力とずれても、試験は通る。実際の出力で確かめた記録が無い。",
+       "disposition": "accepted",
+       "resolution": "R5 の assumptions に、Jest の --json の形を Jest のソース（formatTestResults.ts と types.ts、main、2026-11-08）の型から取り、この変更の試験はその型に沿って作った JSON で確かめ、実際の Jest の実行の出力では確かめないと書いた。読む形は型の必須の欄（testResults、各ファイルの status と assertionResults、各試験の status と title）に絞り、型に無い欄は無視する。todo・disabled などは skipped として not_run にする。実際の出力での確かめは、利用者がその案件の出力を渡せるときの残りの作業として報告する。"}
+    ]
+  }
+}

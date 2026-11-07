@@ -58,6 +58,8 @@ check_exit "CA-04: the example review card renders with a pass" 0 \
   --graph "$SKILL/examples/requirements-graph.example.json" --manifest "$SKILL/examples/verification-manifest.example.json"
 check_exit "CA-05: the gate passes no graph requirements-decomposition's checker rejects under a rule the gate depends on (spec 064)" 0 \
   python3 -B "$REPO_ROOT/tests/assert_assurance_parity.py" "$REPO_ROOT"
+check_exit "CA-06: one change runs from decomposition to acceptance through origin, collect-jest, the decision before deploy, and both card decisions (spec 068)" 0 \
+  python3 -B "$REPO_ROOT/tests/assert_delivery_flow.py" "$REPO_ROOT"
 
 echo
 if [ "$FAIL" -gt 0 ]; then

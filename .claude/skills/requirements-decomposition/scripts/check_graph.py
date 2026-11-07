@@ -44,9 +44,16 @@ READ_ONLY_ROLES = ("auditor", "checker")
 TOP_LEVEL_FIELDS = frozenset({"schema_version", "problem_id", "requirements", "skills", "problem_card", "challenge_report"})
 DECLARATION_KINDS = ("requirements", "skills", "problem_card", "challenge_report")
 REQUIREMENT_FIELDS = frozenset(
-    {"id", "statement", "decomposition", "children", "acceptance", "assumptions", "counterexamples", "selection"}
+    {"id", "statement", "decomposition", "children", "acceptance", "assumptions", "counterexamples", "selection", "origin"}
 )
-ACCEPTANCE_FIELDS = frozenset({"id", "description", "level"})
+ACCEPTANCE_FIELDS = frozenset({"id", "description", "level", "stage"})
+# When a criterion can be verified: before the change is deployed (the
+# default when stage is absent) or only after it.
+STAGES = ("pre_deploy", "post_deploy")
+# A requirement a person directed rather than one derived from the problem:
+# who directed it and where that can be read.
+ORIGIN_FIELDS = frozenset({"kind", "by", "ref"})
+ORIGIN_KINDS = ("instruction",)
 SKILL_FIELDS = frozenset({"id", "children", "permission", "role"})
 PROBLEM_TEXT_FIELDS = ("id", "ideal", "current", "gap", "significance")
 PROBLEM_LIST_FIELDS = ("hypotheses", "proposed_solutions", "out_of_scope")
@@ -337,6 +344,12 @@ def check_requirement_fields(node: Node, report: Report) -> Optional[str]:
     for name in ("assumptions", "counterexamples"):
         if name in raw and not is_string_list(raw[name]):
             report.add("S-00", *where, f"{name} must be an array of strings")
+    if "origin" in raw:
+        origin = raw["origin"]
+        if (not isinstance(origin, dict) or set(origin) != ORIGIN_FIELDS or origin.get("kind") not in ORIGIN_KINDS
+                or not is_nonempty_string(origin.get("by")) or not is_nonempty_string(origin.get("ref"))):
+            report.add("S-00", *where, 'origin must be {"kind": "instruction", "by": <who directed it>, "ref": <where>}, '
+                                       "with non-empty by and ref and no other field")
     decomposition = raw.get("decomposition")
     if decomposition not in DECOMPOSITIONS:
         got = "none" if "decomposition" not in raw else show(decomposition)
@@ -409,6 +422,8 @@ def check_acceptance(node: Node, owners: Dict[str, str], report: Report) -> None
             owners[criterion_id] = node.node_id
         if entry.get("level") not in LEVELS:
             report.add("S-07", *where, f"{label} level must be L1, L2, or L3 (got {show(entry.get('level'))})")
+        if "stage" in entry and entry["stage"] not in STAGES:
+            report.add("S-07", *where, f"{label} stage must be pre_deploy or post_deploy (got {show(entry['stage'])})")
 
 
 def check_parent_level(node: Node, decomposition: Optional[str], report: Report) -> None:

@@ -15,6 +15,7 @@ Use Red → Green → Refactor whenever the changed contract can be checked auto
 - One assertion per test where practical; multiple only for one logical outcome.
 - Deterministic only — mock randomness and time.
 - Never delete or disable failing tests to pass the suite; fix the root cause.
+- A red is the new check failing on what it asserts. For a function, module, endpoint, or option that does not exist yet, first add it with its final signature and a wrong result (a wrong return value, or a not-implemented error), then watch the assertion fail; an import, name, compile, or usage error alone is not a red. A check that cannot fail on its assertion before the change — one that pins behavior the change must keep, or one the change's absence passes for another reason — is shown able to fail by breaking the implementation on purpose, watching the check fail, and restoring it (a mutation check).
 - For prose, policy, or structure that cannot be asserted meaningfully, compare the result with the recorded pre-change observation and perform the stated review; do not create a brittle token-presence test merely to claim TDD.
 
 # Spec-Driven Development (SDD)
@@ -29,7 +30,7 @@ Specs are the single source of truth for *what* a feature does and *why*. Code s
 
 SDD and TDD compose: the spec names the behavior; the test enforces it; the implementation satisfies both.
 
-When a project already uses [github/spec-kit](https://github.com/github/spec-kit), follow its installed specification, planning, task, consistency-analysis, and implementation lifecycle explicitly rather than improvising an abbreviated substitute.
+When a project already uses [github/spec-kit](https://github.com/github/spec-kit), follow its installed specification, planning, task, consistency-analysis, and implementation lifecycle explicitly rather than improvising an abbreviated substitute. One exception: when the change also has a requirements graph whose acceptance criteria a checker gates, that graph is the only source of the acceptance criteria, and `spec.md` cites the graph's acceptance ids instead of restating them; every other step of the lifecycle stays.
 
 # Change workflow
 
@@ -37,7 +38,7 @@ Take every code change through these steps in order; skip a step only when its c
 
 1. **Define**: settle purpose, scope, and the observable completion condition. Resolve material gaps before editing.
 2. **Specify**: if observable behavior is added or altered, write or update the spec first (Spec Kit lifecycle where the project uses it).
-3. **Red**: add or identify the failing automated check, or record the concrete pre-change observation.
+3. **Red**: add or identify the automated check and watch it fail on its assertion, not on a missing name (see Test-Driven Development), or record the concrete pre-change observation.
 4. **Green**: make the smallest coherent change that passes it, then refactor with the checks still passing.
 5. **Verify**: run the repository's tests, linter, formatter, and type-checker, and read the result before claiming success.
 6. **Synchronize**: update affected contract documentation in the same change (see Documentation Sync).

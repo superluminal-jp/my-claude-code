@@ -1,0 +1,29 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-FLOW",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "利用者の一覧は、元の台帳と1時間以上ずれない。",
+      "decomposition": "AND",
+      "children": ["REQ-IMPORT", "REQ-DEV-HOURLY"],
+      "acceptance": [
+        {"id": "FLOW-PARENT-001", "description": "取り込みと一覧の表示を通した統合試験で、1時間前の台帳の変更が一覧に出る", "level": "L2"},
+        {"id": "FLOW-PROD-001", "description": "本番で、一覧と台帳のずれを1日観測し、最大が1時間を超えない", "level": "L3", "stage": "post_deploy"}
+      ]
+    },
+    {
+      "id": "REQ-IMPORT",
+      "statement": "取り込みは、台帳の変更を差分で読み込む。",
+      "decomposition": "LEAF",
+      "acceptance": [{"id": "FLOW-LEAF-001", "description": "台帳の変更1件が、次の取り込みで一覧に入る", "level": "L1"}]
+    },
+    {
+      "id": "REQ-DEV-HOURLY",
+      "statement": "dev 環境の取り込みは、毎時の1回だけにする。",
+      "decomposition": "LEAF",
+      "origin": {"kind": "instruction", "by": "owner-a", "ref": "会話 2026-11-08 の質問2の回答"},
+      "acceptance": [{"id": "FLOW-LEAF-002", "description": "dev の設定で、取り込みの予定が毎時0分の1件だけである", "level": "L1"}]
+    }
+  ]
+}

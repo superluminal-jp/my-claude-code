@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-FLOW",
+    "ideal": "利用者の一覧は、元の台帳と1時間以上ずれない。",
+    "current": "利用者の一覧が、元の台帳から最大1日ずれている。",
+    "gap": "一覧と台帳のずれが、許される1時間を超えている。",
+    "significance": "ずれた一覧で、すでに退職した人に通知が送られる。",
+    "status": "verified",
+    "evidence": [{"source": "障害の記録 INC-1", "observation": "11月5日に、23時間前の一覧が使われた。"}],
+    "proposed_solutions": ["取り込みを1時間ごとにする。"]
+  }
+}
