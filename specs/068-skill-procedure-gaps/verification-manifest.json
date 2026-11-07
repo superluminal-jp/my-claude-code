@@ -52,8 +52,12 @@
       },
       {
         "check_id": "R0-A5",
-        "status": "not_run",
-        "reason": "記録のコミットの後に、記録を読むスクリプト（evidence/records_check.py）で確かめる"
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/records-check.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+        }
       },
       {
         "check_id": "R1-A1",
@@ -72,8 +76,12 @@
       },
       {
         "check_id": "R3-A2",
-        "status": "not_run",
-        "reason": "5回目のレビュー（graph を変えない直しの後なので、規則どおり差分だけ）のトークン数を、3回目（すべての差分）と比べる"
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/276dca7/review-tokens.txt",
+          "commit": "276dca70c36e78785d905606990b48bb22b42cda"
+        }
       },
       {
         "check_id": "R4-A1",
