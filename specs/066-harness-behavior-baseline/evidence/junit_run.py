@@ -165,6 +165,10 @@ TAGS = {
     "test_a_boundary_group_member_outside_the_map_is_reported": "R1-A1",
     "test_a_run_records_result_files_that_mention_the_real_home_directory": "R4-A1",
     "test_a_run_whose_results_do_not_mention_the_home_directory_records_none": "R4-A1",
+    # What the first real run (24 cases x 1 at 2822abe) showed.
+    "test_a_case_whose_run_ended_on_an_error_is_listed": "R6-A1",
+    "test_compare_refuses_a_result_with_runs_that_ended_on_an_error": "R6-A1",
+    "test_a_run_records_the_cases_whose_runs_ended_on_an_error_and_fails": "R3-A1",
 }
 
 

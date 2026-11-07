@@ -910,6 +910,11 @@ def cmd_run(args) -> int:
         if not cases_ok:
             print(f"error: the eval's cases differ from the suite's: missing {summary['cases_missing']}, "
                   f"unexpected {summary['cases_unexpected']}", file=sys.stderr)
+        summary["errored_cases"] = errored_cases(result)
+        if summary["errored_cases"]:
+            cases_ok = False
+            print(f"error: runs of these cases ended on an error before grading: {summary['errored_cases']}",
+                  file=sys.stderr)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     dest = Path(args.results_dir) if args.results_dir else repo / RESULTS_DIR
     dest = dest / result_dir_name(b, stamp)
@@ -937,6 +942,19 @@ def cmd_run(args) -> int:
 
 
 # --------------------------------------------------------------------- compare
+
+
+def errored_cases(result: dict) -> list[str]:
+    """Cases with a run the eval stopped on an error (an API error, a usage limit) before grading.
+
+    The eval still gives such a run a score of 0, which is not a measurement."""
+    out = []
+    for c in result.get("cases", []):
+        arms = c.get("arms") if isinstance(c.get("arms"), dict) else {}
+        runs = [r for arm in arms.values() if isinstance(arm, list) for r in arm]
+        if any(isinstance(r, dict) and r.get("error") for r in runs):
+            out.append(str(c.get("name")))
+    return sorted(out)
 
 
 def _scores(result: dict) -> dict[str, float | None]:
@@ -1012,6 +1030,10 @@ def compare_dirs(before: Path, after: Path, threshold: float) -> dict:
             problems.append(f"{label}: the eval ran cases outside the suite: {meta['cases_unexpected']}")
         if meta.get("cases_missing") and not result.get("partial"):
             problems.append(f"{label}: the eval did not run these suite cases: {meta['cases_missing']}")
+    for label, result in (("before", a), ("after", b)):
+        if errored_cases(result):
+            problems.append(f"{label}: runs of these cases ended on an error before grading, so their score of 0 "
+                            f"is not a measurement: {errored_cases(result)}")
     res["problems"] = problems
     res["notes"] = [f"{label}: the probe did not check these, whose phrase its harness commit lacks: "
                     f"{meta['probe_unchecked']}"

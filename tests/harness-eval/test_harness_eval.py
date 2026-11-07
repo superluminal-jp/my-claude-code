@@ -692,6 +692,9 @@ if [ "$1 $2" = "plugin eval" ]; then
     cases="$cases{\"name\":\"$c\",\"aggregates\":{\"score\":1.0}},"
   done
   [ -n "${STUB_LEAK:-}" ] && printf 'read %s/.ssh/config\n' "$HOME" > "$out/transcript.txt"
+  if [ -n "${STUB_ERROR_CASE:-}" ]; then
+    cases="$cases{\"name\":\"$STUB_ERROR_CASE\",\"aggregates\":{\"score\":0},\"arms\":{\"with\":[{\"score\":0,\"error\":\"exit 1: limit\"}]}},"
+  fi
   partial=false; [ -n "${STUB_PARTIAL:-}" ] && partial=true
   printf '{"schemaVersion":1,"partial":%s,"discovered":%s,"cases":[%s]}' "$partial" "$discovered" "${cases%,}" > "$out/aggregate-result.json"
   [ "$partial" = true ] && exit 2
@@ -1425,6 +1428,31 @@ class ReviewRound8(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             rc, meta = ReviewRound5().run_with_stub(tmp)
             self.assertEqual((rc, meta["home_path_files"]), (0, []))
+
+
+class SmokeRunFindings(unittest.TestCase):
+    """Regression tests for what the first real run (24 cases x 1 at 2822abe) showed."""
+
+    def errored(self, name="probe"):
+        return {"name": name, "aggregates": {"score": 0},
+                "arms": {"with": [{"score": 0, "error": "exit 1: You've hit your 5-hour limit"}]}}
+
+    def test_a_case_whose_run_ended_on_an_error_is_listed(self):
+        result = {"cases": [self.errored("x"), {"name": "y", "aggregates": {"score": 1},
+                                                "arms": {"with": [{"score": 1, "error": None}]}}]}
+        self.assertEqual(he.errored_cases(result), ["x"])
+
+    def test_compare_refuses_a_result_with_runs_that_ended_on_an_error(self):
+        cases = [{"name": "probe", "aggregates": {"score": 1.0}}, self.errored("a")]
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(ReviewRound5().problems(tmp, cases=cases), "ended on an error before grading"))
+
+    def test_a_run_records_the_cases_whose_runs_ended_on_an_error_and_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # The stub reports every built case, then one more errored run of the probe.
+            rc, meta = ReviewRound5().run_with_stub(tmp, STUB_ONLY="ask-first beta-flow gap-watch ask-again",
+                                                    STUB_ERROR_CASE="probe")
+            self.assertEqual((rc, meta["errored_cases"]), (1, ["probe"]))
 
 
 if __name__ == "__main__":
