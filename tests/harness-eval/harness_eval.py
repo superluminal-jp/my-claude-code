@@ -90,6 +90,10 @@ class Built:
     drift: list[str] = field(default_factory=list)
     probe_cases: list[str] = field(default_factory=list)
     case_ids: list[str] = field(default_factory=list)
+    # Probe graders left out because the harness commit lacks their phrase:
+    # they could only fail, and their failure would not mean injection failed.
+    probe_unchecked: list[str] = field(default_factory=list)
+    skills: list[str] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------- helpers
@@ -109,6 +113,18 @@ def squash(text: str) -> str:
 def read_text(root: Path, rel: str) -> str | None:
     path = root / rel
     return path.read_text(encoding="utf-8") if path.is_file() else None
+
+
+def basis_present(basis, harness: Path) -> bool:
+    """Every quoted phrase of `basis` is in its file under `harness`."""
+    items = basis if isinstance(basis, list) else [basis]
+    for b in items:
+        if not isinstance(b, dict) or not isinstance(b.get("file"), str) or not isinstance(b.get("quote"), str):
+            return False
+        text = read_text(harness, b["file"])
+        if text is None or squash(b["quote"]) not in squash(text):
+            return False
+    return True
 
 
 def harness_components(root: Path, files: list[str] | None = None) -> dict[str, str]:
@@ -682,6 +698,13 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     if unmapped:
         raise BuildError(f"the harness commit has components the suite's map does not name: {', '.join(unmapped)}; "
                          "whether they may enter the eval is unknown, so use a suite commit whose map names them")
+    # Likewise every settings.json key must be classified as in or out of the eval.
+    harness_settings = read_text(src_h, ".claude/settings.json")
+    if harness_settings is not None:
+        unclassified = sorted(set(json.loads(harness_settings)) - set(cmap.get("settings", {})))
+        if unclassified:
+            raise BuildError(f"the harness commit's settings.json has keys the suite's map does not classify: "
+                             f"{', '.join(unclassified)}; use a suite commit whose map classifies them")
     # Anything else the harness commit lacks (a component the suite maps, a
     # quoted phrase) is what a before-and-after comparison measures.
     drift = check(src_h, src_s)
@@ -743,6 +766,7 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
 
     suite = json.loads((src_s / SUITE_PATH).read_text(encoding="utf-8"))
     evals = plugin / "evals"
+    probe_unchecked: list[str] = []
     for sc in suite["scenarios"]:
         case = evals / sc["id"]
         (case / "graders").mkdir(parents=True)
@@ -759,12 +783,25 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
             "timeout_seconds": sc.get("timeout_seconds", DEFAULT_TIMEOUT),
             "allowed_tools": sc.get("allowed_tools", DEFAULT_TOOLS),
         }) + "\n" + sc["prompt"].rstrip() + "\n", encoding="utf-8")
-        for g in sc["graders"]:
+        graders = sc["graders"]
+        if sc.get("kind") == "probe":
+            kept = [g for g in graders if basis_present(g.get("basis"), src_h)]
+            for g in graders:
+                if g not in kept:
+                    b = g.get("basis")
+                    b = b[0] if isinstance(b, list) and b else b
+                    probe_unchecked.append(f"{sc['id']}/{g['id']} ({b.get('file') if isinstance(b, dict) else '?'})")
+            if not any(g.get("type") == "regex" for g in kept):
+                raise BuildError(f"no reach grader of the probe {sc['id']} can pass at the harness commit, so nothing "
+                                 "would show the always-on files reached the model; use a suite commit written for it")
+            graders = kept
+        for g in graders:
             (case / "graders" / f"{g['id']}.md").write_text(frontmatter(render_grader(g)), encoding="utf-8")
     count = sum(1 for p in evals.iterdir() if p.is_dir())
     return Built(plugin, harness_sha, suite_sha, count, harness_ref, suite_ref, drift=drift,
                  probe_cases=[sc["id"] for sc in suite["scenarios"] if sc.get("kind") == "probe"],
-                 case_ids=[sc["id"] for sc in suite["scenarios"]])
+                 case_ids=[sc["id"] for sc in suite["scenarios"]], probe_unchecked=probe_unchecked,
+                 skills=sorted(p.name for p in (plugin / "skills").iterdir() if p.is_dir()))
 
 
 # ------------------------------------------------------------------------- run
@@ -786,6 +823,7 @@ def run_metadata(b: Built, model: str, runs: int, max_cost_usd: float, command: 
             "suite_ref": b.suite_ref, "suite_commit": b.suite_commit,
             "model": model, "runs": runs, "max_cost_usd": max_cost_usd,
             "case_count": b.case_count, "case_ids": b.case_ids, "probe_cases": b.probe_cases,
+            "probe_unchecked": b.probe_unchecked, "skills": b.skills,
             "harness_drift": b.drift, "claude_version": claude_version, "command": command}
 
 
@@ -949,6 +987,9 @@ def compare_dirs(before: Path, after: Path, threshold: float) -> dict:
         if meta.get("cases_missing") and not result.get("partial"):
             problems.append(f"{label}: the eval did not run these suite cases: {meta['cases_missing']}")
     res["problems"] = problems
+    res["notes"] = [f"{label}: the probe did not check these, whose phrase its harness commit lacks: "
+                    f"{meta['probe_unchecked']}"
+                    for label, meta in zip(("before", "after"), metas) if meta and meta.get("probe_unchecked")]
     return res
 
 
@@ -960,6 +1001,8 @@ def cmd_compare(args) -> int:
         return 2
     for problem in res["problems"]:
         print(f"PROBLEM {problem}")
+    for note in res["notes"]:
+        print(f"NOTE {note}")
     print(f"case\tbefore\tafter\tdelta\tflag (|delta| >= {args.threshold}; a screening mark, not a significance test)")
     for r in res["both"]:
         print(f"{r['case']}\t{r['before']}\t{r['after']}\t{r['delta']}\t{'*' if r['flag'] else ''}")

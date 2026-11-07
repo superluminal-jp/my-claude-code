@@ -109,6 +109,38 @@ TAGS = {
     "test_the_generated_script_writes_files_commits_then_writes_the_rest": "R4-A1",
     "test_valid_data_has_no_violation": "R4-A1",
     "test_the_built_scaffold_is_generated_from_the_fixture_data": "R4-A1",
+    # Round 5 (assurance review of 112db91).
+    "test_a_suite_that_maps_a_component_the_older_harness_lacks_still_builds": "R3-A1",
+    "test_a_quote_the_older_harness_lacks_is_recorded_not_fatal": "R3-A1",
+    "test_the_same_commit_for_both_has_no_drift": "R3-A1",
+    "test_a_harness_component_the_suite_does_not_map_stops_the_build": "R3-A1",
+    "test_a_suite_inconsistent_with_its_own_commit_stops_a_cross_commit_build": "R3-A1",
+    "test_the_drift_and_the_probe_cases_are_recorded_in_the_run_metadata": "R3-A1",
+    "test_a_run_whose_cases_match_the_suite_succeeds": "R3-A1",
+    "test_a_run_whose_result_has_a_case_outside_the_suite_fails": "R3-A1",
+    "test_a_complete_run_that_lacks_a_suite_case_fails": "R3-A1",
+    "test_a_skills_own_eval_suite_and_scaffold_are_not_built": "R4-A1",
+    "test_a_skill_plugin_json_that_declares_hooks_stops_the_build": "R4-A1",
+    "test_a_skill_plugin_json_without_hooks_builds": "R4-A1",
+    "test_the_skill_files_outside_evals_are_still_copied": "R5-A1",
+    "test_a_result_whose_probe_did_not_pass_in_every_run_is_refused": "R6-A1",
+    "test_a_result_without_its_probe_case_is_refused": "R6-A1",
+    "test_metadata_without_the_probe_cases_is_refused": "R6-A1",
+    "test_a_suite_without_a_probe_is_refused": "R6-A1",
+    "test_passing_probes_on_both_sides_are_no_problem": "R6-A1",
+    "test_compare_refuses_a_result_whose_run_found_unexpected_cases": "R6-A1",
+    "test_the_shallowest_aggregate_result_is_read": "R6-A1",
+    "test_two_aggregate_results_at_the_same_depth_are_refused": "R6-A1",
+    "test_compare_exits_2_on_an_ambiguous_result_directory": "R6-A1",
+    # Round 6 (assurance review of 6897bff).
+    "test_two_harness_commits_run_on_one_suite_and_compare_cleanly": "R-MEASURE-A1",
+    "test_a_probe_grader_whose_phrase_the_older_harness_lacks_is_left_out_and_recorded": "R3-A1",
+    "test_the_same_commit_leaves_no_probe_grader_out": "R3-A1",
+    "test_a_build_where_no_probe_reach_grader_can_pass_stops": "R3-A1",
+    "test_compare_notes_the_probe_graders_left_out_without_refusing": "R6-A1",
+    "test_the_run_record_lists_the_built_skills": "R3-A1",
+    "test_a_harness_settings_key_the_map_does_not_classify_stops_the_build": "R5-A1",
+    "test_the_results_directory_is_ignored_by_git": "R4-A1",
 }
 
 
@@ -147,8 +179,12 @@ def main(out):
         rows.append(f'  <testcase classname={quoteattr(cls)} name={quoteattr(name)}>{body}</testcase>')
     failures = sum(1 for _, o in result.cases if o)
     head = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
-    dirty = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain", "--", ".", ":!specs/066-harness-behavior-baseline"],
-                           capture_output=True, text=True).stdout.strip()
+    # The records under specs/066 change after the commit they describe; this
+    # script, which maps tests to criteria, must not.
+    dirty = "".join(
+        subprocess.run(["git", "-C", str(REPO), "status", "--porcelain", "--", *spec],
+                       capture_output=True, text=True).stdout.strip()
+        for spec in ((".", ":!specs/066-harness-behavior-baseline"), (str(Path(__file__).resolve()),)))
     print(f"commit: {head}\ncode paths clean: {not dirty}")
     props = (f'  <properties><property name="commit" value={quoteattr(head)}/>'
              f'<property name="code_paths_clean" value="{str(not dirty).lower()}"/></properties>')

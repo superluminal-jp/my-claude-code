@@ -1157,5 +1157,109 @@ class ReviewRound5(unittest.TestCase):
             self.assertTrue(has(self.problems(tmp, cases_unexpected=["stray"]), "stray"))
 
 
+class ReviewRound6(unittest.TestCase):
+    """Regression tests for the assurance review of 6897bff (round 6)."""
+
+    r5 = ReviewRound5()
+
+    def reword(self, repo, old, new, *rels):
+        """Replace a phrase in harness files and in the map and suite that quote it."""
+        for rel in (*rels, he.MAP_PATH, he.SUITE_PATH):
+            p = repo / rel
+            p.write_text(p.read_text(encoding="utf-8").replace(old, new), encoding="utf-8")
+
+    def run_refs(self, repo, tmp, results, harness_ref, suite_ref):
+        bindir = Path(tmp) / "bin"
+        if not bindir.exists():
+            ReviewFindings().stub_claude(tmp)
+        with mock.patch.dict(os.environ, {"PATH": str(bindir) + os.pathsep + os.environ["PATH"]}):
+            rc = he.main(["run", "--repo", str(repo), "--max-cost-usd", "1", "--results-dir", str(results),
+                          "--harness-ref", harness_ref, "--suite-ref", suite_ref])
+        (run_dir,) = [p for p in results.iterdir() if f"_h-{harness_ref[:12]}_" in p.name]
+        return rc, run_dir
+
+    # AR-01: the composed path, two harness commits on one suite, then compare.
+
+    def test_two_harness_commits_run_on_one_suite_and_compare_cleanly(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            self.r5.add_delta(repo)
+            after = self.r5.commit(repo, "add delta")
+            results = Path(tmp) / "results"
+            rc1, d1 = self.run_refs(repo, tmp, results, before, after)
+            rc2, d2 = self.run_refs(repo, tmp, results, after, after)
+            m1, m2 = (json.loads((d / "metadata.json").read_text()) for d in (d1, d2))
+            res = he.compare_dirs(d1, d2, 0.34)
+            self.assertEqual((rc1, rc2, m1["harness_commit"], m1["suite_commit"], m2["harness_commit"],
+                              bool(m1["harness_drift"]), m2["harness_drift"], res["problems"]),
+                             (0, 0, before, after, after, True, [], []))
+
+    # AR-02: a probe grader whose phrase a harness commit lacks cannot show injection.
+
+    def test_a_probe_grader_whose_phrase_the_older_harness_lacks_is_left_out_and_recorded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            self.reword(repo, "unrelated", "spare", ".claude/CLAUDE.md")
+            self.assertEqual(he.check(repo, repo), [])
+            after = self.r5.commit(repo, "reword the apex ending")
+            b = self.r5.build_refs(repo, tmp, before, after)
+            graders = sorted(p.stem for p in (b.plugin_dir / "evals/probe/graders").iterdir())
+            self.assertEqual((graders, b.probe_unchecked), (["rule-reached"], ["probe/apex-reached (.claude/CLAUDE.md)"]))
+
+    def test_the_same_commit_leaves_no_probe_grader_out(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(Build().build(Build().make_repo(tmp), tmp).probe_unchecked, [])
+
+    def test_a_build_where_no_probe_reach_grader_can_pass_stops(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            self.reword(repo, "unrelated", "spare", ".claude/CLAUDE.md")
+            self.reword(repo, "approval", "consent", ".claude/rules/one.md")
+            self.assertEqual(he.check(repo, repo), [])
+            after = self.r5.commit(repo, "reword both endings")
+            with self.assertRaisesRegex(he.BuildError, "probe"):
+                self.r5.build_refs(repo, tmp, before, after)
+
+    def test_compare_notes_the_probe_graders_left_out_without_refusing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.r5.write(tmp, "a", probe_unchecked=["probe/apex-reached (.claude/CLAUDE.md)"])
+            res = he.compare_dirs(a, self.r5.write(tmp, "b"), 0.34)
+            self.assertEqual((res["problems"], has(res["notes"], "apex-reached")), ([], True))
+
+    # AR-03: the run record lists the skills that were built.
+
+    def test_the_run_record_lists_the_built_skills(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b = Build().build(Build().make_repo(tmp, cmap=ReviewRound4().excluded_map()), tmp)
+            meta = he.run_metadata(b, "opus", 1, 1.0, [], "v")
+            self.assertEqual((b.skills, meta["skills"]), (["alpha", "beta"], ["alpha", "beta"]))
+
+    # AR-05: a settings key the map does not classify stops a cross-commit build.
+
+    def test_a_harness_settings_key_the_map_does_not_classify_stops_the_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp)
+            before = git(repo, "rev-parse", "HEAD")
+            (repo / ".claude/settings.json").write_text(json.dumps(dict(SETTINGS, env={"X": "1"})), encoding="utf-8")
+            m = valid_map()
+            m["settings"]["env"] = {"in_eval": False, "reason": "not applied by the eval"}
+            (repo / he.MAP_PATH).write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
+            self.assertEqual(he.check(repo, repo), [])
+            after = self.r5.commit(repo, "add env")
+            with self.assertRaisesRegex(he.BuildError, "env"):
+                self.r5.build_refs(repo, tmp, after, before)
+
+    # AR-07: raw results stay out of git until a person chooses to add them.
+
+    def test_the_results_directory_is_ignored_by_git(self):
+        root = Path(__file__).resolve().parents[2]
+        res = subprocess.run(["git", "-C", str(root), "check-ignore", "-q",
+                              he.RESULTS_DIR + "/20261107T000000Z_h-x_s-y/report.html"])
+        self.assertEqual(res.returncode, 0)
+
+
 if __name__ == "__main__":
     unittest.main()
