@@ -12,13 +12,14 @@ Read only:
 - Diff of the change: <path to the diff, or the commit range>
 - Raw evidence: <paths to the test reports, CI logs, scanner results>
 
-The records of the change (graph, manifest, reviews, evidence, review card)
-live in <record directory>. They are committed after reviewed_commit, in
-commits that change only that directory, because a commit cannot contain
-its own SHA; that they name an earlier commit than the branch head is
-expected. Report it only when evidence names a commit other than
-reviewed_commit, or when a commit after reviewed_commit changes a file
-outside <record directory>.
+The records of the change live in <record directory>. The problem card,
+the requirements graph, and the challenge report are part of
+reviewed_commit. The records that name reviewed_commit (manifest, evidence,
+reviews, review card) are committed after it, in commits that change only
+that directory, because a commit cannot contain its own SHA; that they name
+an earlier commit than the branch head is expected. Report it only when
+evidence names a commit other than reviewed_commit, or when a commit after
+reviewed_commit changes a file outside <record directory>.
 
 Do not presume the change or its tests are correct. For each parent
 requirement and for the system-level (L3) criteria, look for material
@@ -71,8 +72,8 @@ Read only:
 You may read any other file of the repository at the new commit when the
 diff needs it.
 
-The records of the change live in <record directory> and are committed after
-the reviewed commit; report it only when a commit after the reviewed commit
+The records that name the reviewed commit live in <record directory> and are
+committed after it; report it only when a commit after the reviewed commit
 changes a file outside <record directory>.
 
 The resolutions in the previous record are the implementer's claims, not

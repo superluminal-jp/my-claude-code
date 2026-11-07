@@ -41,7 +41,7 @@
         {
           "id": "R0-A5",
           "level": "L3",
-          "description": "この変更自身の記録と試験が、変更後の手順に従う。記録を読むスクリプトが次を確かめる。reviewed_commit より後のコミットは、記録の場所（specs/068-skill-procedure-gaps/）のファイルだけを変える。manifest が引く証跡はすべて git で追跡され、git check-ignore に当たらない。assurance review の記録の statement は、記録の言語（日本語）で書かれている。新しい試験の red の観測（mutations.txt）は assertion の失敗で、使い方や引数の誤りによる失敗を含まない。変更の前に失敗させられない試験は、ミューテーション検査で失敗を示す。"
+          "description": "この変更自身の記録と試験が、変更後の手順に従う。記録を読むスクリプトが次を確かめる。reviewed_commit より後のコミットは、記録の場所（specs/068-skill-procedure-gaps/）のファイルだけを変える。manifest が引く証跡はすべて git で追跡され、git check-ignore に当たらない。assurance review の記録の statement は、記録の言語（日本語）で書かれている。新しい試験のすべてが、red（main の検査器か、機能のスタブに対して）かミューテーション検査のどちらかで、assertion の失敗になり、どの観測も error（使い方の誤りや鍵の欠け）にならない（mutations.txt を試験ごとに数える）。"
         }
       ],
       "counterexamples": [
@@ -58,7 +58,7 @@
     },
     {
       "id": "R1",
-      "statement": "verified-delivery の手順が、変更を先にコミットしてそれを reviewed_commit とし、記録をその後の記録だけのコミットに入れることを定める。記録とは、変更の記録の場所（problem card・graph・manifest・レビューの記録・証跡・カードを置くディレクトリ）のファイルである。また、gate の前に git diff --name-only で、reviewed_commit から HEAD までに記録の場所の外の変更が無いことを確かめるよう定める。レビュー役のプロンプトは、記録がそれを含むコミットより前のコミットを指すのは正しいと伝え、reviewed_commit より後のコミットが記録の場所の外を変えているときだけ指摘させる。",
+      "statement": "verified-delivery の手順が、変更を先にコミットしてそれを reviewed_commit とすることを定める。記録は、変更の記録の場所（problem card・graph・challenge report・manifest・レビューの記録・証跡・カードを置くディレクトリ）に置く。実装の前に書く記録（problem card・graph・challenge report）とその直しは、変更と一緒に入れる。reviewed_commit を指す記録（manifest・証跡・レビューの記録・カード）は、その後の、記録の場所だけを変えるコミットに入れる。また、gate の前に git diff --name-only で、reviewed_commit から HEAD までに記録の場所の外の変更が無いことを確かめるよう定める。レビュー役のプロンプトは、reviewed_commit を指す記録がそれより前のコミットを指すのは正しいと伝え、reviewed_commit より後のコミットが記録の場所の外を変えているときだけ指摘させる。",
       "decomposition": "LEAF",
       "acceptance": [
         {
@@ -97,7 +97,7 @@
         }
       ],
       "assumptions": [
-        "トークン数が減るかは、レビュー役が差分の外をどれだけ読むかにもよる。R3-A2 は1回の観測である。gate は、差分のレビューとすべての差分のレビューを区別しない（範囲は context_given にだけ書く。利用者の決定）。1回目の後の直しは graph を変えたので、2回目はすべての差分を読む。"
+        "トークン数が減るかは、レビュー役が差分の外をどれだけ読むかにもよる。R3-A2 は1回の観測である。gate は、差分のレビューとすべての差分のレビューを区別しない（範囲は context_given にだけ書く。利用者の決定）。1回目の後の直しは graph を変えたので、2回目はすべての差分を読む。2回目の後の直しも graph（R1・R8・R0-A5）を変えたので、3回目もすべての差分を読む。"
       ],
       "origin": {
         "kind": "instruction",
@@ -254,7 +254,7 @@
     },
     {
       "id": "R8",
-      "statement": "coder の手順が、まだ無い関数・モジュール・エンドポイントの red を、最終形のシグネチャのスタブ（誤った値を返すか、未実装の例外を投げる）に対する assertion の失敗として取ると定める。import・名前・コンパイルの失敗だけでは red に数えない。変更の前に assertion で失敗させられない検査は、実装をわざと壊して失敗を確かめ（ミューテーション検査）、元に戻す。",
+      "statement": "coder の手順が、まだ無い関数・モジュール・エンドポイント・オプションの red を、最終形のシグネチャで型の合った誤った結果を返すスタブに対する assertion の失敗として取ると定める。import・名前・コンパイル・使い方の誤りや、スタブが投げる例外では red に数えない（壊れた検査と見分けられないため）。変更の前に assertion で失敗させられない検査は、実装をわざと壊して失敗を確かめ（ミューテーション検査）、元に戻す。",
       "decomposition": "LEAF",
       "acceptance": [
         {

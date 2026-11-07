@@ -581,6 +581,14 @@ class CodeReviewFindingTests(AssuranceTestCase):
                 self.assertEqual(proc.returncode, 2, proc.stdout)
 
 
+def gate_result(stdout: str) -> dict:
+    """The gate's JSON result, with the fields a decision has filled in when
+    the checker printed none, so a missing field fails an assertion instead
+    of raising an error."""
+    empty = {"decision": None, "reasons": [], "stage": None, "left_out": None, "levels": {level: {} for level in ("L1", "L2", "L3")}}
+    return empty | json.loads(stdout)
+
+
 def post_deploy_graph(stage="post_deploy", criterion="TEST-SYSTEM-001") -> dict:
     """The fixture graph with one criterion that can only be verified after deploy."""
     doc = load("graph.json")
@@ -606,7 +614,7 @@ class StageTests(AssuranceTestCase):
                     check(m, criterion).pop("evidence", None)
         proc = run("gate", self.write("graph.json", post_deploy_graph(criterion=post_deploy)), self.manifest(change),
                    *(["--stage", stage] if stage else []))
-        result = json.loads(proc.stdout)
+        result = gate_result(proc.stdout)
         self.assertEqual(result["decision"], decision, result)
         self.assertEqual({r["rule_id"] for r in result["reasons"]}, rules, result["reasons"])
         self.assertEqual(proc.returncode, 0 if decision == "pass" else 1)
@@ -653,7 +661,7 @@ class StageTests(AssuranceTestCase):
                 if status != "passed":
                     check(m, criterion).pop("evidence")
         proc = run("gate", self.write("graph.json", doc), self.manifest(change), *(["--stage", stage] if stage else []))
-        return json.loads(proc.stdout) | {"exit": proc.returncode}
+        return gate_result(proc.stdout) | {"exit": proc.returncode}
 
     def test_before_deploy_a_parent_whose_own_checks_are_all_post_deploy_is_blocked(self):
         result = self.deferred_gate(("TEST-PARENT-001", "TEST-SYSTEM-001"))
@@ -768,7 +776,9 @@ class JestTests(JestTestCase):
     def test_an_id_inside_a_dotted_longer_id_does_not_count(self):
         doc = load("jest.json")
         doc["testResults"][1]["assertionResults"].pop(0)
-        self.assertEqual(self.statuses(doc)["TEST-LEAF-003"]["status"], "not_run")
+        doc["testResults"][1]["status"] = "passed"  # its one failed test is gone, so the file passed
+        entry = self.statuses(doc)["TEST-LEAF-003"]
+        self.assertEqual((entry["status"], entry.get("reason")), ("not_run", "no test names this acceptance id in the Jest report"))
 
     def test_a_report_jest_could_not_have_written_is_an_input_error(self):
         def variant(change) -> str:

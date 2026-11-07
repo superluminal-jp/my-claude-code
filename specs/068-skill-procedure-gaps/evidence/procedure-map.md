@@ -1,6 +1,6 @@
 # 対応表: 第4節の9行と、変更の前後の本文
 
-この表は、利用者が読んで確かめる検査（`human_review`）の材料である。対象は R0-A2・R1-A1・R2-A1・R3-A1・R4d-A1・R5-A2・R6-A1・R7-A2・R8-A1・R9-A1 で、行ごとに対応する検査の id を書いた。各行には、変更の前（main 9cd7932）の本文と、変更の後（b9a38d0）の本文の場所と要旨を並べる。本文はスキルの中なので英語である。全文は `git diff 9cd7932 b9a38d0 -- .claude/skills` で読める。
+この表は、利用者が読んで確かめる検査（`human_review`）の材料である。対象は R0-A2・R1-A1・R2-A1・R3-A1・R4d-A1・R5-A2・R6-A1・R7-A2・R8-A1・R9-A1 で、行ごとに対応する検査の id を書いた。各行には、変更の前（main 9cd7932）の本文と、変更の後（直しのコミット）の本文の場所と要旨を並べる。本文はスキルの中なので英語である。全文は `git diff 9cd7932 <reviewed_commit> -- .claude/skills` で読める。
 
 略記:
 
@@ -12,9 +12,9 @@
 
 - **前**: VD `SKILL.md` の手順4は「Set `reviewed_commit` to the commit under review」とだけ書き、記録をどのコミットに入れるかを書いていない。`references/reviewer.md` のプロンプトも、記録のコミットに触れていない。
 - **後**:
-  - VD `SKILL.md:21`（手順4）は、変更を先にコミットしてそれを `reviewed_commit` にすると書く。記録（problem card・graph・challenge report・manifest・レビューの記録・証跡・カード）は1つの記録の場所に置き、その外を変えない後のコミットにだけ入れる。理由は「a commit cannot contain its own SHA」である。
+  - VD `SKILL.md:21`（手順4）は、変更を先にコミットしてそれを `reviewed_commit` にすると書く。記録は1つの記録の場所に置く。実装の前に書く記録（problem card・graph・challenge report）とその直しは、変更と一緒に入れる。`reviewed_commit` を指す記録（manifest・証跡・レビューの記録・カード）は、その外を変えない後のコミットにだけ入れる。理由は「a commit cannot contain its own SHA」である（2回目のレビューの AR-03 への直し）。
   - VD `SKILL.md:23`（手順6）は、gate の前に `git diff --name-only <reviewed_commit> HEAD` が記録の場所のファイルだけを示すことを確かめる、と書く。
-  - VD `references/reviewer.md:16-21`（1回目）と `:74-76`（2回目以降）は、記録が前のコミットを指すのは正しいと伝える。指摘させるのは、証跡が `reviewed_commit` 以外を指すとき、または後のコミットが記録の場所の外を変えるときだけである。
+  - VD `references/reviewer.md:15-22`（1回目）と `:75-77`（2回目以降）は、`reviewed_commit` を指す記録が前のコミットを指すのは正しいと伝える。指摘させるのは、証跡が `reviewed_commit` 以外を指すとき、または後のコミットが記録の場所の外を変えるときだけである。
   - VD `references/manifest.md:15` は、検査器が git を読めないので、これが手順の側の確かめであることを書く。
 
 ## 行2 証跡のファイル名（R2-A1）
@@ -27,7 +27,7 @@
 - **前**: VD `SKILL.md` の手順5は「run the review again for that commit」と書き、`references/reviewer.md` は「the diff of the change up to reviewed_commit」を渡すと書く。
 - **後**:
   - VD `SKILL.md:22`（手順5）は、直しのコミットを2回目以降のプロンプトでレビューすると書く。渡すのは、前回のレビューの記録と、前回審査したコミットからの差分だけである。requirements graph か risk class が前回から変わったときは、すべての差分を読み直す。回ごとの記録を残し、gate には最新の記録を渡す。
-  - VD `references/reviewer.md:57-95`（Later rounds）は、2回目以降のプロンプトを持つ。前回の resolution は実装者の主張として渡し、事実として扱わない。見るのは (1) accepted の指摘が本当に直ったか、(2) 直しの差分の5種類の問題、の2つである。範囲は `context_given` に書く。
+  - VD `references/reviewer.md:58-96`（Later rounds）は、2回目以降のプロンプトを持つ。前回の resolution は実装者の主張として渡し、事実として扱わない。見るのは (1) accepted の指摘が本当に直ったか、(2) 直しの差分の5種類の問題、の2つである。範囲は `context_given` に書く。
 
 ## 行4 deploy の前後の判定（R4d-A1）
 
@@ -52,7 +52,7 @@
 
 - **前**: 2つのプロンプトは英語で、statement の言語を指定しない。challenger.md は「unchanged except for the two paths」で渡すと書く。
 - **後**:
-  - VD `references/reviewer.md:40,90` と RD `references/challenger.md:40` は、プロンプトに「every statement written in <language of the records>」を持つ。RD `references/challenger.md:3` は、渡すとき変えてよいものに言語を加える。
+  - VD `references/reviewer.md:41,91` と RD `references/challenger.md:40` は、プロンプトに「every statement written in <language of the records>」を持つ。RD `references/challenger.md:3` は、渡すとき変えてよいものに言語を加える。
   - VD `SKILL.md:22`（手順5）と RD `SKILL.md:16`（手順3）は、記録の言語を渡し、返った指摘を「as they are」写すと書く。
 
 ## 行7 要件の出所（R7-A2）
@@ -67,16 +67,16 @@
 
 - **前**: coder の TDD 節は「run it to observe the expected failure」とだけ書く。
 - **後**:
-  - coder `SKILL.md:18` は、red を、新しい検査がその assertion で失敗することと定める。まだ無い関数・モジュール・エンドポイント・オプションは、最終形のシグネチャと誤った結果で先に足してから、assertion の失敗を見る。import・名前・コンパイル・使い方の誤りだけでは red ではない。変更の前に assertion で失敗させられない検査は、実装をわざと壊して失敗を見て、元に戻す（ミューテーション検査）。
+  - coder `SKILL.md:18` は、red を、新しい検査がその assertion で失敗することと定める。まだ無い関数・モジュール・エンドポイント・オプションは、最終形のシグネチャで型の合った誤った結果を返すスタブを先に足してから、assertion の失敗を見る。import・名前・コンパイル・使い方の誤りや、スタブが投げる例外は red ではない。壊れた検査と見分けられないためである（2回目のレビューの AR-02 への直し）。変更の前に assertion で失敗させられない検査は、実装をわざと壊して失敗を見て、元に戻す（ミューテーション検査）。
   - coder `SKILL.md:41`（変更の手順3）は、この節を引く。
-  - この変更自身もこれに従った（`b9a38d0/mutations.txt`。red はスタブに対する assertion の失敗で、error は0）。
+  - この変更自身もこれに従った（`mutations.txt`。新しい試験のすべてが、red かミューテーション検査で assertion の失敗になり、error は0）。
 
 ## 行9 受け入れ条件の正本（R9-A1）
 
 - **前**: coder の SDD 節は、spec-kit を使うプロジェクトでは spec-kit の手順に従うとだけ書く。VD と RD は spec.md との関係を書かない。
 - **後**:
   - VD `SKILL.md:19`（手順2）と RD `SKILL.md:15`（手順2）は、受け入れ条件を graph にだけ書き、spec（spec-kit の `spec.md` など）は graph の受け入れ条件の id を引く、と同じ言葉で書く。
-  - coder `SKILL.md:33` は、spec-kit の手順に従う文に「One exception」を続ける。受け入れ条件を検査器で判定する要求グラフがある変更では、そのグラフが受け入れ条件の唯一の源で、`spec.md` はその id を引く。それ以外の手順は変わらない。ほかのスキルを名前で呼ばない（SKILL-05 は合格。名前の参照を見つける側の PARENT-02〜09 も合格した、サンドボックスの外の実行。`b9a38d0/config-pyramid.txt`）。
+  - coder `SKILL.md:33` は、spec-kit の手順に従う文に「One exception」を続ける。受け入れ条件を検査器で判定する要求グラフがある変更では、そのグラフが受け入れ条件の唯一の源で、`spec.md` はその id を引く。それ以外の手順は変わらない。ほかのスキルを名前で呼ばない（SKILL-05 は合格。名前の参照を見つける側の PARENT-02〜09 も合格した、サンドボックスの外の実行。`config-pyramid.txt`）。
 
 ## 行どうしの整合（R0-A2）
 

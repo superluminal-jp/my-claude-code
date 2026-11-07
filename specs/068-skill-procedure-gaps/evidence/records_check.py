@@ -59,11 +59,13 @@ def main(argv: list[str]) -> int:
 
     lines = Path(argv[1]).read_text(encoding="utf-8").splitlines()
     observed = [line for line in lines if line.startswith(("red ", "mutation "))]
-    caught = [line for line in observed if re.search(r"failed [1-9]\d*, errors 0$", line)]
+    errors = [line for line in observed if re.search(r"\sERROR\s", line)]
+    coverage = next((re.match(r"coverage: (\d+) of (\d+) ", line) for line in lines if line.startswith("coverage: ")), None)
+    complete = coverage is not None and coverage.group(1) == coverage.group(2) and int(coverage.group(2)) > 0
     expected = "result: every observation as expected" in lines
-    print(f"4. {Path(argv[1]).name}: {len(observed)} observations, {len(caught)} caught by assertions with no error, "
-          f"script result {'as expected' if expected else 'NOT as expected'}")
-    ok &= bool(observed) and len(caught) == len(observed) and expected
+    print(f"4. {Path(argv[1]).name}: {len(observed)} observations, {len(errors)} errors, "
+          f"coverage {coverage.group(0).strip() if coverage else 'missing'}, script result {'as expected' if expected else 'NOT as expected'}")
+    ok &= bool(observed) and not errors and complete and expected
 
     print("result:", "all hold" if ok else "SOMETHING DOES NOT HOLD")
     return 0 if ok else 1
