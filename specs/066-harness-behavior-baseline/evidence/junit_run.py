@@ -141,6 +141,14 @@ TAGS = {
     "test_the_run_record_lists_the_built_skills": "R3-A1",
     "test_a_harness_settings_key_the_map_does_not_classify_stops_the_build": "R5-A1",
     "test_the_results_directory_is_ignored_by_git": "R4-A1",
+    # Round 7 (assurance review of 0ac8e15).
+    "test_an_agent_file_is_a_component_that_the_map_must_name": "R1-A1",
+    "test_a_command_file_is_a_component_that_the_map_must_name": "R1-A1",
+    "test_a_harness_with_a_mapped_agent_stops_the_build": "R5-A1",
+    "test_a_harness_with_a_mapped_command_stops_the_build": "R5-A1",
+    "test_a_non_reach_probe_grader_is_kept_when_its_phrase_is_gone": "R3-A1",
+    "test_compare_refuses_a_complete_result_whose_run_missed_suite_cases": "R6-A1",
+    "test_a_partial_run_that_lacks_cases_records_them_and_succeeds": "R3-A1",
 }
 
 

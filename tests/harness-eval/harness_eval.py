@@ -141,6 +141,9 @@ def harness_components(root: Path, files: list[str] | None = None) -> dict[str, 
             found["rule:" + "/".join(parts[2:])[:-3]] = rel
         elif len(parts) == 4 and parts[1] == "skills" and parts[3] == "SKILL.md":
             found["skill:" + parts[2]] = rel
+        elif len(parts) >= 3 and parts[1] in ("agents", "commands"):
+            # install.sh syncs both directories; every file in them is a component.
+            found[parts[1][:-1] + ":" + "/".join(parts[2:])] = rel
     return found
 
 
@@ -693,8 +696,15 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     # Every component at the harness commit must be in the map, or whether it
     # may enter the eval (in_eval) is unknown; fail safe rather than include it.
     cmap = json.loads((src_s / MAP_PATH).read_text(encoding="utf-8"))
+    components = harness_components(src_h)
+    # The build injects the apex and rules and copies skills; it would leave
+    # agents and commands out and so measure a different harness.
+    unbuilt = sorted(c for c in components if c.startswith(("agent:", "command:")))
+    if unbuilt:
+        raise BuildError(f"the harness commit has agents and commands, which the eval does not build yet: "
+                         f"{', '.join(unbuilt)}")
     mapped = {c.get("id") for c in cmap.get("components", []) if isinstance(c, dict)}
-    unmapped = sorted(set(harness_components(src_h)) - mapped)
+    unmapped = sorted(set(components) - mapped)
     if unmapped:
         raise BuildError(f"the harness commit has components the suite's map does not name: {', '.join(unmapped)}; "
                          "whether they may enter the eval is unknown, so use a suite commit whose map names them")
@@ -785,7 +795,8 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
         }) + "\n" + sc["prompt"].rstrip() + "\n", encoding="utf-8")
         graders = sc["graders"]
         if sc.get("kind") == "probe":
-            kept = [g for g in graders if basis_present(g.get("basis"), src_h)]
+            # Only a reach grader (regex) needs its phrase at the harness commit.
+            kept = [g for g in graders if g.get("type") != "regex" or basis_present(g.get("basis"), src_h)]
             for g in graders:
                 if g not in kept:
                     b = g.get("basis")

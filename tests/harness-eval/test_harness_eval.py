@@ -691,7 +691,9 @@ if [ "$1 $2" = "plugin eval" ]; then
   for c in ${STUB_ONLY:-$(ls "$dir/evals")} ${STUB_EXTRA_CASE:-}; do
     cases="$cases{\"name\":\"$c\",\"aggregates\":{\"score\":1.0}},"
   done
-  printf '{"schemaVersion":1,"partial":false,"discovered":%s,"cases":[%s]}' "$discovered" "${cases%,}" > "$out/aggregate-result.json"
+  partial=false; [ -n "${STUB_PARTIAL:-}" ] && partial=true
+  printf '{"schemaVersion":1,"partial":%s,"discovered":%s,"cases":[%s]}' "$partial" "$discovered" "${cases%,}" > "$out/aggregate-result.json"
+  [ "$partial" = true ] && exit 2
   exit 0
 fi
 exit 3
@@ -1259,6 +1261,76 @@ class ReviewRound6(unittest.TestCase):
         res = subprocess.run(["git", "-C", str(root), "check-ignore", "-q",
                               he.RESULTS_DIR + "/20261107T000000Z_h-x_s-y/report.html"])
         self.assertEqual(res.returncode, 0)
+
+
+class ReviewRound7(unittest.TestCase):
+    """Regression tests for the assurance review of 0ac8e15 (round 7)."""
+
+    r5, r6 = ReviewRound5(), ReviewRound6()
+
+    def mapped(self, cid, path):
+        m = valid_map()
+        m["components"].append({"id": cid, "path": path})
+        m["stages"][0]["owners"].append(cid)
+        return m
+
+    # AR-02: install.sh also syncs agents/ and commands/.
+
+    def test_an_agent_file_is_a_component_that_the_map_must_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            t = Tree(tmp, extra={".claude/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"})
+            self.assertTrue(has(t.violations(), "component agent:reviewer.md (.claude/agents/reviewer.md) is missing"))
+
+    def test_a_command_file_is_a_component_that_the_map_must_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            t = Tree(tmp, extra={".claude/commands/ship.md": "Ship it.\n"})
+            self.assertTrue(has(t.violations(), "component command:ship.md (.claude/commands/ship.md) is missing"))
+
+    def test_a_harness_with_a_mapped_agent_stops_the_build(self):
+        extra = {".claude/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"}
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("agent:reviewer.md", ".claude/agents/reviewer.md"))
+            self.assertEqual(he.check(repo, repo), [])
+            with self.assertRaisesRegex(he.BuildError, "agents and commands"):
+                Build().build(repo, tmp)
+
+    def test_a_harness_with_a_mapped_command_stops_the_build(self):
+        extra = {".claude/commands/ship.md": "Ship it.\n"}
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("command:ship.md", ".claude/commands/ship.md"))
+            self.assertEqual(he.check(repo, repo), [])
+            with self.assertRaisesRegex(he.BuildError, "agents and commands"):
+                Build().build(repo, tmp)
+
+    # AR-03: only reach graders depend on their phrase being present.
+
+    def test_a_non_reach_probe_grader_is_kept_when_its_phrase_is_gone(self):
+        s = valid_suite()
+        s["scenarios"][0]["graders"].append(
+            {"id": "no-tool-used", "type": "tool", "tool": "Bash", "input_match": "command", "min": 0, "max": 0,
+             "basis": {"file": ".claude/CLAUDE.md", "quote": "Keep unrelated work"},
+             "examples": {"match": ["{\"command\":\"cat x\"}"], "no_match": ["{}"]}})
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp, suite=s)
+            before = git(repo, "rev-parse", "HEAD")
+            self.r6.reword(repo, "unrelated", "spare", ".claude/CLAUDE.md")
+            self.assertEqual(he.check(repo, repo), [])
+            after = self.r5.commit(repo, "reword the apex ending")
+            b = self.r5.build_refs(repo, tmp, before, after)
+            graders = sorted(p.stem for p in (b.plugin_dir / "evals/probe/graders").iterdir())
+            self.assertEqual((graders, b.probe_unchecked),
+                             (["no-tool-used", "rule-reached"], ["probe/apex-reached (.claude/CLAUDE.md)"]))
+
+    # AR-04: the missing-case branches of compare and run.
+
+    def test_compare_refuses_a_complete_result_whose_run_missed_suite_cases(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertTrue(has(self.r5.problems(tmp, cases_missing=["ask-first"]), "did not run these suite cases"))
+
+    def test_a_partial_run_that_lacks_cases_records_them_and_succeeds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, meta = self.r5.run_with_stub(tmp, STUB_ONLY="probe", STUB_PARTIAL="1")
+            self.assertEqual((rc, len(meta["cases_missing"]), meta["eval_exit_code"]), (0, 4, 2))
 
 
 if __name__ == "__main__":
