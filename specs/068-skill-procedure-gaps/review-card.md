@@ -1,6 +1,6 @@
 # レビューカード: CHG-068 (P-068)
 
-**判定: ⛔ blocked**
+**判定: ✅ pass**
 
 保証の判定による。記録どうしの整合を確かめるもので、変更が安全であることは示さない。
 
@@ -21,58 +21,40 @@
 
 | 水準 | passed | failed | not_run | blocked | not_applicable |
 |---|---|---|---|---|---|
-| L1 | 8 | 0 | 9 | 0 | 0 |
+| L1 | 17 | 0 | 0 | 0 | 0 |
 | L2 | 2 | 0 | 0 | 0 | 0 |
-| L3 | 4 | 0 | 1 | 0 | 0 |
+| L3 | 5 | 0 | 0 | 0 | 0 |
 
 ## 合格していない検査
 
-- `R0-A2` (L3, R0): not_run
-- `R1-A1` (L1, R1): not_run
-- `R2-A1` (L1, R2): not_run
-- `R3-A1` (L1, R3): not_run
-- `R4d-A1` (L1, R4d): not_run
-- `R5-A2` (L1, R5): not_run
-- `R6-A1` (L1, R6): not_run
-- `R7-A2` (L1, R7): not_run
-- `R8-A1` (L1, R8): not_run
-- `R9-A1` (L1, R9): not_run
+- なし
 
 ## 未解消の事項
 
-- A-03 (blocked): "R0-A2" (L3) is not\_run
-- A-03 (blocked): "R1-A1" (L1) is not\_run
-- A-03 (blocked): "R2-A1" (L1) is not\_run
-- A-03 (blocked): "R3-A1" (L1) is not\_run
-- A-03 (blocked): "R4d-A1" (L1) is not\_run
-- A-03 (blocked): "R5-A2" (L1) is not\_run
-- A-03 (blocked): "R6-A1" (L1) is not\_run
-- A-03 (blocked): "R7-A2" (L1) is not\_run
-- A-03 (blocked): "R8-A1" (L1) is not\_run
-- A-03 (blocked): "R9-A1" (L1) is not\_run
+- なし
 
 ## 人が決めること
 
-- 変更を差し戻すか、未解消の事項が求めるものを用意する。
+- 変更を受け入れるか、差し戻すかを決める。
 
 ## 要求
 
 ```mermaid
 flowchart TD
-  n0["R0 · AND · open"]:::open
-  n1["R1 · LEAF · open"]:::open
-  n2["R2 · LEAF · open"]:::open
-  n3["R3 · LEAF · open"]:::open
-  n4["R4 · AND · open"]:::open
+  n0["R0 · AND · pass"]:::pass
+  n1["R1 · LEAF · pass"]:::pass
+  n2["R2 · LEAF · pass"]:::pass
+  n3["R3 · LEAF · pass"]:::pass
+  n4["R4 · AND · pass"]:::pass
   n5["R4a · LEAF · pass"]:::pass
   n6["R4b · LEAF · pass"]:::pass
   n7["R4c · LEAF · pass"]:::pass
-  n8["R4d · LEAF · open"]:::open
-  n9["R5 · LEAF · open"]:::open
-  n10["R6 · LEAF · open"]:::open
-  n11["R7 · LEAF · open"]:::open
-  n12["R8 · LEAF · open"]:::open
-  n13["R9 · LEAF · open"]:::open
+  n8["R4d · LEAF · pass"]:::pass
+  n9["R5 · LEAF · pass"]:::pass
+  n10["R6 · LEAF · pass"]:::pass
+  n11["R7 · LEAF · pass"]:::pass
+  n12["R8 · LEAF · pass"]:::pass
+  n13["R9 · LEAF · pass"]:::pass
   n0 --> n1
   n0 --> n2
   n0 --> n3
@@ -111,13 +93,13 @@ flowchart TD
 | 要求 | 検査 | 水準 | 状態 | 証拠 |
 |---|---|---|---|---|
 | R0 | `R0-A1` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt` @ `1e80cb5` |
-| R0 | `R0-A2` | L3 | not_run | — |
+| R0 | `R0-A2` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
 | R0 | `R0-A3` | L3 | passed | [ci_job](https://github.com/superluminal-jp/my-claude-code/actions/runs/42426931132/job/128567099823) @ `1e80cb5` |
 | R0 | `R0-A4` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt` @ `1e80cb5` |
 | R0 | `R0-A5` | L3 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/records-check.txt` @ `1e80cb5` |
-| R1 | `R1-A1` | L1 | not_run | — |
-| R2 | `R2-A1` | L1 | not_run | — |
-| R3 | `R3-A1` | L1 | not_run | — |
+| R1 | `R1-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
+| R2 | `R2-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
+| R3 | `R3-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
 | R3 | `R3-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/review-tokens.txt` @ `1e80cb5` |
 | R4 | `R4-A1` | L2 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt` @ `1e80cb5` |
 | R4 | `R4-A2` | L2 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt` @ `1e80cb5` |
@@ -125,12 +107,12 @@ flowchart TD
 | R4b | `R4b-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
 | R4c | `R4c-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
 | R4c | `R4c-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt` @ `1e80cb5` |
-| R4d | `R4d-A1` | L1 | not_run | — |
+| R4d | `R4d-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
 | R5 | `R5-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
-| R5 | `R5-A2` | L1 | not_run | — |
-| R6 | `R6-A1` | L1 | not_run | — |
+| R5 | `R5-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
+| R6 | `R6-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
 | R7 | `R7-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml` @ `1e80cb5` |
-| R7 | `R7-A2` | L1 | not_run | — |
-| R8 | `R8-A1` | L1 | not_run | — |
-| R9 | `R9-A1` | L1 | not_run | — |
+| R7 | `R7-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
+| R8 | `R8-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
+| R9 | `R9-A1` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt` @ `1e80cb5` |
 | R9 | `R9-A2` | L1 | passed | `specs/068-skill-procedure-gaps/evidence/1e80cb5/config-pyramid.txt` @ `1e80cb5` |

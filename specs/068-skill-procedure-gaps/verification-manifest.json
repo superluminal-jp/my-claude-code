@@ -38,8 +38,12 @@
       },
       {
         "check_id": "R0-A2",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R0-A3",
@@ -70,18 +74,30 @@
       },
       {
         "check_id": "R1-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R2-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R3-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R3-A2",
@@ -148,8 +164,12 @@
       },
       {
         "check_id": "R4d-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R5-A1",
@@ -162,13 +182,21 @@
       },
       {
         "check_id": "R5-A2",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R6-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R7-A1",
@@ -181,18 +209,30 @@
       },
       {
         "check_id": "R7-A2",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R8-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R9-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ（PR の上で確かめる、利用者の決定）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
       },
       {
         "check_id": "R9-A2",
