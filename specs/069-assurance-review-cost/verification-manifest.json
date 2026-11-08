@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-069",
     "problem_id": "P-069",
-    "reviewed_commit": "c3f5f6180ad798826d8f722a385bfebfea191b8c",
+    "reviewed_commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -22,22 +22,26 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/c3f5f61/review-prep-flow.txt",
-          "commit": "c3f5f6180ad798826d8f722a385bfebfea191b8c"
+          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/review-prep-flow.txt",
+          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
         }
       },
       {
         "check_id": "R0-A2",
-        "status": "not_run",
-        "reason": "すべての回のトランスクリプトを要約して確かめる。1回目は記録の場所の中身を読んだので、利用者の判断を待つ"
+        "status": "failed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/reviewer-reads.txt",
+          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
+        }
       },
       {
         "check_id": "R0-A3",
         "status": "passed",
         "evidence": {
           "kind": "ci_job",
-          "ref": "specs/069-assurance-review-cost/evidence/c3f5f61/ci-test-job.txt",
-          "commit": "c3f5f6180ad798826d8f722a385bfebfea191b8c"
+          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/ci-test-job.txt",
+          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
         }
       },
       {
@@ -50,8 +54,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/c3f5f61/unit-tests.junit.xml",
-          "commit": "c3f5f6180ad798826d8f722a385bfebfea191b8c"
+          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/unit-tests.junit.xml",
+          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
         }
       },
       {
@@ -64,8 +68,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/c3f5f61/unit-tests.junit.xml",
-          "commit": "c3f5f6180ad798826d8f722a385bfebfea191b8c"
+          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/unit-tests.junit.xml",
+          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
         }
       },
       {
@@ -78,8 +82,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/c3f5f61/unit-tests.junit.xml",
-          "commit": "c3f5f6180ad798826d8f722a385bfebfea191b8c"
+          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/unit-tests.junit.xml",
+          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
         }
       },
       {

@@ -1,0 +1,8 @@
+commit: b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f (a clean worktree of the commit)
+ok   check before the first round finds no record error
+ok   the first round's bundle holds the code change and no record file
+ok   a fix that changes only the graph's text is a fix round from the previous reviewed commit
+ok   a fix that adds an acceptance criterion is a whole round from the base
+ok   check finds a code change committed after the reviewed commit
+all checks hold (R0-A1: two review rounds with review_prep.py)
+exit=0
