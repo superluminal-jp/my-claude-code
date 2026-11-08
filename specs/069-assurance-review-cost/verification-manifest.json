@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-069",
+    "problem_id": "P-069",
+    "reviewed_commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d",
+    "implementer": "claude",
+    "risk": {
+      "class": "medium",
+      "rationale": "verified-delivery の手順5と参照、新しいスクリプト review_prep.py（git を読み取りだけで走らせ、リポジトリの外の --out にだけ書く）を変える。assure.py と check_graph.py の判定の規則、認証・秘密・基盤の権限には触れず、git revert で戻せる。"
+    },
+    "approvals": [
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "feat/assurance-review-cost へのコミット、push、PR（マージはしない）。2026-11-08 の会話の質問「コミット」への回答"
+      }
+    ],
+    "checks": [
+      {
+        "check_id": "R0-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/review-prep-flow.txt",
+          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+        }
+      },
+      {
+        "check_id": "R0-A2",
+        "status": "not_run",
+        "reason": "保証レビューの各回のトランスクリプトを要約して確かめる"
+      },
+      {
+        "check_id": "R0-A3",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "https://github.com/superluminal-jp/my-claude-code/actions/runs/42433361852/job/128586885605",
+          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+        }
+      },
+      {
+        "check_id": "R0-A4",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "RA-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/unit-tests.junit.xml",
+          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+        }
+      },
+      {
+        "check_id": "RA-A2",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "RB-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/unit-tests.junit.xml",
+          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+        }
+      },
+      {
+        "check_id": "RB-A2",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "RD-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/unit-tests.junit.xml",
+          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+        }
+      },
+      {
+        "check_id": "RD-A2",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      },
+      {
+        "check_id": "RC-A1",
+        "status": "not_run",
+        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+      }
+    ],
+    "test_changes": [],
+    "infra_changes": []
+  }
+}
