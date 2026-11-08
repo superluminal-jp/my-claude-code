@@ -1,29 +1,3 @@
 R0-A2: what each assurance review round of spec 069 read and used, from its transcript, summarized by evidence/transcript_usage.py at 321befe7309568042703b77f5d055e62e3048564
 (contents = a call that read a file of the record directory in the repository; names = listed paths only; bundle = read the copy inside the bundle. The classification counts a call as contents when it is unsure, and the count is a lower bound: a call that reaches the directory without naming it is not seen.)
 
-(contents is a lower bound: a call that reaches the record directory without naming it is not seen)
-== round 1: 21 tool calls, 34 turns, tool results 130 KB; input 68, cache read 2140063, cache create 175943, output 50034; record-directory contents read: 4
-   bundle      6604 B  Bash: cd /private/tmp/claude-501/bundle-069-r1/evidence/specs/069-assurance-review-cost/evidence/ba76e65 && cat review-prep-flow.txt; head -c 6000 unit-test
-   bundle      3610 B  Bash: cd /private/tmp/claude-501/bundle-069-r1/evidence/specs/069-assurance-review-cost/evidence/ba76e65 && grep -n -i "skipped" unit-tests.junit.xml; grep 
-   contents    1586 B  Bash: git status --short | head; git log --oneline -8; git cat-file -t ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d; ls specs/069-assurance-review-cost specs/06
-   contents    3185 B  Bash: cd /Users/taikiogihara/work/my-claude-code/specs/069-assurance-review-cost && cat evidence/junit_run.py; echo ======; cat evidence/mutations.sh | head
-   contents    1217 B  Bash: git diff --name-only ba76e65 HEAD; python3 -I - <<'EOF'
-import json
-m=json.load(open('specs/069-assurance-review-cost/verification-manifest.json'))['v
-   contents    2575 B  Bash: cd /Users/taikiogihara/work/my-claude-code/specs/069-assurance-review-cost/evidence/ba76e65 && head -c 3000 ci-test-job.txt; echo; grep -n "CA-07\|rev
-== round 2: 14 tool calls, 22 turns, tool results 100 KB; input 44, cache read 1088343, cache create 171419, output 34802; record-directory contents read: 0
-   bundle      5410 B  Bash: cd /private/tmp/claude-501/bundle-069-r2/evidence/specs/069-assurance-review-cost/evidence/3d0a0e4 && cat review-prep-flow.txt ci-test-job.txt; head -
-   bundle      3235 B  Bash: cd /private/tmp/claude-501/bundle-069-r2/evidence/specs/069-assurance-review-cost/evidence/3d0a0e4 && grep -c '<testcase' unit-tests.junit.xml; grep -
-   names       1881 B  Bash: git diff --stat ba76e65 3d0a0e4 -- specs/069-assurance-review-cost | cat; git ls-tree -r --name-only 3d0a0e4 specs/069-assurance-review-cost | cat; gi
-== round 3: 17 tool calls, 27 turns, tool results 170 KB; input 54, cache read 1692087, cache create 238134, output 58501; record-directory contents read: 1
-   bundle      4192 B  Bash: cd /private/tmp/claude-501/bundle-069-r3/evidence/specs/069-assurance-review-cost/evidence/c3f5f61 && cat ci-test-job.txt review-prep-flow.txt; grep -
-   bundle      5770 B  Bash: cd /private/tmp/claude-501/bundle-069-r3/evidence/specs/069-assurance-review-cost/evidence/c3f5f61 && grep -o 'classname="[^"]*" name="[^"]*"' unit-te
-   bundle      8424 B  Bash: cd /private/tmp/claude-501/bundle-069-r3/evidence/specs/069-assurance-review-cost/evidence/c3f5f61 && grep -c acceptance_id unit-tests.junit.xml; grep
-   bundle     15440 B  Bash: cd /private/tmp/claude-501/bundle-069-r3/evidence/specs/069-assurance-review-cost/evidence/c3f5f61 && grep -n acceptance_id unit-tests.junit.xml | gre
-   contents    2190 B  Bash: git branch -a 2>&1 | head; git log --oneline -15 c3f5f6180ad798826d8f722a385bfebfea191b8c 2>&1; git merge-base c3f5f6180ad798826d8f722a385bfebfea191b8
-== round 4: 13 tool calls, 21 turns, tool results 104 KB; input 42, cache read 1215092, cache create 149917, output 57347; record-directory contents read: 4
-   bundle     11217 B  Bash: cd /private/tmp/claude-501/bundle-069-r4/evidence/specs/069-assurance-review-cost/evidence/b1ef7d5 && for f in ci-test-job.txt reviewer-reads.txt revi
-   contents    4138 B  Bash: git ls-tree -r --name-only a0ab252 specs/069-assurance-review-cost | head -50; git show b1ef7d5:.claude/skills/verified-delivery/scripts/review_prep.p
-   contents    3734 B  Bash: git show a0ab252:specs/069-assurance-review-cost/evidence/b1ef7d5/mutations.txt | cut -c1-260 | tail -40; git show a0ab252:specs/069-assurance-review-
-   contents    1558 B  Bash: git show b1ef7d5:specs/069-assurance-review-cost/evidence/transcript_usage.py | sed -n 1,30p; git show b1ef7d5:specs/069-assurance-review-cost/evidenc
-   contents     101 B  Bash: git status --short | head -5; git rev-parse HEAD; python3 -I -B .claude/skills/verified-delivery/scripts/review_prep.py check --records specs/069-assu
