@@ -329,5 +329,73 @@ class CardCodeReviewFindingTests(CardTestCase):
                 self.assertIn("A-09", proc.stdout)
 
 
+def with_stage(criterion: str = "TEST-SYSTEM-001") -> dict:
+    doc = load("graph.json")
+    for node in doc["requirements"]:
+        for entry in node["acceptance"]:
+            if entry["id"] == criterion:
+                entry["stage"] = "post_deploy"
+    return doc
+
+
+def not_run(criterion: str = "TEST-SYSTEM-001"):
+    def change(m):
+        check(m, criterion).update(status="not_run")
+        check(m, criterion).pop("evidence")
+    return change
+
+
+class StageCardTests(CardTestCase):
+    """A graph with post-deploy criteria gets the decision before deploy too."""
+
+    def test_both_decisions_are_shown_and_the_person_decides_whether_to_deploy(self):
+        proc = self.card(not_run(), graph=with_stage())
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        out = proc.stdout
+        self.assertIn("**Decision: ⛔ blocked**", out)
+        self.assertIn("**Before deploy: pass** (leaves out 1 post-deploy check that has not run: `TEST-SYSTEM-001`)", out)
+        self.assertLess(out.index("**Decision:"), out.index("**Before deploy:"))
+        decide = out.split("## Decisions for a person", 1)[1].split("##", 1)[0]
+        self.assertIn("Decide whether to deploy. After deploy, record the post-deploy checks and run the gate again "
+                      "to accept or return the change.", decide)
+        self.assertNotIn("Return the change", decide)
+
+    def test_japanese_labels_for_the_decision_before_deploy(self):
+        out = self.card(not_run(), graph=with_stage(), lang="ja").stdout
+        self.assertIn("**deploy の前の判定: pass**（まだ走っていない deploy の後の検査 1 件を除く: `TEST-SYSTEM-001`）", out)
+        self.assertIn("deploy してよいかを決める。deploy の後に、deploy の後の検査を記録して判定をやり直し、変更を受け入れるか差し戻すかを決める。", out)
+
+    def test_a_failure_before_deploy_is_shown_and_deploy_is_not_offered(self):
+        def change(m):
+            not_run()(m)
+            check(m, "TEST-LEAF-001").update(status="failed")
+        out = self.card(change, graph=with_stage()).stdout
+        self.assertIn("**Before deploy: fail** (leaves out 1 post-deploy check that has not run: `TEST-SYSTEM-001`)", out)
+        self.assertNotIn("Decide whether to deploy", out)
+
+    def test_after_deploy_with_every_check_passed_both_decisions_pass(self):
+        out = self.card(graph=with_stage()).stdout
+        self.assertIn("**Decision: ✅ pass**", out)
+        self.assertIn("**Before deploy: pass**\n", out)
+        self.assertNotIn("Decide whether to deploy", out)
+
+    def test_a_graph_without_post_deploy_criteria_has_no_line_before_deploy(self):
+        out = self.card(not_run()).stdout
+        self.assertNotIn("Before deploy", out)
+        self.assertNotIn("Decide whether to deploy", out)
+        self.assertNotIn("deploy の前の判定", self.card(not_run(), lang="ja").stdout)
+
+
+class OriginCardTests(CardTestCase):
+    def test_a_requirement_directed_by_a_person_shows_who_and_where(self):
+        doc = load("graph.json")
+        doc["requirements"][1]["origin"] = {"kind": "instruction", "by": "owner-a", "ref": "conversation 2026-11-08 *q4*"}
+        out = self.card(graph=doc).stdout
+        self.assertIn("- `REQ-READ` (LEAF): GET /orders/{id} は所有者でない利用者に 404 を返す — directed by owner-a "
+                      "(conversation 2026-11-08 \\*q4\\*)", out)
+        self.assertIn("— owner-a の指示（conversation 2026-11-08 \\*q4\\*）", self.card(graph=doc, lang="ja").stdout)
+        self.assertNotIn("directed by", self.card().stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

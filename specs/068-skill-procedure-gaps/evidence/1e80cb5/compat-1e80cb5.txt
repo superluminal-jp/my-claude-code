@@ -1,0 +1,373 @@
+.claude/skills/requirements-decomposition/examples/challenge-report.example.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/examples/problem-card.example.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/examples/requirements-graph-v2.example.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/examples/requirements-graph.example.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/examples/skills-graph.example.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-01-duplicate-id.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-01", "REQ-B", "id is already used by node #3"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-02-missing-child.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-02", "REQ-ROOT", "child \"REQ-MISSING\" is not defined"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-03-cycle.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-03", "A", "cycle: A -> B -> C -> A"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-04-and-one-child.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-04", "REQ-ROOT", "an AND needs at least 2 children (got 1)"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-04-leaf-with-child.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-04", "REQ-A", "a LEAF has no children (got 1)"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-05-or-missing-selection.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-05", "REQ-ROOT", "no selection condition for child \"REQ-B\""]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-06-parent-without-acceptance.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-06", "REQ-ROOT", "has no acceptance criterion"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-07-invalid-level.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-07", "REQ-A", "acceptance #1 level must be L1, L2, or L3 (got \"L4\")"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-10-invalid-json.json exit=2 {"challenge": null, "decision": null, "error": "invalid JSON at line 2 column 1: Expecting value", "reasons": [], "status": "error", "violations": []}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/p1-10-unsupported-schema-version.json exit=2 {"challenge": null, "decision": null, "error": "a version 2 requirements graph needs a non-empty problem_id", "reasons": [], "status": "error", "violations": []}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/s-12-parent-with-only-l1.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-12", "REQ-P", "an AND needs an L2 or L3 acceptance criterion of its own, not only L1"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/us1-10-undefined-field.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-00", "REQ-A", "undefined field \"acceptence\""]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/us1-11-duplicate-key.json exit=2 {"challenge": null, "decision": null, "error": "duplicate key \"id\" in a JSON object", "reasons": [], "status": "error", "violations": []}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/us1-12-duplicate-acceptance-id.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-07", "REQ-B", "acceptance id \"TEST-REQ-A\" is already used by \"REQ-A\""]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/us1-13-selection-on-and.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-05", "REQ-ROOT", "only an OR node has a selection"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/us1-14-second-root.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-11", null, "the graph has 2 roots (\"REQ-ROOT\", \"REQ-FORGOTTEN\"); a requirements graph has one"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/valid-or-selection.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/valid-p1-07-levels.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/tests/fixtures/requirements/valid-p1-08-shared-child.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+.claude/skills/requirements-decomposition/tests/fixtures/skills/p1-09-auditor-declares-write.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-09", "problem-challenger", "an auditor must be read_only (declared workspace_write)"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/skills/us2-03-undefined-permission.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-09", "coder-step", "permission must be one of read_only, workspace_write, external_effect (got \"write\")"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/skills/us2-04-auditor-reaches-writer.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-09", "assurance-reviewer", "the auditor reaches \"coder-step\", which is workspace_write, through its children"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/skills/us2-05-cycle.json exit=1 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "failed", "violations": [["S-03", "skill-a", "cycle: skill-a -> skill-b -> skill-a"]]}
+.claude/skills/requirements-decomposition/tests/fixtures/skills/valid-multilevel-shared.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-03-card.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-03-graph.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-04-card.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-04-graph.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-05-card.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-05-graph.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-06-card.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/060-goal-refinement/evaluation/p2-06-graph.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/066-harness-behavior-baseline/challenge-report.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/066-harness-behavior-baseline/problem-card.challenger.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/066-harness-behavior-baseline/problem-card.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/066-harness-behavior-baseline/requirements-graph.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/067-sandbox-by-default/challenge-report.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/067-sandbox-by-default/problem-card.challenger.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/067-sandbox-by-default/problem-card.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+specs/067-sandbox-by-default/requirements-graph.json exit=0 {"challenge": null, "decision": null, "error": null, "reasons": [], "status": "passed", "violations": []}
+gate specs/066-harness-behavior-baseline exit=1 {"challenge": null, "decision": "blocked", "error": null, "reasons": [["A-03", "blocked", "\"R0-A1\" (L3) is not_run"], ["A-03", "blocked", "\"R0-A2\" (L3) is not_run"]], "status": "failed", "violations": []}
+gate .claude/skills/verified-delivery/examples exit=0 {"challenge": null, "decision": "pass", "error": null, "reasons": [], "status": "passed", "violations": []}
+== card specs/066-harness-behavior-baseline en
+# Review card: CHG-066 (P-066)
+
+**Decision: ⛔ blocked**
+
+From the assurance gate. It checks that the records are consistent, not that the change is secure.
+
+## Problem
+
+- **Current**: harness は部品ごとに設計・検査されている。依頼に対する期待は各部品の description に分散していて、部品をまたいだ期待（どの依頼でどの部品を選び、どれを選ばないか）は、検査できる形ではどこにも定まっていない。全体の振る舞いの証拠は、ファイル中の語句の有無を見る60件の構造検査と、2つのスキルをそれぞれ単体で読み込んで評価する eval だけである。構造検査は CI で実行されていない。
+- **Ideal**: harness を変える人が、変更の前と後で、代表的な依頼の集合について、Claude が harness 全体（常時ロードの apex と4ルール、全スキル）の下で意図した部品を選び、その部品の記述が約束する観測できる振る舞いをするかを確かめられる。
+- **Gap**: 代表的な依頼に対して、harness 全体の下で期待される部品の選択と観測できる振る舞いが検査できる形で定まっておらず、実際の振る舞いを繰り返し観測する手段もない。そのため、harness への変更の前と後で振る舞いを比べられず、変更が全体を良くしたか悪くしたかを証拠で示せない。
+
+## Change and risk
+
+- **Reviewed commit**: `f9dbf00b298c8a90301de7849b13b6f018163911`
+- **Implementer**: claude
+- **Risk**: high — run は、--scaffold で生成した準備スクリプトを、エージェントのサンドボックスの外で利用者として動かし、課金されるモデルの呼び出しでエージェント（Bash を許す）を利用者の機械で動かす。準備はデータから決まった型で生成し、パスと git のフックを制限するが、利用者として動くことに変わりはないので high とする（2回目の保証レビュー AR-07）。.claude/ は変えず、認証・認可、決済、インフラの権限には触れない。ファイルを読む道具（Read、Glob、Grep）は eval の OS サンドボックスの外で動くので、モデルが利用者のホームの絶対パスを読めば、秘密情報が結果の対話の記録に残りうる（8回目の保証レビュー AR-06）。run はそうした結果のファイルを記録する。評価の生の結果（対話の記録を含む）はリポジトリの中に書くが、git の追跡から外す。コミットや push で公開するかは、利用者が中身を確かめて決める。追加はすべてファイルの削除で戻せる。
+- **Approvals**: Taiki Ogihara (approved): 高リスクの残存リスク（--scaffold で生成した準備スクリプトがエージェントのサンドボックスの外で利用者として動くこと、課金されるモデルの呼び出し）と、試しの実行（24件を1回ずつ、費用の上限 $20）。2026-11-07、この変更の会話での回答。基準の実行（1件3回）の費用の上限は、試しの実測を見て別に承認を得る。; Taiki Ogihara (approved): 8回目の保証レビュー（AR-06）で分かった残存リスク（ファイルを読む道具 Read、Glob、Grep が eval の OS サンドボックスの外で動き、ホームの絶対パスを読まれれば内容が手元の結果に残りうること）を受け入れ、2822abe のまま試しの実行（24件を1回ずつ、上限 $20、実行のときにエージェントのサンドボックスを外す）に進むこと、9回目の保証レビューを実行の後に行うこと、ブランチの push と main への PR の作成。2026-11-07、この変更の会話での回答。; Taiki Ogihara (approved): 起点の実行（24件を3回ずつ、計72回、費用の上限 $30）を f9dbf00 のまま、10回目の保証レビューを待たずに走らせること。シナリオ集の24件を代表的な依頼の集合として受け入れること。2026-11-07、この変更の会話での回答。; Taiki Ogihara (approved): 受け入れの判定が blocked（R0-A1 と R0-A2 が未実行）のまま、PR \#120 を main にマージすること。起点の実行は、利用枠に収めるために分けて走らせる機能とあわせて、後の変更で作る。2026-11-08、この変更の会話での回答。
+
+## Checks by level
+
+| Level | passed | failed | not_run | blocked | not_applicable |
+|---|---|---|---|---|---|
+| L1 | 7 | 0 | 0 | 0 | 0 |
+| L2 | 2 | 0 | 0 | 0 | 0 |
+| L3 | 0 | 0 | 2 | 0 | 0 |
+
+## Not passed
+
+- `R0-A1` (L3, R0): not_run
+- `R0-A2` (L3, R0): not_run
+
+## Unresolved
+
+- A-03 (blocked): "R0-A1" (L3) is not\_run
+- A-03 (blocked): "R0-A2" (L3) is not\_run
+
+## Decisions for a person
+
+- Accept or reject the residual risk of this high-risk change.
+- Return the change, or supply what the unresolved items name.
+
+## Requirements
+
+```mermaid
+flowchart TD
+  n0["R0 · AND · open"]:::open
+  n1["R-SPEC · AND · pass"]:::pass
+  n2["R1 · LEAF · pass"]:::pass
+  n3["R2 · LEAF · pass"]:::pass
+  n4["R-MEASURE · AND · pass"]:::pass
+  n5["R3 · LEAF · pass"]:::pass
+  n6["R4 · LEAF · pass"]:::pass
+  n7["R5 · LEAF · pass"]:::pass
+  n8["R6 · LEAF · pass"]:::pass
+  n0 --> n1
+  n0 --> n4
+  n1 --> n2
+  n1 --> n3
+  n4 --> n5
+  n4 --> n6
+  n4 --> n7
+  n4 --> n8
+  classDef pass fill:#e6f4ea,stroke:#1e7e34
+  classDef fail fill:#fdecea,stroke:#b02a37
+  classDef open fill:#fff4e5,stroke:#b36b00
+```
+
+- `R0` (AND): 代表的な依頼の集合について、harness 全体の下で期待される部品の選択と観測できる振る舞いが検査できる形で定まり、同じシナリオ集を harness の別々のコミットで実行して結果を比べられる。
+- `R-SPEC` (AND): harness 全体が依頼に対して期待する部品の選択と振る舞いが、受け持ちの対応表と、それを覆うシナリオ集として検査できる形で定まっている。
+- `R1` (LEAF): 受け持ちの対応表が、apex の各義務と、各部品が除外し、明示的に別の能力に委ねている関心事（『別の能力の仕事』『separate capabilities』などと書いたもの）を段階として列挙し、各段階に受け持つ部品か『担い手なし』を記し、互いの description で除外し合う部品を境界グループとして記し、harness のすべての部品が少なくとも1つの段階に現れる。
+- `R2` (LEAF): シナリオ集の各シナリオが、日本語の依頼、期待する部品の選択、観測できる振る舞いの期待を持ち、各期待がその根拠となる harness の記述（シナリオの段階の担い手か apex のファイル、段階そのものの根拠として対応表が引くファイル、または期待するスキルが属する境界グループの根拠のファイルの語句）を引き、各判定の正規表現が合うべき例と合ってはいけない例で確かめられている。
+- `R-MEASURE` (AND): harness のあるコミットについて、シナリオ集の振る舞いを、利用者の環境を変えず、費用の上限の下で繰り返し測り、別のコミットの結果と比べられる。
+- `R3` (LEAF): 実行器が、harness のコミットとシナリオ集のコミットを別々に指定でき、どちらも作業ツリーではなく git の内容から組み立て、評価を走らせ、両方のコミット、モデル、実行ごとの結果を含む結果を指定した場所に残す。harness のコミットが、シナリオ集の対応表にある部品や引用した語句を欠いても組み立てを止めずに食い違いを記録し、対応表にない部品を持つときは止める。評価の後、結果のシナリオの集合がシナリオ集と一致することを確かめる。
+- `R4` (LEAF): 評価の実行は、利用者のホーム、実リポジトリ、Claude Code の設定に書き込まず、外部のネットワークに出ず、報告を外部へ公開せず、必ず費用の上限を持つ。サンドボックスの外で利用者として動く準備スクリプトは、データ（書き込むファイルと内容）から決まった型で生成し、作業領域の外にも .git の中にも書かず、git のフックを動かさない。結果をリポジトリに残すのは、評価が終わった後の実行器だけである。その結果は git の追跡から外し、コミットや push で公開するかは、人が中身を確かめて決める。
+- `R5` (LEAF): 評価でモデルに届く harness の指示が、そのコミットの .claude/ と同じである。常時ロードの apex と4ルールの本文は欠けずに会話の開始時に届き、スキルは、評価に含めないと対応表に理由とともに記したものと、各スキルの evals/（そのスキル自身の評価の資料で、モデルへの指示ではない）を除き、すべて同じ内容で含まれ、settings.json の各項目は評価に含めるか除くかが理由とともに定まっている。
+- `R6` (LEAF): 比較の道具が、2つの結果からシナリオごとの得点の差を出し、差が決めた幅以上のシナリオに印をつけ、片方にしかないシナリオを分けて示す。シナリオ集のコミット、モデル、Claude Code の版、1シナリオあたりの実行回数のどれかが違う結果、記録のない結果、部分的な結果（公式文書の最上位の項目 partial）、到達確認がすべての実行で合格していない結果、評価したシナリオの集合がシナリオ集と一致しなかった結果、評価が採点の前に誤りで止めた実行を含む結果は、比べられない理由として示し、既定では失敗で終える。印は確認の対象を絞るためのもので、統計的な有意を示さないと明記する。
+
+## Evidence
+
+| Requirement | Check | Level | Status | Evidence |
+|---|---|---|---|---|
+| R0 | `R0-A1` | L3 | not_run | — |
+| R0 | `R0-A2` | L3 | not_run | — |
+| R-SPEC | `R-SPEC-A1` | L2 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/check-real-tree.txt（コードのパスがきれいな状態で、実際の対応表とシナリオ集に harness_eval.py check が違反0件）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-SPEC-A1]` @ `f9dbf00` |
+| R1 | `R1-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R1 | `R1-A3` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/ci-step.txt（.github/workflows/ci.yml の43–44行目が tests/run-harness-eval.sh を実行する）` @ `f9dbf00` |
+| R2 | `R2-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R-MEASURE | `R-MEASURE-A1` | L2 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/dry-run.json（git の内容から組み立て、claude plugin validate の終了コード0、24件、組み立てたスキル14件の一覧（skills）、実行のコマンド行を表示、モデルは呼んでいない）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-MEASURE-A1]（claude を差し替えた run の結合テストと、1つのシナリオ集を2つの harness のコミットで走らせて比べる結合テスト）` @ `f9dbf00` |
+| R3 | `R3-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R4 | `R4-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R5 | `R5-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R6 | `R6-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+== exit=1
+== card .claude/skills/verified-delivery/examples en
+# Review card: CHG-001 (PRB-001)
+
+**Decision: ✅ pass**
+
+From the assurance gate. It checks that the records are consistent, not that the change is secure.
+
+## Problem
+
+- **Current**: 隔離した環境で、利用者 B が利用者 A の注文を取得できた
+- **Ideal**: 利用者は、閲覧を許可された注文にしかアクセスできない
+- **Gap**: 注文の取得 API で、オブジェクト単位の認可の要件が満たされていない
+
+## Change and risk
+
+- **Reviewed commit**: `0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f`
+- **Implementer**: claude
+- **Risk**: low — テストの環境だけで確かめた変更
+- **Approvals**: none
+
+## Checks by level
+
+| Level | passed | failed | not_run | blocked | not_applicable |
+|---|---|---|---|---|---|
+| L1 | 3 | 0 | 0 | 0 | 0 |
+| L2 | 1 | 0 | 0 | 0 | 0 |
+| L3 | 1 | 0 | 0 | 0 | 0 |
+
+## Not passed
+
+- none
+
+## Unresolved
+
+- none
+
+## Decisions for a person
+
+- Accept or return the change.
+
+## Requirements
+
+```mermaid
+flowchart TD
+  n0["REQ-ROOT · AND · pass"]:::pass
+  n1["REQ-READ · LEAF · pass"]:::pass
+  n2["REQ-EXPORT · LEAF · pass"]:::pass
+  n0 --> n1
+  n0 --> n2
+  classDef pass fill:#e6f4ea,stroke:#1e7e34
+  classDef fail fill:#fdecea,stroke:#b02a37
+  classDef open fill:#fff4e5,stroke:#b36b00
+```
+
+- `REQ-ROOT` (AND): 利用者は、閲覧を許可された注文にしかアクセスできない
+- `REQ-READ` (LEAF): GET /orders/{id} は所有者でない利用者に 404 を返す
+- `REQ-EXPORT` (LEAF): GET /orders/export は呼び出した利用者の注文だけを含む
+
+## Evidence
+
+| Requirement | Check | Level | Status | Evidence |
+|---|---|---|---|---|
+| REQ-ROOT | `TEST-PARENT-001` | L2 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-ROOT | `TEST-SYSTEM-001` | L3 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-READ | `TEST-LEAF-001` | L1 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-READ | `TEST-LEAF-002` | L1 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-EXPORT | `TEST-LEAF-003` | L1 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+== exit=0
+== card specs/066-harness-behavior-baseline ja
+# レビューカード: CHG-066 (P-066)
+
+**判定: ⛔ blocked**
+
+保証の判定による。記録どうしの整合を確かめるもので、変更が安全であることは示さない。
+
+## 問題
+
+- **現状**: harness は部品ごとに設計・検査されている。依頼に対する期待は各部品の description に分散していて、部品をまたいだ期待（どの依頼でどの部品を選び、どれを選ばないか）は、検査できる形ではどこにも定まっていない。全体の振る舞いの証拠は、ファイル中の語句の有無を見る60件の構造検査と、2つのスキルをそれぞれ単体で読み込んで評価する eval だけである。構造検査は CI で実行されていない。
+- **理想**: harness を変える人が、変更の前と後で、代表的な依頼の集合について、Claude が harness 全体（常時ロードの apex と4ルール、全スキル）の下で意図した部品を選び、その部品の記述が約束する観測できる振る舞いをするかを確かめられる。
+- **差分**: 代表的な依頼に対して、harness 全体の下で期待される部品の選択と観測できる振る舞いが検査できる形で定まっておらず、実際の振る舞いを繰り返し観測する手段もない。そのため、harness への変更の前と後で振る舞いを比べられず、変更が全体を良くしたか悪くしたかを証拠で示せない。
+
+## 変更とリスク
+
+- **審査の対象のコミット**: `f9dbf00b298c8a90301de7849b13b6f018163911`
+- **実装担当**: claude
+- **リスク**: high — run は、--scaffold で生成した準備スクリプトを、エージェントのサンドボックスの外で利用者として動かし、課金されるモデルの呼び出しでエージェント（Bash を許す）を利用者の機械で動かす。準備はデータから決まった型で生成し、パスと git のフックを制限するが、利用者として動くことに変わりはないので high とする（2回目の保証レビュー AR-07）。.claude/ は変えず、認証・認可、決済、インフラの権限には触れない。ファイルを読む道具（Read、Glob、Grep）は eval の OS サンドボックスの外で動くので、モデルが利用者のホームの絶対パスを読めば、秘密情報が結果の対話の記録に残りうる（8回目の保証レビュー AR-06）。run はそうした結果のファイルを記録する。評価の生の結果（対話の記録を含む）はリポジトリの中に書くが、git の追跡から外す。コミットや push で公開するかは、利用者が中身を確かめて決める。追加はすべてファイルの削除で戻せる。
+- **承認**: Taiki Ogihara (approved): 高リスクの残存リスク（--scaffold で生成した準備スクリプトがエージェントのサンドボックスの外で利用者として動くこと、課金されるモデルの呼び出し）と、試しの実行（24件を1回ずつ、費用の上限 $20）。2026-11-07、この変更の会話での回答。基準の実行（1件3回）の費用の上限は、試しの実測を見て別に承認を得る。; Taiki Ogihara (approved): 8回目の保証レビュー（AR-06）で分かった残存リスク（ファイルを読む道具 Read、Glob、Grep が eval の OS サンドボックスの外で動き、ホームの絶対パスを読まれれば内容が手元の結果に残りうること）を受け入れ、2822abe のまま試しの実行（24件を1回ずつ、上限 $20、実行のときにエージェントのサンドボックスを外す）に進むこと、9回目の保証レビューを実行の後に行うこと、ブランチの push と main への PR の作成。2026-11-07、この変更の会話での回答。; Taiki Ogihara (approved): 起点の実行（24件を3回ずつ、計72回、費用の上限 $30）を f9dbf00 のまま、10回目の保証レビューを待たずに走らせること。シナリオ集の24件を代表的な依頼の集合として受け入れること。2026-11-07、この変更の会話での回答。; Taiki Ogihara (approved): 受け入れの判定が blocked（R0-A1 と R0-A2 が未実行）のまま、PR \#120 を main にマージすること。起点の実行は、利用枠に収めるために分けて走らせる機能とあわせて、後の変更で作る。2026-11-08、この変更の会話での回答。
+
+## 水準ごとの検査
+
+| 水準 | passed | failed | not_run | blocked | not_applicable |
+|---|---|---|---|---|---|
+| L1 | 7 | 0 | 0 | 0 | 0 |
+| L2 | 2 | 0 | 0 | 0 | 0 |
+| L3 | 0 | 0 | 2 | 0 | 0 |
+
+## 合格していない検査
+
+- `R0-A1` (L3, R0): not_run
+- `R0-A2` (L3, R0): not_run
+
+## 未解消の事項
+
+- A-03 (blocked): "R0-A1" (L3) is not\_run
+- A-03 (blocked): "R0-A2" (L3) is not\_run
+
+## 人が決めること
+
+- この高リスクの変更の残存リスクを受け入れるかを決める。
+- 変更を差し戻すか、未解消の事項が求めるものを用意する。
+
+## 要求
+
+```mermaid
+flowchart TD
+  n0["R0 · AND · open"]:::open
+  n1["R-SPEC · AND · pass"]:::pass
+  n2["R1 · LEAF · pass"]:::pass
+  n3["R2 · LEAF · pass"]:::pass
+  n4["R-MEASURE · AND · pass"]:::pass
+  n5["R3 · LEAF · pass"]:::pass
+  n6["R4 · LEAF · pass"]:::pass
+  n7["R5 · LEAF · pass"]:::pass
+  n8["R6 · LEAF · pass"]:::pass
+  n0 --> n1
+  n0 --> n4
+  n1 --> n2
+  n1 --> n3
+  n4 --> n5
+  n4 --> n6
+  n4 --> n7
+  n4 --> n8
+  classDef pass fill:#e6f4ea,stroke:#1e7e34
+  classDef fail fill:#fdecea,stroke:#b02a37
+  classDef open fill:#fff4e5,stroke:#b36b00
+```
+
+- `R0` (AND): 代表的な依頼の集合について、harness 全体の下で期待される部品の選択と観測できる振る舞いが検査できる形で定まり、同じシナリオ集を harness の別々のコミットで実行して結果を比べられる。
+- `R-SPEC` (AND): harness 全体が依頼に対して期待する部品の選択と振る舞いが、受け持ちの対応表と、それを覆うシナリオ集として検査できる形で定まっている。
+- `R1` (LEAF): 受け持ちの対応表が、apex の各義務と、各部品が除外し、明示的に別の能力に委ねている関心事（『別の能力の仕事』『separate capabilities』などと書いたもの）を段階として列挙し、各段階に受け持つ部品か『担い手なし』を記し、互いの description で除外し合う部品を境界グループとして記し、harness のすべての部品が少なくとも1つの段階に現れる。
+- `R2` (LEAF): シナリオ集の各シナリオが、日本語の依頼、期待する部品の選択、観測できる振る舞いの期待を持ち、各期待がその根拠となる harness の記述（シナリオの段階の担い手か apex のファイル、段階そのものの根拠として対応表が引くファイル、または期待するスキルが属する境界グループの根拠のファイルの語句）を引き、各判定の正規表現が合うべき例と合ってはいけない例で確かめられている。
+- `R-MEASURE` (AND): harness のあるコミットについて、シナリオ集の振る舞いを、利用者の環境を変えず、費用の上限の下で繰り返し測り、別のコミットの結果と比べられる。
+- `R3` (LEAF): 実行器が、harness のコミットとシナリオ集のコミットを別々に指定でき、どちらも作業ツリーではなく git の内容から組み立て、評価を走らせ、両方のコミット、モデル、実行ごとの結果を含む結果を指定した場所に残す。harness のコミットが、シナリオ集の対応表にある部品や引用した語句を欠いても組み立てを止めずに食い違いを記録し、対応表にない部品を持つときは止める。評価の後、結果のシナリオの集合がシナリオ集と一致することを確かめる。
+- `R4` (LEAF): 評価の実行は、利用者のホーム、実リポジトリ、Claude Code の設定に書き込まず、外部のネットワークに出ず、報告を外部へ公開せず、必ず費用の上限を持つ。サンドボックスの外で利用者として動く準備スクリプトは、データ（書き込むファイルと内容）から決まった型で生成し、作業領域の外にも .git の中にも書かず、git のフックを動かさない。結果をリポジトリに残すのは、評価が終わった後の実行器だけである。その結果は git の追跡から外し、コミットや push で公開するかは、人が中身を確かめて決める。
+- `R5` (LEAF): 評価でモデルに届く harness の指示が、そのコミットの .claude/ と同じである。常時ロードの apex と4ルールの本文は欠けずに会話の開始時に届き、スキルは、評価に含めないと対応表に理由とともに記したものと、各スキルの evals/（そのスキル自身の評価の資料で、モデルへの指示ではない）を除き、すべて同じ内容で含まれ、settings.json の各項目は評価に含めるか除くかが理由とともに定まっている。
+- `R6` (LEAF): 比較の道具が、2つの結果からシナリオごとの得点の差を出し、差が決めた幅以上のシナリオに印をつけ、片方にしかないシナリオを分けて示す。シナリオ集のコミット、モデル、Claude Code の版、1シナリオあたりの実行回数のどれかが違う結果、記録のない結果、部分的な結果（公式文書の最上位の項目 partial）、到達確認がすべての実行で合格していない結果、評価したシナリオの集合がシナリオ集と一致しなかった結果、評価が採点の前に誤りで止めた実行を含む結果は、比べられない理由として示し、既定では失敗で終える。印は確認の対象を絞るためのもので、統計的な有意を示さないと明記する。
+
+## 証拠
+
+| 要求 | 検査 | 水準 | 状態 | 証拠 |
+|---|---|---|---|---|
+| R0 | `R0-A1` | L3 | not_run | — |
+| R0 | `R0-A2` | L3 | not_run | — |
+| R-SPEC | `R-SPEC-A1` | L2 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/check-real-tree.txt（コードのパスがきれいな状態で、実際の対応表とシナリオ集に harness_eval.py check が違反0件）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-SPEC-A1]` @ `f9dbf00` |
+| R1 | `R1-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R1 | `R1-A3` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/ci-step.txt（.github/workflows/ci.yml の43–44行目が tests/run-harness-eval.sh を実行する）` @ `f9dbf00` |
+| R2 | `R2-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R-MEASURE | `R-MEASURE-A1` | L2 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/dry-run.json（git の内容から組み立て、claude plugin validate の終了コード0、24件、組み立てたスキル14件の一覧（skills）、実行のコマンド行を表示、モデルは呼んでいない）と specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml の [R-MEASURE-A1]（claude を差し替えた run の結合テストと、1つのシナリオ集を2つの harness のコミットで走らせて比べる結合テスト）` @ `f9dbf00` |
+| R3 | `R3-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R4 | `R4-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R5 | `R5-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+| R6 | `R6-A1` | L1 | passed | `specs/066-harness-behavior-baseline/evidence/f9dbf00/unit-tests.junit.xml` @ `f9dbf00` |
+== exit=1
+== card .claude/skills/verified-delivery/examples ja
+# レビューカード: CHG-001 (PRB-001)
+
+**判定: ✅ pass**
+
+保証の判定による。記録どうしの整合を確かめるもので、変更が安全であることは示さない。
+
+## 問題
+
+- **現状**: 隔離した環境で、利用者 B が利用者 A の注文を取得できた
+- **理想**: 利用者は、閲覧を許可された注文にしかアクセスできない
+- **差分**: 注文の取得 API で、オブジェクト単位の認可の要件が満たされていない
+
+## 変更とリスク
+
+- **審査の対象のコミット**: `0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f`
+- **実装担当**: claude
+- **リスク**: low — テストの環境だけで確かめた変更
+- **承認**: なし
+
+## 水準ごとの検査
+
+| 水準 | passed | failed | not_run | blocked | not_applicable |
+|---|---|---|---|---|---|
+| L1 | 3 | 0 | 0 | 0 | 0 |
+| L2 | 1 | 0 | 0 | 0 | 0 |
+| L3 | 1 | 0 | 0 | 0 | 0 |
+
+## 合格していない検査
+
+- なし
+
+## 未解消の事項
+
+- なし
+
+## 人が決めること
+
+- 変更を受け入れるか、差し戻すかを決める。
+
+## 要求
+
+```mermaid
+flowchart TD
+  n0["REQ-ROOT · AND · pass"]:::pass
+  n1["REQ-READ · LEAF · pass"]:::pass
+  n2["REQ-EXPORT · LEAF · pass"]:::pass
+  n0 --> n1
+  n0 --> n2
+  classDef pass fill:#e6f4ea,stroke:#1e7e34
+  classDef fail fill:#fdecea,stroke:#b02a37
+  classDef open fill:#fff4e5,stroke:#b36b00
+```
+
+- `REQ-ROOT` (AND): 利用者は、閲覧を許可された注文にしかアクセスできない
+- `REQ-READ` (LEAF): GET /orders/{id} は所有者でない利用者に 404 を返す
+- `REQ-EXPORT` (LEAF): GET /orders/export は呼び出した利用者の注文だけを含む
+
+## 証拠
+
+| 要求 | 検査 | 水準 | 状態 | 証拠 |
+|---|---|---|---|---|
+| REQ-ROOT | `TEST-PARENT-001` | L2 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-ROOT | `TEST-SYSTEM-001` | L3 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-READ | `TEST-LEAF-001` | L1 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-READ | `TEST-LEAF-002` | L1 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+| REQ-EXPORT | `TEST-LEAF-003` | L1 | passed | [ci_job](https://ci.example.test/runs/1) @ `0f5a148` |
+== exit=0

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-068",
+    "reviewed_commit": "1e80cb578afb49a688afc20619d91038478d4bb5",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、6回目（差分だけ。README を取り込むコミットは graph も risk class も変えなかったので、規則どおり）。使ったトークンは118,364、ツールの呼び出しは28回",
+    "context_given": [
+      "specs/068-skill-procedure-gaps/requirements-graph.json（1e80cb5 の版。276dca7 から変わっていない）",
+      "specs/068-skill-procedure-gaps/assurance-review-5.276dca7.json（前回の記録。指摘は0件）",
+      "git diff 276dca70c36e78785d905606990b48bb22b42cda 1e80cb578afb49a688afc20619d91038478d4bb5（記録の場所の外を変えたのは README の取り込みのコミット 1e80cb5 だけで、ほかは前の回の記録）",
+      "specs/068-skill-procedure-gaps/evidence/1e80cb5/",
+      "verified-delivery の references/reviewer.md の2回目以降のプロンプト（1e80cb5 の版。記録の場所 specs/068-skill-procedure-gaps/、言語は日本語）"
+    ],
+    "findings": []
+  }
+}

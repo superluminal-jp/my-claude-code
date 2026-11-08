@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-068",
+    "reviewed_commit": "276dca70c36e78785d905606990b48bb22b42cda",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、5回目（差分だけ。4回目の後の直しは graph も risk class も変えなかったので、規則どおり）。使ったトークンは84,845、ツールの呼び出しは12回",
+    "context_given": [
+      "specs/068-skill-procedure-gaps/requirements-graph.json（276dca7 の版。f972fe7 から変わっていない）",
+      "specs/068-skill-procedure-gaps/assurance-review-4.f972fe7.json（前回の指摘と答え。答えは実装者の主張として渡した）",
+      "git diff f972fe7376d7719204967a36883b1171cce332cf 276dca70c36e78785d905606990b48bb22b42cda（直しの差分）",
+      "specs/068-skill-procedure-gaps/evidence/276dca7/",
+      "verified-delivery の references/reviewer.md の2回目以降のプロンプト（276dca7 の版。記録の場所 specs/068-skill-procedure-gaps/、言語は日本語）"
+    ],
+    "findings": []
+  }
+}

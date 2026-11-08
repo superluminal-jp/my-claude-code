@@ -37,7 +37,7 @@ Required: `id`, `ideal`, `current`, `gap`, `significance` (non-empty strings), `
 
 ### Requirements graph — `requirements` (array)
 
-Each node: `id`, `statement`, `decomposition` (`AND` — every child is needed; `OR` — one child is chosen by condition; `LEAF` — not decomposed), `acceptance` (at least one `{id, description, level}`, where `level` is `L1` for a leaf check, `L2` for a parent's integration check, `L3` for the whole system), and optionally `children`, `assumptions`, `counterexamples`, and, on an `OR` only, `selection` (`{child id: condition}` for every child). With `schema_version` 2 the top level also has `problem_id`, the id of the problem card the graph decomposes; the gate needs version 2.
+Each node: `id`, `statement`, `decomposition` (`AND` — every child is needed; `OR` — one child is chosen by condition; `LEAF` — not decomposed), `acceptance` (at least one `{id, description, level}`, where `level` is `L1` for a leaf check, `L2` for a parent's integration check, `L3` for the whole system, and optionally `stage`: `pre_deploy`, the default, or `post_deploy` for a criterion that can only be verified after the change is deployed), and optionally `children`, `assumptions`, `counterexamples`, `origin`, and, on an `OR` only, `selection` (`{child id: condition}` for every child). `origin` marks a requirement a person directed rather than one derived from the problem: exactly `{"kind": "instruction", "by": <who directed it>, "ref": <where that can be read>}`, with `by` and `ref` non-empty strings; a requirement without it follows from the problem. The checker reads only its shape: whether a person really gave that direction is for the challenger and the person named to see. With `schema_version` 2 the top level also has `problem_id`, the id of the problem card the graph decomposes; the gate needs version 2.
 
 ### Skill composition graph — `skills` (array, `schema_version` 1)
 
@@ -60,14 +60,14 @@ In the *Applies to* column, *declarations* means requirement and skill graph fil
 
 | Rule | Applies to | Passes when |
 |---|---|---|
-| S-00 | declarations | every node is an object with correctly typed fields and no undefined field |
+| S-00 | declarations | every node is an object with correctly typed fields and no undefined field (an `origin` has exactly `kind` `instruction` and non-empty `by` and `ref`) |
 | S-01 | declarations | every node has a non-empty, unique `id` |
 | S-02 | all | every child is defined (a `SKILL.md` exists in compatibility mode) and listed once |
 | S-03 | all | following children never returns to a node; a violation shows the cycle |
 | S-04 | requirements | `LEAF` has no child; `AND` and `OR` have at least two |
 | S-05 | requirements | an `OR` gives a non-empty condition for every child and names no id that is not its child; other nodes have no `selection` |
 | S-06 | requirements | every node has at least one acceptance criterion |
-| S-07 | requirements | acceptance ids are non-empty and unique across the graph; levels are `L1`–`L3` |
+| S-07 | requirements | acceptance ids are non-empty and unique across the graph; levels are `L1`–`L3`; a `stage`, when given, is `pre_deploy` or `post_deploy` |
 | S-08 | all | a child with several parents is legal (this rule never reports) |
 | S-09 | skills | permission and role have defined values; an `auditor` or `checker`, and every skill reachable from it, is `read_only` |
 | S-10 | compatibility mode | a declared child declares no children of its own: a `## Child skills` section may list skills that list none |

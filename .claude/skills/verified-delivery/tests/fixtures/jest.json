@@ -1,0 +1,45 @@
+{
+  "numFailedTestSuites": 1,
+  "numFailedTests": 1,
+  "numPassedTestSuites": 1,
+  "numPassedTests": 3,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 0,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 2,
+  "numTotalTests": 4,
+  "openHandles": [],
+  "snapshot": {"added": 0, "failure": false, "filesAdded": 0, "filesRemoved": 0, "filesUnmatched": 0, "filesUpdated": 0, "matched": 0, "total": 0, "unchecked": 0, "unmatched": 0, "updated": 0},
+  "startTime": 1762560000000,
+  "success": false,
+  "wasInterrupted": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {"ancestorTitles": ["GET /orders/{id}"], "duration": 4, "failureDetails": [], "failureMessages": [], "fullName": "GET /orders/{id} returns 404 to another user [TEST-LEAF-001]", "location": null, "numPassingAsserts": 1, "status": "passed", "title": "returns 404 to another user [TEST-LEAF-001]"},
+        {"ancestorTitles": ["GET /orders/{id}", "TEST-LEAF-002"], "duration": 3, "failureDetails": [], "failureMessages": [], "fullName": "GET /orders/{id} TEST-LEAF-002 returns the owner's order", "location": null, "numPassingAsserts": 1, "status": "passed", "title": "returns the owner's order"}
+      ],
+      "coverage": {},
+      "endTime": 1762560001000,
+      "message": "",
+      "name": "/repo/tests/orders.test.js",
+      "startTime": 1762560000100,
+      "status": "passed",
+      "summary": ""
+    },
+    {
+      "assertionResults": [
+        {"ancestorTitles": ["GET /orders/export"], "duration": 5, "failureDetails": [{}], "failureMessages": ["Error: expected 0 orders of user A"], "fullName": "GET /orders/export leaves out other users' orders TEST-LEAF-003", "location": null, "numPassingAsserts": 0, "status": "failed", "title": "leaves out other users' orders TEST-LEAF-003"},
+        {"ancestorTitles": ["GET /orders/export"], "duration": 2, "failureDetails": [], "failureMessages": [], "fullName": "GET /orders/export TEST-LEAF-003.extra keeps the column order", "location": null, "numPassingAsserts": 1, "status": "passed", "title": "TEST-LEAF-003.extra keeps the column order"}
+      ],
+      "coverage": {},
+      "endTime": 1762560001500,
+      "message": "  ● GET /orders/export › leaves out other users' orders TEST-LEAF-003",
+      "name": "/repo/tests/export.test.js",
+      "startTime": 1762560000200,
+      "status": "failed",
+      "summary": ""
+    }
+  ]
+}

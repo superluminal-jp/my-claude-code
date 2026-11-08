@@ -43,7 +43,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `requirements-decomposition`(合意済みの問題を、根拠・原因の仮説・解決策を分けた問題カードに記録し、
     親が固有の L2 か L3 の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、読み取り専用の反証役の
     サブエージェントに異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
-    (ready か blocked)を決める。[spec 059](specs/059-refinement-graph-checker/spec.md)、
+    (ready か blocked)を決める。人の指示で入れた要件は `origin` を持ち、反証役はそれを与えられた制約として扱う。
+    deploy の後でしか確かめられない受け入れ条件は `stage` を持つ。[spec 059](specs/059-refinement-graph-checker/spec.md)、
     [spec 060](specs/060-goal-refinement/spec.md))、
     `verified-delivery`(`problem-definition`・`requirements-decomposition`・`coder` を順に適用する親スキル。
     受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを記録し、同梱の検査器の判定で
@@ -52,7 +53,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     答えられていない指摘、判定が自分で検査し直して壊れていると分かった要求グラフで止まり、工程を飛ばすと合格せずに止まる。判断する人に1画面のレビューカードを示し、
     レビューの時間を品質を保ったまま減らすかを、事前登録した基準の比較実験で判定する。
     [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md)、[spec 063](specs/063-pilot-metrics/spec.md)、
-    [spec 064](specs/064-assurance-gate-hardening/spec.md))、
+    deploy の後でしか確かめられない受け入れ条件は、別の deploy の前の判定から除き、カードは受け入れの判定の下にそれを示す。
+    JUnit XML に加えて Jest の `--json` の結果も読み、記録は審査したコミットの後の記録だけのコミットに入れ、直しの後のレビューは直しの差分だけを読む。
+    [spec 064](specs/064-assurance-gate-hardening/spec.md)、[spec 068](specs/068-skill-procedure-gaps/problem.md))、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
     開発着手前に整理）、
@@ -223,6 +226,7 @@ my-claude-code/
         ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
         ├── verified-delivery/      # 親スキル: 受け入れ条件ごとの証拠 → pass/fail/blocked の判定
         │   ├── SKILL.md            #   手順と子スキル
+        │   ├── README.md           #   初めて使う人向けの仕組みの説明(README.ja.md: 日本語)
         │   ├── references/         #   検証の記録の形式と規則、保証レビュー役への指示文
         │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)
         │   └── tests/              #   受け入れテストとフィクスチャ
@@ -314,6 +318,8 @@ bash tests/run-config-pyramid.sh
 
 前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録が判定に合格することと、`requirements-decomposition` の
 テストの要求グラフのうち、その検査器が判定の頼る規則で違反とするものを、判定が合格させないことを確かめる。
+また、1つの架空の変更を、2つの検査器で分解から受け入れまで進める(`tests/assert_delivery_flow.py`。人の指示による要件、Jest の結果、
+deploy の前の判定、カードの2つの判定)。
 受け入れテストには、[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送った4件
 (親の検証の失敗、証拠のない AI の申告、古い証拠、未分類のリスク)を含む。
 

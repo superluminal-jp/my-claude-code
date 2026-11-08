@@ -1,0 +1,19 @@
+R0-A3: the ten suites of the CI test job (.github/workflows/ci.yml), each run at 276dca70c36e78785d905606990b48bb22b42cda
+
+Nine suites, run inside the Claude Code sandbox (ci-suites-local.txt):
+tests/run-install.sh exit=0 | All installer contract checks passed.
+tests/run-digital-agency-frontend-skill.sh exit=0 | Results: 74 passed, 0 failed
+tests/run-removed-guardrails.sh exit=0 | Results: 4 passed, 0 failed
+tests/run-sandbox-settings.sh exit=0 | Results: 61 passed, 0 failed
+tests/run-package-safety-bundle.sh exit=0 | Results: 21 passed, 0 failed
+tests/run-readme-skill-index.sh exit=0 | Results: 33 passed, 0 failed
+tests/run-requirements-decomposition-skill.sh exit=0 | Results: 5 passed, 0 failed
+tests/run-verified-delivery-skill.sh exit=0 | Results: 6 passed, 0 failed
+tests/run-harness-eval.sh exit=0 | harness-eval: passed
+
+run-mcp-startup.sh, which the sandbox cannot run (it refuses writes to ~/.cache/uv), run outside it with the person's approval (mcp-startup.txt):
+MCP startup smoke test passed: 1 package(s).
+MCP http-shape check passed: 4 entr(y/ies).
+exit=0
+
+Corroboration, not the evidence: the CI test job of PR #123 passed all ten at 32ad6b0ddbad1e1035b817173c3704e3bc5a2694, whose tree differs from 276dca7 only under specs/068-skill-procedure-gaps/: https://github.com/superluminal-jp/my-claude-code/actions/runs/42424815848/job/128560706571

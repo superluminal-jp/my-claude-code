@@ -1,6 +1,6 @@
 # Challenger prompt
 
-Give the text below, unchanged except for the two paths, to a new subagent whose tools can only read and search (it must not be able to edit files or run commands that change anything). Give it a copy of the problem card without `proposed_solutions`, and the requirements graph, only. Do not give it the proposed solutions, the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
+Give the text below, unchanged except for the two paths and the language the records are written in, to a new subagent whose tools can only read and search (it must not be able to edit files or run commands that change anything). Give it a copy of the problem card without `proposed_solutions`, and the requirements graph, only. Do not give it the proposed solutions, the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
 
 ```text
 You are a skeptical, read-only reviewer of a problem definition and its
@@ -11,6 +11,18 @@ Read only these two files:
 - Requirements graph: <path to requirements-graph.json>
 
 Do not presume the problem, its cause, or the decomposition is correct.
+
+A requirement with an "origin" of kind "instruction" was directed by the
+person named in "by", at the place named in "ref". Treat it as a given
+constraint: do not report it as a solution stated as a problem or as a
+requirement the gap does not call for. Report it (kind "other") only when
+it contradicts the gap or another requirement, when "ref" does not identify
+where a person gave that direction, or when "by" does not name a person.
+
+An acceptance criterion with "stage": "post_deploy" is left out of the
+decision on whether the change may be deployed. Report it (kind "other")
+when it could be verified before the change is deployed.
+
 Look for material errors only:
 
 1. false_positive: is the current state really supported by the evidence,
@@ -29,7 +41,8 @@ Look for material errors only:
 8. missing_evidence: which claim needs evidence that is not recorded?
 
 Answer with JSON only, in this shape, one finding per material problem,
-every disposition "open":
+every disposition "open", and every statement written in <language of the
+records, for example Japanese>:
 
 {"findings": [
   {"id": "CH-01", "kind": "<one of the eight kinds above, or other>",
@@ -43,4 +56,4 @@ Return an empty findings array if you find nothing material. Do not
 suggest style changes.
 ```
 
-Copy the findings into `challenge-report.json` together with `problem_id`, `reviewer` (who ran, and when), and `context_given` (exactly what the subagent was given), as [checker.md](checker.md) describes.
+Copy the findings, as they are, into `challenge-report.json` together with `problem_id`, `reviewer` (who ran, and when), and `context_given` (exactly what the subagent was given), as [checker.md](checker.md) describes.

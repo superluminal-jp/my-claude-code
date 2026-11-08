@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-068",
+    "reviewed_commit": "b9a38d0bb8e1c1ad185395f6d00d54a450594825",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、2回目（すべての差分。1回目の後の直しが graph を変えたため）。使ったトークンは204,164、ツールの呼び出しは35回",
+    "context_given": [
+      "specs/068-skill-procedure-gaps/requirements-graph.json（b9a38d0 の版）",
+      "git diff 9cd7932 b9a38d0bb8e1c1ad185395f6d00d54a450594825（変更のすべての差分）",
+      "specs/068-skill-procedure-gaps/evidence/b9a38d0/ の11のファイル",
+      "verified-delivery の references/reviewer.md の1回目のプロンプト（b9a38d0 の版。記録の場所 specs/068-skill-procedure-gaps/、言語は日本語）"
+    ],
+    "findings": [
+      {"id": "AR-01", "kind": "other", "target": "R0-A5", "severity": "low",
+       "statement": "R0-A5 は「変更の前に失敗させられない試験は、ミューテーション検査で失敗を示す」を求め、R8 の手順も同じことを求める。ところが mutations.txt と records_check.py の項目4が見るのは、クラス単位の行（例: `red test_assure.StageTests against a stub of --stage: failed 4, errors 0`）が `failed [1-9], errors 0` で終わることだけである。mutations.sh の --stage のスタブは `deferrable = set()` の1行しか差し替えない。そのため StageTests 10件のうち、スタブで失敗するのは4件（left_out、親が全部 post_deploy、要件が全部 post_deploy、text 出力）だけである。test_acceptance_still_counts_the_post_deploy_check、test_before_deploy_a_criterion_without_a_stage_is_not_left_out、test_a_passed_post_deploy_check_passes_at_both_stages、test_after_deploy_such_requirements_pass_once_their_checks_pass、test_an_undefined_stage_in_the_graph_or_the_option_is_an_input_error はスタブでも通る。ミューテーションの対象は test_before_deploy_a_failed_blocked_or_missing_post_deploy_check_is_not_left_out と、スタブですでに失敗している親の試験だけである。JestTests の test_an_id_inside_a_dotted_longer_id_does_not_count も、すべて not_run を返すスタブで通り、ミューテーションが無い。したがって records_check.py が R0-A5 を passed にしても、新しい試験すべてが失敗しうることは示されない。procedure-map.md の行8「この変更自身もこれに従った」も、試験単位では証跡が無い。",
+       "disposition": "accepted",
+       "resolution": "mutations.sh を試験単位に作り直した。新しい試験のクラスから試験を1件ずつ取り出し、1件ずつ走らせて PASS・FAIL・ERROR を記録する。そして、どの試験も red（main の検査器か機能のスタブ）かミューテーションのどちらかで FAIL（assertion）になり、どこにも ERROR が無いことを数える。スタブで通っていた6件に、ミューテーションを6つ加えた（acceptance でも除く、すべての条件を post_deploy とみなす、post_deploy を退ける、合格した post_deploy の検査を未確認とみなす、未定義の stage を通す、「.」で続く id を数える）。その途中で、test_an_id_inside_a_dotted_longer_id_does_not_count が、失敗した試験を除いた後もファイルの status を failed のまま残していたため、確かめたい境界の規則とは別の理由（ファイルが試験の外で失敗した扱い）で通っていたことが分かった。入力を整合させ（ファイルの status を passed にする）、理由まで比べるように直した。結果は29件中29件で、error は0である。records_check.py の項目4は、この試験単位の数（coverage: N of N）と error が無いことを確かめる。R0-A5 の文も試験単位に直した。"},
+      {"id": "AR-02", "kind": "other", "target": "R8", "severity": "low",
+       "statement": "R8 の文と coder の SKILL.md:18 は、スタブが「誤った値を返すか、未実装の例外を投げる」ものでもよいとし、そのスタブに対する assertion の失敗を red とすると書く。しかし例外を投げるスタブでは、試験は assertion ではなく error（unittest では ERROR）で終わる。この変更自身の mutations.sh（expect_red）と records_check.py は `errors 0` を red の条件にし、error を red に数えない（1回目の AR-04 の直し）。手順の文と、その手順を自分に当てはめた検査が矛盾する。次の案件で未実装の例外を投げるスタブを手順どおりに使っても、「assertion の失敗ではない」という、R8 が無くそうとした指摘がまた出る。",
+       "disposition": "accepted",
+       "resolution": "coder の TDD 節を、スタブは最終形のシグネチャで型の合った誤った結果を返すもの、と直した。import・名前・コンパイル・使い方の誤りに加え、スタブが投げる例外も、壊れた検査と見分けられないので red に数えない、と書いた。graph の R8 の文も同じに直した。これで、手順と、この変更自身の検査（error を red に数えない）が一致する。"},
+      {"id": "AR-03", "kind": "uncovered_path", "target": "R1", "severity": "low",
+       "statement": "verified-delivery の手順4と R1 は、記録（problem card・graph・challenge report を含む）を reviewed_commit より後の記録だけのコミットにだけ入れる、と読める。ところが problem card・graph・challenge report は手順2・3で実装の前に作る成果物で、実装のあいだどこに置くか（未コミットか）を手順が定めていない。この変更自身、reviewed_commit の b9a38d0 が requirements-graph.json、assurance-review-1.b37a71c.json、evidence/mutations.sh、evidence/records_check.py を含み（`git show b9a38d0 --stat`）、その前の b37a71c も problem-card.json と problem.md を含む。R0-A5 の records_check.py の項目1は `git diff --name-only <reviewed_commit> HEAD` で reviewed_commit より後だけを見るので、この食い違いを検出しない。R0-A5 が passed になっても、「この変更自身の記録が変更後の手順に従う」ことは示されず、次の案件でも記録のコミットの置き方への指摘が残りうる。",
+       "disposition": "accepted",
+       "resolution": "手順4を直した。実装の前に書く記録（problem card・graph・challenge report）とその直しは変更と一緒に入れ、審査したコミットがそれを作った要件を持つようにする。reviewed_commit を指す記録（manifest・証跡・レビューの記録・カード）だけを、その後の記録の場所だけを変えるコミットに入れる。reviewer.md の2つのプロンプトと manifest.md と graph の R1 も、同じ区別に直した。この変更自身の置き方（graph と前の回のレビューの記録が直しのコミットに入る）は、この直した手順に合う。前の回のレビューの記録はその前の reviewed_commit を指し、今回の reviewed_commit は指さない。"}
+    ]
+  }
+}

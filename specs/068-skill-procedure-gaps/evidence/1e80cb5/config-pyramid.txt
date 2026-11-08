@@ -1,0 +1,64 @@
+commit: 1e80cb578afb49a688afc20619d91038478d4bb5 (a clean worktree of the commit, inside the Claude Code sandbox, with mktemp -d given a template under $TMPDIR because the sandbox refuses the default /var/folders location)
+PASS APEX-01: one governing outcome
+PASS APEX-02: definition branch
+PASS APEX-03: execution branch
+PASS APEX-04: handoff branch
+PASS APEX-05: evaluates every capability description
+PASS APEX-06: orders compound matches by dependency
+PASS APEX-07: no lower configuration or command reference
+PASS APEX-08: no environment-specific server registry
+PASS APEX-09: delegates volume work to smaller-model subagents without waiting for the user
+PASS APEX-10: keeps the judgment that the work is complete on the main conversation's model
+PASS RULE-01: exactly four universal rule files
+PASS RULE-02: no config path or slash-command dependency
+PASS RULE-03: no named authored-skill routing
+PASS RULE-04: no pairwise sibling filename reference
+PASS RULE-05: clarification owns material outcome gaps
+PASS RULE-06: reasoning owns inference
+PASS RULE-07: permission owns external effects
+PASS RULE-08: presentation owns sibling grouping
+PASS RULE-10: legacy conditional and routing rules are absent
+PASS RULE-12: presentation defines terms for a newcomer
+PASS RULE-13: presentation forbids explaining by metaphor or analogy
+PASS RULE-14: presentation orders the parts of a research paper, answer first
+PASS RULE-15: presentation opens each paragraph with its claim
+PASS RULE-16: presentation makes each supporting claim visible
+PASS RULE-17: presentation matches the visual form to the relation
+PASS RULE-18: presentation takes each term's form from its field
+PASS RULE-19: presentation never coins a translation
+PASS RULE-20: presentation assumes a reader without the conversation, code, or documents
+PASS RULE-21: presentation names the referent of a word with several referents
+PASS RULE-22: presentation resolves pointers into unseen context
+PASS RULE-23: presentation defines a term even when the user has used it
+PASS RULE-24: the model routing rule is retired
+PASS SKILL-01: all authored skill entry points exist
+PASS SKILL-02: standard description is the only trigger metadata
+PASS SKILL-03: every authored description states an exclusion boundary
+PASS SKILL-04: no entry point depends on config paths
+PASS SKILL-05: authored packages do not name siblings
+PASS SKILL-07: deliverables are read by a subagent that has not seen the conversation
+PASS SKILL-06: packages do not hard-code their install root
+PASS SKILL-08: the decomposition skill is retired to archive/
+PASS SKILL-09: authored packages cite none of this repository's specs or archive
+PASS PARENT-01: a parent may name a child it declares
+PASS PARENT-02: a parent may not name a skill it does not declare
+PASS PARENT-03: a child may not name its parent
+PASS PARENT-04: a child may not name a sibling child
+PASS PARENT-05: a declared child must be an authored skill
+PASS PARENT-06: a declared child may not declare children of its own
+PASS PARENT-07: a parent names its children by name, not by path
+PASS PARENT-08: a parent may not declare itself as a child
+PASS PARENT-09: an example section inside a tilde or indented fence is not a declaration
+PASS PARENT-10: a shorter fence inside a longer one does not close it
+PASS ROUTE-01: code-only selects implementation
+PASS ROUTE-05: DADS remains an independently matching domain overlay
+PASS ROUTE-06: formal requirements can precede DADS implementation
+PASS ROUTE-07: Scrum artifacts retain domain judgement
+PASS ROUTE-08: generic PM status and Gantt work is not Scrum
+PASS ROUTE-09: product strategy precedes development, distinct from scope/facilitation/generic docs
+PASS ROUTE-10: problem definition stays gap-framing, distinct from cause analysis/solutions/scope clarification
+PASS ROUTE-12: secure logging stays a domain overlay, distinct from log infrastructure operations
+PASS ROUTE-13: secure logging excludes log infrastructure operations
+PASS LINK-01: authored package-relative Markdown links resolve
+PASS BUDGET-01: unconditional corpus is smaller than legacy baseline
+Results: 62 passed, 0 failed

@@ -57,6 +57,11 @@ PARENT_LEVELS = ("L2", "L3")
 # A check at these levels is a parent's or the system's own verification, so
 # waiving it as not_applicable needs someone other than the implementer.
 WAIVER_APPROVAL_LEVELS = ("L2", "L3")
+# When an acceptance criterion can be verified (the graph's optional stage;
+# absent means pre_deploy), and what the gate decides: whether the change may
+# be deployed (pre_deploy) or whether it is accepted (acceptance, the default).
+CRITERION_STAGES = ("pre_deploy", "post_deploy")
+GATE_STAGES = ("pre_deploy", "acceptance")
 COMMIT = re.compile(r"^[0-9a-f]{7,40}$")
 _UNSAFE_CATEGORIES = frozenset({"Cc", "Cf", "Zl", "Zp"})
 
@@ -215,6 +220,9 @@ def graph_parts(document: Any) -> Tuple[str, List[Tuple[str, str, str]]]:
         for entry in entries:
             if not isinstance(entry, dict) or not is_text(entry.get("id")) or entry.get("level") not in LEVELS:
                 raise InputError("every acceptance criterion needs an id and a level; check the graph with its own checker first")
+            if "stage" in entry and entry["stage"] not in CRITERION_STAGES:
+                raise InputError(f"acceptance {show(entry['id'])} has stage {show(entry['stage'])}, not pre_deploy or post_deploy; "
+                                 "check the graph with its own checker first")
             # One check answers one criterion: a reused id would let a leaf's
             # check stand for a parent's own check.
             if entry["id"] in owners:
@@ -284,6 +292,13 @@ def graph_structure(document: Any) -> List[str]:
     if cyclic:
         problems.append(f"following children returns to a requirement; these are on or below a cycle: {', '.join(show(n) for n in cyclic)}")
     return problems
+
+
+def post_deploy_criteria(document: Any) -> Set[str]:
+    """The acceptance criteria that can only be verified after deploy. Call
+    after graph_parts, which has refused an undefined stage."""
+    return {entry["id"] for node in document["requirements"] for entry in node["acceptance"]
+            if entry.get("stage") == "post_deploy"}
 
 
 def requirement_ids(document: Any) -> Set[str]:
@@ -467,21 +482,25 @@ def check_manifest(body: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def run_gate(graph_path: str, manifest_path: str, report_path: Optional[str] = None,
-             review_path: Optional[str] = None) -> Dict[str, Any]:
+             review_path: Optional[str] = None, stage: str = "acceptance") -> Dict[str, Any]:
     document = load_json(graph_path, "the requirements graph")
     problem_id, _ = graph_parts(document)
     body = load_manifest(manifest_path)
     report = load_challenge_report(report_path, problem_id)
     review = load_assurance_review(review_path, body.get("change_id"))
-    return evaluate_gate(document, body, report, review)[0]
+    return evaluate_gate(document, body, report, review, stage)[0]
 
 
 def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str, Any]],
-                  review: Optional[Dict[str, Any]]) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+                  review: Optional[Dict[str, Any]], stage: str = "acceptance") -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """Decides on a requirements graph document, a manifest body, and the
     challenge report and assurance review (each None when not given).
+    At stage pre_deploy, a post-deploy criterion whose check has not run is
+    left out of A-03; everything else is decided as at acceptance.
     Returns the result and the unanswered findings of both records."""
     problem_id, criteria = graph_parts(document)
+    deferrable = post_deploy_criteria(document) if stage == "pre_deploy" else set()
+    left_out: List[str] = []
     open_items: List[Dict[str, Any]] = []
     violations = check_manifest(body)
     reasons: List[Tuple[str, str, str]] = []  # (rule, effect, message)
@@ -509,6 +528,7 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
     implementer = body.get("implementer")
     levels: Dict[str, Dict[str, int]] = {level: {} for level in LEVELS}
     by_requirement: Dict[str, List[str]] = {}
+    own_checks: Dict[str, List[Tuple[str, str, str]]] = {}  # requirement -> (criterion, level, status used)
     per_check: List[Dict[str, Any]] = []
     for criterion, level, requirement in criteria:
         entry = checks.get(criterion)
@@ -540,6 +560,8 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
                         block("A-02", f"{show(criterion)} has stale evidence for commit {show(commit)}")
             elif status == "failed":
                 reasons.append(("A-03", "fail", f"{show(criterion)} ({level}) failed"))
+            elif status == "not_run" and criterion in deferrable:
+                left_out.append(criterion)  # verified after deploy; the pre-deploy decision does not wait for it
             elif status in ("not_run", "blocked"):
                 block("A-03", f"{show(criterion)} ({level}) is {status}")
             elif status == "not_applicable" and not is_text(entry.get("reason")):
@@ -549,11 +571,27 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
                 block("A-06", f"{show(criterion)} ({level}) is not_applicable without approval by someone other than the implementer")
         levels[level][effective] = levels[level].get(effective, 0) + 1
         by_requirement.setdefault(requirement, []).append(effective)
+        own_checks.setdefault(requirement, []).append((criterion, level, effective))
         per_check.append({"check_id": criterion, "level": level, "requirement": requirement, "status": effective,
                           "evidence": entry.get("evidence") if entry is not None and isinstance(entry.get("evidence"), dict) else None})
     for requirement, effective_statuses in by_requirement.items():
         if all(status == "not_applicable" for status in effective_statuses):
             block("A-03", f"requirement {show(requirement)} has no passed check: every one of its checks is not_applicable")
+    # Leaving post-deploy checks out must not let a requirement, or a parent's
+    # own L2 or L3 check, go unverified before deploy: the children's passes
+    # never stand for a parent's.
+    deferred = set(left_out)
+    decompositions = {n.get("id"): n.get("decomposition") for n in document["requirements"] if isinstance(n, dict)}
+    for requirement, entries in own_checks.items():
+        if not any(criterion in deferred for criterion, _, _ in entries):
+            continue
+        verified = [level for criterion, level, status in entries if criterion not in deferred and status == "passed"]
+        kind = decompositions.get(requirement)
+        if kind in ("AND", "OR") and not any(level in PARENT_LEVELS for level in verified):
+            block("A-03", f"{show(requirement)} ({kind}) has no L2 or L3 check of its own verified before deploy; "
+                          "deciding to deploy it is a person's decision")
+        elif not verified:
+            block("A-03", f"{show(requirement)} has no check verified before deploy; deciding to deploy it is a person's decision")
 
     risk = body.get("risk") if isinstance(body.get("risk"), dict) else {}
     risk_class = risk.get("class")
@@ -597,6 +635,8 @@ def evaluate_gate(document: Any, body: Dict[str, Any], report: Optional[Dict[str
     return {
         "graph": "assurance",
         "decision": decision,
+        "stage": stage,
+        "left_out": left_out,
         "levels": levels,
         "reasons": [{"rule_id": rule, "effect": effect, "message": message} for rule, effect, message in reasons],
         "rules_checked": MANIFEST_RULES + GATE_RULES,
@@ -624,11 +664,41 @@ def refuse_declarations(text: str) -> None:
         raise InputError(f"the JUnit report is not well-formed XML: {exc}") from None
 
 
-def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind: str) -> List[Dict[str, Any]]:
+def check_collect_arguments(commit: str, ref: str) -> None:
     if not COMMIT.fullmatch(commit):
         raise InputError("--commit must be a commit SHA (7 to 40 lowercase hex digits)")
     if not is_text(ref):
         raise InputError("--ref must not be empty")
+
+
+def decide_checks(criteria: List[Tuple[str, str, str]], cases: List[Tuple[str, Set[str], str]], evidence: Dict[str, str],
+                  source: str, unit: Tuple[str, str], incomplete: Sequence[str] = ()) -> List[Dict[str, Any]]:
+    """One check per acceptance criterion from test cases (label, acceptance
+    ids, outcome). A case counts for a criterion when the id is one of its
+    acceptance ids or a separate word in its label. ``unit`` names a case
+    (singular, plural); ``incomplete`` lists why some tests may not have run,
+    in which case no criterion passes."""
+    out = []
+    for criterion, _, _ in criteria:
+        token = re.compile(r"(?<![A-Za-z0-9_.-])" + re.escape(criterion) + r"(?![A-Za-z0-9_.-])")
+        outcomes = [outcome for label, ids, outcome in cases if criterion in ids or token.search(label)]
+        if "failed" in outcomes:
+            out.append({"check_id": criterion, "status": "failed", "evidence": dict(evidence)})
+        elif outcomes and all(outcome == "passed" for outcome in outcomes) and not incomplete:
+            out.append({"check_id": criterion, "status": "passed", "evidence": dict(evidence)})
+        else:
+            if outcomes and all(outcome == "passed" for outcome in outcomes):
+                why = f"{len(outcomes)} passed {unit[1]}, but {'; '.join(incomplete)}, so other tests of this id may not have run,"
+            elif outcomes:
+                why = f"{outcomes.count('passed')} passed, {outcomes.count('skipped')} skipped {unit[1]}"
+            else:
+                why = f"no {unit[0]} names this acceptance id"
+            out.append({"check_id": criterion, "status": "not_run", "reason": f"{why} in the {source}"})
+    return out
+
+
+def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind: str) -> List[Dict[str, Any]]:
+    check_collect_arguments(commit, ref)
     _, criteria = load_graph(graph_path)
     text = read_text(report_path, "the JUnit report")
     refuse_declarations(text)
@@ -646,22 +716,48 @@ def collect_junit(report_path: str, graph_path: str, commit: str, ref: str, kind
             outcome = "passed"
         ids = {p.get("value") for p in case.iter("property") if p.get("name") == "acceptance_id"}
         cases.append((f"{case.get('classname', '')} {case.get('name', '')}", ids, outcome))
-    evidence = {"kind": kind, "ref": ref, "commit": commit}
-    out = []
-    for criterion, _, _ in criteria:
-        token = re.compile(r"(?<![A-Za-z0-9_.-])" + re.escape(criterion) + r"(?![A-Za-z0-9_.-])")
-        outcomes = [outcome for label, ids, outcome in cases if criterion in ids or token.search(label)]
-        if "failed" in outcomes:
-            out.append({"check_id": criterion, "status": "failed", "evidence": dict(evidence)})
-        elif outcomes and all(outcome == "passed" for outcome in outcomes):
-            out.append({"check_id": criterion, "status": "passed", "evidence": dict(evidence)})
-        else:
-            if outcomes:
-                why = f"{outcomes.count('passed')} passed, {outcomes.count('skipped')} skipped test cases"
-            else:
-                why = "no test case names this acceptance id"
-            out.append({"check_id": criterion, "status": "not_run", "reason": f"{why} in the JUnit report"})
-    return out
+    return decide_checks(criteria, cases, {"kind": kind, "ref": ref, "commit": commit}, "JUnit report", ("test case", "test cases"))
+
+
+def collect_jest(report_path: str, graph_path: str, commit: str, ref: str, kind: str) -> List[Dict[str, Any]]:
+    """The output of ``jest --json`` (Jest's FormattedTestResults; "Jest JSON"
+    in references/manifest.md). Only the fields the checks depend on are read,
+    and each must have Jest's type."""
+    check_collect_arguments(commit, ref)
+    _, criteria = load_graph(graph_path)
+    report = load_json(report_path, "the Jest report")
+    if not isinstance(report, dict) or not isinstance(report.get("testResults"), list):
+        raise InputError("the Jest report must be an object with a testResults array, as jest --json writes")
+    if "wasInterrupted" in report and not isinstance(report["wasInterrupted"], bool):
+        raise InputError("wasInterrupted in the Jest report must be true or false")
+    incomplete: List[str] = []
+    if report.get("wasInterrupted") is True:
+        incomplete.append("the Jest run did not complete (it was interrupted)")
+    if report.get("runExecError") is not None:
+        incomplete.append("the Jest run did not complete (it reported a run error)")
+    cases: List[Tuple[str, Set[str], str]] = []
+    for test_file in report["testResults"]:
+        if not isinstance(test_file, dict) or not is_text(test_file.get("status")):
+            raise InputError("every entry of testResults must be an object with a status")
+        assertions = test_file.get("assertionResults", [])
+        if not isinstance(assertions, list):
+            raise InputError("assertionResults in the Jest report must be an array")
+        failed_inside = False
+        for assertion in assertions:
+            ancestors = assertion.get("ancestorTitles", []) if isinstance(assertion, dict) else None
+            if (not isinstance(assertion, dict) or not is_text(assertion.get("status")) or not isinstance(assertion.get("title"), str)
+                    or not isinstance(ancestors, list) or not all(isinstance(t, str) for t in ancestors)
+                    or not isinstance(assertion.get("fullName", ""), str)):
+                raise InputError("every assertion in the Jest report needs a status, a title, and ancestorTitles of strings")
+            status = assertion["status"]
+            outcome = status if status in ("passed", "failed") else "skipped"  # pending, todo, disabled, focused, ...
+            failed_inside = failed_inside or outcome == "failed"
+            cases.append((" ".join([assertion.get("fullName", ""), *ancestors, assertion["title"]]), set(), outcome))
+        if test_file["status"] == "failed" and not failed_inside:
+            # The file failed to run, or failed in a hook: its tests are unknown.
+            name = test_file.get("name") if is_text(test_file.get("name")) else "a test file"
+            incomplete.append(f"{escape_unsafe(name)} failed outside its tests")
+    return decide_checks(criteria, cases, {"kind": kind, "ref": ref, "commit": commit}, "Jest report", ("test", "tests"), incomplete)
 
 
 # --- review card -----------------------------------------------------------------
@@ -679,6 +775,10 @@ LABELS = {
         "accept": "Accept or return the change.",
         "risk_acceptance": "Accept or reject the residual risk of this high-risk change.",
         "return": "Return the change, or supply what the unresolved items name.",
+        "before": "**Before deploy: {decision}**", "left_out": " (leaves out {phrase}: {ids})",
+        "deploy": "Decide whether to deploy. After deploy, record the post-deploy checks and run the gate again "
+                  "to accept or return the change.",
+        "directed": "directed by {by} ({ref})",
     },
     "ja": {
         "title": "レビューカード", "decision": "判定",
@@ -692,8 +792,15 @@ LABELS = {
         "accept": "変更を受け入れるか、差し戻すかを決める。",
         "risk_acceptance": "この高リスクの変更の残存リスクを受け入れるかを決める。",
         "return": "変更を差し戻すか、未解消の事項が求めるものを用意する。",
+        "before": "**deploy の前の判定: {decision}**", "left_out": "（まだ走っていない deploy の後の検査 {n} 件を除く: {ids}）",
+        "deploy": "deploy してよいかを決める。deploy の後に、deploy の後の検査を記録して判定をやり直し、変更を受け入れるか差し戻すかを決める。",
+        "directed": "{by} の指示（{ref}）",
     },
 }
+
+
+def deferred_phrase(count: int) -> str:
+    return f"{count} post-deploy check that has not run" if count == 1 else f"{count} post-deploy checks that have not run"
 MARKS = {"pass": "✅", "fail": "❌", "blocked": "⛔"}
 SAFE_URL = re.compile(r"https?://[A-Za-z0-9._~:/?#@!$&'*+,;=%-]+")
 MAX_DEPTH = 3  # levels drawn in the overview; deeper requirements are listed
@@ -775,11 +882,19 @@ def graph_nodes(document: Any) -> List[Dict[str, Any]]:
 
 
 def render_card(card: Dict[str, Any], nodes: List[Dict[str, Any]], body: Dict[str, Any], gate: Dict[str, Any],
-                findings: List[Dict[str, Any]], lang: str) -> str:
+                findings: List[Dict[str, Any]], lang: str, before: Optional[Dict[str, Any]] = None) -> str:
+    """``before`` is the gate's result at stage pre_deploy, given when the
+    graph has post-deploy criteria; the card then shows both decisions."""
     L = LABELS[lang]
     decision = gate["decision"]
     lines = [f"# {L['title']}: {md(body.get('change_id', ''))} ({md(card['id'])})", "",
-             f"**{L['decision']}: {MARKS[decision]} {decision}**", "", L["note"], "",
+             f"**{L['decision']}: {MARKS[decision]} {decision}**", ""]
+    if before is not None:
+        left_out = before["left_out"]
+        lines += [L["before"].format(decision=before["decision"])
+                  + (L["left_out"].format(phrase=deferred_phrase(len(left_out)), n=len(left_out),
+                                          ids=", ".join(code(c) for c in left_out)) if left_out else ""), ""]
+    lines += [L["note"], "",
              f"## {L['problem']}", "",
              f"- **{L['current']}**: {md(card['current'])}",
              f"- **{L['ideal']}**: {md(card['ideal'])}",
@@ -806,7 +921,12 @@ def render_card(card: Dict[str, Any], nodes: List[Dict[str, Any]], body: Dict[st
                    for f in findings]
     lines += ["", f"## {L['unresolved']}", ""] + (unresolved or [f"- {L['none']}"])
     decide = [L["risk_acceptance"]] if risk.get("class") == "high" else []
-    decide.append(L["accept"] if decision == "pass" and not findings else L["return"])
+    if decision == "pass" and not findings:
+        decide.append(L["accept"])
+    elif before is not None and before["decision"] == "pass" and not findings:
+        decide.append(L["deploy"])
+    else:
+        decide.append(L["return"])
     lines += ["", f"## {L['decide']}", ""] + [f"- {item}" for item in decide]
     lines += ["", f"## {L['requirements']}", ""] + render_requirements(nodes, gate["checks"], L)
     lines += ["", f"## {L['evidence']}", "",
@@ -890,11 +1010,21 @@ def render_requirements(nodes: List[Dict[str, Any]], checks: List[Dict[str, Any]
                 lines.append(f"  {key[nid]} --> {key[child]}")
     lines += ["  classDef pass fill:#e6f4ea,stroke:#1e7e34", "  classDef fail fill:#fdecea,stroke:#b02a37",
               "  classDef open fill:#fff4e5,stroke:#b36b00", "```", ""]
-    lines += [f"- {code(nid)} ({md(by_id[nid].get('decomposition', ''))}): {md(by_id[nid].get('statement', ''))}" for nid in drawn]
+    def item(nid: str) -> str:
+        node = by_id[nid]
+        origin = node.get("origin")
+        # A requirement that names the person who directed it shows them, so
+        # that person can see a requirement they did not direct.
+        directed = ""
+        if isinstance(origin, dict) and origin.get("kind") == "instruction" and is_text(origin.get("by")) and is_text(origin.get("ref")):
+            directed = " — " + L["directed"].format(by=md(origin["by"]), ref=md(origin["ref"]))
+        return f"- {code(nid)} ({md(node.get('decomposition', ''))}): {md(node.get('statement', ''))}{directed}"
+
+    lines += [item(nid) for nid in drawn]
     deeper = [nid for nid in by_id if nid not in key]
     if deeper:
         lines += ["", f"### {L['deeper']}", ""]
-        lines += [f"- {code(nid)} ({md(by_id[nid].get('decomposition', ''))}): {md(by_id[nid].get('statement', ''))}" for nid in deeper]
+        lines += [item(nid) for nid in deeper]
     return lines
 
 
@@ -914,7 +1044,8 @@ def run_card(problem: str, graph: str, manifest: str, report: Optional[str], rev
     # The gate decides on both records too (A-08, A-10); the card only shows
     # their unanswered findings.
     gate, findings = evaluate_gate(document, body, challenge, assurance)
-    return gate["decision"], render_card(card, graph_nodes(document), body, gate, findings, lang)
+    before = evaluate_gate(document, body, challenge, assurance, "pre_deploy")[0] if post_deploy_criteria(document) else None
+    return gate["decision"], render_card(card, graph_nodes(document), body, gate, findings, lang, before)
 
 
 # --- command line --------------------------------------------------------------
@@ -941,7 +1072,12 @@ def emit(result: Dict[str, Any], output_format: str) -> None:
     if "decision" in result:
         counts = "; ".join(f"{level} " + (", ".join(f"{k} {v}" for k, v in sorted(c.items())) or "none")
                            for level, c in result["levels"].items())
-        print(f"Result: {result['decision']} ({counts}; consistency of records only)")
+        when = ""
+        if result.get("stage") == "pre_deploy":
+            left_out = result["left_out"]
+            when = " before deploy" + (f", leaving out {deferred_phrase(len(left_out))} ({', '.join(escape_unsafe(c) for c in left_out)})"
+                                       if left_out else "")
+        print(f"Result: {result['decision']}{when} ({counts}; consistency of records only)")
     else:
         print(f"Result: {result['status']} ({len(result['violations'])} violations; checked {' '.join(result['rules_checked'])})")
 
@@ -981,6 +1117,13 @@ def run(argv: Sequence[str], output_format: str) -> int:
     gate.add_argument("manifest")
     gate.add_argument("--report")
     gate.add_argument("--review")
+    gate.add_argument("--stage", choices=GATE_STAGES, default="acceptance")
+    jest = commands.add_parser("collect-jest", parents=[common])
+    jest.add_argument("report")
+    jest.add_argument("--graph", required=True)
+    jest.add_argument("--commit", required=True)
+    jest.add_argument("--ref", required=True)
+    jest.add_argument("--kind", choices=("ci_job", "local_run"), default="ci_job")
     collect = commands.add_parser("collect-junit", parents=[common])
     collect.add_argument("report")
     collect.add_argument("--graph", required=True)
@@ -1008,6 +1151,9 @@ def run(argv: Sequence[str], output_format: str) -> int:
         if args.command == "collect-junit":
             print(json.dumps(collect_junit(args.report, args.graph, args.commit, args.ref, args.kind), indent=2, ensure_ascii=False))
             return EXIT_OK
+        if args.command == "collect-jest":
+            print(json.dumps(collect_jest(args.report, args.graph, args.commit, args.ref, args.kind), indent=2, ensure_ascii=False))
+            return EXIT_OK
         if args.command == "check":
             violations = check_manifest(load_manifest(args.manifest))
             result = error_result(args.manifest, "")
@@ -1015,7 +1161,7 @@ def run(argv: Sequence[str], output_format: str) -> int:
                           rules_checked=MANIFEST_RULES, violations=violations, error=None)
             emit(result, args.format)
             return EXIT_NOT_OK if violations else EXIT_OK
-        gate_result = run_gate(args.graph, args.manifest, args.report, args.review)
+        gate_result = run_gate(args.graph, args.manifest, args.report, args.review, args.stage)
     except InputError as exc:
         emit(error_result(getattr(args, "manifest", None) or getattr(args, "report", None), str(exc)), args.format)
         return EXIT_INPUT_ERROR

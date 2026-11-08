@@ -1,0 +1,27 @@
+R0-A3: the CI test job of PR #123 at its head 1e80cb578afb49a688afc20619d91038478d4bb5, the reviewed commit
+(the change commit was pushed before its records, so the pull_request CI ran on it)
+
+{"conclusion":"success","event":"pull_request","headSha":"1e80cb578afb49a688afc20619d91038478d4bb5","jobs":[{"conclusion":"success","name":"test","url":"https://github.com/superluminal-jp/my-claude-code/actions/runs/42426931132/job/128567099823"}]}
+
+Each suite's step and its result line, from the job log:
+Run installer contract tests | ##[group]Run bash tests/run-install.sh
+Run installer contract tests | All installer contract checks passed.
+Run digital-agency-frontend skill tests | ##[group]Run bash tests/run-digital-agency-frontend-skill.sh
+Run digital-agency-frontend skill tests | Results: 74 passed, 0 failed
+Run removed-guardrails regression tests | ##[group]Run bash tests/run-removed-guardrails.sh
+Run removed-guardrails regression tests | Results: 4 passed, 0 failed
+Run sandbox settings contract tests | ##[group]Run bash tests/run-sandbox-settings.sh
+Run sandbox settings contract tests | Results: 47 passed, 0 failed
+Run package-safety bundle contract tests | ##[group]Run bash tests/run-package-safety-bundle.sh
+Run package-safety bundle contract tests | Results: 21 passed, 0 failed
+Run README skill-index check | ##[group]Run bash tests/run-readme-skill-index.sh
+Run README skill-index check | Results: 33 passed, 0 failed
+Run requirements-decomposition skill tests | ##[group]Run bash tests/run-requirements-decomposition-skill.sh
+Run requirements-decomposition skill tests | Results: 5 passed, 0 failed
+Run verified-delivery skill tests | ##[group]Run bash tests/run-verified-delivery-skill.sh
+Run verified-delivery skill tests | Results: 6 passed, 0 failed
+Run harness behavior baseline checks | ##[group]Run bash tests/run-harness-eval.sh
+Run harness behavior baseline checks | harness-eval: passed
+Run MCP startup smoke test | ##[group]Run bash tests/run-mcp-startup.sh
+Run MCP startup smoke test | MCP startup smoke test passed: 1 package(s).
+Run MCP startup smoke test | MCP http-shape check passed: 4 entr(y/ies).

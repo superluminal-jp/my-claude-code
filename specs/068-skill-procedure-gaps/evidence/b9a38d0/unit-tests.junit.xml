@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+<testsuite name=".claude/skills/requirements-decomposition/tests" tests="83" failures="0">
+  <properties><property name="commit" value="b9a38d0bb8e1c1ad185395f6d00d54a450594825"/></properties>
+  <testcase classname="test_check_graph.ChallengeReportTests" name="test_rejected_finding_without_resolution_is_rejected"></testcase>
+  <testcase classname="test_check_graph.ChallengeReportTests" name="test_resolved_report_passes"></testcase>
+  <testcase classname="test_check_graph.ChallengeReportTests" name="test_undefined_kind_and_duplicate_id_are_rejected"></testcase>
+  <testcase classname="test_check_graph.ChallengeReportTests" name="test_v2_requirements_graph_needs_a_problem_id"></testcase>
+  <testcase classname="test_check_graph.ExampleTests" name="test_requirements_example_passes"></testcase>
+  <testcase classname="test_check_graph.ExampleTests" name="test_skills_example_passes"></testcase>
+  <testcase classname="test_check_graph.GateReviewFindingTests" name="test_each_violation_names_its_input_and_paths_stay_separate"></testcase>
+  <testcase classname="test_check_graph.GateReviewFindingTests" name="test_non_string_ids_block_instead_of_crashing"></testcase>
+  <testcase classname="test_check_graph.GateReviewFindingTests" name="test_rules_checked_covers_every_reported_rule"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_finding_on_an_unknown_target_is_blocked"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_graph_for_another_problem_or_v1_graph_is_blocked"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_invalid_card_blocks_and_lists_its_violations"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_linked_and_resolved_bundle_is_ready"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_p2_01_unverified_problem_is_blocked"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_p2_02_refuted_problem_is_blocked"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_p2_03_p2_05_p2_06_open_findings_block"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_p2_04_open_counterexample_blocks_and_its_fix_is_ready"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_report_for_another_problem_is_blocked"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_unreadable_input_to_the_gate_is_an_input_error"></testcase>
+  <testcase classname="test_check_graph.GateTests" name="test_without_a_report_the_challenge_is_shown_as_not_run"></testcase>
+  <testcase classname="test_check_graph.OutputTests" name="test_same_input_gives_the_same_output"></testcase>
+  <testcase classname="test_check_graph.OutputTests" name="test_text_output_escapes_control_characters_in_ids"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_missing_and_undefined_fields_are_rejected"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_p2_01_unverified_card_is_valid_on_its_own"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_p2_01_verified_without_evidence_is_rejected"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_p2_02_counter_evidence_without_rationale_is_rejected"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_p2_02_refuted_card_with_counter_evidence_is_valid"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_refuted_without_counter_evidence_is_rejected"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_undefined_status_is_rejected"></testcase>
+  <testcase classname="test_check_graph.ProblemCardTests" name="test_verified_card_with_evidence_passes"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_inputs_that_cannot_be_interpreted_exit_with_code_2"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_or_with_a_condition_for_every_child_passes"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_01_duplicate_id_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_02_undefined_child_is_reported_with_parent_and_child"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_03_cycle_is_reported_with_its_path"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_04_and_with_one_child_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_04_leaf_with_children_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_05_or_child_without_selection_condition_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_06_parent_without_acceptance_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_07_levels_l1_l2_l3_pass"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_07_undefined_level_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_08_shared_child_passes"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_10_invalid_json_is_an_input_error"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_p1_10_unsupported_schema_version_is_an_input_error"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_s_12_parent_with_only_l1_criteria_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_scenario_10_undefined_field_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_scenario_11_duplicate_key_is_an_input_error"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_scenario_12_duplicate_acceptance_id_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_scenario_13_selection_on_an_and_node_is_rejected"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_scenario_14_forgotten_child_becomes_a_second_root"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_scenario_15_deeply_nested_json_is_an_input_error"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_scenario_15_graph_ten_thousand_levels_deep_passes"></testcase>
+  <testcase classname="test_check_graph.RequirementsGraphTests" name="test_undefined_option_exits_with_code_2"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_a_number_too_long_to_read_is_an_input_error_not_a_checker_failure"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_argument_error_gives_a_json_result_with_format_json"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_backslash_in_an_id_is_escaped_so_escapes_stay_unambiguous"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_child_that_declares_only_a_missing_skill_still_breaks_one_level"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_children_of_the_wrong_type_are_reported_once"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_duplicate_node_is_still_checked_and_its_children_count_as_referenced"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_input_that_is_not_a_regular_file_is_an_input_error"></testcase>
+  <testcase classname="test_check_graph.ReviewFindingTests" name="test_violations_of_one_node_keep_declaration_order"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_a_declaration_inside_a_tilde_or_indented_fence_is_not_read"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_a_shorter_fence_inside_a_longer_one_does_not_close_it"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_child_that_declares_children_is_rejected"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_declarations_inside_a_code_block_do_not_count"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_declared_child_without_skill_md_is_rejected"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_directory_without_skill_md_is_not_a_skill"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_missing_directory_is_an_input_error"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_section_ends_at_the_next_level_two_heading"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_skill_that_declares_itself_is_a_cycle"></testcase>
+  <testcase classname="test_check_graph.SkillsDirectoryTests" name="test_valid_one_level_declaration_passes"></testcase>
+  <testcase classname="test_check_graph.SkillsGraphTests" name="test_missing_permission_and_role_are_rejected"></testcase>
+  <testcase classname="test_check_graph.SkillsGraphTests" name="test_p1_09_auditor_that_declares_write_is_rejected"></testcase>
+  <testcase classname="test_check_graph.SkillsGraphTests" name="test_scenario_1_two_levels_and_a_shared_child_pass"></testcase>
+  <testcase classname="test_check_graph.SkillsGraphTests" name="test_scenario_3_undefined_permission_is_rejected"></testcase>
+  <testcase classname="test_check_graph.SkillsGraphTests" name="test_scenario_4_auditor_that_reaches_a_writer_is_rejected"></testcase>
+  <testcase classname="test_check_graph.SkillsGraphTests" name="test_scenario_5_cycle_between_skills_is_rejected"></testcase>
+  <testcase classname="test_check_graph.SkillsGraphTests" name="test_skill_graph_allows_several_roots"></testcase>
+  <testcase classname="test_check_graph.StageAndOriginTests" name="test_a_criterion_may_be_pre_deploy_post_deploy_or_without_a_stage"><properties><property name="acceptance_id" value="R4a-A1"/></properties></testcase>
+  <testcase classname="test_check_graph.StageAndOriginTests" name="test_a_malformed_origin_is_rejected_under_s_00"><properties><property name="acceptance_id" value="R7-A1"/></properties></testcase>
+  <testcase classname="test_check_graph.StageAndOriginTests" name="test_an_instruction_origin_with_who_and_where_passes"><properties><property name="acceptance_id" value="R7-A1"/></properties></testcase>
+  <testcase classname="test_check_graph.StageAndOriginTests" name="test_an_undefined_stage_is_rejected_under_s_07"><properties><property name="acceptance_id" value="R4a-A1"/></properties></testcase>
+  <testcase classname="test_check_graph.StageAndOriginTests" name="test_the_stage_and_origin_fixtures_pass_and_fail_as_named"><properties><property name="acceptance_id" value="R4a-A1"/><property name="acceptance_id" value="R7-A1"/></properties></testcase>
+</testsuite>
+<testsuite name=".claude/skills/verified-delivery/tests" tests="143" failures="0">
+  <properties><property name="commit" value="b9a38d0bb8e1c1ad185395f6d00d54a450594825"/></properties>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_a_review_finding_on_an_unknown_target_blocks"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_a_review_of_another_change_is_an_input_error"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_a_review_of_another_commit_is_stale"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_a_review_without_a_findings_array_is_an_input_error"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_an_answered_review_of_the_reviewed_commit_passes"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_an_unanswered_review_finding_blocks_at_any_risk"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_findings_may_target_a_requirement_a_criterion_or_the_change"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_low_risk_needs_no_review"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_medium_or_high_without_a_review_blocks"></testcase>
+  <testcase classname="test_assure.AssuranceReviewTests" name="test_the_example_review_passes_with_the_example_graph_and_a_medium_manifest"></testcase>
+  <testcase classname="test_assure.CodeReviewFindingTests" name="test_a_challenge_report_with_a_loose_envelope_is_an_input_error"></testcase>
+  <testcase classname="test_assure.CodeReviewFindingTests" name="test_a_manifest_without_change_id_reports_m_00_even_with_a_review"></testcase>
+  <testcase classname="test_assure.CodeReviewFindingTests" name="test_a_number_too_long_to_read_is_an_input_error_not_a_checker_failure"></testcase>
+  <testcase classname="test_assure.CodeReviewFindingTests" name="test_another_spelling_of_the_implementer_is_not_an_independent_approver"></testcase>
+  <testcase classname="test_assure.CollectReviewFindingTests" name="test_doctype_text_inside_cdata_is_accepted"></testcase>
+  <testcase classname="test_assure.CollectReviewFindingTests" name="test_id_inside_a_dotted_longer_id_does_not_count"></testcase>
+  <testcase classname="test_assure.CollectReviewFindingTests" name="test_passed_and_skipped_mix_is_not_run_with_an_accurate_reason"></testcase>
+  <testcase classname="test_assure.CollectTests" name="test_collected_checks_carry_the_commit_and_ref"></testcase>
+  <testcase classname="test_assure.CollectTests" name="test_doctype_is_refused"></testcase>
+  <testcase classname="test_assure.CollectTests" name="test_test_cases_map_to_acceptance_ids"></testcase>
+  <testcase classname="test_assure.DecisionTests" name="test_a_challenge_report_for_another_problem_is_an_input_error"></testcase>
+  <testcase classname="test_assure.DecisionTests" name="test_an_open_challenge_finding_blocks_at_any_risk"></testcase>
+  <testcase classname="test_assure.DecisionTests" name="test_approved_by_on_a_check_must_be_a_non_empty_string"></testcase>
+  <testcase classname="test_assure.DecisionTests" name="test_high_risk_with_a_resolved_challenge_report_passes"></testcase>
+  <testcase classname="test_assure.DecisionTests" name="test_high_risk_without_a_challenge_report_blocks"></testcase>
+  <testcase classname="test_assure.DecisionTests" name="test_not_applicable_leaf_check_needs_no_approval"></testcase>
+  <testcase classname="test_assure.DecisionTests" name="test_not_applicable_parent_or_system_check_needs_independent_approval"></testcase>
+  <testcase classname="test_assure.FindingTests" name="test_a_finding_on_an_unknown_target_blocks"></testcase>
+  <testcase classname="test_assure.FindingTests" name="test_a_repeated_finding_id_blocks"></testcase>
+  <testcase classname="test_assure.FindingTests" name="test_an_unanswered_finding_blocks_however_it_is_written"></testcase>
+  <testcase classname="test_assure.FindingTests" name="test_answered_findings_on_the_problem_and_a_requirement_pass"></testcase>
+  <testcase classname="test_assure.GraphStructureTests" name="test_a_cycle_blocks"></testcase>
+  <testcase classname="test_assure.GraphStructureTests" name="test_a_duplicate_requirement_id_blocks"></testcase>
+  <testcase classname="test_assure.GraphStructureTests" name="test_a_parent_with_only_leaf_level_criteria_blocks"></testcase>
+  <testcase classname="test_assure.GraphStructureTests" name="test_a_requirement_without_acceptance_criteria_blocks"></testcase>
+  <testcase classname="test_assure.GraphStructureTests" name="test_a_second_root_blocks"></testcase>
+  <testcase classname="test_assure.GraphStructureTests" name="test_an_and_with_one_child_or_a_leaf_with_a_child_blocks"></testcase>
+  <testcase classname="test_assure.GraphStructureTests" name="test_an_undefined_child_blocks"></testcase>
+  <testcase classname="test_assure.JestTests" name="test_a_file_that_failed_outside_its_tests_lets_nothing_pass"><properties><property name="acceptance_id" value="R5-A1"/></properties></testcase>
+  <testcase classname="test_assure.JestTests" name="test_a_report_jest_could_not_have_written_is_an_input_error"><properties><property name="acceptance_id" value="R5-A1"/></properties></testcase>
+  <testcase classname="test_assure.JestTests" name="test_an_id_inside_a_dotted_longer_id_does_not_count"><properties><property name="acceptance_id" value="R5-A1"/></properties></testcase>
+  <testcase classname="test_assure.JestTests" name="test_an_interrupted_or_failed_run_lets_nothing_pass"><properties><property name="acceptance_id" value="R5-A1"/></properties></testcase>
+  <testcase classname="test_assure.JestTests" name="test_assertions_map_to_acceptance_ids"><properties><property name="acceptance_id" value="R5-A1"/></properties></testcase>
+  <testcase classname="test_assure.JestTests" name="test_collected_checks_carry_the_commit_ref_and_kind"><properties><property name="acceptance_id" value="R5-A1"/></properties></testcase>
+  <testcase classname="test_assure.JestTests" name="test_every_status_other_than_passed_or_failed_counts_as_skipped"><properties><property name="acceptance_id" value="R5-A1"/></properties></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_all_checks_with_current_evidence_pass"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_manifest_for_another_problem_blocks"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_missing_and_unknown_checks_block"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_not_applicable_needs_a_reason"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_p3_01_failed_parent_check_fails_although_leaves_pass"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_p3_02_failed_system_check_fails"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_p3_03_failed_negative_leaf_check_fails"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_p3_04_evidence_for_another_commit_is_stale"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_p3_05_ai_review_alone_is_not_evidence"></testcase>
+  <testcase classname="test_assure.LevelTests" name="test_p3_08_check_whose_collection_failed_blocks"></testcase>
+  <testcase classname="test_assure.ManifestShapeTests" name="test_bad_commit_and_unreadable_input_are_input_errors"></testcase>
+  <testcase classname="test_assure.ManifestShapeTests" name="test_passing_manifest_has_no_violation"></testcase>
+  <testcase classname="test_assure.ManifestShapeTests" name="test_shape_errors_are_reported"></testcase>
+  <testcase classname="test_assure.ReviewFindingTests" name="test_commit_with_a_trailing_newline_is_not_a_commit"></testcase>
+  <testcase classname="test_assure.ReviewFindingTests" name="test_format_after_the_subcommand_works"></testcase>
+  <testcase classname="test_assure.ReviewFindingTests" name="test_graph_without_criteria_blocks"></testcase>
+  <testcase classname="test_assure.ReviewFindingTests" name="test_rejected_approval_fails_at_any_risk"></testcase>
+  <testcase classname="test_assure.ReviewFindingTests" name="test_requirement_without_any_passed_check_blocks"></testcase>
+  <testcase classname="test_assure.ReviewFindingTests" name="test_self_approval_with_other_case_or_spaces_is_not_independent"></testcase>
+  <testcase classname="test_assure.ReviewFindingTests" name="test_text_gate_output_lists_a_manifest_violation_once"></testcase>
+  <testcase classname="test_assure.RiskTests" name="test_high_risk_needs_approval_by_someone_else"></testcase>
+  <testcase classname="test_assure.RiskTests" name="test_p3_06_weakened_test_needs_approval"></testcase>
+  <testcase classname="test_assure.RiskTests" name="test_p3_07_permission_expansion_must_be_high_risk"></testcase>
+  <testcase classname="test_assure.RiskTests" name="test_rejected_approval_fails"></testcase>
+  <testcase classname="test_assure.RiskTests" name="test_t_10_unclassified_or_missing_risk_blocks"></testcase>
+  <testcase classname="test_assure.SecondReviewFindingTests" name="test_a_parent_criterion_cannot_reuse_a_leaf_criterion_id"></testcase>
+  <testcase classname="test_assure.SecondReviewFindingTests" name="test_a_passed_check_whose_evidence_is_refused_counts_as_blocked"></testcase>
+  <testcase classname="test_assure.SecondReviewFindingTests" name="test_an_infrastructure_kind_cannot_forge_a_result_line"></testcase>
+  <testcase classname="test_assure.SecondReviewFindingTests" name="test_doctype_after_a_less_than_sign_in_a_comment_or_instruction_is_refused"></testcase>
+  <testcase classname="test_assure.SecondReviewFindingTests" name="test_the_same_commit_written_short_is_not_called_stale"></testcase>
+  <testcase classname="test_assure.StageTests" name="test_a_passed_post_deploy_check_passes_at_both_stages"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_a_requirement_with_an_instruction_origin_is_decided_as_without_one"><properties><property name="acceptance_id" value="R7-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_acceptance_still_counts_the_post_deploy_check"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_after_deploy_such_requirements_pass_once_their_checks_pass"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_an_undefined_stage_in_the_graph_or_the_option_is_an_input_error"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_before_deploy_a_criterion_without_a_stage_is_not_left_out"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_before_deploy_a_failed_blocked_or_missing_post_deploy_check_is_not_left_out"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_before_deploy_a_parent_whose_own_checks_are_all_post_deploy_is_blocked"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_before_deploy_a_post_deploy_check_that_has_not_run_is_left_out"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_before_deploy_a_requirement_whose_checks_are_all_post_deploy_is_blocked"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_assure.StageTests" name="test_text_output_names_the_stage_and_what_was_left_out"><properties><property name="acceptance_id" value="R4b-A1"/></properties></testcase>
+  <testcase classname="test_card.CardAssuranceReviewTests" name="test_a_review_of_another_change_is_refused"></testcase>
+  <testcase classname="test_card.CardAssuranceReviewTests" name="test_an_unanswered_review_finding_is_listed_as_unresolved"></testcase>
+  <testcase classname="test_card.CardAssuranceReviewTests" name="test_medium_change_with_an_answered_review_passes"></testcase>
+  <testcase classname="test_card.CardAssuranceReviewTests" name="test_medium_change_without_a_review_is_blocked"></testcase>
+  <testcase classname="test_card.CardCodeReviewFindingTests" name="test_an_entity_code_in_an_id_draws_no_decision_mark_in_the_diagram"></testcase>
+  <testcase classname="test_card.CardCodeReviewFindingTests" name="test_backslashes_in_code_are_shown_as_recorded"></testcase>
+  <testcase classname="test_card.CardCodeReviewFindingTests" name="test_the_card_exits_like_the_gate_on_a_graph_the_gate_blocks"></testcase>
+  <testcase classname="test_card.CardCodeReviewFindingTests" name="test_urls_in_any_letter_case_and_ftp_are_code_not_links"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_a_shared_child_shallower_than_one_parent_colours_every_ancestor"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_format_json_gives_the_decision_and_the_markdown"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_ids_outside_tables_have_no_table_escapes"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_open_finding_blocks_the_card"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_parent_with_a_failed_child_is_not_green"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_problem_card_for_another_problem_or_unverified_is_refused"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_requirement_with_only_not_applicable_checks_is_not_green"></testcase>
+  <testcase classname="test_card.CardReviewFindingTests" name="test_untrusted_text_cannot_fake_the_decision_or_a_link"></testcase>
+  <testcase classname="test_card.CardSecondReviewTests" name="test_a_challenge_report_for_another_problem_is_refused"></testcase>
+  <testcase classname="test_card.CardSecondReviewTests" name="test_a_passed_check_whose_evidence_is_refused_is_listed_as_not_passed"></testcase>
+  <testcase classname="test_card.CardSecondReviewTests" name="test_no_pass_mark_comes_from_a_url_an_id_or_a_reference"></testcase>
+  <testcase classname="test_card.CardSecondReviewTests" name="test_www_hosts_and_email_addresses_are_code_not_links"></testcase>
+  <testcase classname="test_card.DecisionTests" name="test_open_findings_are_unresolved"></testcase>
+  <testcase classname="test_card.DecisionTests" name="test_p4_02_failed_parent_is_shown_apart_from_passing_leaves"></testcase>
+  <testcase classname="test_card.DecisionTests" name="test_p4_03_not_run_check_is_listed_and_blocks"></testcase>
+  <testcase classname="test_card.DecisionTests" name="test_p4_04_records_win_over_a_reassuring_sentence"></testcase>
+  <testcase classname="test_card.DecisionTests" name="test_passing_change_shows_the_pass_mark"></testcase>
+  <testcase classname="test_card.OriginCardTests" name="test_a_requirement_directed_by_a_person_shows_who_and_where"><properties><property name="acceptance_id" value="R7-A1"/></properties></testcase>
+  <testcase classname="test_card.StageCardTests" name="test_a_failure_before_deploy_is_shown_and_deploy_is_not_offered"><properties><property name="acceptance_id" value="R4c-A1"/></properties></testcase>
+  <testcase classname="test_card.StageCardTests" name="test_a_graph_without_post_deploy_criteria_has_no_line_before_deploy"><properties><property name="acceptance_id" value="R4c-A1"/></properties></testcase>
+  <testcase classname="test_card.StageCardTests" name="test_after_deploy_with_every_check_passed_both_decisions_pass"><properties><property name="acceptance_id" value="R4c-A1"/></properties></testcase>
+  <testcase classname="test_card.StageCardTests" name="test_both_decisions_are_shown_and_the_person_decides_whether_to_deploy"><properties><property name="acceptance_id" value="R4c-A1"/></properties></testcase>
+  <testcase classname="test_card.StageCardTests" name="test_japanese_labels_for_the_decision_before_deploy"><properties><property name="acceptance_id" value="R4c-A1"/></properties></testcase>
+  <testcase classname="test_card.TraceTests" name="test_hostile_text_is_escaped"></testcase>
+  <testcase classname="test_card.TraceTests" name="test_japanese_labels"></testcase>
+  <testcase classname="test_card.TraceTests" name="test_non_http_reference_is_not_a_link"></testcase>
+  <testcase classname="test_card.TraceTests" name="test_p4_05_shared_child_is_drawn_once_and_deep_nodes_are_listed"></testcase>
+  <testcase classname="test_card.TraceTests" name="test_p4_06_evidence_rows_link_requirement_check_and_reference"></testcase>
+  <testcase classname="test_pilot.DecisionTests" name="test_p5_02_thirty_percent_with_quality_kept_is_adopted"></testcase>
+  <testcase classname="test_pilot.DecisionTests" name="test_p5_03_a_broken_quality_gate_is_not_adopted_despite_the_time"></testcase>
+  <testcase classname="test_pilot.DecisionTests" name="test_preregistration_after_the_first_case_is_insufficient"></testcase>
+  <testcase classname="test_pilot.DecisionTests" name="test_ten_percent_is_not_adopted"></testcase>
+  <testcase classname="test_pilot.DecisionTests" name="test_too_few_completed_cases_is_insufficient"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_b_slower_in_every_stratum_is_not_adopted_whatever_the_pooled_median"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_help_prints_no_error_object"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_infinite_minutes_are_a_format_violation"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_minutes_too_large_for_a_float_are_a_format_violation_not_a_crash"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_missing_case_ids_are_not_reported_as_duplicates"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_schema_version_must_be_the_integer_1"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_text_output_shows_the_reduction_of_each_stratum"></testcase>
+  <testcase classname="test_pilot.PilotReviewFindingTests" name="test_unhashable_values_are_format_violations_not_crashes"></testcase>
+  <testcase classname="test_pilot.PilotSecondReviewTests" name="test_a_reduction_exactly_at_the_target_is_adopted"></testcase>
+  <testcase classname="test_pilot.PilotSecondReviewTests" name="test_names_in_the_records_cannot_forge_a_result_line"></testcase>
+  <testcase classname="test_pilot.PilotSecondReviewTests" name="test_runs_in_isolated_mode_and_writes_no_bytecode_next_to_the_scripts"></testcase>
+  <testcase classname="test_pilot.SampleTests" name="test_p5_01_one_request_counted_twice_in_an_arm_is_a_violation"></testcase>
+  <testcase classname="test_pilot.SampleTests" name="test_p5_01_time_items_must_match_the_preregistration"></testcase>
+  <testcase classname="test_pilot.SampleTests" name="test_p5_04_strata_are_compared_and_slower_strata_are_named"></testcase>
+  <testcase classname="test_pilot.SampleTests" name="test_p5_05_a_stratum_in_one_arm_only_is_insufficient"></testcase>
+  <testcase classname="test_pilot.SampleTests" name="test_p5_06_incomplete_cases_are_counted_and_shown"></testcase>
+</testsuite>
+</testsuites>

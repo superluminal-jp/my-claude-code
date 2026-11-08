@@ -581,5 +581,247 @@ class CodeReviewFindingTests(AssuranceTestCase):
                 self.assertEqual(proc.returncode, 2, proc.stdout)
 
 
+def gate_result(stdout: str) -> dict:
+    """The gate's JSON result, with the fields a decision has filled in when
+    the checker printed none, so a missing field fails an assertion instead
+    of raising an error."""
+    empty = {"decision": None, "reasons": [], "stage": None, "left_out": None, "levels": {level: {} for level in ("L1", "L2", "L3")}}
+    return empty | json.loads(stdout)
+
+
+def post_deploy_graph(stage="post_deploy", criterion="TEST-SYSTEM-001") -> dict:
+    """The fixture graph with one criterion that can only be verified after deploy."""
+    doc = load("graph.json")
+    for node in doc["requirements"]:
+        for entry in node["acceptance"]:
+            if entry["id"] == criterion:
+                entry["stage"] = stage
+    return doc
+
+
+class StageTests(AssuranceTestCase):
+    """gate --stage: the decision before deploy leaves out post-deploy checks that have not run."""
+
+    def stage_gate(self, decision: str, rules: set[str], status: str | None = "not_run", stage: str | None = "pre_deploy",
+                   criterion: str = "TEST-SYSTEM-001", post_deploy: str = "TEST-SYSTEM-001") -> dict:
+        """``post_deploy`` is the graph's post-deploy criterion; ``criterion`` is the check given ``status``."""
+        def change(m):
+            if status is None:
+                m["checks"] = [c for c in m["checks"] if c["check_id"] != criterion]
+            else:
+                check(m, criterion).update(status=status)
+                if status != "passed":
+                    check(m, criterion).pop("evidence", None)
+        proc = run("gate", self.write("graph.json", post_deploy_graph(criterion=post_deploy)), self.manifest(change),
+                   *(["--stage", stage] if stage else []))
+        result = gate_result(proc.stdout)
+        self.assertEqual(result["decision"], decision, result)
+        self.assertEqual({r["rule_id"] for r in result["reasons"]}, rules, result["reasons"])
+        self.assertEqual(proc.returncode, 0 if decision == "pass" else 1)
+        return result
+
+    def test_before_deploy_a_post_deploy_check_that_has_not_run_is_left_out(self):
+        result = self.stage_gate("pass", set())
+        self.assertEqual((result["stage"], result["left_out"]), ("pre_deploy", ["TEST-SYSTEM-001"]))
+        self.assertEqual(result["levels"]["L3"], {"not_run": 1})
+
+    def test_acceptance_still_counts_the_post_deploy_check(self):
+        result = self.stage_gate("blocked", {"A-03"}, stage=None)
+        self.assertEqual((result["stage"], result["left_out"]), ("acceptance", []))
+        self.assertEqual([r["message"] for r in result["reasons"]], ['"TEST-SYSTEM-001" (L3) is not_run'])
+        self.assertEqual(self.stage_gate("blocked", {"A-03"}, stage="acceptance")["stage"], "acceptance")
+
+    def test_before_deploy_a_failed_blocked_or_missing_post_deploy_check_is_not_left_out(self):
+        self.assertEqual(self.stage_gate("fail", {"A-03"}, status="failed")["left_out"], [])
+        self.assertEqual(self.stage_gate("blocked", {"A-03"}, status="blocked")["left_out"], [])
+        self.assertEqual(self.stage_gate("blocked", {"A-01"}, status=None)["left_out"], [])
+
+    def test_before_deploy_a_criterion_without_a_stage_is_not_left_out(self):
+        result = self.stage_gate("blocked", {"A-03"}, criterion="TEST-PARENT-001", status="not_run")
+        self.assertEqual(result["left_out"], [])
+        def change(m):
+            check(m, "TEST-PARENT-001").update(status="not_run")
+            check(m, "TEST-PARENT-001").pop("evidence")
+        proc = run("gate", str(FIXTURES / "graph.json"), self.manifest(change), "--stage", "pre_deploy")
+        self.assertEqual(json.loads(proc.stdout)["decision"], "blocked")
+
+    def test_a_passed_post_deploy_check_passes_at_both_stages(self):
+        self.assertEqual(self.stage_gate("pass", set(), status="passed")["left_out"], [])
+        self.assertEqual(self.stage_gate("pass", set(), status="passed", stage=None)["left_out"], [])
+
+    def deferred_gate(self, post_deploy: tuple[str, ...], stage: str | None = "pre_deploy", status: str = "not_run") -> dict:
+        doc = load("graph.json")
+        for node in doc["requirements"]:
+            for entry in node["acceptance"]:
+                if entry["id"] in post_deploy:
+                    entry["stage"] = "post_deploy"
+        def change(m):
+            for criterion in post_deploy:
+                check(m, criterion).update(status=status)
+                if status != "passed":
+                    check(m, criterion).pop("evidence")
+        proc = run("gate", self.write("graph.json", doc), self.manifest(change), *(["--stage", stage] if stage else []))
+        return gate_result(proc.stdout) | {"exit": proc.returncode}
+
+    def test_before_deploy_a_parent_whose_own_checks_are_all_post_deploy_is_blocked(self):
+        result = self.deferred_gate(("TEST-PARENT-001", "TEST-SYSTEM-001"))
+        self.assertEqual((result["decision"], result["exit"]), ("blocked", 1))
+        self.assertEqual([(r["rule_id"], r["message"]) for r in result["reasons"]],
+                         [("A-03", '"REQ-ROOT" (AND) has no L2 or L3 check of its own verified before deploy; '
+                                   "deciding to deploy it is a person's decision")])
+        self.assertEqual(result["left_out"], ["TEST-PARENT-001", "TEST-SYSTEM-001"])
+
+    def test_before_deploy_an_or_parent_whose_own_checks_are_all_post_deploy_is_blocked(self):
+        doc = load("graph.json")
+        root = doc["requirements"][0]
+        root["decomposition"] = "OR"
+        root["selection"] = {"REQ-READ": "reads one order", "REQ-EXPORT": "exports the orders"}
+        for entry in root["acceptance"]:
+            entry["stage"] = "post_deploy"
+        def change(m):
+            for criterion in ("TEST-PARENT-001", "TEST-SYSTEM-001"):
+                check(m, criterion).update(status="not_run")
+                check(m, criterion).pop("evidence")
+        proc = run("gate", self.write("graph.json", doc), self.manifest(change), "--stage", "pre_deploy")
+        result = gate_result(proc.stdout)
+        self.assertEqual([(r["rule_id"], r["message"]) for r in result["reasons"]],
+                         [("A-03", '"REQ-ROOT" (OR) has no L2 or L3 check of its own verified before deploy; '
+                                   "deciding to deploy it is a person's decision")])
+
+    def test_before_deploy_a_requirement_whose_checks_are_all_post_deploy_is_blocked(self):
+        result = self.deferred_gate(("TEST-LEAF-003",))
+        self.assertEqual(result["decision"], "blocked")
+        self.assertEqual([(r["rule_id"], r["message"]) for r in result["reasons"]],
+                         [("A-03", '"REQ-EXPORT" has no check verified before deploy; '
+                                   "deciding to deploy it is a person's decision")])
+
+    def test_after_deploy_such_requirements_pass_once_their_checks_pass(self):
+        for stage in ("pre_deploy", None):
+            with self.subTest(stage=stage):
+                result = self.deferred_gate(("TEST-PARENT-001", "TEST-SYSTEM-001", "TEST-LEAF-003"), stage=stage, status="passed")
+                self.assertEqual((result["decision"], result["reasons"]), ("pass", []))
+
+    def test_text_output_names_the_stage_and_what_was_left_out(self):
+        def change(m):
+            check(m, "TEST-SYSTEM-001").update(status="not_run")
+            check(m, "TEST-SYSTEM-001").pop("evidence")
+        graph = self.write("graph.json", post_deploy_graph())
+        text = run("gate", graph, self.manifest(change), "--stage", "pre_deploy", output_format="text").stdout
+        self.assertIn("Result: pass before deploy, leaving out 1 post-deploy check that has not run (TEST-SYSTEM-001)", text)
+        plain = run("gate", graph, self.manifest(change), output_format="text").stdout
+        self.assertIn("Result: blocked (", plain)
+
+    def test_an_undefined_stage_in_the_graph_or_the_option_is_an_input_error(self):
+        for stage in ("after_deploy", None, 1):
+            with self.subTest(stage=stage):
+                proc = run("gate", self.write("graph.json", post_deploy_graph(stage)), self.manifest())
+                self.assertEqual(proc.returncode, 2, proc.stdout)
+        proc = run("gate", str(FIXTURES / "graph.json"), self.manifest(), "--stage", "post_deploy")
+        self.assertEqual(proc.returncode, 2, proc.stdout)
+
+    def test_a_requirement_with_an_instruction_origin_is_decided_as_without_one(self):
+        doc = load("graph.json")
+        doc["requirements"][1]["origin"] = {"kind": "instruction", "by": "owner-a", "ref": "issue 12"}
+        with_origin = run("gate", self.write("graph.json", doc), self.manifest())
+        without = run("gate", str(FIXTURES / "graph.json"), self.manifest())
+        decided = [(p.returncode, json.loads(p.stdout).get("decision"), json.loads(p.stdout).get("reasons")) for p in (with_origin, without)]
+        self.assertEqual(decided[0], decided[1])
+
+
+class JestTestCase(AssuranceTestCase):
+    def collect(self, report: str, *extra: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, "-B", str(CHECKER), "collect-jest", report, "--graph", str(FIXTURES / "graph.json"),
+             "--commit", SHA, "--ref", "https://ci.example.test/runs/9", *extra],
+            capture_output=True, text=True, timeout=60,
+        )
+
+    def statuses(self, doc: dict) -> dict:
+        proc = self.collect(self.write("jest.json", doc))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return {c["check_id"]: c for c in json.loads(proc.stdout)}
+
+
+class JestTests(JestTestCase):
+    """collect-jest: Jest's --json output becomes manifest checks by the rules collect-junit uses."""
+
+    def test_assertions_map_to_acceptance_ids(self):
+        proc = self.collect(str(FIXTURES / "jest.json"))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        statuses = {c["check_id"]: c["status"] for c in json.loads(proc.stdout)}
+        self.assertEqual(statuses, {"TEST-PARENT-001": "not_run", "TEST-SYSTEM-001": "not_run",
+                                    "TEST-LEAF-001": "passed", "TEST-LEAF-002": "passed", "TEST-LEAF-003": "failed"})
+
+    def test_collected_checks_carry_the_commit_ref_and_kind(self):
+        checks = json.loads(self.collect(str(FIXTURES / "jest.json"), "--kind", "local_run").stdout)
+        passed = next(c for c in checks if c["check_id"] == "TEST-LEAF-001")
+        self.assertEqual(passed.get("evidence"), {"kind": "local_run", "ref": "https://ci.example.test/runs/9", "commit": SHA})
+        missing = next(c for c in checks if c["check_id"] == "TEST-PARENT-001")
+        self.assertEqual(missing.get("reason"), "no test names this acceptance id in the Jest report")
+
+    def test_every_status_other_than_passed_or_failed_counts_as_skipped(self):
+        for status in ("skipped", "pending", "todo", "disabled", "focused"):
+            with self.subTest(status=status):
+                doc = load("jest.json")
+                doc["testResults"][0]["assertionResults"][1]["ancestorTitles"] = ["GET /orders/{id}"]
+                doc["testResults"][0]["assertionResults"][1]["fullName"] = "GET /orders/{id} also TEST-LEAF-001"
+                doc["testResults"][0]["assertionResults"][1]["title"] = "also TEST-LEAF-001"
+                doc["testResults"][0]["assertionResults"][1]["status"] = status
+                entry = self.statuses(doc)["TEST-LEAF-001"]
+                self.assertEqual(entry["status"], "not_run")
+                self.assertEqual(entry["reason"], "1 passed, 1 skipped tests in the Jest report")
+
+    def test_a_file_that_failed_outside_its_tests_lets_nothing_pass(self):
+        doc = load("jest.json")
+        doc["testResults"].append({"assertionResults": [], "message": "Test suite failed to run: SyntaxError",
+                                   "name": "/repo/tests/broken.test.js", "status": "failed"})
+        statuses = self.statuses(doc)
+        self.assertEqual(statuses["TEST-LEAF-001"]["status"], "not_run")
+        self.assertIn("/repo/tests/broken.test.js failed outside its tests", statuses["TEST-LEAF-001"]["reason"])
+        self.assertEqual(statuses["TEST-LEAF-003"]["status"], "failed")
+
+    def test_an_interrupted_or_failed_run_lets_nothing_pass(self):
+        for name, change in {"interrupted": {"wasInterrupted": True}, "run error": {"runExecError": {"message": "x"}}}.items():
+            with self.subTest(name):
+                doc = load("jest.json")
+                doc.update(change)
+                statuses = self.statuses(doc)
+                self.assertEqual({c: s["status"] for c, s in statuses.items() if c.startswith("TEST-LEAF-00")},
+                                 {"TEST-LEAF-001": "not_run", "TEST-LEAF-002": "not_run", "TEST-LEAF-003": "failed"})
+                self.assertIn("the Jest run did not complete", statuses["TEST-LEAF-001"]["reason"])
+
+    def test_an_id_inside_a_dotted_longer_id_does_not_count(self):
+        doc = load("jest.json")
+        doc["testResults"][1]["assertionResults"].pop(0)
+        doc["testResults"][1]["status"] = "passed"  # its one failed test is gone, so the file passed
+        entry = self.statuses(doc)["TEST-LEAF-003"]
+        self.assertEqual((entry["status"], entry.get("reason")), ("not_run", "no test names this acceptance id in the Jest report"))
+
+    def test_a_report_jest_could_not_have_written_is_an_input_error(self):
+        def variant(change) -> str:
+            doc = load("jest.json")
+            change(doc)
+            return self.write("jest.json", doc)
+        cases = {
+            "no testResults": lambda d: d.pop("testResults"),
+            "testResults not a list": lambda d: d.update(testResults={}),
+            "file entry not an object": lambda d: d["testResults"].append("x"),
+            "file status missing": lambda d: d["testResults"][0].pop("status"),
+            "assertionResults not a list": lambda d: d["testResults"][0].update(assertionResults={}),
+            "assertion status missing": lambda d: d["testResults"][0]["assertionResults"][0].pop("status"),
+            "title not a string": lambda d: d["testResults"][0]["assertionResults"][0].update(title=1),
+            "ancestorTitles not strings": lambda d: d["testResults"][0]["assertionResults"][0].update(ancestorTitles=[1]),
+            "wasInterrupted not a boolean": lambda d: d.update(wasInterrupted="no"),
+        }
+        for name, change in cases.items():
+            with self.subTest(name):
+                proc = self.collect(variant(change))
+                self.assertEqual(proc.returncode, 2, proc.stdout)
+        top_level_array = self.write("jest.json", "[]")
+        self.assertEqual(self.collect(top_level_array).returncode, 2)
+        repeated_key = self.write("jest.json", '{"testResults": [], "testResults": []}')
+        self.assertEqual(self.collect(repeated_key).returncode, 2)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,3 @@
+commit: 1e80cb578afb49a688afc20619d91038478d4bb5 (a clean worktree of the commit)
+inputs: 51 checker results and 4 review cards
+diff: identical

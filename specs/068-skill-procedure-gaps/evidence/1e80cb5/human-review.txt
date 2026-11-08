@@ -1,0 +1,26 @@
+The person's review of the procedure map (spec 068)
+
+Reviewer: Taiki Ogihara, the person who asked for the change (not the implementer).
+Date: 2026-11-08, in the Claude Code conversation that made the change.
+Commit reviewed: 1e80cb578afb49a688afc20619d91038478d4bb5 (the skill texts there are
+those evidence/procedure-map.md points to; no skill text changed after f972fe7
+except the two README files).
+
+What was asked: Claude listed the ten checks below one by one, each with what to
+confirm, the file and lines to read, and the points to look at, and asked for
+"all OK" or "<id> is NG: reason".
+What the person answered: "ok", taken as all ten OK.
+
+R0-A2  the nine rows are each settled and do not contradict one another (A-02, A-10, pre-deploy vs acceptance)
+R1-A1  row 1, where records are committed
+R2-A1  row 2, evidence file names and git check-ignore / git ls-files
+R3-A1  row 3, what later review rounds get and check
+R4d-A1 row 4, the stage of a criterion in the procedures, references, and challenger prompt
+R5-A2  row 5, collect-jest's use and limits
+R6-A1  row 6, the language passed to both prompts and copying findings as they are
+R7-A2  row 7, origin in step 2 and the challenger prompt (including the requirements the card attributes to the person)
+R8-A1  row 8, red against a wrong-result stub, and mutation checks
+R9-A1  row 9, the requirements graph as the single source of acceptance criteria in three skills
+
+This is a person's confirmation recorded by the implementer; the checker cannot
+verify who answered.

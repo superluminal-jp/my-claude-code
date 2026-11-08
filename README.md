@@ -64,7 +64,9 @@ projects while preserving unrelated user files.
   decomposing it into an AND/OR/LEAF requirements graph whose parents carry
   their own L2 or L3 acceptance criteria, having a read-only challenger subagent
   object, and running a bundled standard-library checker whose gate answers
-  ready or blocked before implementation starts;
+  ready or blocked before implementation starts; a requirement a person
+  directed carries its `origin`, which the challenger takes as a given
+  constraint, and a criterion verifiable only after deploy carries its `stage`;
   [spec 059](specs/059-refinement-graph-checker/spec.md),
   [spec 060](specs/060-goal-refinement/spec.md)), `verified-delivery` (a
   parent skill that applies `problem-definition`, `requirements-decomposition`, and
@@ -78,9 +80,15 @@ projects while preserving unrelated user files.
   re-checks and finds broken, so a skipped step blocks instead of passing —
   and prints a one-screen review card for the person who decides, plus a
   preregistered pilot decision on whether it cuts review time without losing
-  quality; [spec 061](specs/061-change-assurance/spec.md),
+  quality; criteria verified only after deploy are left out of a separate
+  decision before deploy, which the card shows under the acceptance decision,
+  Jest's `--json` results are read as well as JUnit XML, records go in a
+  records-only commit after the reviewed one, and a review after fixes reads
+  only the fix diff;
+  [spec 061](specs/061-change-assurance/spec.md),
   [spec 062](specs/062-review-card/spec.md), [spec 063](specs/063-pilot-metrics/spec.md),
-  [spec 064](specs/064-assurance-gate-hardening/spec.md)),
+  [spec 064](specs/064-assurance-gate-hardening/spec.md),
+  [spec 068](specs/068-skill-procedure-gaps/problem.md)),
   `product-strategy` (vision, target users,
   value proposition, success metrics, and MoSCoW-prioritized scope, framed
   before development work begins),
@@ -270,6 +278,7 @@ my-claude-code/
         ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
         ├── verified-delivery/      # Parent skill: evidence per acceptance criterion -> pass/fail/blocked gate
         │   ├── SKILL.md            #   playbook and its child skills
+        │   ├── README.md           #   how it works, for first-time users (README.ja.md: Japanese)
         │   ├── references/         #   manifest format and rules, assurance reviewer prompt
         │   ├── scripts/            #   assure.py (read-only, standard library only)
         │   └── tests/              #   acceptance tests and fixtures
@@ -366,7 +375,10 @@ The first runs the bundled checker's acceptance tests, including the four that
 parent check, an AI claim without evidence, stale evidence, unclassified
 risk), checks that the example manifest passes the gate, and checks that the
 gate passes no requirements graph from `requirements-decomposition`'s test fixtures that
-its checker rejects under a rule the gate depends on.
+its checker rejects under a rule the gate depends on, and carries one made-up
+change through both checkers from decomposition to acceptance
+(`tests/assert_delivery_flow.py`: a requirement a person directed, Jest results,
+the decision before deploy, and both decisions on the card).
 
 After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
 [`.claude/rules/`](.claude/rules/), or an authored skill:

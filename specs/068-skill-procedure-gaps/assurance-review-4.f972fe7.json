@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-068",
+    "reviewed_commit": "f972fe7376d7719204967a36883b1171cce332cf",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、4回目（差分だけ。3回目の後の直しは graph を変えたが、利用者の決定で規則の例外として差分だけを読んだ）。使ったトークンは95,315、ツールの呼び出しは19回",
+    "context_given": [
+      "specs/068-skill-procedure-gaps/requirements-graph.json（f972fe7 の版）",
+      "specs/068-skill-procedure-gaps/assurance-review-3.f52e4e2.json（前回の指摘と答え。答えは実装者の主張として渡した）",
+      "git diff f52e4e29e363bc78c220e7a81a1c52958c8b5197 f972fe7376d7719204967a36883b1171cce332cf（直しの差分）",
+      "specs/068-skill-procedure-gaps/evidence/f972fe7/",
+      "verified-delivery の references/reviewer.md の2回目以降のプロンプト（f972fe7 の版。記録の場所 specs/068-skill-procedure-gaps/、言語は日本語）"
+    ],
+    "findings": [
+      {"id": "AR-06", "kind": "other", "target": "R0-A5", "severity": "medium",
+       "statement": "前回の AR-02（accepted）は直っていない。AR-02 が求めたのは、通しの試験 tests/assert_delivery_flow.py が、assertion の失敗として失敗しうると示すことだった。mutations.sh は、この試験を main の検査器（9cd7932）に対して走らせ、「8 of 8 checks fail」を数えに入れた。しかし main の assure.py には collect-jest も --stage も無い（9cd7932 の argparse は check・gate・collect-junit・card だけ）。そのため、collect-jest は使い方の誤り（終了コード2）になって collected が [] になり、`gate --stage pre_deploy` は「unrecognized arguments」の使い方の誤りになり、残りの確かめは空の manifest を使うので、すべて続けて外れる。8つの FAIL は、main に命令と引数が無いことを示すだけで、この試験の assertion（left_out が [POST_DEPLOY] になること、A-03 のメッセージ、カードの文字列）が壊れた実装に対して失敗しうることは示さない。mutations.sh 自身の冒頭と R0-A5 の文は、「使い方の誤り」の観測を数えないと定め、main に命令が無い試験は main ではなく機能のスタブに対して red を観測する（StageTests と JestTests はそうしている）。この red はその規則に反し、「31件中31件」は流れの試験については成り立たない。R0-A1（L3）、R4-A1、R4-A2 の唯一の証跡であるこの試験が失敗しうることは、まだ示されていない。直し方の例は、StageTests と同じく、機能のスタブか、実装を壊すミューテーション（たとえば left_out を空にする）に対して走らせ、使い方の誤りでない assertion の失敗を観測することである。",
+       "disposition": "accepted",
+       "resolution": "main に対する通しの試験の red を mutations.sh から外した。代わりに、通しの試験の8つの確かめを1つずつ、命令とオプションを残したまま HEAD の実装を壊す7つのミューテーションに対して走らせる。7つは、graph の検査器が origin を退ける、collect-jest が誤った結果を返す、deploy の前に何も除かない、acceptance でも除く、deploy の後の failed を deploy の前の判定から隠す、post_deploy を退ける、カードが deploy の前の判定を出さない、である。そして、どの確かめも FAIL の行になり、Python の traceback が無いことを数える。8つすべてが捕まり、数える対象は38件中38件になった。あわせて、tests/assert_delivery_flow.py を、検査器の出力に欄が無いときや JSON でないときも traceback で落ちず、その確かめの FAIL になるように直した。"}
+    ]
+  }
+}

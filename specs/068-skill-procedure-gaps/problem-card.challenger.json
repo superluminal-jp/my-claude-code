@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "P-068",
+    "ideal": "スキルの手順が、記録の置き方・証跡の形・レビューの範囲・deploy の前後の判定・red の取り方を前もって決めていて、レビューの指摘が変更そのものの問題に集中する。",
+    "current": "verified-delivery・requirements-decomposition・coder の3つのスキルの手順と、同梱の2つの検査器（assure.py・check_graph.py）が、案件で要った次のことを決めていない。記録をどのコミットに入れるか、証跡のファイル名、指摘を直した後のレビューの範囲、deploy の後でしか確かめられない検査の扱い、JUnit 以外の試験の結果の取り込み、記録に写す指摘の言語、要件の出所、新しい関数の red の取り方、spec-kit の spec.md と requirements graph のどちらに受け入れ条件を書くか。",
+    "gap": "スキルの手順が、記録と証跡の扱い、deploy の前後の判定、red の取り方を決めておらず、その穴がレビューの指摘と手作業になって出た。",
+    "significance": "同じ穴は、次に同じスキルを使う案件でも同じ指摘と手作業を生む。レビューのトークンと時間が、変更の中身ではなく記録の形に使われる。",
+    "status": "verified",
+    "evidence": [
+      {
+        "source": "利用者の振り返りの第4節（2026-11-08 の会話に貼られた表）",
+        "observation": "9行の食い違いのそれぞれで、次のことが起きた。独立のレビューが「記録が別のコミットを指す」と2回指摘した。.log の証跡がコミットに入らなかった。指摘を直した後の3回のレビューがそれぞれ約20万トークンを使った。deploy の前の gate が必ず blocked になった。jest の結果を JSON から手で記録に起こした。英語の指摘が日本語の記録に混ざった。ユーザーの指示の要件が「手段を問題にしている」と指摘された。red が import の失敗にしかならなかった。受け入れ条件を graph と spec.md に2度書いた。"
+      },
+      {
+        "source": ".claude/skills/verified-delivery/SKILL.md の手順4・5（main 9cd7932）",
+        "observation": "手順4・5は、記録（manifest・レビューの記録・証跡）をどのコミットに入れるかも、証跡のファイル名も書いていない。手順5は、レビュー役の指摘を「Copy its findings」とだけ書き、直した後は「run the review again for that commit」と書く。"
+      },
+      {
+        "source": ".claude/skills/verified-delivery/references/reviewer.md（main 9cd7932）",
+        "observation": "レビュー役に渡すのは「the diff of the change up to reviewed_commit」で、2回目以降に範囲を変える定めが無い。プロンプトは英語で、statement の言語を指定しない。requirements-decomposition の references/challenger.md も同じで、プロンプトは「unchanged except for the two paths」で渡すと書く。"
+      },
+      {
+        "source": "specs/066-harness-behavior-baseline/assurance-review-7.0ac8e15.json の AR-01",
+        "observation": "R-SPEC-A1 の証跡 evidence/0ac8e15/check-real-tree.log が .gitignore:74 の *.log に当たり、リポジトリに入らないと指摘された。証跡が欠ける本物の欠陥で、手順に証跡のファイル名の定めが無いので起き、レビューの1回分の指摘になった。"
+      },
+      {
+        "source": "specs/066-harness-behavior-baseline/assurance-review-1〜10 の context_given と findings",
+        "observation": "10回のどれも、レビュー役に git diff main..<sha>（変更のすべての差分）を渡した。指摘の statement は英語で、context_given など記録の他の欄は日本語で書かれている。"
+      },
+      {
+        "source": ".claude/skills/verified-delivery/scripts/assure.py（main 9cd7932）",
+        "observation": "試験の結果を取り込む命令は collect-junit だけである。受け入れ条件から読む欄は id と level だけで、deploy の前か後かを表す欄が無い。gate は not_run の検査をすべて A-03 で blocked にし、判定は pass・fail・blocked の1つだけである。"
+      },
+      {
+        "source": ".claude/skills/requirements-decomposition/scripts/check_graph.py の REQUIREMENT_FIELDS と ACCEPTANCE_FIELDS（main 9cd7932）",
+        "observation": "要件の欄は id・statement・decomposition・children・acceptance・assumptions・counterexamples・selection、受け入れ条件の欄は id・description・level で、要件の出所や deploy の段階を書く欄が無い。他の欄は S-00 で退けられる。"
+      },
+      {
+        "source": ".claude/skills/coder/SKILL.md の TDD 節と SDD 節（main 9cd7932）",
+        "observation": "red は「run it to observe the expected failure」とだけ書き、まだ無い関数の試験の失敗が import の失敗でよいかを決めていない。spec-kit を使うプロジェクトでは spec-kit の手順に従うと書き、受け入れ条件を別の記録（requirements graph）にも書く場合の関係を書いていない。"
+      }
+    ],
+    "counter_evidence": [
+      {
+        "source": "specs/066-harness-behavior-baseline/ の一覧（main 9cd7932）",
+        "observation": "spec 066 は spec.md を書かず、problem card と requirements graph だけで進めたので、このリポジトリでは受け入れ条件の2度書きは起きていない。"
+      },
+      {
+        "source": "specs/066-harness-behavior-baseline/assurance-review-10.f9dbf00.json の AR-03 と git log 2822abe..f9dbf00",
+        "observation": "f9dbf00 でコミットされた manifest が 2822abe を指すと指摘された。2822abe から f9dbf00 までに tests/harness-eval/harness_eval.py などのコードの変更があったので、これは記録が本当に古かったことへの正しい指摘で、行1（記録が、それより前の審査したコミットを指すのは避けられない）の例ではない。"
+      }
+    ],
+    "status_rationale": "current（手順と検査器が9つのことを決めていない）は、9行のすべてをスキルの本文と検査器のコード（main 9cd7932）で確かめた。その穴が指摘や手作業を生んだことは、行2・3・6 では spec 066 の記録でも確かめたが、行1・4・5・7・8・9 では利用者の報告だけが根拠である（報告した案件の記録はこのリポジトリに無い）。反対の観測は2つある。spec 066 の AR-03 は正しい指摘で行1の例ではないこと、行9がこのリポジトリで起きなかったことである。どちらも手順の穴は否定しない。行1については、記録はそれを含むコミットの SHA を書けないので、審査したコミットより後のコミットに入るしかない。手順はそれを書いていない。行9については、coder の手順が spec-kit の手順に従うよう求め、受け入れ条件をどちらに書くかを決めていないので、spec.md を書く案件では2度書きが起きる。",
+    "hypotheses": [
+      "スキルが、このリポジトリの spec 059–066 の進め方（deploy の無い、Python の試験の案件）から作られたため、deploy のある案件や jest の案件で要る手順が抜けた。"
+    ],
+    "out_of_scope": [
+      "批判の役の指摘の数の上限（spec 059–063 の未決の事項）",
+      "pilot（レビューの時間の比較実験）",
+      "3つのスキルと2つの検査器のほかのスキル",
+      "Jest の --json の形以外の JSON の試験の結果。Vitest の JSON reporter は Jest の --json と互換だと自分の文書で言うが、この変更の試験は Jest の形だけで確かめる"
+    ]
+  }
+}

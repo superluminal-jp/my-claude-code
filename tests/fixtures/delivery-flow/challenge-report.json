@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "PRB-FLOW",
+    "reviewer": "read-only subagent, 2026-11-08",
+    "context_given": ["problem-card.challenger.json", "requirements-graph.json"],
+    "findings": [
+      {"id": "CH-01", "kind": "other", "target": "REQ-DEV-HOURLY", "severity": "low",
+       "statement": "REQ-DEV-HOURLY の ref は質問と回答を特定するが、dev の毎時の取り込みがギャップとどう関わるかは書かれていない。",
+       "disposition": "rejected",
+       "resolution": "owner-a の指示による制約で、ギャップと矛盾しない（dev の取り込みを減らしても、本番の1時間の条件は変わらない）。"}
+    ]
+  }
+}

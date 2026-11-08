@@ -1,0 +1,14 @@
+commit: f52e4e29e363bc78c220e7a81a1c52958c8b5197 (local, inside the Claude Code sandbox)
+tests/run-install.sh exit=0 | All installer contract checks passed.
+tests/run-digital-agency-frontend-skill.sh exit=0 | Results: 74 passed, 0 failed
+tests/run-removed-guardrails.sh exit=0 | Results: 4 passed, 0 failed
+tests/run-sandbox-settings.sh exit=0 | Results: 61 passed, 0 failed
+tests/run-package-safety-bundle.sh exit=0 | Results: 21 passed, 0 failed
+tests/run-readme-skill-index.sh exit=0 | Results: 35 passed, 0 failed
+tests/run-requirements-decomposition-skill.sh exit=0 | Results: 5 passed, 0 failed
+tests/run-verified-delivery-skill.sh exit=0 | Results: 6 passed, 0 failed
+tests/run-harness-eval.sh exit=0 | harness-eval: passed
+tests/run-mcp-startup.sh exit=1 | MCP startup smoke test failed: 1 package(s).
+    FAIL awslabs.aws-documentation-mcp-server@latest did not start cleanly
+    error: failed to open file `/Users/taikiogihara/.cache/uv/sdists-v9/.git`: Operation not permitted (os error 1)
+    MCP startup smoke test failed: 1 package(s).

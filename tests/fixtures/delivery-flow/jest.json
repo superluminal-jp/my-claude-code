@@ -1,0 +1,31 @@
+{
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 2,
+  "numPassedTests": 3,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 0,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 2,
+  "numTotalTests": 3,
+  "openHandles": [],
+  "startTime": 1762560000000,
+  "success": true,
+  "wasInterrupted": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {"ancestorTitles": ["import"], "failureMessages": [], "fullName": "import reads one ledger change [FLOW-LEAF-001]", "status": "passed", "title": "reads one ledger change [FLOW-LEAF-001]"},
+        {"ancestorTitles": ["import", "FLOW-PARENT-001"], "failureMessages": [], "fullName": "import FLOW-PARENT-001 shows a change made an hour ago", "status": "passed", "title": "shows a change made an hour ago"}
+      ],
+      "message": "", "name": "/repo/tests/import.test.js", "status": "passed", "summary": ""
+    },
+    {
+      "assertionResults": [
+        {"ancestorTitles": ["dev schedule"], "failureMessages": [], "fullName": "dev schedule runs only at minute 0 FLOW-LEAF-002", "status": "passed", "title": "runs only at minute 0 FLOW-LEAF-002"}
+      ],
+      "message": "", "name": "/repo/tests/schedule.test.js", "status": "passed", "summary": ""
+    }
+  ]
+}

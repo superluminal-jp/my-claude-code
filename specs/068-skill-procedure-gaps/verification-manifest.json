@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-068",
+    "problem_id": "P-068",
+    "reviewed_commit": "1e80cb578afb49a688afc20619d91038478d4bb5",
+    "implementer": "claude",
+    "risk": {
+      "class": "medium",
+      "rationale": "2つの検査器（assure.py・check_graph.py）の入力の形と命令、すべてのプロジェクトで使う3つのスキルの手順を変える。認証・秘密・個人データ・基盤の権限・公開には触れず、git revert で戻せる。"
+    },
+    "approvals": [
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "feat/skill-procedure-gaps へのローカルのコミット、レビューと gate の後の push と PR（2026-11-08 の会話の質問「コミット」への回答）"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "4回目の assurance review を、直しが graph を変えたのに差分だけで行う（規則の例外。2026-11-08 の会話の質問「4回目」への回答）"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "別の作業で書かれた .claude/skills/verified-delivery/README.md・README.ja.md とルートの README の変更を、この変更に取り込む（2026-11-08 の依頼「readmeファイルも取り込み」）"
+      }
+    ],
+    "checks": [
+      {
+        "check_id": "R0-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R0-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R0-A3",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "https://github.com/superluminal-jp/my-claude-code/actions/runs/42426931132/job/128567099823",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R0-A4",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R0-A5",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/records-check.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R1-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R2-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R3-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R3-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/review-tokens.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R4-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R4-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/delivery-flow.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R4a-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R4b-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R4c-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R4c-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/compat-diff.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R4d-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R5-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R5-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R6-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R7-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/unit-tests.junit.xml",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R7-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R8-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R9-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/human-review.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      },
+      {
+        "check_id": "R9-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/068-skill-procedure-gaps/evidence/1e80cb5/config-pyramid.txt",
+          "commit": "1e80cb578afb49a688afc20619d91038478d4bb5"
+        }
+      }
+    ],
+    "test_changes": [],
+    "infra_changes": []
+  }
+}
