@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-069",
     "problem_id": "P-069",
-    "reviewed_commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f",
+    "reviewed_commit": "321befe7309568042703b77f5d055e62e3048564",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -22,8 +22,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/review-prep-flow.txt",
-          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/review-prep-flow.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
         }
       },
       {
@@ -31,8 +31,8 @@
         "status": "failed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/reviewer-reads.txt",
-          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/reviewer-reads.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
         }
       },
       {
@@ -40,8 +40,8 @@
         "status": "passed",
         "evidence": {
           "kind": "ci_job",
-          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/ci-test-job.txt",
-          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/ci-test-job.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
         }
       },
       {
@@ -54,8 +54,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/unit-tests.junit.xml",
-          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/unit-tests.junit.xml",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
         }
       },
       {
@@ -68,8 +68,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/unit-tests.junit.xml",
-          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/unit-tests.junit.xml",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
         }
       },
       {
@@ -82,8 +82,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/b1ef7d5/unit-tests.junit.xml",
-          "commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f"
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/unit-tests.junit.xml",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
         }
       },
       {
