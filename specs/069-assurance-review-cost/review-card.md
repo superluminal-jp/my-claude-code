@@ -15,7 +15,7 @@
 - **審査の対象のコミット**: `321befe7309568042703b77f5d055e62e3048564`
 - **実装担当**: claude
 - **リスク**: medium — verified-delivery の手順5と参照、新しいスクリプト review\_prep.py（git を読み取りだけで走らせ、リポジトリの外の --out にだけ書く）を変える。assure.py と check\_graph.py の判定の規則、認証・秘密・基盤の権限には触れず、git revert で戻せる。
-- **承認**: Taiki Ogihara (approved): feat/assurance-review-cost へのコミット、push、PR（マージはしない）。2026-11-08 の会話の質問「コミット」への回答
+- **承認**: Taiki Ogihara (approved): feat/assurance-review-cost へのコミット、push、PR（マージはしない）。2026-11-08 の会話の質問「コミット」への回答; Taiki Ogihara (approved): R0-A2（どの回もリポジトリの記録の中身を読まない）が5回中4回で成り立たなかったことを承知で、この変更を受け入れる。読み足しは前の回の答えやスクリプトの全文を実物で確かめるためで、レビューの品質を下げていないと判断した（2026-11-08 の会話の質問「R0-A2」への回答）
 
 ## 水準ごとの検査
 

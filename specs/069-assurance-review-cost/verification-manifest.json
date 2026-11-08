@@ -14,6 +14,11 @@
         "by": "Taiki Ogihara",
         "decision": "approved",
         "scope": "feat/assurance-review-cost へのコミット、push、PR（マージはしない）。2026-11-08 の会話の質問「コミット」への回答"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "R0-A2（どの回もリポジトリの記録の中身を読まない）が5回中4回で成り立たなかったことを承知で、この変更を受け入れる。読み足しは前の回の答えやスクリプトの全文を実物で確かめるためで、レビューの品質を下げていないと判断した（2026-11-08 の会話の質問「R0-A2」への回答）"
       }
     ],
     "checks": [
