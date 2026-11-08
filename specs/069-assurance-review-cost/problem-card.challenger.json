@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "P-069",
+    "ideal": "保証レビューの各回が、変更そのものと、その回に要る証跡だけを読む。すべての差分を読み直すのは、要件の構造かリスクの分類が変わったときだけである。機械的に確かめられる記録の誤りは、レビューの前に見つかっている。CI の証跡は、審査対象のコミットの上で得られている。",
+    "current": "verified-delivery の手順は、レビュー役に変更のすべての差分（記録の場所を含む）を渡すと書き、requirements graph が少しでも変わればすべての差分を読み直させ、レビューの前に記録を機械的に確かめる手順を持たず、CI の証跡を得る順序を書かない。spec 068 の6回のレビューでは、レビュー役が1回あたり12〜39回のツールの呼び出しと19〜74回の turn で探索し、受け取ったツールの結果95〜313 KB のうち23〜156 KB が記録の場所のファイルの読み取りだった。1回の累計の使用量は、キャッシュからの読み込みが0.86〜9.1M トークン、出力が3.0〜12.5万トークンだった。3回目は文の直しの後でもすべての差分の回になり、CI は審査対象のコミットの上で走らなかった。",
+    "gap": "理想では、各回のレビュー役は変更とその回の証跡だけを読むが、実際には記録の場所のファイル（1回あたり23〜156 KB）を含む探索に19〜74回の turn を使った。理想では、すべての差分に戻るのは要件の構造かリスクが変わったときだけだが、実際には文の直しだけでもすべての差分の回になった。理想では、機械的に分かる記録の誤りはレビューの前に見つかるが、実際にはレビューで初めて見つかった（spec 066）。理想では、CI の証跡は審査対象のコミットの上で得られるが、実際には記録のコミットの上で得られた（spec 068）。",
+    "significance": "1回のレビューは8.5〜20.7万トークンを使い、medium 以上の変更では指摘を直すたびに人に尋ねずに繰り返される。同じ消費は、次に verified-delivery を使う案件でも起きる。",
+    "status": "verified",
+    "evidence": [
+      {
+        "source": "specs/068-skill-procedure-gaps/evidence/1e80cb5/review-tokens.txt",
+        "observation": "6回の保証レビューのトークン数は155,026・204,164・207,348（すべての差分）、95,315・84,845・118,364（差分）だった。ツールの呼び出しは30・35・39・19・12・28回だった。 これは完了通知の subagent_tokens の値で、トランスクリプトの累計の使用量（キャッシュからの読み込みなど）とは一致しない。"
+      },
+      {
+        "source": "spec 068 の6回のレビュー役のトランスクリプトをスクリプト（evidence/transcript_usage.py）で要約したもの（evidence/spec068-reviewer-reads.txt）",
+        "observation": "レビュー役は差分を丸ごと読まず、パスを絞った git diff とファイルの読み取りを、1回あたり12〜39回くり返した。受け取ったツールの結果は95〜313 KB で、そのうち記録の場所のファイルの読み取りが23〜156 KB だった（1回目70 KB、2回目66 KB、3回目156 KB、4回目23 KB、5回目47 KB、6回目28 KB）。assistant の turn は49・63・74・31・19・47回、キャッシュからの読み込みの累計は4.30M・7.62M・9.11M・1.82M・0.86M・3.47M、キャッシュへの書き込みは18.5万〜45.5万、出力は3.0万〜12.5万トークンだった。"
+      },
+      {
+        "source": "git diff の大きさの測定（2026-11-08、各回の範囲を specs/068-skill-procedure-gaps/ とそれ以外に分けて数えた）",
+        "observation": "渡した差分の大きさは184〜552 KB で、記録の場所が36%・67%・77%・94%・98%・68%を占めた。そのうち前の回までの証跡が、3回目で約339 KB あった。5回目の直しそのものは約2.6 KB だった。 ただしレビュー役は範囲を丸ごと読んではいない（トランスクリプトの要約）。これは渡した範囲の大きさで、読んだ量ではない。"
+      },
+      {
+        "source": ".claude/skills/verified-delivery/references/reviewer.md と SKILL.md の手順5（main b5363b4）",
+        "observation": "レビュー役に渡すのは「the diff of the change up to reviewed_commit」で、記録の場所を外す定めが無い。2回目以降も「Review the whole diff again instead when the requirements graph or the risk class changed」と、graph の変更の種類を区別しない。"
+      },
+      {
+        "source": "spec 068 の各回の直しのコミット（b9a38d0・f52e4e2・f972fe7）の requirements-graph.json の比較（要件ごとの分解・子・受け入れ条件の id・水準・stage と、文）",
+        "observation": "b9a38d0 は受け入れ条件 R4c-A2 を加えて構造を変えたので、2回目がすべての差分の回になったのは構造の変更による。f52e4e2（R0・R1・R3・R8 の文）と f972fe7（R0・R3・R4d の文）は文だけを変えたが、手順はそれでもすべての差分を求め、3回目（207,348）はすべての差分の回になり、4回目は利用者の例外で差分の回にした（95,315）。"
+      },
+      {
+        "source": "specs/066-harness-behavior-baseline/assurance-review-7.0ac8e15.json の AR-01 と assurance-review-10.f9dbf00.json の AR-03",
+        "observation": "保証レビューが、*.log に当たって無視される証跡と、古い reviewed_commit を指す manifest を見つけた。どちらも git と manifest を読むスクリプトで見つけられる。手順にはレビューの前の機械的な確かめが無い。"
+      },
+      {
+        "source": "gh run view 42424815848（PR #123 の CI、2026-11-08）と specs/068-skill-procedure-gaps/verification-manifest.json の履歴",
+        "observation": "PR の CI は headSha 32ad6b0（記録だけのコミット）で走り、reviewed_commit 276dca7 の上では走らなかった。R0-A3 は手元の実行で補った。手順は CI の証跡の得方を書いていない。"
+      },
+      {
+        "source": ".claude/skills/verified-delivery/SKILL.md の手順4〜6（main b5363b4）",
+        "observation": "手順5はレビュー役を始める前に何も確かめさせず、gate は手順6でレビューの後に初めて走る。手順4は「Record a CI job by its URL and the commit it ran on」とだけ書き、審査対象のコミットと記録のコミットを push する順序を書かない。"
+      }
+    ],
+    "hypotheses": [
+      "1回のレビューの累計の使用量は、turn の回数と、そのときの文脈の大きさの積でほぼ決まる（turn のたびに文脈全体がキャッシュから読み直されるため）。探索のツールの呼び出しが減れば turn も減る。",
+      "完了通知の subagent_tokens は、累計ではなく最後の文脈の大きさを示す。"
+    ],
+    "out_of_scope": [
+      "C: レビューの回数の上限（利用者が採らなかった）",
+      "E: レビュー役の model や effort の変更（利用者が採らなかった）",
+      "assure.py と check_graph.py の判定の規則の変更",
+      "トークンの削減の量を、複数の案件で測ること（pilot）"
+    ]
+  }
+}

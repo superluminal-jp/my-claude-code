@@ -55,6 +55,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md)、[spec 063](specs/063-pilot-metrics/spec.md)、
     deploy の後でしか確かめられない受け入れ条件は、別の deploy の前の判定から除き、カードは受け入れの判定の下にそれを示す。
     JUnit XML に加えて Jest の `--json` の結果も読み、記録は審査したコミットの後の記録だけのコミットに入れ、直しの後のレビューは直しの差分だけを読む。
+    保証レビューの各回は、`review_prep.py` がリポジトリの外に書く bundle(記録を除いた変更と、その回の証拠)を読み、要求の構造かリスクが変わったときだけ差分の全体を読み直し、記録をスクリプトで確かめてから始める([spec 069](specs/069-assurance-review-cost/problem.md))。
     [spec 064](specs/064-assurance-gate-hardening/spec.md)、[spec 068](specs/068-skill-procedure-gaps/problem.md))、
     `product-strategy`
     （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
@@ -228,7 +229,7 @@ my-claude-code/
         │   ├── SKILL.md            #   手順と子スキル
         │   ├── README.md           #   初めて使う人向けの仕組みの説明(README.ja.md: 日本語)
         │   ├── references/         #   検証の記録の形式と規則、保証レビュー役への指示文
-        │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)
+        │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)、review_prep.py(git を読み取りだけで使う)
         │   └── tests/              #   受け入れテストとフィクスチャ
         ├── requirements-decomposition/ # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定
         │   ├── SKILL.md            #   手順

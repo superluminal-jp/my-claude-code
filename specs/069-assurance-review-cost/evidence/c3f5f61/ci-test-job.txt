@@ -1,0 +1,22 @@
+R0-A3: the CI test job of PR #124 at its head c3f5f6180ad798826d8f722a385bfebfea191b8c, the reviewed commit
+(the fix commit was pushed before its records, so the pull_request CI ran on it)
+
+{"conclusion":"success","event":"pull_request","headSha":"c3f5f6180ad798826d8f722a385bfebfea191b8c","jobs":[{"conclusion":"success","name":"test","url":"https://github.com/superluminal-jp/my-claude-code/actions/runs/42434783377/job/128591195887"}]}
+
+Each suite's result line, from the job log:
+Run installer contract tests | All installer contract checks passed.
+Run digital-agency-frontend skill tests | PASS SRC-01: sourcing reference exists
+Run digital-agency-frontend skill tests | Results: 74 passed, 0 failed
+Run removed-guardrails regression tests | Results: 4 passed, 0 failed
+Run sandbox settings contract tests | Results: 47 passed, 0 failed
+Run package-safety bundle contract tests | Results: 21 passed, 0 failed
+Run README skill-index check | Results: 33 passed, 0 failed
+Run requirements-decomposition skill tests | PASS RC-01: acceptance tests pass (Ran 83 tests in 7.425s)
+Run requirements-decomposition skill tests | Results: 5 passed, 0 failed
+Run verified-delivery skill tests | PASS CA-01: acceptance tests pass (Ran 159 tests in 17.252s)
+Run verified-delivery skill tests | PASS CA-06: one change runs from decomposition to acceptance through origin, collect-jest, the decision before deploy, and both card decisions (spec 068)
+Run verified-delivery skill tests | PASS CA-07: one change runs through two assurance review rounds with review_prep.py: check, the first bundle, a fix round, a whole round (spec 069)
+Run verified-delivery skill tests | Results: 7 passed, 0 failed
+Run harness behavior baseline checks | harness-eval: passed
+Run MCP startup smoke test | MCP startup smoke test passed: 1 package(s).
+Run MCP startup smoke test | MCP http-shape check passed: 4 entr(y/ies).

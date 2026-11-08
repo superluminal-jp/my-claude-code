@@ -84,7 +84,11 @@ projects while preserving unrelated user files.
   decision before deploy, which the card shows under the acceptance decision,
   Jest's `--json` results are read as well as JUnit XML, records go in a
   records-only commit after the reviewed one, and a review after fixes reads
-  only the fix diff;
+  only the fix diff; each review round reads a bundle that `review_prep.py`
+  writes outside the repository (the change without its records, this
+  round's evidence), rereads the whole diff only when the requirements'
+  structure or the risk changed, and starts after a scripted check of the
+  records ([spec 069](specs/069-assurance-review-cost/problem.md));
   [spec 061](specs/061-change-assurance/spec.md),
   [spec 062](specs/062-review-card/spec.md), [spec 063](specs/063-pilot-metrics/spec.md),
   [spec 064](specs/064-assurance-gate-hardening/spec.md),
@@ -280,7 +284,7 @@ my-claude-code/
         │   ├── SKILL.md            #   playbook and its child skills
         │   ├── README.md           #   how it works, for first-time users (README.ja.md: Japanese)
         │   ├── references/         #   manifest format and rules, assurance reviewer prompt
-        │   ├── scripts/            #   assure.py (read-only, standard library only)
+        │   ├── scripts/            #   assure.py (read-only, standard library only), review_prep.py (git read-only)
         │   └── tests/              #   acceptance tests and fixtures
         ├── requirements-decomposition/ # Problem card -> requirements graph -> challenger -> ready/blocked gate
         │   ├── SKILL.md            #   playbook

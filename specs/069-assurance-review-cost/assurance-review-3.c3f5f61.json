@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-069",
+    "reviewed_commit": "c3f5f6180ad798826d8f722a385bfebfea191b8c",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、3回目（scope whole。2回目の AR-08 に答えるため、--previous を付けずにすべての差分の回にした）。完了通知のトークンは124,691。トランスクリプトの要約: ツールの呼び出し17回、turn 27回、読んだツールの結果170 KB、キャッシュからの読み込みの累計1.69M、キャッシュへの書き込み23.8万、出力5.9万。リポジトリの記録の場所の中身を読んだと分類された呼び出しは1回（git log | head の類で、記録のファイルの中身ではない。分類は多めに数える）",
+    "context_given": [
+      "review_prep.py bundle の出力 /private/tmp/claude-501/bundle-069-r3（scope whole、range b5363b4..c3f5f61、change.diff に記録の場所の3つのスクリプトを含む、graph.diff、requirements-graph.json、manifest.json、evidence/ の3ファイル、excluded.txt、scope.json）",
+      "verified-delivery の references/reviewer.md の1回目のプロンプト（c3f5f61 の版。言語は日本語）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "uncovered_path",
+        "target": "RD-A1",
+        "severity": "medium",
+        "statement": "review_prep.py の is_record() は、記録の場所の中の .json と .md を、審査対象のコミットより後でも変えてよい「記録」として扱う。そのため run_check の P-02 は、審査対象のコミットの後の記録だけのコミットが requirements-graph.json や problem-card.json を書き換えても違反にしない。一方、bundle のレビュー役が見るのは審査対象のコミット時点の graph(repo.show(reviewed, GRAPH))で、gate が読むのは HEAD の作業ツリーの graph である。レビューの後に受け入れ条件を弱めても check は通り、レビュー役はその graph を一度も見ていない。RD-A1 の試験にも、審査対象のコミットの後に graph や problem card が変わる場合は無い。SKILL.md 手順4は、graph と problem card は変更と一緒に入れ、審査対象のコミットが「作るもとになった要求を持つ」ようにすると書く。その保証を check は確かめない。graph と problem card について、HEAD と審査対象のコミットの差分が空であることを確かめる検査も criterion も無い。(この穴は変更前から在るが、この変更は check で記録の誤りをレビューの前に見つけると主張している。)",
+        "disposition": "accepted",
+        "resolution": "check の P-02 に、実装の前に書く記録（problem card・requirements graph・challenge report）が審査対象のコミットの後に変わったコミットを違反にする規則を加えた。3つのそれぞれについて単体試験を加え、規則を外すミューテーションで失敗することを示した。reviewer.md と RD の文と RD-A1 を直した。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "uncovered_path",
+        "target": "RD-A1",
+        "severity": "low",
+        "statement": "SKILL.md 手順6と reviewer.md は、check が「manifest が引く証拠がコミットされている」ことを確かめると書く。実装は git ls-files --error-unmatch で、HEAD ではなくインデックスを見る。git add しただけでコミットしていない証拠や、コミット後に作業ツリーで書き換えた証拠も P-03 を通る。bundle も manifest.json と evidence/ を、コミットからではなく作業ツリーから shutil.copyfile と read_text で写す。コミットされていない manifest や証拠がレビュー役に渡り、check は違反を出さない。test_missing_untracked_or_ignored_evidence_is_a_violation は missing、untracked、ignored の3つだけで、staged のみと、コミットと作業ツリーが違う場合の試験は無い。",
+        "disposition": "accepted",
+        "resolution": "check の P-03 は、HEAD にコミットされているか（git ls-tree HEAD）と、作業ツリーのものがコミットと同じか（git diff --quiet HEAD）を確かめ、無い・追跡されていない・無視される・ステージだけ・コミットと違う、を区別して報告する。manifest そのものも同じに確かめる。bundle は manifest.json と evidence/ を HEAD にコミットされた版から写す。ステージだけの証跡、コミット後に書き換えた証跡、作業ツリーで書き換えた manifest の単体試験を加え、ミューテーションで失敗することを示した。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "evidence_mismatch",
+        "target": "R0-A2",
+        "severity": "low",
+        "statement": "R0-A2 の「記録の場所の中身を読んだ呼び出しが0回」を示す道具 transcript_usage.py の数え方に、見逃しがある。(1) summarize() は呼び出しの文を given.get('command') or file_path or pattern で作り、records の文字列がその文に含まれる呼び出しだけを数える。Grep に path=specs/069-assurance-review-cost、pattern=\"risk\" を渡した呼び出しや、Glob の pattern が 'specs/069-*/**' の呼び出しは、記録の場所の名前を含まないので数えられない。(2) NAME_ONLY が log を「名前だけ」に分類するので、`git log -p -- specs/069-.../x.json` は reading の語(cat・head など)が無く、names になって contents に数えられない。この道具には試験も、mutations.sh のような壊した実装での確認も無い。この道具が出す0は、reviewer が読まなかったことの証拠にならない。R0-A2 の証跡として出す前に直す必要がある。",
+        "disposition": "accepted",
+        "resolution": "transcript_usage.py は、呼び出しの command・file_path・path・pattern・glob をすべて見るようにし（Grep の path を数える）、git log -p・--patch・git show を中身の読み取りに数えるようにした。見本の呼び出し（git log -p、git show、Grep の path、cat、ls、bundle の中）で分類を確かめた。Glob の pattern が記録の場所の名前を含まない書き方（specs/069-*/**）は、名前の文字列で探す以上、なお見逃しうる。この限界は R0-A2 の証跡に書く。この道具は1件の変更の証跡を作るもので、単体試験までは用意しない。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "other",
+        "target": "R0-A2",
+        "severity": "low",
+        "statement": "manifest.json の R0-A2 は not_run で、理由に「1回目は記録の場所の中身を読んだので、利用者の判断を待つ」とある。criterion は「すべての回で0回」と求めるので、書かれたとおりなら、1回目に読んだ時点で満たせない。実質は failed か criterion の変更待ちである。not_run のままだと gate は fail ではなく blocked になり、criterion の文を弱めれば通る道が残る。コミット c3f5f61「R0-A2 をすべての回に戻し」は、いちど弱めた文を戻したものである。判断を待つのが基準の緩和なのか、1回目の読み取りの許容なのかが、記録の上で決まっていない。",
+        "disposition": "accepted",
+        "resolution": "R0-A2 を failed とし、証跡に各回のトランスクリプトの要約を引く。1回目にリポジトリの記録の場所の中身を3〜4回読んだので、「すべての回で0回」は成り立たない。gate はこの検査で fail になる。criterion の文は変えない。受け入れるかどうかは利用者が決める。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "evidence_mismatch",
+        "target": "R0-A3",
+        "severity": "low",
+        "statement": "R0-A3 は「reviewed_commit の上の CI のジョブ」で10のスイートが合格することを求める。ci-test-job.txt は、event が pull_request で headSha が c3f5f61 だという JSON と、実装者が選んだ結果の行だけを示す。.github/workflows/ci.yml は pull_request で actions/checkout@v4 を使う。この場合、ジョブが検証するのは PR の head ではなく、head と main の仮のマージコミットである。証跡はジョブが実際に取り出したコミットを示さず、headSha は PR の head の SHA にすぎない。main が進んでいれば、検証された木は reviewed_commit と一致しない。ログは生のログではなく抜き書きで、URL も bundle のレビュー役は開けない。",
+        "disposition": "accepted",
+        "resolution": "次の回の CI の証跡（ci-test-job.txt）に、ジョブのログの checkout の行（取り出した仮のマージコミット）と、その時点の main の SHA を加え、main がこの変更の base（b5363b4）から進んでいないこと、つまり仮のマージの木が reviewed_commit の木と同じことを示す。手順4と README に、PR の CI が仮のマージを試すときは取り出したコミットを記録し、元のブランチが進んでいない間だけ reviewed_commit の証跡に数える、と書いた。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "risk_mismatch",
+        "target": "CHG-069",
+        "severity": "low",
+        "statement": "SKILL.md 手順4と README の新しい文は、保証レビューの前に、審査対象のコミットを push し、CI が pull request でだけ走るなら PR を先に開くよう Claude に求める(README の「Claude は…push し」)。これは、レビューも承認もまだ無いコードをリモートへ公開する手順で、今までは手順に無かった。manifest の risk.rationale は「認証・秘密・基盤の権限には触れず」と書き、公開については何も述べない。SKILL.md 末尾の「権限が要るときは止めて尋ねる」の例にも、push と PR が入っていない。承認の scope は、この change 自身のコミット、push、PR だけである。この手順を使う他の案件で、push と PR を事前の承認なしに行わせる指示を、risk の分類と受け入れ条件が扱っていない。",
+        "disposition": "accepted",
+        "resolution": "手順4を「人が push を頼んでいて」CI が push か pull request で走るときに限り、PR を先に開くのも人が PR を頼んでいるときに限った。手順の末尾の、止まって尋ねる場合の例に「a commit, push, or pull request the person has not asked for」を加えた。README（英語・日本語）にも、頼まれていなければ push の前に尋ねると書いた。RC の文と R0 の assumptions（risk の理由）を直した。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "other",
+        "target": "RA-A1",
+        "severity": "low",
+        "statement": "manifest の risk.rationale と review_prep.py の docstring は「書くのはリポジトリの外の --out の下だけ」と述べる。run_bundle は、証拠の写しを out / 'evidence' / ref に書く。ref に .. が入り、解決した source がリポジトリの中に収まるとき(例: ref が '../../<親>/<リポジトリ名>/src/app.py')、target は --out の外へ出て、parent.mkdir(parents=True) がその場所にディレクトリを作る。run_check の P-03 は、解決した path がリポジトリの中かどうかしか見ないので、この ref を違反にしない。RA-A1 と test_review_prep.py に、.. を含む ref や、--out の外へ書く場合の試験は無い。risk を medium とした前提の一つが、入力によって破れる。",
+        "disposition": "accepted",
+        "resolution": "参照が素直なパス（先頭の / も \\ も . や .. や空の部分も無い）であるかを確かめる is_plain を加えた。bundle は素直なパスでない参照を写さず、写すのは HEAD にコミットされた中身だけなので、--out の外へ書かない。check の P-03 は、素直なパスでない参照を「is not a plain path inside the repository」として違反にする。.. を含む参照の単体試験（check の違反、bundle が --out の外に何も作らない）を加え、ミューテーションで失敗することを示した。"
+      }
+    ]
+  }
+}

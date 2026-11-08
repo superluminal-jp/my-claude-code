@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-069",
+    "reviewed_commit": "b1ef7d5228e3fc3b41c91f4531261f7eae0a4e7f",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、4回目（scope fixes、bundle）。完了通知のトークンは91,893、ツールの呼び出しは13回",
+    "context_given": [
+      "review_prep.py bundle の出力 /private/tmp/claude-501/bundle-069-r4（scope fixes、range c3f5f61..b1ef7d5、change.diff 40 KB、graph.diff、requirements-graph.json、manifest.json、evidence/ の4ファイル、excluded.txt、previous-review.json、scope.json）",
+      "verified-delivery の references/reviewer.md の2回目以降のプロンプト（b1ef7d5 の版。言語は日本語）"
+    ],
+    "findings": [
+      {
+        "id": "AR-08",
+        "kind": "other",
+        "target": "AR-03",
+        "severity": "low",
+        "statement": "AR-03 の resolution は「Glob の pattern が記録の場所の名前を含まない書き方（specs/069-*/**）はなお見逃しうる。この限界は R0-A2 の証跡に書く」と述べる。しかし bundle の evidence/.../b1ef7d5/reviewer-reads.txt の見出しには「迷うときは contents に数える」としか無く、Glob や名前を含まない呼び出しを数えられないという限界は書かれていない（bundle の evidence を glob、限界、limitation、miss で検索して該当なし）。トランスクリプトの要約を作る transcript_usage.py も、b1ef7d5 の版を git show で読んで確かめたところ、docstring に限界が無く、「A person can check every classification against the printed command」と書く。記録の場所の名前を含まない呼び出しは印字されないので、この文は成り立たない。コード側の修正（path・glob を見る、git log -p と git show を contents にする）は diff のとおり入っているが、約束した限界の記載は無い。ラウンド2の「record-directory contents read: 0」は、いまも下限として注記されないまま 0 と示される。R0-A2 は failed なので受け入れの判定は変わらないが、AR-03 が求めた「0 は読まなかった証拠にならない」ことの手当てが resolution の記述どおりには終わっていない。",
+        "disposition": "accepted",
+        "resolution": "transcript_usage.py の docstring に限界を書いた。呼び出しは、引数（command・file_path・path・pattern・glob）のどれかが記録の場所の名前を含むときだけ見つかる。名前を含まずにそこへ届く呼び出し（specs/069-*/** の Glob、親のディレクトリへの cd と相対パスなど）は印字も数えもされないので、contents の数は下限である。「A person can check every classification」を「印字された呼び出しの分類を、その命令と照らして確かめられる」に直した。出力の最初の行にも、contents が下限であることを書くようにした。次の証跡の reviewer-reads.txt は、この版で作り直す。"
+      },
+      {
+        "id": "AR-09",
+        "kind": "evidence_mismatch",
+        "target": "RA-A1",
+        "severity": "low",
+        "statement": "RA-A1 は新しく「.. を含む参照があっても --out の外へ何も書かない」と述べ、証跡は test_the_bundle_copies_the_committed_records_and_writes_only_under_out（junit で RA-A1 に対応）である。この試験の .. の部分は、守る実装を外しても失敗しない。(1) 試験の参照は一段の `../<リポジトリ名>/src/app.py` で、旧実装が書く先は out/evidence/../<リポジトリ名>/src/app.py、つまり out/<リポジトリ名>/src/app.py で、--out の中に収まる。AR-07 が述べた --out の外へ出る参照は `../../<親>/...` の二段が要る。(2) 検査は `out.parent.iterdir() == [out]` と `(out/'evidence').rglob('*.py') == []` だけで、out/<リポジトリ名>/ に書かれても見つけない。(3) 手元で `git show 'HEAD:../x/y'` を実行すると 'is outside repository' で失敗する。show_bytes は .. の参照ですでに None を返すので、is_plain を外しても bundle は何も書かず、試験は通る。evidence/mutations.sh の変異で bundle の .. の部分を狙うものは無い。「every reference counts as plain」は CheckTests だけを狙い、BundleTests を狙う「the bundle copies the working tree」は試験の前半（作業ツリーの写し）で落ちる。リポジトリの evidence/b1ef7d5/mutations.txt（a0ab252）を読んで確かめた。AR-07 の resolution が言う「bundle が --out の外に何も作らない単体試験を加え、ミューテーションで失敗することを示した」は、bundle 側の .. については示されていない。実装は git show の挙動で安全だが、RA-A1 の新しい文言を確かめる試験になっていない。",
+        "disposition": "accepted",
+        "resolution": "試験を分けた。新しい test_a_reference_that_climbs_out_writes_nothing_outside_the_evidence_directory は、二段の参照（../../<親>/<リポジトリ>/src/app.py）を使い、--out の親に --out のほかに何もできないことと、--out の中のファイルがちょうど bundle の7つであることを確かめる。ミューテーション「the bundle copies the working tree」（作業ツリーから写す）を、この試験にも当て、--out の外に書いて失敗することを示した。is_plain を外すだけでは git show が .. を拒むので bundle は書かず、この試験は通る。守りは is_plain と git show の二重である。"
+      },
+      {
+        "id": "AR-10",
+        "kind": "uncovered_path",
+        "target": "RD-A1",
+        "severity": "low",
+        "statement": "AR-01 の修正は、審査対象のコミットの後の「コミット」が problem card・requirements graph・challenge report を変えることだけを P-02 で止める。run_check は `git diff --name-only --no-renames <reviewed> HEAD` を使うので、コミットされていない作業ツリーの変更は見えない。AR-02 の修正で、P-03 は manifest と証跡について「作業ツリーがコミットと違う」を違反にするようになった。しかし同じ検査は graph・problem card・challenge report には無い。SKILL.md 手順6が示す gate の呼び出しは `assure.py gate requirements-graph.json verification-manifest.json --report challenge-report.json ...` で、作業ツリーのファイルを読む。そのため、レビューの後に requirements-graph.json の受け入れ条件を作業ツリーで弱めても（コミットしなくても）check は通り、gate はその graph を判定する。bundle のレビュー役が見たのは審査対象のコミット時点の graph である。AR-01 が述べた「レビュー役が一度も見ていない graph を gate が読む」道のうち、未コミットの経路が残る。RD-A1 の試験にも、この場合は無い。",
+        "disposition": "accepted",
+        "resolution": "check の P-03 で確かめるファイルに、実装の前の記録（problem card・requirements graph・challenge report のうち、コミットされているか作業ツリーに在るもの）を加えた。作業ツリーのものがコミットと違えば「differs from its committed version」になる。コミットせずに作業ツリーで graph を書き換える単体試験を加え、確かめるファイルから外すミューテーションで失敗することを示した。reviewer.md と RD の文と RD-A1 を直した。"
+      }
+    ]
+  }
+}

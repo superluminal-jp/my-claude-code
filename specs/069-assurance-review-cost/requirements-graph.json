@@ -1,0 +1,118 @@
+{
+  "schema_version": 2,
+  "problem_id": "P-069",
+  "requirements": [
+    {
+      "id": "R0",
+      "statement": "verified-delivery の保証レビューの各回が、変更そのものとその回の証跡だけを読み、すべての差分に戻るのは要件の構造かリスクの分類が変わったときだけで、機械的に確かめられる記録の誤りはレビューの前に見つかり、CI の証跡は審査対象のコミットの上で得られる。",
+      "decomposition": "AND",
+      "children": [
+        "RA",
+        "RB",
+        "RD",
+        "RC"
+      ],
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-08 の会話で、Claude が示した方策 A〜E のうち「A,B,D」と答え、続く質問「CI の穴」に「含める」と答えた"
+      },
+      "acceptance": [
+        {
+          "id": "R0-A1",
+          "level": "L3",
+          "description": "通しの試験（tests/assert_review_prep_flow.py）が、一時の git リポジトリで、作った変更とその記録を1回目のレビューから2回目まで進めて合格する。1回目の bundle の change.diff は記録の場所を含まない。記録だけのコミットの後の check は違反なし。graph の文だけを直したコミットの後の bundle は差分の回で、範囲は前の回からで、graph.diff にその文の変更が入る。受け入れ条件を足したコミットの後の bundle はすべての差分の回になる。審査対象のコミットの後に記録の場所の外を変えると、check が違反を出す。"
+        },
+        {
+          "id": "R0-A2",
+          "level": "L3",
+          "description": "この変更自身の保証レビューのすべての回で、レビュー役に review_prep.py bundle の出力を渡す。各回のレビュー役のトランスクリプトをスクリプト（evidence の transcript_usage.py）で要約し、リポジトリの記録の場所（specs/069-assurance-review-cost/）のファイルの中身を読んだツールの呼び出しが0回であること、bundle の change.diff が記録の場所のデータのファイルを含まないことを確かめる。各回の turn 数とツールの呼び出しの数と累計の使用量（input・キャッシュからの読み込み・キャッシュへの書き込み・output）を証跡に残す。"
+        },
+        {
+          "id": "R0-A3",
+          "level": "L3",
+          "description": "CI の test ジョブが走らせる10のスイート（.github/workflows/ci.yml）が、reviewed_commit の上の CI のジョブで合格する（審査対象のコミットを、記録より先に push して得る）。そのジョブのログで、verified-delivery の単体試験に review_prep.py の試験が含まれ、通しの試験（CA-07、tests/assert_review_prep_flow.py）が合格している。"
+        },
+        {
+          "id": "R0-A4",
+          "level": "L3",
+          "description": "利用者が、手順の対応表（evidence の procedure-map.md）を読み、4つの方策の手順と参照が互いに食い違わず、レビュー役に実装者の要約や説明を渡さない独立性が保たれていると確かめる。"
+        }
+      ],
+      "counterexamples": [
+        "bundle は記録の場所を外すが、レビュー役が自分で git diff を走らせ、記録を読んでしまう。プロンプトは bundle だけを読むよう求めるが、ツールの呼び出しは禁じられない。R0-A2 は、この変更の回でそれが起きなかったことをトランスクリプトで確かめるが、次の案件で起きないことは示さない。",
+        "差分の回にした直しで、受け入れ条件の文が変わり、確かめる内容が弱まる。graph.diff を渡し、差分の回のレビュー役にそれを見させないと見逃される。",
+        "manifest（manifest.json）を渡したことで、レビュー役が実装者の主張を事実として扱う。",
+        "CI が pull_request でだけ走るのに、PR を開く前に審査対象のコミットを push し、後から開いた PR の CI が記録のコミットの上で走る。"
+      ],
+      "assumptions": [
+        "risk は medium とする。新しいスクリプトは git を読み取りだけで走らせ、書くのは --out に渡した、リポジトリの外のディレクトリだけである。assure.py と check_graph.py の判定の規則は変えない。手順が求める push と PR は、人が頼んだときだけで、頼まれていなければ止まって尋ねる。",
+        "トークンの削減の量は、この変更の1件でしか観測しない（R0-A2）。過去の回と比べる基準値は、変更の大きさが違うので置かない。複数の案件での比較は pilot に属し、対象外である（利用者の決定で C・E も対象外）。",
+        "記録の場所とは、手順4で決めた、その変更の記録を置く1つのディレクトリ（verification-manifest.json を持つもの）である。記録はそこのデータのファイル（.json・.md・.txt・.xml など）で、証拠を作るためにそこに置いたスクリプトは変更の一部としてレビューされる。"
+      ]
+    },
+    {
+      "id": "RA",
+      "statement": "verified-delivery 同梱の scripts/review_prep.py の bundle が、レビュー役に渡すものを --out のディレクトリに書く。change.diff は範囲の変更の差分から記録の場所のデータのファイルを外したもの（そこに置いたスクリプトは残る）、graph.diff はその範囲の requirements graph の差分、requirements-graph.json は審査対象のコミットの graph、manifest.json は verification manifest（検査・リスクの分類・承認・テストと基盤の変更。確かめる対象の主張）、evidence/ は manifest が引くリポジトリの証跡のファイルの写し（その回の manifest が引くものだけ）、excluded.txt は範囲で変わった記録の場所のデータのファイルの名前、previous-review.json は --previous-review で渡した前の回の記録の写しである。manifest.json と evidence/ は HEAD にコミットされた版を写し、素直なパスでない参照（.. を含むものなど）は写さないので、--out の外へは書かない。--out がリポジトリの作業ツリーの中を指すか、空でないときは、書かずに止まる。手順5と references/reviewer.md は、レビュー役にこの bundle のディレクトリだけを渡し、bundle の外を読むのは、bundle では判断できないときだけにするよう求める。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "RA-A1",
+          "level": "L1",
+          "description": "review_prep.py の単体試験で、bundle の change.diff が記録の場所のデータのファイルを含まず、そこに置いたスクリプトとそれ以外の変更を含む。graph.diff が graph の変更を含む。requirements-graph.json が審査対象のコミットの graph である。manifest.json が manifest と同じである。evidence/ に manifest の引くリポジトリのファイルだけが同じ中身で写る。excluded.txt が範囲で変わった記録の場所のデータのファイルを挙げる。作業ツリーで書き換えた manifest や証跡ではなく、HEAD にコミットされた版を写し、.. を含む参照があっても --out の外へ何も書かない。--out がリポジトリの中か空でないときは exit 2 で何も書かない。"
+        },
+        {
+          "id": "RA-A2",
+          "level": "L1",
+          "description": "対応表の方策 A の行で、利用者が、手順5と reviewer.md が bundle の出力と graph だけを渡すよう求め、manifest.json を確かめる対象の主張として渡すと書いていると確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "RB",
+      "statement": "review_prep.py の bundle は、--previous（前の回の審査対象のコミット）を受けると、すべての差分の回か差分の回かを決め、その理由と範囲を scope.json に書く。前の回と今の requirements graph を、文の欄（要件の statement・assumptions・counterexamples、受け入れ条件の description、OR の selection の条件の文）を除いて比べ、少しでも違えば（要件や受け入れ条件の増減、分解・子・水準・stage・origin・selection の子の変更など）すべての差分の回にする。problem card が変わったとき、前の回の manifest と今の manifest でリスクの分類が違うとき、前の回の graph・problem card・manifest が見つからないときも、すべての差分の回にする。文の欄だけが違うときは差分の回で、範囲は前の回からである。手順5と references/reviewer.md の2回目以降のプロンプトは、この決定に従い、差分の回のレビュー役に graph.diff を見させ、文の変更で確かめる内容が弱まっていないかを確かめさせる。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "RB-A1",
+          "level": "L1",
+          "description": "review_prep.py の単体試験で、graph の文の欄だけの変更は差分の回で範囲が前の回から、要件の追加・削除、受け入れ条件の追加・削除・水準・stage の変更、分解・子・origin の変更、problem card の変更、リスクの分類の変更は、それぞれすべての差分の回で範囲が base から、前の回の graph・problem card・manifest が無いときもすべての差分の回になり、scope.json がその理由を挙げる。"
+        },
+        {
+          "id": "RB-A2",
+          "level": "L1",
+          "description": "対応表の方策 B の行で、利用者が、手順5と reviewer.md が bundle の決定に従うと書き、差分の回のプロンプトが graph.diff の文の変更を確かめさせると確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "RD",
+      "statement": "review_prep.py の check が、次を確かめて違反を挙げる。manifest の reviewed_commit がコミットを指し HEAD の祖先であること。そのコミットより後のコミットが、記録（記録の場所のデータのファイル）だけを変え、実装の前に書く記録（problem card・requirements graph・challenge report）を変えていないこと（名前の変更は、元の名前の削除として数える）。manifest と、作業ツリーに在る実装の前の記録と、manifest が引くリポジトリのファイルの証跡が、リポジトリの中の素直なパスで、HEAD にコミットされ、作業ツリーのものがコミットと同じであること（無い、追跡されていない、無視される、ステージだけ、コミットと違う、を区別する）。URL の証跡は開かない（git と manifest だけを読む）。手順5は、各回のレビューを始める前に check と assure.py gate を走らせ、レビューや人や CI を待つもの以外の理由をすべて直してから始めるよう求める。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "RD-A1",
+          "level": "L1",
+          "description": "review_prep.py の単体試験で、正しい記録には違反が無い。審査対象のコミットの後に、記録の場所の外を変えたコミット、記録の場所に置いたスクリプトを変えたコミット、記録の場所の外のファイルを記録の場所へ移したコミット、problem card・requirements graph・challenge report を変えたコミットは、それぞれ違反になる。無い証跡、追跡されていない証跡、無視される証跡、ステージだけの証跡、コミット後に作業ツリーで変えた証跡、コミットせずに作業ツリーで変えた requirements graph、.. を含む参照、コミットを指さないか HEAD の祖先でない reviewed_commit も、それぞれ違反になる。URL の証跡は確かめない。"
+        },
+        {
+          "id": "RD-A2",
+          "level": "L1",
+          "description": "対応表の方策 D の行で、利用者が、手順5が各回の前に check と gate を走らせ、待つもの以外の理由を直してから始めるよう求めると確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "RC",
+      "statement": "verified-delivery の手順が、人が push を頼んでいて、プロジェクトの CI が push か pull request で走るときは、次の順で進めるよう求める。CI が pull request でだけ走るなら、人が PR を頼んでいるときに先に PR を開く。審査対象のコミットを記録より先に push し、その上の CI が終わるのを待つ。CI のジョブをそのコミットで記録してから、記録をコミットし、check と gate を走らせ、レビューの後に記録を push する。直しのコミットのたびに同じ順で進める。頼まれていない push や PR は、止まって人に尋ねる。PR の CI が変更を元のブランチに仮にマージしたものを試すときは、ジョブが取り出したコミットを記録し、元のブランチが進んでいない間だけ reviewed_commit の証跡に数える。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "RC-A1",
+          "level": "L1",
+          "description": "対応表の CI の行で、利用者が、手順が上の順序（PR を先に開く条件、頼まれていない push と PR を尋ねること、仮のマージのコミットの扱いを含む）を書き、手順5の check と gate の順序と食い違わないと確かめる。"
+        }
+      ]
+    }
+  ]
+}

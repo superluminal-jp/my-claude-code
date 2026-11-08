@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-069",
+    "reviewed_commit": "321befe7309568042703b77f5d055e62e3048564",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、5回目（scope fixes、bundle）。完了通知のトークンは81,557。トランスクリプトの要約: ツールの呼び出し16回、turn 26回、読んだツールの結果101 KB、キャッシュからの読み込みの累計1.38M、出力2.6万。リポジトリの記録の場所の中身を読んだ呼び出しは3回（変更の一部である transcript_usage.py の全文と、manifest が引いていない mutations.txt を git show で確かめた）",
+    "context_given": [
+      "review_prep.py bundle の出力 /private/tmp/claude-501/bundle-069-r5（scope fixes、range b1ef7d5..321befe、change.diff、graph.diff、requirements-graph.json、manifest.json、evidence/ の4ファイル、excluded.txt、previous-review.json、scope.json）",
+      "verified-delivery の references/reviewer.md の2回目以降のプロンプト（321befe の版。言語は日本語）"
+    ],
+    "findings": []
+  }
+}
