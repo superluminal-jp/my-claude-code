@@ -25,6 +25,8 @@ import re
 from typing import Dict, List, Tuple
 
 NAME_ONLY = re.compile(r"\bgit\b[^|;&]*\b(ls-tree|--stat|--name-only|--name-status|log)\b")
+# git log with -p or --patch, and git show, print file contents.
+PATCH = re.compile(r"\bgit\b[^|;&]*(\s-p\b|--patch\b|\bshow\b)")
 
 
 def classify(what: str, records: str) -> str:
@@ -32,7 +34,7 @@ def classify(what: str, records: str) -> str:
         return "bundle"
     # "| cat" only turns off git's pager; it reads nothing of its own.
     reading = re.search(r"\b(cat|head|tail|sed|less|grep|python3?|open)\b", re.sub(r"\|\s*cat\b", "", what))
-    if (NAME_ONLY.search(what) or re.search(r"(^|[;&|]\s*)ls\b", what)) and not reading:
+    if (NAME_ONLY.search(what) or re.search(r"(^|[;&|]\s*)ls\b", what)) and not reading and not PATCH.search(what):
         return "names"
     return "contents"
 
@@ -59,7 +61,9 @@ def summarize(path: str, records: str) -> Tuple[Dict[str, int], List[Tuple[str, 
                 for part in message.get("content") or []:
                     if isinstance(part, dict) and part.get("type") == "tool_use":
                         given = part.get("input") or {}
-                        what = given.get("command") or given.get("file_path") or given.get("pattern") or json.dumps(given)
+                        # Every argument that can name a path: a Grep or Glob call names its
+                        # directory in "path" and may name it in "pattern" or "glob".
+                        what = " ".join(str(given[k]) for k in ("command", "file_path", "path", "pattern", "glob") if given.get(k)) or json.dumps(given)
                         calls[part["id"]] = (part.get("name", ""), str(what))
             if entry.get("type") == "user" and isinstance(message.get("content"), list):
                 for part in message["content"]:

@@ -8,7 +8,7 @@ python3 <skill-dir>/scripts/review_prep.py bundle --records <record directory> -
   --out <a new directory outside the repository> [--previous <the previous round's reviewed_commit> --previous-review <its record>]
 ```
 
-`check` reports, as `P-01` to `P-03`, a `reviewed_commit` that is not a commit behind `HEAD`, a commit after it that changes a file that is not a record (records are the data files of the record directory, so this includes a file moved into it and a script kept there), and evidence the manifest cites that is missing, untracked, or ignored by git. Fix what it reports, and every gate reason except those that wait for this review, a person, or CI, before starting the reviewer. `bundle` writes into `--out`:
+`check` reports, as `P-01` to `P-03`, a `reviewed_commit` that is not a commit behind `HEAD`, a commit after it that changes a file that is not a record (records are the data files of the record directory, so this includes a file moved into it and a script kept there) or changes a record written before implementation (the problem card, the requirements graph, the challenge report), and a manifest or evidence file it cites that is not a plain path inside the repository, missing, untracked, ignored, only staged, or different from its committed version. `bundle` reads the manifest and the evidence as committed at `HEAD`. Fix what it reports, and every gate reason except those that wait for this review, a person, or CI, before starting the reviewer. `bundle` writes into `--out`:
 
 | File | What it holds |
 |---|---|

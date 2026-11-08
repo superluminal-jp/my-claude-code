@@ -60,6 +60,18 @@ def is_record(path: str, records: str) -> bool:
     return (path + "/").startswith(records + "/") and Path(path).suffix.lower() in RECORD_SUFFIXES
 
 
+# The records written before implementation go in with the change, so the
+# reviewed commit carries the requirements it was built to; a later commit
+# may not change them.
+REQUIREMENT_RECORDS = (CARD, GRAPH, "challenge-report.json")
+
+
+def is_plain(ref: str) -> bool:
+    """A relative path inside the repository with no "..", "." or empty part."""
+    parts = ref.split("/")
+    return not ref.startswith("/") and "\\" not in ref and all(part not in ("", ".", "..") for part in parts)
+
+
 class InputError(Exception):
     """The input cannot be used; exit code 2."""
 
@@ -88,6 +100,13 @@ class Repository:
         proc = self.git("show", f"{rev}:{path}", ok=(0, 128))
         return proc.stdout if proc.returncode == 0 else None
 
+    def show_bytes(self, rev: str, path: str) -> Optional[bytes]:
+        proc = subprocess.run(["git", "-C", str(self.root), "show", f"{rev}:{path}"], capture_output=True, timeout=120)
+        return proc.stdout if proc.returncode == 0 else None
+
+    def committed(self, path: str) -> bool:
+        return bool(self.git("ls-tree", "--name-only", "HEAD", "--", path).stdout.strip())
+
     def relative(self, path: str) -> str:
         resolved = Path(path).resolve()
         if resolved != self.root and self.root not in resolved.parents:
@@ -103,10 +122,11 @@ def load_json(text: str, what: str) -> Any:
 
 
 def current_manifest(repo: Repository, records: str) -> Dict[str, Any]:
-    path = repo.root / records / MANIFEST
-    if not path.is_file():
-        raise InputError(f"{records}/{MANIFEST} does not exist")
-    body = load_json(path.read_text(encoding="utf-8"), f"{records}/{MANIFEST}").get("verification_manifest")
+    """The manifest as committed at HEAD: the review reads committed records only."""
+    text = repo.show("HEAD", f"{records}/{MANIFEST}")
+    if text is None:
+        raise InputError(f"{records}/{MANIFEST} is not committed at HEAD; commit the records first")
+    body = load_json(text, f"{records}/{MANIFEST}").get("verification_manifest")
     if not isinstance(body, dict) or not isinstance(body.get("reviewed_commit"), str):
         raise InputError(f"{records}/{MANIFEST} has no verification_manifest with a reviewed_commit")
     return body
@@ -138,19 +158,36 @@ def run_check(repo: Repository, records: str) -> List[Tuple[str, str, str]]:
         # --no-renames: a file moved into the record directory shows as the
         # deletion it is, not only as its new, record-looking name.
         changed = repo.git("diff", "--name-only", "--no-renames", reviewed, "HEAD").stdout.split("\n")
+        requirement_records = {f"{records}/{name}" for name in REQUIREMENT_RECORDS}
         for path in (p for p in changed if p):
-            if not is_record(path, records):
+            if path in requirement_records:
+                violations.append(("P-02", path, "changed after reviewed_commit; a record written before implementation goes in with the change"))
+            elif not is_record(path, records):
                 violations.append(("P-02", path, "changed after reviewed_commit, and is not a record (a data file of the record directory)"))
-    for ref in repository_refs(body):
-        target = (repo.root / ref).resolve()
-        if repo.root not in target.parents:
-            violations.append(("P-03", ref, "is not a path inside the repository"))
-        elif not target.is_file():
-            violations.append(("P-03", ref, "does not exist"))
-        elif repo.git("ls-files", "--error-unmatch", "--", ref, ok=(0, 1)).returncode != 0:
-            ignored = repo.git("check-ignore", "-v", "--", ref, ok=(0, 1)).stdout.strip()
-            violations.append(("P-03", ref, f"is ignored by git ({ignored.split(chr(9))[0]})" if ignored else "is not tracked"))
+    for ref in [f"{records}/{MANIFEST}"] + repository_refs(body):
+        problem = evidence_problem(repo, ref)
+        if problem:
+            violations.append(("P-03", ref, problem))
     return violations
+
+
+def evidence_problem(repo: Repository, ref: str) -> Optional[str]:
+    """Why a record file the review will read is not as committed, or None."""
+    if not is_plain(ref):
+        return "is not a plain path inside the repository"
+    target = repo.root / ref
+    if not repo.committed(ref):
+        if not target.is_file():
+            return "does not exist"
+        ignored = repo.git("check-ignore", "-v", "--", ref, ok=(0, 1)).stdout.strip()
+        if ignored:
+            return f"is ignored by git ({ignored.split(chr(9))[0]})"
+        if repo.git("ls-files", "--error-unmatch", "--", ref, ok=(0, 1)).returncode == 0:
+            return "is staged but not committed"
+        return "is not tracked"
+    if not target.is_file() or repo.git("diff", "--quiet", "HEAD", "--", ref, ok=(0, 1)).returncode != 0:
+        return "differs from its committed version"
+    return None
 
 
 # --- bundle ----------------------------------------------------------------------
@@ -267,16 +304,18 @@ def run_bundle(repo: Repository, records: str, base: str, out: Path, previous: O
     write("change.diff", repo.git("diff", "--no-color", "--no-ext-diff", start, reviewed, "--", ".", *excluded).stdout)
     write("graph.diff", repo.git("diff", "--no-color", "--no-ext-diff", start, reviewed, "--", f"{records}/{GRAPH}").stdout)
     write(GRAPH, repo.show(reviewed, f"{records}/{GRAPH}") or "")
-    write("manifest.json", (repo.root / records / MANIFEST).read_text(encoding="utf-8"))
+    write("manifest.json", repo.show("HEAD", f"{records}/{MANIFEST}") or "")
     names = repo.git("diff", "--name-only", "--no-renames", start, reviewed, "--", records).stdout.split("\n")
     write("excluded.txt", "".join(f"{name}\n" for name in names if name and is_record(name, records)))
     copied = []
     for ref in repository_refs(body):
-        source = (repo.root / ref).resolve()
-        if repo.root in source.parents and source.is_file():
+        # Only a plain path, read as committed at HEAD, so a copy can neither
+        # leave --out nor show what was never committed; check reports the rest.
+        content = repo.show_bytes("HEAD", ref) if is_plain(ref) else None
+        if content is not None:
             target = out / "evidence" / ref
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, target)
+            target.write_bytes(content)
             copied.append(ref)
     if previous_review is not None:
         shutil.copyfile(previous_review, out / "previous-review.json")

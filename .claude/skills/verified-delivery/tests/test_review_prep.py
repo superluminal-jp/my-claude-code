@@ -176,6 +176,46 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 1, proc.stdout)
         self.assertIn("P-02 src/app.py", proc.stdout)
 
+    def test_a_requirement_record_changed_after_the_review_is_a_violation(self):
+        for name in ("requirements-graph.json", "problem-card.json", "challenge-report.json"):
+            with self.subTest(name):
+                repo = Repo(self)
+                repo.first_round()
+                repo.write(f"{RECORDS}/{name}", {"weakened": True})
+                repo.commit(f"{name} changed in a records commit")
+                proc = self.check(repo)
+                self.assertEqual(proc.returncode, 1, proc.stdout)
+                self.assertIn(f"P-02 {RECORDS}/{name}", proc.stdout)
+
+    def test_evidence_that_is_only_staged_or_differs_from_its_commit_is_a_violation(self):
+        ref = f"{RECORDS}/evidence/run.txt"
+        cases = {"staged only": (f"{RECORDS}/evidence/staged.txt", "is staged but not committed"),
+                 "changed after its commit": (ref, "differs from its committed version")}
+        for name, (path, expected) in cases.items():
+            with self.subTest(name):
+                repo = Repo(self)
+                _, change = repo.first_round()
+                if path != ref:
+                    repo.manifest(change, refs=(path,))
+                    repo.commit("records naming a staged file")
+                    repo.write(path, "staged\n")
+                    repo.git("add", path)
+                else:
+                    repo.write(path, "rewritten after the commit\n")
+                proc = self.check(repo)
+                self.assertEqual(proc.returncode, 1, proc.stdout)
+                self.assertIn(f"P-03 {path}: {expected}", proc.stdout)
+
+    def test_a_reference_that_climbs_out_with_dot_dot_is_a_violation(self):
+        repo = Repo(self)
+        _, change = repo.first_round()
+        ref = f"../{repo.root.name}/src/app.py"
+        repo.manifest(change, refs=(ref,))
+        repo.commit("records naming a path with ..")
+        proc = self.check(repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        self.assertIn(f"P-03 {ref}: is not a plain path inside the repository", proc.stdout)
+
     def test_url_evidence_is_not_opened(self):
         repo = Repo(self)
         repo.first_round()
@@ -223,6 +263,26 @@ class BundleTests(unittest.TestCase):
         proc = run(repo, "bundle", "--records", RECORDS, "--base", base, "--out", str(full))
         self.assertEqual(proc.returncode, 2, proc.stdout)
         self.assertEqual([p.name for p in full.iterdir()], ["keep.txt"])
+
+    def test_the_bundle_copies_the_committed_records_and_writes_only_under_out(self):
+        repo = Repo(self)
+        base, change = repo.first_round()
+        repo.write(f"{RECORDS}/evidence/run.txt", "rewritten after the commit\n")
+        repo.write(f"{RECORDS}/verification-manifest.json", {"not": "committed"})
+        out = out_dir(self)
+        proc = run(repo, "bundle", "--records", RECORDS, "--base", base, "--out", str(out))
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual((out / "evidence" / RECORDS / "evidence" / "run.txt").read_text(encoding="utf-8"), "all 3 tests passed\n")
+        self.assertEqual(json.loads((out / "manifest.json").read_text(encoding="utf-8"))["verification_manifest"]["reviewed_commit"], change)
+        climbing = Repo(self)
+        base, change = climbing.first_round()
+        climbing.manifest(change, refs=(f"../{climbing.root.name}/src/app.py",))
+        climbing.commit("records naming a path with ..")
+        out = out_dir(self)
+        proc = run(climbing, "bundle", "--records", RECORDS, "--base", base, "--out", str(out))
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertEqual([p for p in out.parent.iterdir()], [out])
+        self.assertEqual(list((out / "evidence").rglob("*.py")), [])
 
     def test_the_previous_review_is_copied_into_the_bundle(self):
         repo = Repo(self)
