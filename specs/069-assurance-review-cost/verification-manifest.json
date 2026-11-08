@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-069",
     "problem_id": "P-069",
-    "reviewed_commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d",
+    "reviewed_commit": "3d0a0e4b616523bfa87120d1046d5c61d4b77c76",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -22,22 +22,22 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/review-prep-flow.txt",
-          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+          "ref": "specs/069-assurance-review-cost/evidence/3d0a0e4/review-prep-flow.txt",
+          "commit": "3d0a0e4b616523bfa87120d1046d5c61d4b77c76"
         }
       },
       {
         "check_id": "R0-A2",
         "status": "not_run",
-        "reason": "保証レビューの各回のトランスクリプトを要約して確かめる"
+        "reason": "この reviewed_commit を審査する回のトランスクリプトを要約して確かめる"
       },
       {
         "check_id": "R0-A3",
         "status": "passed",
         "evidence": {
           "kind": "ci_job",
-          "ref": "https://github.com/superluminal-jp/my-claude-code/actions/runs/42433361852/job/128586885605",
-          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+          "ref": "specs/069-assurance-review-cost/evidence/3d0a0e4/ci-test-job.txt",
+          "commit": "3d0a0e4b616523bfa87120d1046d5c61d4b77c76"
         }
       },
       {
@@ -50,8 +50,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/unit-tests.junit.xml",
-          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+          "ref": "specs/069-assurance-review-cost/evidence/3d0a0e4/unit-tests.junit.xml",
+          "commit": "3d0a0e4b616523bfa87120d1046d5c61d4b77c76"
         }
       },
       {
@@ -64,8 +64,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/unit-tests.junit.xml",
-          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+          "ref": "specs/069-assurance-review-cost/evidence/3d0a0e4/unit-tests.junit.xml",
+          "commit": "3d0a0e4b616523bfa87120d1046d5c61d4b77c76"
         }
       },
       {
@@ -78,8 +78,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/069-assurance-review-cost/evidence/ba76e65/unit-tests.junit.xml",
-          "commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d"
+          "ref": "specs/069-assurance-review-cost/evidence/3d0a0e4/unit-tests.junit.xml",
+          "commit": "3d0a0e4b616523bfa87120d1046d5c61d4b77c76"
         }
       },
       {

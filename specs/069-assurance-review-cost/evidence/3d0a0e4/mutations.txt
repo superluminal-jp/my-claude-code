@@ -1,0 +1,24 @@
+commit: 3d0a0e4b616523bfa87120d1046d5c61d4b77c76 (a clean worktree of the commit)
+mutation check always finds a violation           FAIL  CheckTests.test_records_that_follow_the_procedure_have_no_violation
+mutation check always finds a violation           FAIL  flow:check before the first round finds no record error
+mutation commits after the review are not checked FAIL  CheckTests.test_a_change_outside_the_record_directory_after_the_reviewed_commit_is_a_violation
+mutation commits after the review are not checked FAIL  flow:check finds a code change committed after the reviewed commit
+mutation evidence files are not checked           FAIL  CheckTests.test_missing_untracked_or_ignored_evidence_is_a_violation
+mutation a bad reviewed_commit is not P-01        FAIL  CheckTests.test_a_reviewed_commit_that_is_no_commit_or_not_behind_head_is_a_violation
+mutation URL evidence is opened                   FAIL  CheckTests.test_url_evidence_is_not_opened
+mutation record data files stay in the diff       FAIL  BundleTests.test_the_first_round_bundle_holds_the_change_and_not_the_records
+mutation record data files stay in the diff       FAIL  flow:the first round's bundle holds the code change and no record file
+mutation scripts of the record directory are left out FAIL  BundleTests.test_the_first_round_bundle_holds_the_change_and_not_the_records
+mutation any record-directory file counts as a record FAIL  CheckTests.test_a_script_in_the_record_directory_changed_after_the_review_is_a_violation
+mutation renames hide a file moved into the records FAIL  CheckTests.test_a_file_moved_into_the_record_directory_after_the_review_is_a_violation
+mutation selection conditions count as structure  FAIL  ScopeTests.test_a_change_to_a_selection_condition_only_is_a_fix_round
+mutation --out inside the repository is accepted  FAIL  BundleTests.test_an_out_directory_inside_the_repository_or_not_empty_is_refused
+mutation the previous review is not copied        FAIL  BundleTests.test_the_previous_review_is_copied_into_the_bundle
+mutation text fields count as structure           FAIL  ScopeTests.test_a_change_to_text_fields_only_is_a_fix_round_from_the_previous_commit
+mutation text fields count as structure           FAIL  flow:a fix that changes only the graph's text is a fix round from the previous reviewed commit
+mutation structure changes are not seen           FAIL  ScopeTests.test_a_structural_change_makes_a_whole_round_from_the_base
+mutation structure changes are not seen           FAIL  flow:a fix that adds an acceptance criterion is a whole round from the base
+mutation a risk change is not seen                FAIL  ScopeTests.test_a_changed_problem_card_or_risk_class_makes_a_whole_round
+mutation a missing previous manifest is not a reason FAIL  ScopeTests.test_a_previous_round_without_records_makes_a_whole_round
+coverage: 20 of 20 new tests fail on an assertion under a mutation
+result: every observation as expected
