@@ -8,20 +8,20 @@ python3 <skill-dir>/scripts/review_prep.py bundle --records <record directory> -
   --out <a new directory outside the repository> [--previous <the previous round's reviewed_commit> --previous-review <its record>]
 ```
 
-`check` reports, as `P-01` to `P-03`, a `reviewed_commit` that is not a commit behind `HEAD`, a commit after it that changes a file outside the record directory, and evidence the manifest cites that is missing, untracked, or ignored by git. Fix what it reports, and every gate reason except those that wait for this review, a person, or CI, before starting the reviewer. `bundle` writes into `--out`:
+`check` reports, as `P-01` to `P-03`, a `reviewed_commit` that is not a commit behind `HEAD`, a commit after it that changes a file that is not a record (records are the data files of the record directory, so this includes a file moved into it and a script kept there), and evidence the manifest cites that is missing, untracked, or ignored by git. Fix what it reports, and every gate reason except those that wait for this review, a person, or CI, before starting the reviewer. `bundle` writes into `--out`:
 
 | File | What it holds |
 |---|---|
-| `change.diff` | the diff of the round's range without the record directory |
+| `change.diff` | the diff of the round's range without the record directory's data files; a script kept there to make evidence stays in it, as part of the change |
 | `graph.diff` | the diff of `requirements-graph.json` over the same range |
 | `requirements-graph.json` | the graph at `reviewed_commit` |
-| `checks.json` | the manifest's checks: the implementer's claims, to check against the evidence |
+| `manifest.json` | the verification manifest — checks, risk class, approvals, test and infrastructure changes: the implementer's claims, to check against the diff and the evidence |
 | `evidence/` | copies of the files of the repository that the manifest cites, at their paths |
-| `excluded.txt` | the names of the record files changed in the range, left out of `change.diff` |
+| `excluded.txt` | the names of the record data files changed in the range, left out of `change.diff` |
 | `previous-review.json` | the previous round's record, when `--previous-review` is given |
 | `scope.json` | `whole` (the range starts at `--base`) or `fixes` (it starts at `--previous`), with the reasons for `whole` |
 
-`--previous` makes the round `fixes` only when the requirements graph changed in its text fields alone (requirements' `statement`, `assumptions`, and `counterexamples`, criteria's `description`, and the conditions of a `selection`), the problem card did not change, and the committed manifest of the previous round has the same risk class. Anything else — a requirement or criterion added or removed, a changed decomposition, child, level, stage, or origin, a missing previous graph, card, or manifest — makes it `whole`. The record directory is the one directory that holds the change's records, `verification-manifest.json` among them; nothing but records goes there. `review_prep.py` runs git with read-only subcommands only, opens no network connection (so it never opens a URL in the evidence), and writes only under `--out`, which must be outside the repository and new or empty. It needs Python 3.9 or later and git.
+`--previous` makes the round `fixes` only when the requirements graph changed in its text fields alone (requirements' `statement`, `assumptions`, and `counterexamples`, criteria's `description`, and the conditions of a `selection`), the problem card did not change, and the committed manifest of the previous round has the same risk class. Anything else — a requirement or criterion added or removed, a changed decomposition, child, level, stage, or origin, a missing previous graph, card, or manifest — makes it `whole`. The record directory is the one directory that holds the change's records, `verification-manifest.json` among them. Its records are data files (`.json`, `.md`, `.txt`, `.xml`, `.csv`, `.yaml`, `.yml`, `.html`, `.log`); any other file kept there, such as a script that makes evidence, is part of the change and is reviewed with it. `review_prep.py` runs git with read-only subcommands only, opens no network connection (so it never opens a URL in the evidence), and writes only under `--out`, which must be outside the repository and new or empty. It needs Python 3.9 or later and git.
 
 ## First round, and any `whole` round
 
@@ -33,10 +33,11 @@ edit files or run commands that change anything.
 
 Change id: <change_id>
 Read the files of this bundle: <bundle directory>
-- change.diff: the change, without its record directory
+- change.diff: the change, without its record data files
 - requirements-graph.json and graph.diff: the requirements and how they changed
-- checks.json: the implementer's claims about each acceptance criterion,
-  to check against the evidence, not to trust
+- manifest.json: the implementer's claims (each criterion's check, the risk
+  class, approvals, test and infrastructure changes), to check against the
+  diff and the evidence, not to trust
 - evidence/: the evidence files those claims cite
 - excluded.txt: the names of the record files left out of change.diff
 - scope.json: the commits the diff spans
@@ -96,9 +97,9 @@ Change id: <change_id>
 Read the files of this bundle: <bundle directory>
 - previous-review.json: the previous round's findings and their resolutions
 - change.diff: the fixes since the previously reviewed commit, without the
-  record directory
+  record data files
 - graph.diff: how the requirements graph's text changed in the fixes
-- requirements-graph.json, checks.json (the implementer's claims, not
+- requirements-graph.json, manifest.json (the implementer's claims, not
   facts), evidence/, excluded.txt, scope.json
 Read anything else of the repository at the new commit only when the bundle
 is not enough to judge a finding, and say in that finding's statement what

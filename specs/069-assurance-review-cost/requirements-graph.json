@@ -26,7 +26,7 @@
         {
           "id": "R0-A2",
           "level": "L3",
-          "description": "この変更自身の保証レビューのすべての回で、レビュー役に review_prep.py bundle の出力を渡す。各回のレビュー役のトランスクリプトをスクリプト（evidence の transcript_usage.py）で要約し、リポジトリの記録の場所（specs/069-assurance-review-cost/）のファイルを読んだツールの呼び出しが0回であること、bundle の change.diff が記録の場所を含まないことを確かめる。各回の turn 数とツールの呼び出しの数と累計の使用量（input・キャッシュからの読み込み・キャッシュへの書き込み・output）を証跡に残す。"
+          "description": "この変更の reviewed_commit を審査した保証レビューの回で、レビュー役に review_prep.py bundle の出力を渡す。その回のレビュー役のトランスクリプトをスクリプト（evidence の transcript_usage.py）で要約し、リポジトリの記録の場所（specs/069-assurance-review-cost/）のファイルを読んだツールの呼び出しが0回であること、bundle の change.diff が記録の場所のデータのファイルを含まないことを確かめる。すべての回について、turn 数とツールの呼び出しの数と累計の使用量（input・キャッシュからの読み込み・キャッシュへの書き込み・output）と、記録の場所を読んだ呼び出しを証跡に残す。"
         },
         {
           "id": "R0-A3",
@@ -42,29 +42,29 @@
       "counterexamples": [
         "bundle は記録の場所を外すが、レビュー役が自分で git diff を走らせ、記録を読んでしまう。プロンプトは bundle だけを読むよう求めるが、ツールの呼び出しは禁じられない。R0-A2 は、この変更の回でそれが起きなかったことをトランスクリプトで確かめるが、次の案件で起きないことは示さない。",
         "差分の回にした直しで、受け入れ条件の文が変わり、確かめる内容が弱まる。graph.diff を渡し、差分の回のレビュー役にそれを見させないと見逃される。",
-        "manifest の検査（checks.json）を渡したことで、レビュー役が実装者の主張を事実として扱う。",
+        "manifest（manifest.json）を渡したことで、レビュー役が実装者の主張を事実として扱う。",
         "CI が pull_request でだけ走るのに、PR を開く前に審査対象のコミットを push し、後から開いた PR の CI が記録のコミットの上で走る。"
       ],
       "assumptions": [
         "risk は medium とする。新しいスクリプトは git を読み取りだけで走らせ、書くのは --out に渡した、リポジトリの外のディレクトリだけである。assure.py と check_graph.py の判定の規則は変えない。",
         "トークンの削減の量は、この変更の1件でしか観測しない（R0-A2）。過去の回と比べる基準値は、変更の大きさが違うので置かない。複数の案件での比較は pilot に属し、対象外である（利用者の決定で C・E も対象外）。",
-        "記録の場所とは、手順4で決めた、その変更の記録を置く1つのディレクトリ（verification-manifest.json を持つもの）で、そこには記録だけを置く。"
+        "記録の場所とは、手順4で決めた、その変更の記録を置く1つのディレクトリ（verification-manifest.json を持つもの）である。記録はそこのデータのファイル（.json・.md・.txt・.xml など）で、証拠を作るためにそこに置いたスクリプトは変更の一部としてレビューされる。"
       ]
     },
     {
       "id": "RA",
-      "statement": "verified-delivery 同梱の scripts/review_prep.py の bundle が、レビュー役に渡すものを --out のディレクトリに書く。change.diff は範囲の変更の差分から記録の場所を外したもの、graph.diff はその範囲の requirements graph の差分、requirements-graph.json は審査対象のコミットの graph、checks.json は manifest の検査（確かめる対象の主張）、evidence/ は manifest が引くリポジトリの証跡のファイルの写し（その回の manifest が引くものだけ）、excluded.txt は範囲で変わった記録の場所のファイルの名前、previous-review.json は --previous-review で渡した前の回の記録の写しである。--out がリポジトリの作業ツリーの中を指すか、空でないときは、書かずに止まる。手順5と references/reviewer.md は、レビュー役にこの bundle のディレクトリだけを渡し、bundle の外を読むのは、bundle では判断できないときだけにするよう求める。",
+      "statement": "verified-delivery 同梱の scripts/review_prep.py の bundle が、レビュー役に渡すものを --out のディレクトリに書く。change.diff は範囲の変更の差分から記録の場所のデータのファイルを外したもの（そこに置いたスクリプトは残る）、graph.diff はその範囲の requirements graph の差分、requirements-graph.json は審査対象のコミットの graph、manifest.json は verification manifest（検査・リスクの分類・承認・テストと基盤の変更。確かめる対象の主張）、evidence/ は manifest が引くリポジトリの証跡のファイルの写し（その回の manifest が引くものだけ）、excluded.txt は範囲で変わった記録の場所のデータのファイルの名前、previous-review.json は --previous-review で渡した前の回の記録の写しである。--out がリポジトリの作業ツリーの中を指すか、空でないときは、書かずに止まる。手順5と references/reviewer.md は、レビュー役にこの bundle のディレクトリだけを渡し、bundle の外を読むのは、bundle では判断できないときだけにするよう求める。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "RA-A1",
           "level": "L1",
-          "description": "review_prep.py の単体試験で、bundle の change.diff が記録の場所のファイルを含まず、それ以外の変更を含む。graph.diff が graph の変更を含む。requirements-graph.json が審査対象のコミットの graph である。checks.json が manifest の checks と同じである。evidence/ に manifest の引くリポジトリのファイルだけが同じ中身で写る。excluded.txt が範囲で変わった記録の場所のファイルを挙げる。--out がリポジトリの中か空でないときは exit 2 で何も書かない。"
+          "description": "review_prep.py の単体試験で、bundle の change.diff が記録の場所のデータのファイルを含まず、そこに置いたスクリプトとそれ以外の変更を含む。graph.diff が graph の変更を含む。requirements-graph.json が審査対象のコミットの graph である。manifest.json が manifest と同じである。evidence/ に manifest の引くリポジトリのファイルだけが同じ中身で写る。excluded.txt が範囲で変わった記録の場所のデータのファイルを挙げる。--out がリポジトリの中か空でないときは exit 2 で何も書かない。"
         },
         {
           "id": "RA-A2",
           "level": "L1",
-          "description": "対応表の方策 A の行で、利用者が、手順5と reviewer.md が bundle の出力と graph だけを渡すよう求め、checks.json を確かめる対象の主張として渡すと書いていると確かめる。"
+          "description": "対応表の方策 A の行で、利用者が、手順5と reviewer.md が bundle の出力と graph だけを渡すよう求め、manifest.json を確かめる対象の主張として渡すと書いていると確かめる。"
         }
       ]
     },
@@ -87,13 +87,13 @@
     },
     {
       "id": "RD",
-      "statement": "review_prep.py の check が、manifest の reviewed_commit がコミットを指し HEAD の祖先であること、そのコミットより後のコミットが記録の場所だけを変えていること、manifest が引くリポジトリのファイルの証跡が在り、git で追跡され、無視されていないことを確かめ、違反を挙げる。URL の証跡は開かない（git と manifest だけを読む）。手順5は、各回のレビューを始める前に check と assure.py gate を走らせ、レビューや人や CI を待つもの以外の理由をすべて直してから始めるよう求める。",
+      "statement": "review_prep.py の check が、manifest の reviewed_commit がコミットを指し HEAD の祖先であること、そのコミットより後のコミットが記録（記録の場所のデータのファイル）だけを変えていること（名前の変更は、元の名前の削除として数える）、manifest が引くリポジトリのファイルの証跡が在り、git で追跡され、無視されていないことを確かめ、違反を挙げる。URL の証跡は開かない（git と manifest だけを読む）。手順5は、各回のレビューを始める前に check と assure.py gate を走らせ、レビューや人や CI を待つもの以外の理由をすべて直してから始めるよう求める。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "RD-A1",
           "level": "L1",
-          "description": "review_prep.py の単体試験で、正しい記録には違反が無い。審査対象のコミットの後に記録の場所の外を変えたコミット、無い証跡、追跡されていない証跡、無視される証跡、コミットを指さないか HEAD の祖先でない reviewed_commit は、それぞれ違反になる。URL の証跡は確かめない。"
+          "description": "review_prep.py の単体試験で、正しい記録には違反が無い。審査対象のコミットの後に記録の場所の外を変えたコミット、記録の場所に置いたスクリプトを変えたコミット、記録の場所の外のファイルを記録の場所へ移したコミット、無い証跡、追跡されていない証跡、無視される証跡、コミットを指さないか HEAD の祖先でない reviewed_commit は、それぞれ違反になる。URL の証跡は確かめない。"
         },
         {
           "id": "RD-A2",

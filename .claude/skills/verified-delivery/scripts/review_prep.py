@@ -6,16 +6,19 @@ check   finds, before the reviewer starts, the record errors a program can
         it that changes anything outside the record directory, and evidence
         files the manifest cites that are missing, untracked, or ignored.
 bundle  writes what the reviewer reads into a new directory outside the
-        repository: the change's diff without the record directory, the
-        graph and its diff, the manifest's checks, copies of the evidence
-        files they cite, the names of the record files left out, and the
+        repository: the change's diff without the record directory's data
+        files, the graph and its diff, the manifest (the implementer's
+        claims), copies of the evidence files it cites, the names of the
+        record files left out, and the
         round's scope, which --previous decides: the whole diff from --base
         when the requirements graph changed beyond its text fields, the
         problem card changed, or the risk class changed, and the fix diff
         from --previous otherwise.
 
 The record directory (--records) is the one directory that holds the
-change's records, verification-manifest.json among them.
+change's records, verification-manifest.json among them. Its records are
+data files (RECORD_SUFFIXES); any other file there, such as a script that
+makes evidence, is part of the change and is reviewed with it.
 
 Contract: runs git with read-only subcommands only (rev-parse, merge-base,
 diff, show, log, ls-files, check-ignore); opens no network connection, so a
@@ -47,6 +50,14 @@ MANIFEST, GRAPH, CARD = "verification-manifest.json", "requirements-graph.json",
 # origins, which children a selection names) counts as structure.
 TEXT_FIELDS = ("statement", "assumptions", "counterexamples")
 CRITERION_TEXT_FIELDS = ("description",)
+# Records are data. A file of the record directory with another suffix (a
+# script that makes evidence, for example) is part of the change: the
+# bundle's change.diff keeps it, and check reports it changed after the review.
+RECORD_SUFFIXES = (".json", ".md", ".txt", ".xml", ".csv", ".yaml", ".yml", ".html", ".log")
+
+
+def is_record(path: str, records: str) -> bool:
+    return (path + "/").startswith(records + "/") and Path(path).suffix.lower() in RECORD_SUFFIXES
 
 
 class InputError(Exception):
@@ -124,10 +135,12 @@ def run_check(repo: Repository, records: str) -> List[Tuple[str, str, str]]:
     elif not repo.is_ancestor(reviewed, "HEAD"):
         violations.append(("P-01", reviewed, "reviewed_commit is not behind HEAD"))
     else:
-        changed = repo.git("diff", "--name-only", reviewed, "HEAD").stdout.split("\n")
+        # --no-renames: a file moved into the record directory shows as the
+        # deletion it is, not only as its new, record-looking name.
+        changed = repo.git("diff", "--name-only", "--no-renames", reviewed, "HEAD").stdout.split("\n")
         for path in (p for p in changed if p):
-            if not (path + "/").startswith(records + "/"):
-                violations.append(("P-02", path, "changed after reviewed_commit, outside the record directory"))
+            if not is_record(path, records):
+                violations.append(("P-02", path, "changed after reviewed_commit, and is not a record (a data file of the record directory)"))
     for ref in repository_refs(body):
         target = (repo.root / ref).resolve()
         if repo.root not in target.parents:
@@ -250,11 +263,13 @@ def run_bundle(repo: Repository, records: str, base: str, out: Path, previous: O
         raise InputError(f"--previous-review {previous_review} is not a file")
     out.mkdir(parents=True, exist_ok=True)
     write = lambda name, text: (out / name).write_text(text, encoding="utf-8")
-    write("change.diff", repo.git("diff", "--no-color", "--no-ext-diff", start, reviewed, "--", ".", f":(exclude){records}").stdout)
+    excluded = [f":(exclude,glob){records}/**/*{suffix}" for suffix in RECORD_SUFFIXES]
+    write("change.diff", repo.git("diff", "--no-color", "--no-ext-diff", start, reviewed, "--", ".", *excluded).stdout)
     write("graph.diff", repo.git("diff", "--no-color", "--no-ext-diff", start, reviewed, "--", f"{records}/{GRAPH}").stdout)
     write(GRAPH, repo.show(reviewed, f"{records}/{GRAPH}") or "")
-    write("checks.json", json.dumps(body.get("checks") or [], indent=2, ensure_ascii=False) + "\n")
-    write("excluded.txt", repo.git("diff", "--name-only", start, reviewed, "--", records).stdout)
+    write("manifest.json", (repo.root / records / MANIFEST).read_text(encoding="utf-8"))
+    names = repo.git("diff", "--name-only", "--no-renames", start, reviewed, "--", records).stdout.split("\n")
+    write("excluded.txt", "".join(f"{name}\n" for name in names if name and is_record(name, records)))
     copied = []
     for ref in repository_refs(body):
         source = (repo.root / ref).resolve()
@@ -310,7 +325,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"scope: {scope['scope']} (range {start[:7]}..{reviewed[:7]})")
     for reason in scope["reasons"]:
         print(f"  - {reason}")
-    print(f"bundle: {Path(args.out).resolve()} (change.diff, graph.diff, {GRAPH}, checks.json, excluded.txt, "
+    print(f"bundle: {Path(args.out).resolve()} (change.diff, graph.diff, {GRAPH}, manifest.json, excluded.txt, "
           f"evidence/ with {len(scope['evidence'])} files{', previous-review.json' if args.previous_review else ''}, scope.json)")
     return EXIT_OK
 

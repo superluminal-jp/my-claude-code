@@ -62,7 +62,7 @@ mutate "check always finds a violation" 'return violations
 ' 'return violations + [("P-00", "x", "mutation")]
 ' CheckTests.test_records_that_follow_the_procedure_have_no_violation \
   "flow:check before the first round finds no record error"
-mutate "commits after the review are not checked" 'if not (path + "/").startswith(records + "/"):' 'if False:' \
+mutate "commits after the review are not checked" 'if not is_record(path, records):' 'if False:' \
   CheckTests.test_a_change_outside_the_record_directory_after_the_reviewed_commit_is_a_violation \
   "flow:check finds a code change committed after the reviewed commit"
 mutate "evidence files are not checked" 'for ref in repository_refs(body):
@@ -72,9 +72,17 @@ mutate "a bad reviewed_commit is not P-01" '("P-01", body["reviewed_commit"]' '(
   CheckTests.test_a_reviewed_commit_that_is_no_commit_or_not_behind_head_is_a_violation
 mutate "URL evidence is opened" 'and not URL.match(ref) and ref not in refs' 'and ref not in refs' \
   CheckTests.test_url_evidence_is_not_opened
-mutate "the record directory stays in the diff" '"--", ".", f":(exclude){records}"' '"--", "."' \
+mutate "record data files stay in the diff" 'excluded = [f":(exclude,glob){records}/**/*{suffix}" for suffix in RECORD_SUFFIXES]' 'excluded = []' \
   BundleTests.test_the_first_round_bundle_holds_the_change_and_not_the_records \
   "flow:the first round's bundle holds the code change and no record file"
+mutate "scripts of the record directory are left out" 'excluded = [f":(exclude,glob){records}/**/*{suffix}" for suffix in RECORD_SUFFIXES]' 'excluded = [f":(exclude){records}"]' \
+  BundleTests.test_the_first_round_bundle_holds_the_change_and_not_the_records
+mutate "any record-directory file counts as a record" 'and Path(path).suffix.lower() in RECORD_SUFFIXES' '' \
+  CheckTests.test_a_script_in_the_record_directory_changed_after_the_review_is_a_violation
+mutate "renames hide a file moved into the records" '"--name-only", "--no-renames", reviewed, "HEAD"' '"--name-only", reviewed, "HEAD"' \
+  CheckTests.test_a_file_moved_into_the_record_directory_after_the_review_is_a_violation
+mutate "selection conditions count as structure" 'node["selection"] = sorted(node["selection"])' 'node["selection"] = node["selection"]' \
+  ScopeTests.test_a_change_to_a_selection_condition_only_is_a_fix_round
 mutate "--out inside the repository is accepted" 'if out == repo.root or repo.root in out.parents:' 'if False:' \
   BundleTests.test_an_out_directory_inside_the_repository_or_not_empty_is_refused
 mutate "the previous review is not copied" 'shutil.copyfile(previous_review, out / "previous-review.json")' \

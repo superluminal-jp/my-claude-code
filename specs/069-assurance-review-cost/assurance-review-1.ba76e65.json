@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-069",
+    "reviewed_commit": "ba76e65f52bf6e41cd19a8a8e43bd01e851ec16d",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、1回目（scope whole、bundle）。完了通知のトークンは103,547。トランスクリプトの要約: ツールの呼び出し21回、turn 34回、読んだツールの結果130 KB、キャッシュからの読み込みの累計2.14M、キャッシュへの書き込み17.6万、出力5.0万。リポジトリの記録の場所を読んだ呼び出しは3回（約6 KB、bundle に無かった証跡のスクリプトと CI のログ）",
+    "context_given": [
+      "review_prep.py bundle の出力 /private/tmp/claude-501/bundle-069-r1（scope whole、range b5363b4..ba76e65、change.diff 101 KB、graph.diff、requirements-graph.json、checks.json、evidence/ の2ファイル、excluded.txt、scope.json）",
+      "verified-delivery の references/reviewer.md の1回目のプロンプト（ba76e65 の版。言語は日本語）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "uncovered_path",
+        "target": "RA",
+        "severity": "medium",
+        "statement": "bundle がレビュー役に渡すのは manifest の checks だけで、manifest の risk（分類と理由）、test_changes、infra_changes、approvals は渡らない。run_bundle は write(\"checks.json\", json.dumps(body.get(\"checks\") or [] ...)) だけを書く。reviewer.md の bundle の表と RA-A1 も checks.json を checks と照合するだけである。しかしレビュー役の5種類の問題には risk_mismatch（差分の権限・公開・削除にリスクの分類が合っているか）と weakened_test（削除・スキップ・弱めたテストが test_changes に申告されているか）が入る。bundle にはそれを判断する材料が無い。この回の bundle でも、リスクの分類は requirements-graph.json の assumptions（「risk は medium とする」）から推測するしかなかった。材料を得るにはレビュー役が記録の場所の manifest を自分で読むしかない。ところが R0-A2 は記録の場所のファイルを読むツール呼び出しを0回にすることを求める。要件どうしが食い違い、bundle だけで risk_mismatch と test_changes の申告漏れを確かめる経路をどの受け入れ条件も覆っていない。（bundle のファイルだけで判断した）",
+        "disposition": "accepted",
+        "resolution": "bundle は checks.json の代わりに manifest.json（verification manifest の全体。検査・リスクの分類と理由・承認・test_changes・infra_changes）を書くようにした。reviewer.md の表と2つのプロンプト、README（英語・日本語）、RA の文と RA-A1 を manifest.json に直した。単体試験は manifest.json が manifest と同じであることを確かめる。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "uncovered_path",
+        "target": "R0",
+        "severity": "medium",
+        "statement": "excluded.txt に記録ではないファイルが入っている。specs/069-assurance-review-cost/evidence/junit_run.py、mutations.sh、transcript_usage.py は、証跡を作るスクリプト（コード）である。記録の場所全体が change.diff から外れ、review_prep.py check の P-02 も記録の場所の中の変更を許すので、このコードは審査対象のコミットの後でも、どのレビューにも見られずに変えられる。junit_run.py は MAPPING で BundleTests→RA-A1、ScopeTests→RB-A1、CheckTests→RD-A1 と対応づけ、RA-A1・RB-A1・RD-A1 が引く unit-tests.junit.xml の acceptance_id を決める。レビュー役は bundle の中でこの XML の作り方を確かめられない。確かめるには記録の場所を読む必要があり、R0-A2 の0回と衝突する。（リポジトリの junit_run.py を読んだ。クラス単位の対応づけは今回は妥当に見える。）「記録の場所には記録だけを置く」は仮定と手順の文にあるだけで、それを確かめる check や受け入れ条件は無い。",
+        "disposition": "accepted",
+        "resolution": "記録を「記録の場所のデータのファイル（.json・.md・.txt・.xml・.csv・.yaml・.yml・.html・.log）」と定めた。bundle の change.diff は記録の場所のデータのファイルだけを外し、そこに置いたスクリプトは変更の一部として残す。excluded.txt はデータのファイルだけを挙げる。check の P-02 は、審査対象のコミットの後に記録でないファイル（記録の場所のスクリプトを含む）が変わると違反にする。単体試験（記録の場所のスクリプトが change.diff に入る、後で変えると P-02）とミューテーションを加えた。手順4、reviewer.md、README、R0 の assumptions、RA・RD の文を直した。この回は、スクリプトが bundle に無かったので、レビュー役がリポジトリの junit_run.py を読んだ（R0-A2 の観測に記録する）。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "other",
+        "target": "RC",
+        "severity": "medium",
+        "statement": "RC の statement は、CI のジョブを記録してから記録をコミットし、check と gate を走らせ、「レビューの後に記録を push する」順序を手順が求めると述べる。diff の SKILL.md 手順4、スキルの README.md と README.ja.md には、審査対象のコミットを記録より先に push する、PR が先、CI を待つ、という記述はあるが、レビューの後に記録を push するという記述が無い（diff 中で push が出るのは手順4と README の各1か所だけ）。RC には L1 の RC-A1 しか無く not_run で、機械的な確認は無い。利用者が対応表を読むまで、RC の statement と手順の文の食い違いは見つからない。",
+        "disposition": "accepted",
+        "resolution": "手順4に「then commit the records, review (step 5), and push the records after the review. Do the same for every fix commit.」を加えた。README（英語・日本語）にも、記録をコミットしてレビューを受け、レビューの後に push すると書いた。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "RB-A1",
+        "severity": "low",
+        "statement": "RB-A1 は junit_run.py が ScopeTests の4件をクラスごとまとめて RB-A1 に対応づけて passed にしている。しかし test_review_prep.py は、RB の statement が文の欄とする counterexamples だけの変更と、OR の selection の条件の文だけの変更が差分の回になることを試していない。文の欄の試験は statement・assumptions・description だけである。「a criterion removed」の場合は、lambda が T-SYS を加えてから acceptance.pop(0) するので、受け入れ条件の追加を伴う。削除だけの検出は単独では試されていない。structure() の selection の扱い（sorted(node[\"selection\"])）は、どの試験も通らない。",
+        "disposition": "accepted",
+        "resolution": "文の欄の試験に counterexamples を加え、OR の selection の条件の文だけを変えると差分の回になる試験を加えた。構造の試験は「a criterion replaced」（加えて外す）と「a criterion removed」（外すだけ）に分けた。selection の試験は今の実装で最初から通るので、ミューテーション「selection conditions count as structure」（selection を条件の文ごと比べる）で失敗することを示した。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "uncovered_path",
+        "target": "RD-A1",
+        "severity": "low",
+        "statement": "run_check の P-02 は repo.git(\"diff\", \"--name-only\", reviewed, \"HEAD\") を使い、--no-renames を付けない。名前の変更が検出されると --name-only は変更後の名前だけを挙げるので、審査対象のコミットの後に記録の場所の外のコードを記録の場所の中へ移すと、移した先だけが一覧に出て P-02 に引っかからず、元のファイルの削除が見えない。その変更は change.diff の範囲にも入らない。RD-A1 の試験（新しいファイルを src/other.py に足す場合）は名前の変更を試さない。git を実行して確かめたのではなく、--name-only の仕様から読み取った。",
+        "disposition": "accepted",
+        "resolution": "check と bundle の excluded.txt の git diff に --no-renames を付け、移したファイルが元の名前の削除として数えられるようにした。審査対象のコミットの後に src/app.py を記録の場所へ移すと P-02 src/app.py になる単体試験を加え、--no-renames を外すミューテーションで失敗することを示した。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "R0-A3",
+        "severity": "low",
+        "statement": "R0-A3 は passed だが、manifest が引く証跡は GitHub Actions のジョブの URL だけで、bundle の evidence/ にはジョブのログの写しが無い。R0-A3 が求める「10のスイートが合格」「ジョブのログで review_prep の試験を含む単体試験と CA-07 が合格」は、bundle の証跡から確かめられない。リポジトリには evidence/ba76e65/ci-test-job.txt（headSha が ba76e65、conclusion が success、CA-01 の 156 件と CA-07 の PASS の行を含む）があり、中身は主張を支える。しかし manifest が引いていないので bundle にもレビュー役にも渡らない。",
+        "disposition": "accepted",
+        "resolution": "R0-A3 の証跡の参照を、ジョブの URL・走ったコミット・結果の行を収めた記録の場所のファイル（ci-test-job.txt、kind は ci_job のまま）にし、bundle の evidence/ に入るようにする。手順4にも、CI のジョブの結果の行を URL とコミットと一緒に記録の場所のファイルに保存し、それを参照として引くと書いた。"
+      }
+    ]
+  }
+}

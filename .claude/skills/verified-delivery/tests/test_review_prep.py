@@ -60,14 +60,16 @@ class Repo:
             "change_id": "CHG-1", "problem_id": "PRB-1", "reviewed_commit": reviewed, "implementer": "claude",
             "risk": {"class": risk, "rationale": "r"}, "approvals": [], "checks": checks, "test_changes": [], "infra_changes": []}})
 
-    def first_round(self) -> tuple[str, str]:
-        """base, then the change commit (code, card, graph), then its records commit; returns (base, change)."""
+    def first_round(self, graph: dict = GRAPH) -> tuple[str, str]:
+        """base, then the change commit (code, card, graph, and a script that
+        makes evidence), then its records commit; returns (base, change)."""
         self.write("src/app.py", "VALUE = 1\n")
         self.write(".gitignore", "*.log\n")
         base = self.commit("base")
         self.write("src/app.py", "VALUE = 2\n")
         self.write(f"{RECORDS}/problem-card.json", CARD)
-        self.write(f"{RECORDS}/requirements-graph.json", GRAPH)
+        self.write(f"{RECORDS}/requirements-graph.json", graph)
+        self.write(f"{RECORDS}/evidence/make.sh", "python3 -m unittest > run.txt\n")
         change = self.commit("change")
         self.manifest(change)
         self.write(f"{RECORDS}/evidence/run.txt", "all 3 tests passed\n")
@@ -156,6 +158,24 @@ class CheckTests(unittest.TestCase):
         self.assertNotEqual(main, elsewhere)
         self.assertIn(f"P-01 {elsewhere}: reviewed_commit is not behind HEAD", proc.stdout)
 
+    def test_a_script_in_the_record_directory_changed_after_the_review_is_a_violation(self):
+        repo = Repo(self)
+        repo.first_round()
+        repo.write(f"{RECORDS}/evidence/make.sh", "echo all passed > run.txt\n")
+        repo.commit("the evidence script changed after the review")
+        proc = self.check(repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        self.assertIn(f"P-02 {RECORDS}/evidence/make.sh", proc.stdout)
+
+    def test_a_file_moved_into_the_record_directory_after_the_review_is_a_violation(self):
+        repo = Repo(self)
+        repo.first_round()
+        repo.git("mv", "src/app.py", f"{RECORDS}/evidence/app.txt")
+        repo.commit("code moved into the record directory")
+        proc = self.check(repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        self.assertIn("P-02 src/app.py", proc.stdout)
+
     def test_url_evidence_is_not_opened(self):
         repo = Repo(self)
         repo.first_round()
@@ -175,11 +195,13 @@ class BundleTests(unittest.TestCase):
         diff = (out / "change.diff").read_text(encoding="utf-8")
         self.assertIn("src/app.py", diff)
         self.assertIn("+VALUE = 2", diff)
-        self.assertNotIn(RECORDS, diff)
+        self.assertEqual([line for line in diff.splitlines() if line.startswith("diff --git") and RECORDS in line],
+                         [f"diff --git a/{RECORDS}/evidence/make.sh b/{RECORDS}/evidence/make.sh"])
         self.assertIn("T-PARENT", (out / "graph.diff").read_text(encoding="utf-8"))
         self.assertEqual(json.loads((out / "requirements-graph.json").read_text(encoding="utf-8")), GRAPH)
         manifest = json.loads((repo.root / RECORDS / "verification-manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(json.loads((out / "checks.json").read_text(encoding="utf-8")), manifest["verification_manifest"]["checks"])
+        self.assertEqual(json.loads((out / "manifest.json").read_text(encoding="utf-8")), manifest)
+        self.assertIn(f"+++ b/{RECORDS}/evidence/make.sh", diff)  # a script in the record directory is part of the change
         self.assertEqual((out / "evidence" / RECORDS / "evidence" / "run.txt").read_text(encoding="utf-8"), "all 3 tests passed\n")
         self.assertEqual(sorted(p.relative_to(out / "evidence").as_posix() for p in (out / "evidence").rglob("*") if p.is_file()),
                          [f"{RECORDS}/evidence/run.txt"])
@@ -232,9 +254,24 @@ class ScopeTests(unittest.TestCase):
         graph = copy.deepcopy(GRAPH)
         graph["requirements"][0]["statement"] = "the root, said better"
         graph["requirements"][0]["assumptions"] = ["an assumption"]
+        graph["requirements"][0]["counterexamples"] = ["a counterexample"]
         graph["requirements"][1]["acceptance"][0]["description"] = "a works, said better"
         scope, _, change, fix = self.scope(graph)
         self.assertEqual((scope["scope"], scope["range"], scope["reasons"]), ("fixes", [change, fix], []))
+
+    def test_a_change_to_a_selection_condition_only_is_a_fix_round(self):
+        with_or = copy.deepcopy(GRAPH)
+        with_or["requirements"][0].update(decomposition="OR", selection={"REQ-A": "when a", "REQ-B": "when b"})
+        reworded = copy.deepcopy(with_or)
+        reworded["requirements"][0]["selection"]["REQ-A"] = "when a, said better"
+        repo = Repo(self)
+        base, change = repo.first_round(with_or)
+        fix = repo.next_round(graph=reworded)
+        out = out_dir(self)
+        proc = run(repo, "bundle", "--records", RECORDS, "--base", base, "--out", str(out), "--previous", change)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        scope = json.loads((out / "scope.json").read_text(encoding="utf-8"))
+        self.assertEqual((scope["scope"], scope["range"]), ("fixes", [change, fix]))
 
     def test_a_structural_change_makes_a_whole_round_from_the_base(self):
         def added_requirement(g):
@@ -244,8 +281,9 @@ class ScopeTests(unittest.TestCase):
         changes = {
             "a requirement added": added_requirement,
             "a criterion added": lambda g: g["requirements"][1]["acceptance"].append({"id": "T-A2", "description": "x", "level": "L1"}),
-            "a criterion removed": lambda g: g["requirements"][0]["acceptance"].append({"id": "T-SYS", "description": "s", "level": "L3"})
+            "a criterion replaced": lambda g: g["requirements"][0]["acceptance"].append({"id": "T-SYS", "description": "s", "level": "L3"})
             or g["requirements"][0]["acceptance"].pop(0),
+            "a criterion removed": lambda g: g["requirements"][0]["acceptance"].clear(),
             "a level changed": lambda g: g["requirements"][0]["acceptance"][0].update(level="L3"),
             "a stage added": lambda g: g["requirements"][0]["acceptance"][0].update(stage="post_deploy"),
             "a decomposition changed": lambda g: g["requirements"][0].update(decomposition="OR", selection={"REQ-A": "x", "REQ-B": "y"}),
