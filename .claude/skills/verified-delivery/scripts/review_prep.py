@@ -164,7 +164,10 @@ def run_check(repo: Repository, records: str) -> List[Tuple[str, str, str]]:
                 violations.append(("P-02", path, "changed after reviewed_commit; a record written before implementation goes in with the change"))
             elif not is_record(path, records):
                 violations.append(("P-02", path, "changed after reviewed_commit, and is not a record (a data file of the record directory)"))
-    for ref in [f"{records}/{MANIFEST}"] + repository_refs(body):
+    # The gate reads these from the working tree, so each must be as committed.
+    requirement_files = [f"{records}/{name}" for name in REQUIREMENT_RECORDS
+                         if repo.committed(f"{records}/{name}") or (repo.root / records / name).exists()]
+    for ref in [f"{records}/{MANIFEST}"] + requirement_files + repository_refs(body):
         problem = evidence_problem(repo, ref)
         if problem:
             violations.append(("P-03", ref, problem))

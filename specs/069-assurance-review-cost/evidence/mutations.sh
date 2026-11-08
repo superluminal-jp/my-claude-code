@@ -65,7 +65,7 @@ mutate "check always finds a violation" 'return violations
 mutate "commits after the review are not checked" 'if not is_record(path, records):' 'if False:' \
   CheckTests.test_a_change_outside_the_record_directory_after_the_reviewed_commit_is_a_violation \
   "flow:check finds a code change committed after the reviewed commit"
-mutate "evidence files are not checked" 'for ref in [f"{records}/{MANIFEST}"] + repository_refs(body):' 'for ref in []:' \
+mutate "evidence files are not checked" 'for ref in [f"{records}/{MANIFEST}"] + requirement_files + repository_refs(body):' 'for ref in []:' \
   CheckTests.test_missing_untracked_or_ignored_evidence_is_a_violation
 mutate "a bad reviewed_commit is not P-01" '("P-01", body["reviewed_commit"]' '("P-09", body["reviewed_commit"]' \
   CheckTests.test_a_reviewed_commit_that_is_no_commit_or_not_behind_head_is_a_violation
@@ -106,11 +106,14 @@ mutate "only-staged evidence counts as untracked" '            return "is staged
   CheckTests.test_evidence_that_is_only_staged_or_differs_from_its_commit_is_a_violation
 mutate "a changed working copy is not seen" 'if not target.is_file() or repo.git("diff", "--quiet", "HEAD", "--", ref, ok=(0, 1)).returncode != 0:' 'if not target.is_file():' \
   CheckTests.test_evidence_that_is_only_staged_or_differs_from_its_commit_is_a_violation
+mutate "requirement records in the working tree are not checked" 'for ref in [f"{records}/{MANIFEST}"] + requirement_files + repository_refs(body):' 'for ref in [f"{records}/{MANIFEST}"] + repository_refs(body):' \
+  CheckTests.test_a_requirement_record_changed_but_not_committed_is_a_violation
 mutate "every reference counts as plain" '    return not ref.startswith("/") and "\\" not in ref' '    return True or not ref.startswith("/") and "\\" not in ref' \
   CheckTests.test_a_reference_that_climbs_out_with_dot_dot_is_a_violation
 mutate "the bundle copies the working tree" 'content = repo.show_bytes("HEAD", ref) if is_plain(ref) else None' \
   'content = (repo.root / ref).read_bytes() if (repo.root / ref).is_file() else None' \
-  BundleTests.test_the_bundle_copies_the_committed_records_and_writes_only_under_out
+  BundleTests.test_the_bundle_copies_the_committed_records_and_writes_only_under_out \
+  BundleTests.test_a_reference_that_climbs_out_writes_nothing_outside_the_evidence_directory
 
 all="$( { (cd "$SKILL/tests" && python3 -B -c '
 import unittest, test_review_prep as m

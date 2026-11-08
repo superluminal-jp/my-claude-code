@@ -206,6 +206,14 @@ class CheckTests(unittest.TestCase):
                 self.assertEqual(proc.returncode, 1, proc.stdout)
                 self.assertIn(f"P-03 {path}: {expected}", proc.stdout)
 
+    def test_a_requirement_record_changed_but_not_committed_is_a_violation(self):
+        repo = Repo(self)
+        repo.first_round()
+        repo.write(f"{RECORDS}/requirements-graph.json", {"weakened": True})
+        proc = self.check(repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        self.assertIn(f"P-03 {RECORDS}/requirements-graph.json: differs from its committed version", proc.stdout)
+
     def test_a_reference_that_climbs_out_with_dot_dot_is_a_violation(self):
         repo = Repo(self)
         _, change = repo.first_round()
@@ -274,15 +282,21 @@ class BundleTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertEqual((out / "evidence" / RECORDS / "evidence" / "run.txt").read_text(encoding="utf-8"), "all 3 tests passed\n")
         self.assertEqual(json.loads((out / "manifest.json").read_text(encoding="utf-8"))["verification_manifest"]["reviewed_commit"], change)
-        climbing = Repo(self)
-        base, change = climbing.first_round()
-        climbing.manifest(change, refs=(f"../{climbing.root.name}/src/app.py",))
-        climbing.commit("records naming a path with ..")
+
+    def test_a_reference_that_climbs_out_writes_nothing_outside_the_evidence_directory(self):
+        repo = Repo(self)
+        base, change = repo.first_round()
+        # Two levels up from out/evidence reach out's parent, outside --out.
+        climbing = f"../../{repo.root.parent.name}/{repo.root.name}/src/app.py"
+        repo.manifest(change, refs=(climbing, f"{RECORDS}/evidence/run.txt"))
+        repo.commit("records naming a path with ..")
         out = out_dir(self)
-        proc = run(climbing, "bundle", "--records", RECORDS, "--base", base, "--out", str(out))
+        proc = run(repo, "bundle", "--records", RECORDS, "--base", base, "--out", str(out))
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertEqual([p for p in out.parent.iterdir()], [out])
-        self.assertEqual(list((out / "evidence").rglob("*.py")), [])
+        self.assertEqual(sorted(p.relative_to(out).as_posix() for p in out.rglob("*") if p.is_file()),
+                         sorted(["change.diff", "graph.diff", "requirements-graph.json", "manifest.json", "excluded.txt",
+                                 "scope.json", f"evidence/{RECORDS}/evidence/run.txt"]))
 
     def test_the_previous_review_is_copied_into_the_bundle(self):
         repo = Repo(self)

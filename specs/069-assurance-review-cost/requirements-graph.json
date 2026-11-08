@@ -87,13 +87,13 @@
     },
     {
       "id": "RD",
-      "statement": "review_prep.py の check が、次を確かめて違反を挙げる。manifest の reviewed_commit がコミットを指し HEAD の祖先であること。そのコミットより後のコミットが、記録（記録の場所のデータのファイル）だけを変え、実装の前に書く記録（problem card・requirements graph・challenge report）を変えていないこと（名前の変更は、元の名前の削除として数える）。manifest と、manifest が引くリポジトリのファイルの証跡が、リポジトリの中の素直なパスで、HEAD にコミットされ、作業ツリーのものがコミットと同じであること（無い、追跡されていない、無視される、ステージだけ、コミットと違う、を区別する）。URL の証跡は開かない（git と manifest だけを読む）。手順5は、各回のレビューを始める前に check と assure.py gate を走らせ、レビューや人や CI を待つもの以外の理由をすべて直してから始めるよう求める。",
+      "statement": "review_prep.py の check が、次を確かめて違反を挙げる。manifest の reviewed_commit がコミットを指し HEAD の祖先であること。そのコミットより後のコミットが、記録（記録の場所のデータのファイル）だけを変え、実装の前に書く記録（problem card・requirements graph・challenge report）を変えていないこと（名前の変更は、元の名前の削除として数える）。manifest と、作業ツリーに在る実装の前の記録と、manifest が引くリポジトリのファイルの証跡が、リポジトリの中の素直なパスで、HEAD にコミットされ、作業ツリーのものがコミットと同じであること（無い、追跡されていない、無視される、ステージだけ、コミットと違う、を区別する）。URL の証跡は開かない（git と manifest だけを読む）。手順5は、各回のレビューを始める前に check と assure.py gate を走らせ、レビューや人や CI を待つもの以外の理由をすべて直してから始めるよう求める。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "RD-A1",
           "level": "L1",
-          "description": "review_prep.py の単体試験で、正しい記録には違反が無い。審査対象のコミットの後に、記録の場所の外を変えたコミット、記録の場所に置いたスクリプトを変えたコミット、記録の場所の外のファイルを記録の場所へ移したコミット、problem card・requirements graph・challenge report を変えたコミットは、それぞれ違反になる。無い証跡、追跡されていない証跡、無視される証跡、ステージだけの証跡、コミット後に作業ツリーで変えた証跡、.. を含む参照、コミットを指さないか HEAD の祖先でない reviewed_commit も、それぞれ違反になる。URL の証跡は確かめない。"
+          "description": "review_prep.py の単体試験で、正しい記録には違反が無い。審査対象のコミットの後に、記録の場所の外を変えたコミット、記録の場所に置いたスクリプトを変えたコミット、記録の場所の外のファイルを記録の場所へ移したコミット、problem card・requirements graph・challenge report を変えたコミットは、それぞれ違反になる。無い証跡、追跡されていない証跡、無視される証跡、ステージだけの証跡、コミット後に作業ツリーで変えた証跡、コミットせずに作業ツリーで変えた requirements graph、.. を含む参照、コミットを指さないか HEAD の祖先でない reviewed_commit も、それぞれ違反になる。URL の証跡は確かめない。"
         },
         {
           "id": "RD-A2",

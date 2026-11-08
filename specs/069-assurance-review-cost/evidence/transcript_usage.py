@@ -10,8 +10,16 @@ classified:
   names     listed record-directory paths (ls, or git ls-tree, --stat,
             --name-only, --name-status, log), reading no file's contents
   bundle    read the record directory's copy inside a review bundle
-Only "contents" calls count against R0-A2. A person can check every
-classification against the printed command.
+Only "contents" calls count against R0-A2. A person can check the
+classification of every printed call against its command.
+
+Limits: a call is found only when one of its arguments (command,
+file_path, path, pattern, glob) contains the record directory's name, so a
+call that reaches the directory without naming it (a Glob such as
+specs/069-*/**, a cd into a parent directory followed by a relative path)
+is neither printed nor counted, and the "contents" count is a lower bound.
+The classification itself leans to "contents" when unsure (a "git log |
+head" counts).
 
 Usage: transcript_usage.py --records DIR LABEL=TRANSCRIPT... Reads only.
 """
@@ -87,6 +95,7 @@ def main() -> int:
         label, path = spec.split("=", 1)
         usage, named = summarize(path, args.records)
         contents = sum(1 for kind, *_ in named if kind == "contents")
+        print("(contents is a lower bound: a call that reaches the record directory without naming it is not seen)") if spec == args.rounds[0] else None
         print(f"== round {label}: {usage['tool_calls']} tool calls, {usage['turns']} turns, tool results {usage['result_bytes'] // 1024} KB; "
               f"input {usage['input']}, cache read {usage['cache_read']}, cache create {usage['cache_create']}, output {usage['output']}; "
               f"record-directory contents read: {contents}")
