@@ -60,6 +60,8 @@ check_exit "CA-05: the gate passes no graph requirements-decomposition's checker
   python3 -B "$REPO_ROOT/tests/assert_assurance_parity.py" "$REPO_ROOT"
 check_exit "CA-06: one change runs from decomposition to acceptance through origin, collect-jest, the decision before deploy, and both card decisions (spec 068)" 0 \
   python3 -B "$REPO_ROOT/tests/assert_delivery_flow.py" "$REPO_ROOT"
+check_exit "CA-07: one change runs through two assurance review rounds with review_prep.py: check, the first bundle, a fix round, a whole round (spec 069)" 0 \
+  python3 -B "$REPO_ROOT/tests/assert_review_prep_flow.py" "$REPO_ROOT"
 
 echo
 if [ "$FAIL" -gt 0 ]; then

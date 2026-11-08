@@ -1,25 +1,54 @@
 # Assurance reviewer prompt
 
-Give the text below, with the change id, the record directory, the three paths, and the language of the records filled in, to a new subagent whose tools can only read and search. Give it the requirements graph, the diff of the change up to `reviewed_commit`, and the raw evidence only — not the conversation, the implementer's reasoning, or a summary written by the implementer.
+The reviewer reads a bundle, not the repository. Before each round, commit the records and run, from inside the repository:
+
+```sh
+python3 <skill-dir>/scripts/review_prep.py check --records <record directory>
+python3 <skill-dir>/scripts/review_prep.py bundle --records <record directory> --base <the commit the change started from> \
+  --out <a new directory outside the repository> [--previous <the previous round's reviewed_commit> --previous-review <its record>]
+```
+
+`check` reports, as `P-01` to `P-03`, a `reviewed_commit` that is not a commit behind `HEAD`, a commit after it that changes a file outside the record directory, and evidence the manifest cites that is missing, untracked, or ignored by git. Fix what it reports, and every gate reason except those that wait for this review, a person, or CI, before starting the reviewer. `bundle` writes into `--out`:
+
+| File | What it holds |
+|---|---|
+| `change.diff` | the diff of the round's range without the record directory |
+| `graph.diff` | the diff of `requirements-graph.json` over the same range |
+| `requirements-graph.json` | the graph at `reviewed_commit` |
+| `checks.json` | the manifest's checks: the implementer's claims, to check against the evidence |
+| `evidence/` | copies of the files of the repository that the manifest cites, at their paths |
+| `excluded.txt` | the names of the record files changed in the range, left out of `change.diff` |
+| `previous-review.json` | the previous round's record, when `--previous-review` is given |
+| `scope.json` | `whole` (the range starts at `--base`) or `fixes` (it starts at `--previous`), with the reasons for `whole` |
+
+`--previous` makes the round `fixes` only when the requirements graph changed in its text fields alone (requirements' `statement`, `assumptions`, and `counterexamples`, criteria's `description`, and the conditions of a `selection`), the problem card did not change, and the committed manifest of the previous round has the same risk class. Anything else — a requirement or criterion added or removed, a changed decomposition, child, level, stage, or origin, a missing previous graph, card, or manifest — makes it `whole`. The record directory is the one directory that holds the change's records, `verification-manifest.json` among them; nothing but records goes there. `review_prep.py` runs git with read-only subcommands only, opens no network connection (so it never opens a URL in the evidence), and writes only under `--out`, which must be outside the repository and new or empty. It needs Python 3.9 or later and git.
+
+## First round, and any `whole` round
+
+Give the text below, with the change id, the bundle directory, and the language of the records filled in, to a new subagent whose tools can only read and search. Give it the bundle only — not the conversation, the implementer's reasoning, or a summary written by the implementer.
 
 ```text
 You are an independent, read-only reviewer of a change's evidence. Do not
 edit files or run commands that change anything.
 
 Change id: <change_id>
-Read only:
-- Requirements graph: <path to requirements-graph.json>
-- Diff of the change: <path to the diff, or the commit range>
-- Raw evidence: <paths to the test reports, CI logs, scanner results>
+Read the files of this bundle: <bundle directory>
+- change.diff: the change, without its record directory
+- requirements-graph.json and graph.diff: the requirements and how they changed
+- checks.json: the implementer's claims about each acceptance criterion,
+  to check against the evidence, not to trust
+- evidence/: the evidence files those claims cite
+- excluded.txt: the names of the record files left out of change.diff
+- scope.json: the commits the diff spans
+Read anything else only when the bundle is not enough to judge a finding,
+and say in that finding's statement what you read.
 
-The records of the change live in <record directory>. The problem card,
-the requirements graph, and the challenge report are part of
-reviewed_commit. The records that name reviewed_commit (manifest, evidence,
-reviews, review card) are committed after it, in commits that change only
-that directory, because a commit cannot contain its own SHA; that they name
-an earlier commit than the branch head is expected. Report it only when
-evidence names a commit other than reviewed_commit, or when a commit after
-reviewed_commit changes a file outside <record directory>.
+The records that name reviewed_commit (manifest, evidence, reviews, review
+card) are committed after it, in commits that change only the record
+directory, because a commit cannot contain its own SHA; that they name an
+earlier commit than the branch head is expected. Report it only when
+evidence names a commit other than reviewed_commit, or when excluded.txt
+names a file that is not a record.
 
 Do not presume the change or its tests are correct. For each parent
 requirement and for the system-level (L3) criteria, look for material
@@ -53,42 +82,46 @@ Return an empty findings array if you find nothing material. Do not
 suggest style changes.
 ```
 
-Copy the findings, as they are, into the review record together with `change_id`, `reviewed_commit` (the commit the diff ends at), `reviewer` (who ran, and when), and `context_given` (exactly what the subagent was given), as [manifest.md](manifest.md) describes. Then answer each finding there; the gate counts a finding as answered only when it is `accepted` or `rejected` with a `resolution`.
+Copy the findings, as they are, into the review record together with `change_id`, `reviewed_commit` (the commit the diff ends at), `reviewer` (who ran, and when), and `context_given` (exactly what the subagent was given, including the bundle's range and scope), as [manifest.md](manifest.md) describes. Then answer each finding there; the gate counts a finding as answered only when it is `accepted` or `rejected` with a `resolution`.
 
-## Later rounds
+## Later rounds whose scope is `fixes`
 
-When a fix made a new commit, review that commit with the text below instead, unless the requirements graph or the risk class changed since the previous round; then use the prompt above with the whole diff again. Give the new subagent the previous round's review record, the diff from the previously reviewed commit to the new one, and the evidence that changed. Write the range in `context_given` (for example `git diff <previous>..<new>`), so the record shows what the round saw.
+When a fix made a new commit and the bundle's `scope.json` says `fixes`, give a new subagent the text below and the bundle (made with `--previous` and `--previous-review`). When it says `whole`, use the first-round prompt with that bundle instead.
 
 ```text
 You are an independent, read-only reviewer of the fixes to a change. Do not
 edit files or run commands that change anything.
 
 Change id: <change_id>
-Read only:
-- Requirements graph: <path to requirements-graph.json>
-- Previous review record: <path to the previous round's record>
-- Diff of the fixes: <the range from the previously reviewed commit to the new one>
-- Changed evidence: <paths>
-You may read any other file of the repository at the new commit when the
-diff needs it.
+Read the files of this bundle: <bundle directory>
+- previous-review.json: the previous round's findings and their resolutions
+- change.diff: the fixes since the previously reviewed commit, without the
+  record directory
+- graph.diff: how the requirements graph's text changed in the fixes
+- requirements-graph.json, checks.json (the implementer's claims, not
+  facts), evidence/, excluded.txt, scope.json
+Read anything else of the repository at the new commit only when the bundle
+is not enough to judge a finding, and say in that finding's statement what
+you read.
 
-The records that name the reviewed commit live in <record directory> and are
-committed after it; report it only when a commit after the reviewed commit
-changes a file outside <record directory>.
+The records that name the reviewed commit are committed after it; report it
+only when excluded.txt names a file that is not a record.
 
 The resolutions in the previous record are the implementer's claims, not
-facts. Check three things only:
+facts. Check four things only:
 
-1. For each finding marked accepted, whether the diff of the fixes really
-   removes the problem it states. Report a finding that is not fixed as
-   kind "other", naming the previous finding's id.
+1. For each finding marked accepted, whether the fixes really remove the
+   problem it states. Report a finding that is not fixed as kind "other",
+   naming the previous finding's id.
 2. For each finding marked rejected, whether its resolution really shows
-   that the problem does not hold, reading the files it names at the new
-   commit. Report a rejection that does not hold as kind "other", naming
-   the previous finding's id.
-3. Whether the diff of the fixes itself has a material problem of the five
-   kinds: parent_by_children, evidence_mismatch, uncovered_path,
-   weakened_test, or risk_mismatch.
+   that the problem does not hold. Report a rejection that does not hold as
+   kind "other", naming the previous finding's id.
+3. Whether a text change in graph.diff weakens what an acceptance criterion
+   or requirement verifies. Report it as kind "other", naming the criterion
+   or requirement.
+4. Whether the fixes themselves have a material problem of the five kinds:
+   parent_by_children, evidence_mismatch, uncovered_path, weakened_test, or
+   risk_mismatch.
 
 Answer with JSON only, in the same shape as the first round, one finding
 per material problem, ids continuing after the previous round's, every
@@ -97,4 +130,4 @@ records, for example Japanese>. Return an empty findings array if you find
 nothing material. Do not suggest style changes.
 ```
 
-The gate reads the latest round's record and does not tell a later-round review from a whole-diff review; the range in `context_given` is what shows it.
+The gate reads the latest round's record and does not tell a `fixes` round from a `whole` one; the range and scope written in `context_given` are what show it.

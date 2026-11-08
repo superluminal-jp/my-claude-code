@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "P-069",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08。完了通知のトークンは50,720、ツールの呼び出しは3回",
+    "context_given": [
+      "specs/069-assurance-review-cost/problem-card.challenger.json（proposed_solutions を除いた problem card の写し、最初の版）",
+      "specs/069-assurance-review-cost/requirements-graph.json（最初の版）",
+      "requirements-decomposition の references/challenger.md のプロンプト（main b5363b4 の版。2つのパスと言語（日本語）のほかは変えずに）"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "alternative_cause",
+        "target": "P-069",
+        "severity": "high",
+        "statement": "gap は「トークンが、変更と関係の無い記録と、言い回しの直しの読み直しに使われた」と原因を事実として書いている。しかし証拠はこれを支えず、別の原因も同じ証拠に合う。(a) 記録の占める割合とトークン数が逆に動いている。記録が94%・98%の4回目・5回目は95,315・84,845で最小、記録が36〜77%の1〜3回目は155,026〜207,348である。5回目は直しが約2.6 KBなのに約85kを使っている。(b) トークン数をツール呼び出し数で割ると1回あたり約4.2〜7.1kで、ほぼ一定である。これは hypotheses の「呼び出しの数でほぼ決まる」と整合する。(c) 回ごとの差は、すべての差分の回か差分の回かという範囲の違いで説明でき、記録の割合では説明できない。記録を外してもレビュー役がグラフ・スクリプト・手順を読む固定費が残るなら、RA を満たしてもトークンはほぼ減らない。因果は hypotheses にあるだけで未検証なのに、gap と status:verified が事実扱いしている。また2つ目の証拠の「渡した差分の大きさ」は各範囲を後から git diff で測った値で、レビュー役が実際に記録を読んだことを示すツール呼び出しの記録が無い。",
+        "disposition": "accepted",
+        "resolution": "spec 068 の6回のレビュー役のトランスクリプトを、スクリプト（evidence/transcript_usage.py）で要約した（evidence/spec068-reviewer-reads.txt）。レビュー役は範囲を丸ごと読まず、12〜39回のツールの呼び出しと19〜74回の turn で探索していた。読んだツールの結果は95〜313 KB で、そのうち記録の場所の読み取りは23〜156 KB だった。累計の使用量は、キャッシュからの読み込み0.86〜9.1M、出力3.0〜12.5万だった。この観測を evidence と current に加えた。渡した範囲の大きさは「読んだ量ではない」と明記した。gap は、原因ではなく理想と実際の差（記録を含む探索に19〜74回の turn を使った、文の直しでもすべての差分の回になった、など）に書き直した。累計の使用量が turn と文脈の大きさで決まるという因果は、hypotheses に移した。status は、current が観測だけになったので verified のままにする。"
+      },
+      {
+        "id": "CH-02",
+        "kind": "counterexample",
+        "target": "R0",
+        "severity": "high",
+        "statement": "R0 の「各回が変更そのものとその回の証跡だけを読む」は、子がすべて成り立っても破れる。RA が制限するのは渡すものだけで、レビュー役が自分で git diff や記録の読み取りを走らせることは禁じない。R0 の counterexamples の1番目がこの穴を認めているが、対応する子も受け入れ条件も無い。R0-A2 が確かめるのは bundle の change.diff に記録の場所のファイルが入っていないことだけである。レビュー役が bundle を読んだ上で git diff 全体を再度読めば、R0-A2 は合格し、トークンの消費は変わらない。同様に counterexamples の3番目（checks.json は実装者の主張）にも子が無い。",
+        "disposition": "accepted",
+        "resolution": "RA に、bundle にレビュー役が要るもの（graph の写し、証跡のファイルの写し、前の回の記録の写し）をすべて入れ、手順5とプロンプトが「bundle のディレクトリだけを渡し、bundle の外を読むのは bundle では判断できないときだけ」と求めることを加えた。R0-A2 を、レビュー役のトランスクリプトを要約して、リポジトリの記録の場所を読んだツールの呼び出しが0回であることを確かめる条件に直した。ツールの呼び出しそのものは禁じられないので、R0-A2 はこの変更の回の観測にとどまり、次の案件を保証しないと counterexamples に書いた。checks.json を主張として扱うことは、RA の文（確かめる対象の主張）と RA-A2 の人の確認で受ける。"
+      },
+      {
+        "id": "CH-03",
+        "kind": "missing_evidence",
+        "target": "R0",
+        "severity": "medium",
+        "statement": "問題の significance はトークンの消費だが、トークンやツール呼び出しの数が減ったことを判定する受け入れ条件が無い。R0-A2 は数を「証跡に残す」だけで、基準値・比較対象・上限が無い。トークン削減の複数案件での測定は対象外である。そのため、この変更自身のレビューが過去の約20万トークンと同じ水準でも R0 は合格する。「各回が変更そのものだけを読む」が成り立ったことを、読んだものの実測で確かめる手段が無い。",
+        "disposition": "accepted",
+        "resolution": "（批判の役は target を受け入れ条件 R0-A2 と書いた。challenge report の target は problem か要件なので、R0-A2 を持つ要件 R0 に記録する。）一部を受け入れた。「各回が変更そのものだけを読む」ことは、R0-A2 でトランスクリプトの実測（記録の場所の読み取りが0回）で確かめるようにした。turn 数と累計の使用量も、各回について証跡に残す。トークンの量の基準値は置かない。spec 068 と spec 069 では変更の大きさが違い、1件どうしの比較は基準にならないからである。複数の案件での比較は pilot に属し、利用者の決定で対象外であると、R0 の assumptions に書いた。"
+      },
+      {
+        "id": "CH-04",
+        "kind": "missing_child",
+        "target": "RA",
+        "severity": "medium",
+        "statement": "「その回に要る証跡」が未定義である。evidence.txt は manifest が引くリポジトリのファイル名の一覧だけで、中身は渡さない。保証レビューが証跡で受け入れ条件が満たされているかを判断するなら、レビュー役は中身を読む必要がある。その場合は自分でファイルを開くことになり、CH-02 の迂回が常態になって記録の読み直しが戻る。中身を読まないなら、証跡の中身が誤り・空・失敗を示していても見逃される（ファイルが在るかどうかは RD が確かめるが、中身の主張との整合は誰も確かめない）。レビュー役が証跡のどの部分を読む前提かが、RA にも R0 にも書かれていない。",
+        "disposition": "accepted",
+        "resolution": "evidence.txt（名前の一覧）をやめ、bundle の evidence/ に、その回の manifest が引くリポジトリの証跡のファイルの写しを、同じ中身で入れるようにした。「その回に要る証跡」は、その回の manifest が引くファイルと定めた。レビュー役は bundle の中で証跡の中身を読める。RA の文と RA-A1 を直した。"
+      },
+      {
+        "id": "CH-05",
+        "kind": "missing_child",
+        "target": "RA",
+        "severity": "medium",
+        "statement": "「記録の場所」を bundle と check がどう決めるかが、どの要件にも書かれていない。R0-A2 は specs/069-assurance-review-cost/ と具体的に書くが、RA・RD は一般の定義を持たない。specs/NNN/ 全体を外す実装なら、その配下に変更の本体（仕様・文書そのものの変更や、配下に置いたテスト・スクリプト）がある案件では change.diff が空か不完全になり、レビュー役は変更を見ない。パスを固定した別の実装なら、記録を別の場所に置く案件で外れない。RD の「記録の場所だけを変えている」の判定も同じ定義に依存し、その配下に実装の変更を混ぜれば検査をすり抜ける。",
+        "disposition": "accepted",
+        "resolution": "記録の場所を、手順4で決めた、その変更の記録を置く1つのディレクトリ（verification-manifest.json を持つもの）と定め、--records で渡すようにした。手順4は、そこには記録だけを置くと定める（R0 の assumptions）。bundle は excluded.txt に、範囲で変わった記録の場所のファイルの名前を書き、何を外したかをレビュー役に見せる。記録の場所に実装を混ぜた案件では、excluded.txt の名前でレビュー役が気づける。"
+      },
+      {
+        "id": "CH-06",
+        "kind": "missing_child",
+        "target": "RD",
+        "severity": "medium",
+        "statement": "R0 は「CI の証跡は審査対象のコミットの上で得られる」と言うが、これを機械的に確かめる子が無い。実際の失敗（PR #123 の CI が headSha 32ad6b0 で走り、reviewed_commit 276dca7 の上では走らなかった）は、手順を決めても守られなければ繰り返す。RD は「URL の証跡は確かめない」とし、CI の run の headSha と reviewed_commit の一致を検査しない。RC-A1 は手順に文があることを人が読むだけで、R0-A3 はこの変更1件の実行だけである。手順の文があっても CI が記録のコミットで走った案件は、RC・RD のどちらにも検出されない。",
+        "disposition": "rejected",
+        "resolution": "機械的な検出は、すでに gate の A-02 にある。手順4は CI のジョブを「its URL and the commit it ran on」で記録すると定め、A-02 は証跡の commit が reviewed_commit と一字一句同じでなければ passed と認めない。PR #123 で R0-A3 を CI のジョブで記録できなかったのは、まさに A-02 が止めたからである（記録のコミット 32ad6b0 を書けば stale になった）。review_prep.py は git と manifest だけを読み、ネットワークを開かないことを契約にするので、CI の URL を開いて headSha を確かめることはしない。順序の手順は RC で定める。"
+      },
+      {
+        "id": "CH-07",
+        "kind": "counterexample",
+        "target": "RC",
+        "severity": "medium",
+        "statement": "RC の「審査対象のコミットを記録より先に push する」だけでは、CI が pull_request のイベントだけで走る場合に足りない。PR がまだ無い段階で先に push しても CI は走らず、後から PR を作ると CI は head（記録のコミット）の上で走る。これは PR #123 で起きたことと同じ形である。PR を先に開いておく条件が RC に無い。また直しのたびに reviewed_commit が変わるため、毎回 push と CI の完了待ちが要る。それがレビュー前の確かめ（RD）の順序とどう組み合うかも書かれていない。",
+        "disposition": "accepted",
+        "resolution": "RC を、CI が pull request でだけ走るなら先に PR を開く、審査対象のコミットを記録より先に push して CI を待つ、CI のジョブをそのコミットで記録してから記録をコミットし、check と gate を走らせてレビューする、レビューの後に記録を push する、直しのコミットのたびに同じ順で進める、という順序に直した。RC-A1 で、この順序が手順5の check と gate の順序と食い違わないことを人が確かめる。"
+      },
+      {
+        "id": "CH-08",
+        "kind": "counterexample",
+        "target": "RB",
+        "severity": "medium",
+        "statement": "RB が差分の回にする条件は「文の変更だけ」で、すべての差分に戻す条件は、要件・受け入れ条件の増減、分解・子、水準・stage、リスクの分類の列挙である。それ以外の項目の変更は、判定を左右しても差分の回になる。例は origin（instruction の有無と by・ref）、assumptions の risk の記述、problem card の ideal・gap、受け入れ条件の descriptions を実質的に別の確かめに替える変更である。origin の変更は、レビュー役が指摘にするかどうかの扱いを変える。列挙に無い項目の変更を、差分の回と全差分の回のどちらにするかが決まっていない。文の変更で確かめる内容が弱まったことの検出も、レビュー役の判断に任されている。",
+        "disposition": "accepted",
+        "resolution": "RB を、すべての差分に戻す条件の列挙から、差分の回にしてよい欄の列挙に改めた。graph を、文の欄（要件の statement・assumptions・counterexamples、受け入れ条件の description、OR の selection の条件の文）を除いて比べ、少しでも違えば（origin や selection の子を含む）すべての差分の回にする。problem card が変わったときもすべての差分の回にする。文の欄だけの変更で確かめる内容が弱まったかは、差分の回のレビュー役に graph.diff を見させて確かめさせる。これは判断を要するので、レビュー役に任せる。"
+      },
+      {
+        "id": "CH-09",
+        "kind": "missing_child",
+        "target": "R0",
+        "severity": "low",
+        "statement": "R0-A3 は「CI の test ジョブが走らせる10のスイート」が合格することを求める。この10に review_prep.py の単体試験と通しの試験（tests/assert_review_prep_flow.py）が含まれるという要件が無い。新しい試験を ci.yml に登録しなくても R0-A3 は合格する。その場合、R0-A1 と RA・RB・RD の L1 の試験は CI で一度も走らず、保証が手元の実行に依存する。",
+        "disposition": "accepted",
+        "resolution": "（批判の役は target を受け入れ条件 R0-A3 と書いた。challenge report の target は problem か要件なので、R0-A3 を持つ要件 R0 に記録する。）R0-A3 に、そのジョブのログで verified-delivery の単体試験に review_prep.py の試験が含まれ、通しの試験（CA-07、tests/assert_review_prep_flow.py）が合格していることを加えた。tests/run-verified-delivery-skill.sh は、スキルの tests/ の単体試験をすべて走らせ、CA-07 を足す。"
+      },
+      {
+        "id": "CH-10",
+        "kind": "solution_as_problem",
+        "target": "P-069",
+        "severity": "low",
+        "statement": "gap の前半「レビュー役に渡すもの、すべての差分に戻す条件、レビューの前の確かめ、CI の証跡の得方が手順で決まっておらず」は、手順に何を足すかという手段の欠落を書いており、現状と理想の差になっていない。さらに current 自身が、手順は「すべての差分を渡す」「少しでも変わればすべて読み直す」と書いていると述べているため、「決まっていない」は事実と合わない（決まっているが望ましくない）。理想との差は、渡す差分に記録が36〜98%入ること、文の直しで全差分の回になること、記録の誤りがレビューで初めて見つかること、CI が別のコミットで走ることで書くべきである。",
+        "disposition": "accepted",
+        "resolution": "gap を、理想と実際の4つの差（記録を含む探索に19〜74回の turn を使った、文の直しでもすべての差分の回になった、記録の誤りがレビューで初めて見つかった、CI の証跡が記録のコミットの上で得られた）に書き直した。problem.md も同じに直した。"
+      },
+      {
+        "id": "CH-11",
+        "kind": "missing_evidence",
+        "target": "P-069",
+        "severity": "low",
+        "statement": "current の「レビューの前に記録を機械的に確かめる手順を持たず、CI の証跡の得方を書かない」は、SKILL.md の該当箇所の引用で裏付けられていない。引用されているのは、差分を渡す定めと全差分に戻す条件の2点だけである。レビュー前の確かめの欠如は spec 066 の2件の指摘から、CI の欠如は PR #123 の1件から推定している。RD が加える手順5の「check と assure.py gate を各回の前に走らせる」のうち、gate を既に走らせる定めが現行の手順にあるかどうかも示されていない。",
+        "disposition": "accepted",
+        "resolution": "evidence に SKILL.md の手順4〜6（main b5363b4）の観測を加えた。手順5はレビュー役を始める前に何も確かめさせず、gate は手順6でレビューの後に初めて走る。手順4は CI のジョブを URL と走ったコミットで記録するとだけ書き、push の順序を書かない。current の「CI の証跡の得方を書かない」は「push の順序を書かない」に直した。"
+      }
+    ]
+  }
+}
