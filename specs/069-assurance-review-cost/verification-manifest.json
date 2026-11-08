@@ -51,8 +51,12 @@
       },
       {
         "check_id": "R0-A4",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/human-review.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
+        }
       },
       {
         "check_id": "RA-A1",
@@ -65,8 +69,12 @@
       },
       {
         "check_id": "RA-A2",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/human-review.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
+        }
       },
       {
         "check_id": "RB-A1",
@@ -79,8 +87,12 @@
       },
       {
         "check_id": "RB-A2",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/human-review.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
+        }
       },
       {
         "check_id": "RD-A1",
@@ -93,13 +105,21 @@
       },
       {
         "check_id": "RD-A2",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/human-review.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
+        }
       },
       {
         "check_id": "RC-A1",
-        "status": "not_run",
-        "reason": "利用者が evidence/procedure-map.md の該当の行を読んで確かめるのを待つ"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/069-assurance-review-cost/evidence/321befe/human-review.txt",
+          "commit": "321befe7309568042703b77f5d055e62e3048564"
+        }
       }
     ],
     "test_changes": [],

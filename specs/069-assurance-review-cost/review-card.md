@@ -21,27 +21,17 @@
 
 | 水準 | passed | failed | not_run | blocked | not_applicable |
 |---|---|---|---|---|---|
-| L1 | 3 | 0 | 4 | 0 | 0 |
+| L1 | 7 | 0 | 0 | 0 | 0 |
 | L2 | 0 | 0 | 0 | 0 | 0 |
-| L3 | 2 | 1 | 1 | 0 | 0 |
+| L3 | 3 | 1 | 0 | 0 | 0 |
 
 ## 合格していない検査
 
 - `R0-A2` (L3, R0): failed
-- `R0-A4` (L3, R0): not_run
-- `RA-A2` (L1, RA): not_run
-- `RB-A2` (L1, RB): not_run
-- `RD-A2` (L1, RD): not_run
-- `RC-A1` (L1, RC): not_run
 
 ## 未解消の事項
 
 - A-03 (fail): "R0-A2" (L3) failed
-- A-03 (blocked): "R0-A4" (L3) is not\_run
-- A-03 (blocked): "RA-A2" (L1) is not\_run
-- A-03 (blocked): "RB-A2" (L1) is not\_run
-- A-03 (blocked): "RD-A2" (L1) is not\_run
-- A-03 (blocked): "RC-A1" (L1) is not\_run
 
 ## 人が決めること
 
@@ -52,10 +42,10 @@
 ```mermaid
 flowchart TD
   n0["R0 · AND · fail"]:::fail
-  n1["RA · LEAF · open"]:::open
-  n2["RB · LEAF · open"]:::open
-  n3["RD · LEAF · open"]:::open
-  n4["RC · LEAF · open"]:::open
+  n1["RA · LEAF · pass"]:::pass
+  n2["RB · LEAF · pass"]:::pass
+  n3["RD · LEAF · pass"]:::pass
+  n4["RC · LEAF · pass"]:::pass
   n0 --> n1
   n0 --> n2
   n0 --> n3
@@ -78,11 +68,11 @@ flowchart TD
 | R0 | `R0-A1` | L3 | passed | `specs/069-assurance-review-cost/evidence/321befe/review-prep-flow.txt` @ `321befe` |
 | R0 | `R0-A2` | L3 | failed | `specs/069-assurance-review-cost/evidence/321befe/reviewer-reads.txt` @ `321befe` |
 | R0 | `R0-A3` | L3 | passed | `specs/069-assurance-review-cost/evidence/321befe/ci-test-job.txt` @ `321befe` |
-| R0 | `R0-A4` | L3 | not_run | — |
+| R0 | `R0-A4` | L3 | passed | `specs/069-assurance-review-cost/evidence/321befe/human-review.txt` @ `321befe` |
 | RA | `RA-A1` | L1 | passed | `specs/069-assurance-review-cost/evidence/321befe/unit-tests.junit.xml` @ `321befe` |
-| RA | `RA-A2` | L1 | not_run | — |
+| RA | `RA-A2` | L1 | passed | `specs/069-assurance-review-cost/evidence/321befe/human-review.txt` @ `321befe` |
 | RB | `RB-A1` | L1 | passed | `specs/069-assurance-review-cost/evidence/321befe/unit-tests.junit.xml` @ `321befe` |
-| RB | `RB-A2` | L1 | not_run | — |
+| RB | `RB-A2` | L1 | passed | `specs/069-assurance-review-cost/evidence/321befe/human-review.txt` @ `321befe` |
 | RD | `RD-A1` | L1 | passed | `specs/069-assurance-review-cost/evidence/321befe/unit-tests.junit.xml` @ `321befe` |
-| RD | `RD-A2` | L1 | not_run | — |
-| RC | `RC-A1` | L1 | not_run | — |
+| RD | `RD-A2` | L1 | passed | `specs/069-assurance-review-cost/evidence/321befe/human-review.txt` @ `321befe` |
+| RC | `RC-A1` | L1 | passed | `specs/069-assurance-review-cost/evidence/321befe/human-review.txt` @ `321befe` |

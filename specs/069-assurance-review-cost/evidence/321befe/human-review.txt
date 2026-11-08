@@ -1,0 +1,20 @@
+The person's review of the procedure map (spec 069)
+
+Reviewer: Taiki Ogihara, the person who asked for the change (not the implementer).
+Date: 2026-11-08, in the Claude Code conversation that made the change.
+Commit reviewed: 321befe7309568042703b77f5d055e62e3048564 (evidence/procedure-map.md points to its skill texts;
+the skill texts did not change after it).
+
+What was asked: Claude listed the five checks below one by one, each with
+the files and passages to read and the points to confirm, and asked for
+"all OK" or "<id> is NG: reason".
+What the person answered: "all ok".
+
+RA-A2  A: the reviewer gets the bundle directory only, and the bundle is enough to judge the five kinds
+RB-A2  B: the text fields that keep a round "fixes" are not too wide, and a later-round reviewer checks that text changes weaken nothing
+RD-A2  D: running check and the gate before each round and fixing every reason that does not wait can be done in the flow
+RC-A1  CI: push and pull request only on request, the reviewed commit before its records, and the pull request's merge commit
+R0-A4  the four measures do not contradict one another (A and D, B and A-10, the CI order and D)
+
+This is a person's confirmation recorded by the implementer; the checker cannot
+verify who answered.
