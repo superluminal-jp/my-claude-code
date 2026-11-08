@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-069",
+    "reviewed_commit": "3d0a0e4b616523bfa87120d1046d5c61d4b77c76",
+    "reviewer": "読み取りと検索だけができるサブエージェント（Explore、sonnet、effort xhigh）、2026-11-08、2回目（scope fixes、bundle）。完了通知のトークンは84,418。トランスクリプトの要約: ツールの呼び出し14回、turn 22回、読んだツールの結果100 KB、キャッシュからの読み込みの累計1.09M、キャッシュへの書き込み17.1万、出力3.5万。リポジトリの記録の場所の中身を読んだ呼び出しは0回（名前の一覧が1回、bundle の中の読み取りが2回）",
+    "context_given": [
+      "review_prep.py bundle の出力 /private/tmp/claude-501/bundle-069-r2（scope fixes、range ba76e65..3d0a0e4、change.diff 48 KB、graph.diff、requirements-graph.json、manifest.json、evidence/ の3ファイル、excluded.txt、previous-review.json、scope.json）",
+      "verified-delivery の references/reviewer.md の2回目以降のプロンプト（3d0a0e4 の版。言語は日本語）"
+    ],
+    "findings": [
+      {
+        "id": "AR-07",
+        "kind": "other",
+        "target": "R0-A2",
+        "severity": "medium",
+        "statement": "graph.diff で R0-A2 の description が弱まっている。前の版は「この変更の保証レビューのすべての回で」記録の場所のファイルを読んだ呼び出しが0回であることを確かめるとしていた。新しい版は「この変更の reviewed_commit を審査した保証レビューの回で」に絞り、0回を求める回を、いま manifest が指す 3d0a0e4 を審査する回（この2回目）だけにしている。1回目（ba76e65）は、前回の記録（AR-02、context_given）によれば、bundle に無かったスクリプトと CI のログを読むため、記録の場所を読むツール呼び出しを3回していた。1回目は新しい文では 0 回の対象から外れ、「すべての回について…記録の場所を読んだ呼び出しを証跡に残す」という記録だけの要求になった。manifest.json の R0-A2 も reason が「この reviewed_commit を審査する回のトランスクリプトを要約して確かめる」になっている。R0 の statement（「各回が…変更そのものとその回の証跡だけを読み」）と、R0 の counterexamples 1番目（「R0-A2 は、この変更の回でそれが起きなかったことをトランスクリプトで確かめる」）は直っていない。違反が観測された回を条件から外した形で、確かめる内容が弱まっている。AR-02 の解決（スクリプトを bundle に入れる）で今後の回の読み取りは減るはずだが、1回目の読み取りを許す根拠にはならない。条件を「すべての回で0回」に戻して1回目の3回を例外として明記し利用者の承認を取るか、R0 の statement と counterexamples をこの絞った範囲に合わせて直すべきである。（bundle のファイルだけで判断した）",
+        "disposition": "accepted",
+        "resolution": "指摘のとおり、違反が観測された回を条件から外して、確かめる内容を弱めていた。R0-A2 を「すべての回で、中身を読んだ呼び出しが0回」に戻した。「中身を読んだ」は、元の「ファイルを読んだ」の意味を変えずに、名前の一覧と区別する。1回目は、bundle に無かった manifest・スクリプト・CI のログを読むため、リポジトリの記録の場所の中身を3〜4回読んだ（transcript_usage.py の分類は、git status | head を含む1回を多めに中身に数える）。そのため R0-A2 は、このままでは成り立たない。1回目の読み取りを例外として受け入れるかは、利用者に尋ねて決める。transcript_usage.py を、中身の読み取り・名前の一覧・bundle の中の読み取りに分けて数えるよう直した。"
+      },
+      {
+        "id": "AR-08",
+        "kind": "other",
+        "target": "AR-02",
+        "severity": "low",
+        "statement": "AR-02（記録の場所に置いた証拠を作るスクリプトが、どのレビューにも見られない）は、この変更自身のスクリプトについては直っていない。直しの内容は、今後の bundle の change.diff にスクリプトを残すことと、P-02 が審査対象のコミットの後の変更を違反にすることである。しかし transcript_usage.py（R0-A2 の「読んだ呼び出しが0回」の証跡を作る）と junit_run.py は、1回目の範囲 b5363b4..ba76e65 で記録の場所ごと change.diff から外れて以降、どの bundle にも入っていない。2回目は scope が fixes（ba76e65..3d0a0e4）なので、変わっていないスクリプトは change.diff に入らない。入ったのは mutations.sh の差分の部分だけで、その初版は見られていない。manifest が引く証跡も junit.xml・ci-test-job.txt・review-prep-flow.txt の3つだけである。1回目のレビュー役は junit_run.py をリポジトリから読んだが（AR-02 の statement）、transcript_usage.py を誰かが読んだ記録は無い。2回目のレビュー役が読むには記録の場所を読むことになり、AR-07 の R0-A2 と衝突する。リポジトリの 3d0a0e4 では、この3つが specs/069-assurance-review-cost/evidence/ にあることを git ls-tree と git diff --stat で確かめた（ファイルの中身は読んでいない）。この変更のスクリプトを bundle 経由で一度は見る手段（例えば、変更の範囲の初版を whole の回の change.diff に載せる、または scope が fixes でも未審査のスクリプトを渡す）が要る。",
+        "disposition": "accepted",
+        "resolution": "3回目を、bundle を --previous なしで作るすべての差分の回にする。直した bundle は記録の場所のスクリプトを change.diff に残すので、transcript_usage.py・junit_run.py・mutations.sh の全文が、範囲 b5363b4..（次の reviewed_commit）の change.diff に入り、レビュー役が bundle の中で読める。手順は、--previous を付けずにすべての差分の回にすることを禁じていない（すべての差分の回は、差分の回より広い）。"
+      }
+    ]
+  }
+}

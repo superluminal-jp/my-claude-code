@@ -26,7 +26,7 @@
         {
           "id": "R0-A2",
           "level": "L3",
-          "description": "この変更の reviewed_commit を審査した保証レビューの回で、レビュー役に review_prep.py bundle の出力を渡す。その回のレビュー役のトランスクリプトをスクリプト（evidence の transcript_usage.py）で要約し、リポジトリの記録の場所（specs/069-assurance-review-cost/）のファイルを読んだツールの呼び出しが0回であること、bundle の change.diff が記録の場所のデータのファイルを含まないことを確かめる。すべての回について、turn 数とツールの呼び出しの数と累計の使用量（input・キャッシュからの読み込み・キャッシュへの書き込み・output）と、記録の場所を読んだ呼び出しを証跡に残す。"
+          "description": "この変更自身の保証レビューのすべての回で、レビュー役に review_prep.py bundle の出力を渡す。各回のレビュー役のトランスクリプトをスクリプト（evidence の transcript_usage.py）で要約し、リポジトリの記録の場所（specs/069-assurance-review-cost/）のファイルの中身を読んだツールの呼び出しが0回であること、bundle の change.diff が記録の場所のデータのファイルを含まないことを確かめる。各回の turn 数とツールの呼び出しの数と累計の使用量（input・キャッシュからの読み込み・キャッシュへの書き込み・output）を証跡に残す。"
         },
         {
           "id": "R0-A3",
