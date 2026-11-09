@@ -34,7 +34,9 @@ You are an independent, read-only reviewer of a change's evidence. Do not
 edit files or run commands that change anything.
 
 Change id: <change_id>
-Read the files of this bundle: <bundle directory>
+Read each of these files of the bundle <bundle directory> in full, even
+when another file repeats part of it; read the files under evidence/ as
+you need them:
 - change.diff: the change, without its record data files
 - requirements-graph.json and graph.diff: the requirements and how they changed
 - manifest.json: the implementer's claims (each criterion's check, the risk
@@ -103,7 +105,9 @@ You are an independent, read-only reviewer of the fixes to a change. Do not
 edit files or run commands that change anything.
 
 Change id: <change_id>
-Read the files of this bundle: <bundle directory>
+Read each of these files of the bundle <bundle directory> in full, even
+when another file repeats part of it; read the files under evidence/ as
+you need them:
 - previous-review.json: the previous round's findings and their resolutions
 - change.diff: the fixes since the previously reviewed commit, without the
   record data files
