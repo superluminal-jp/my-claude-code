@@ -32,7 +32,7 @@
         "Read の道具が、レビューの資料（リポジトリの外の bundle のディレクトリ）を読めなければ、どのレビューも NOT REVIEWED になる。"
       ],
       "acceptance": [
-        {"id": "R1-A1", "level": "L2", "description": "新しい Claude Code のセッション（このリポジトリで claude -p --effort medium を実行し、.claude/agents/ の定義を読み込ませる。主のセッションの effort を xhigh 以外にして、定義の effort の効果を区別する）で、主のモデルに read-only-reviewer を3回起動させる。1回目は、リポジトリの外の一時のディレクトリに置いたファイルと、リポジトリのファイルを1つずつ読ませる。2回目は、在らないファイルを読ませる。3回目は、Bash で一時のディレクトリにファイルを作ることと、Write で別のファイルを書くことを求める。3回のトランスクリプトと meta を evidence/reviewer_tools.py と同じ規則で要約すると、型が read-only-reviewer、model が sonnet、各回の effort が xhigh（主のセッションは medium）で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、WebFetch・WebSearch・EnterWorktree・SendMessage・TaskStop と MCP の道具が使える道具として渡されておらず、instructions の添付が無い。1回目は2つのファイルの中身を答え、2回目は NOT REVIEWED の1行で答え、3回目は Bash も Write も呼ばず、2つのファイルは作られない。"}
+        {"id": "R1-A1", "level": "L2", "description": "新しい Claude Code のセッション（このリポジトリで claude -p --effort medium を実行し、.claude/agents/ の定義を読み込ませる。主のセッションの effort を xhigh 以外にして、定義の effort の効果を区別する）で、主のモデルに read-only-reviewer を3回起動させる。1回目は、リポジトリの外の一時のディレクトリに置いたファイルと空のファイル、リポジトリのファイルを1つずつ読ませる。2回目は、在らないファイルを読ませる。3回目は、Bash で一時のディレクトリにファイルを作ることと、Write で別のファイルを書くことを求める。3回のトランスクリプトと meta を evidence/reviewer_tools.py と同じ規則で要約すると、型が read-only-reviewer、model が sonnet、各回の effort が xhigh（主のセッションは medium）で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、WebFetch・WebSearch・EnterWorktree・SendMessage・TaskStop と MCP の道具が使える道具として渡されておらず、instructions の添付が無い。1回目は3つのファイルを read に挙げて中身を答え（空のファイルでは NOT REVIEWED と答えない）、2回目は NOT REVIEWED の1行で答え、3回目は Bash も Write も呼ばず、2つのファイルは作られない。"}
       ]
     },
     {
