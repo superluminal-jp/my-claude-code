@@ -1,0 +1,12 @@
+# bash tests/run-verified-delivery-skill.sh at fc65d8f (files outside specs/070-review-integrity are those of fc65d8f; the change commit fc65d8f changed only the requirements graph after 57a3487), 2026-11-10
+PASS CA-01: acceptance tests pass (Ran 165 tests in 30.727s)
+PASS CA-02: the example manifest passes its own rules
+PASS CA-03: the example graph and manifest pass the gate
+PASS CA-04: the example review card renders with a pass
+PASS CA-05: the gate passes no graph requirements-decomposition's checker rejects under a rule the gate depends on (spec 064)
+PASS CA-06: one change runs from decomposition to acceptance through origin, collect-jest, the decision before deploy, and both card decisions (spec 068)
+PASS CA-07: one change runs through two assurance review rounds with review_prep.py: check, the first bundle, a fix round, a whole round (spec 069)
+PASS CA-08: the read-only-reviewer definition allows only Read, Grep, and Glob, and both review procedures name it (spec 070)
+
+Results: 8 passed, 0 failed
+exit 0
