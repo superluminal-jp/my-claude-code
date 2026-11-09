@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-070",
+    "reviewed_commit": "57a34875eb04467c2df56399d5a25b5e924068c4",
+    "reviewer": "read-only-reviewer, agentId a92276076d64e3f83, 2026-11-10, read 16 files（プロンプトが名指す bundle のファイルすべてと evidence/ の6つ、ほかにリポジトリの install.sh・tests/run-install.sh・.github/workflows/ci.yml・review_prep.py）。1回目（scope whole）。完了通知のトークンは123,640、ツールの呼び出しは24回",
+    "context_given": [
+      "references/reviewer.md の1回目のプロンプト（変更の id CHG-070、bundle のディレクトリ、記録の言語の日本語のほかは変えずに）",
+      "bundle /tmp/claude-501/bundle-070-r1（review_prep.py bundle --records specs/070-review-integrity --base 55c54f4 で作ったもの）: change.diff、graph.diff、requirements-graph.json、manifest.json、evidence/（57a3487 の6つの証跡）、excluded.txt、scope.json",
+      "scope: whole、範囲 55c54f418287227c4747def7e8d650630eb49e62..57a34875eb04467c2df56399d5a25b5e924068c4"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "evidence_mismatch",
+        "target": "R1-A1",
+        "severity": "medium",
+        "statement": "R1-A1 は「使った道具が Read・Grep・Glob だけ」「WebFetch などが使える道具として渡されておらず」と述べて passed だが、probes.txt が示すのは使った道具の集計だけである。表の道具の呼び出しは {'Read': 2, 'SubagentHandback': 1} などで、基準の字面（Read・Grep・Glob だけ）と合わず、SubagentHandback の扱いはどこにも説明が無い。また3回のタスクはどれも読むだけで Bash・Edit・Write を要さないので、それらが渡されていないことは、使われなかったことからは示されない。「渡されていない」の根拠の deferred_tools_delta の添付が無いという事実は、遅延される道具にしか効かず、通常の道具の Bash や Write には効かない。Bash の実行を求めるタスクが拒まれる観測が無いので、R0 の反例1（Claude Code が tools を守らなければレビュー役は Bash を持つ）が閉じていない。さらに Notes は、effort が xhigh だったのが定義の値かセッションの effortLevel（xhigh）かをこの probe では区別できないと認めており、R1-A1 の「effort が xhigh」が定義の効果を示すとは言えない（omitClaudeMd だけは instructions の添付が無いことで示されている）。R0-A4 の「使った道具が Read・Grep・Glob だけ」も同じ表（{'Read': 4, 'SubagentHandback': 1}）に拠る。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。直しのコミットで requirements-graph.json の R1-A1 の文を強めた。確かめのセッションを claude -p --effort medium で始め（主のセッションの effort を xhigh 以外にして、定義の effort の効果を区別する）、read-only-reviewer を3回起動し、3回目に Bash で一時のディレクトリにファイルを作ることと Write で別のファイルを書くことを求め、Bash も Write も呼ばれず2つのファイルが作られないことを確かめる。使った道具の基準は、Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback（evidence/reviewer-tools.txt の Explore を含む30回と、57a3487/probes.txt の3回のすべてが使った）だけとし、その扱いを文に書いた。R0-A4 の道具の基準も同じにした。新しい直しのコミットの上で、確かめを走らせ直す。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "uncovered_path",
+        "target": "R0",
+        "severity": "low",
+        "statement": "主のモデルが、型を名指されずに手順の文だけから read-only-reviewer を選ぶことは、requirements-decomposition の手順3（R0-A4）でだけ観測されている。この変更の主な対象である verified-delivery の手順5（保証レビュー）で、主のモデルが型を選ぶことを確かめる合格した基準が無い。R1-A1 の probe は型を直接指示しており（R0 の反例3が自ら「R1-A1 はこれを確かめない」と書く）、R0-A3 は「requirements-decomposition か verified-delivery の手順に沿って」と、どちらか一方で成り立つ書き方で、しかもデプロイ後の stage である。verified-delivery の手順5が型を名指す文と止まる規則は、tests/assert_reviewer_agent.py の部分文字列の確認（read-only-reviewer が本文に在ること）と、未実施の利用者の確認（R1b-A2、R2-A1）にしか拠らない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。直しのコミットで R0-A4 の文を、型を名指さない2つの確かめに広げた。1回目は requirements-decomposition の手順3（challenger）、2回目は verified-delivery の手順5と references/reviewer.md に沿った1回目の assurance review で、どちらでもレビュー役の型が read-only-reviewer で、reviewer の欄に型と agentId が入ることを確かめる。57a3487 の R0-A4 の文の「このリポジトリの .claude/skills と .claude/agents がプロジェクトの範囲で読み込まれる」は、実際の確かめ（手順のファイルを読ませた、57a3487/probes.txt の R0-A4 のプロンプト）と合っていなかったので、「手順の本文はこのリポジトリの .claude/skills/ のファイルを読ませる」に直した。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "uncovered_path",
+        "target": "R1d",
+        "severity": "low",
+        "statement": "R1d の文は docs/harness-eval.md が、評価ではその型が接頭辞の付いた名前になること、プラグインの定義で omitClaudeMd と tools が効くことは確かめていないことを書くよう求め、差分は docs/harness-eval.md の導入と §4 の9を書き換えている。しかし R1d-A1（組み立ての試験）も R1d-A2（run-harness-eval.sh と check と map の render）も、この文書の記述を確かめず、利用者が読む基準も R1d には無い。同じく R1a の文の「description は、手順がこの型を名指したときにだけ使うと書く」も、R1a-A1 は description が空でないことしか確かめない。これらの文は、書き換えても今の基準のどれも不合格にならない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。直しのコミットで R1d-A2 の文に、対応表の行で利用者が docs/harness-eval.md の導入と §4 の9が、評価ではその型がプラグインの接頭辞の付いた名前になること、プラグインの定義で omitClaudeMd と tools が効くことは確かめていないことを書いていると確かめることを加えた。R1a-A1 の文に、対応表の行で利用者が description の文（手順がこの型を名指したときにだけ使う）を確かめることを加えた。どちらも文の言い回しを部分文字列の試験にせず、人が読む形にした。対応表（human-review-table.md）に2つの行を足す。"
+      }
+    ]
+  }
+}
