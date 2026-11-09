@@ -45,7 +45,7 @@ Each node: `id`, `permission` (`read_only`, `workspace_write` — reversible cha
 
 ### Challenge report — `challenge_report` (object, `schema_version` 1)
 
-`problem_id`, `reviewer`, `context_given` (array of strings), and `findings`, each with `id`, `kind`, `target` (the problem card id or a requirement id), `severity` (`high`, `medium`, `low`), `statement`, `disposition` (`open`, `accepted`, `rejected`), and `resolution` (required unless `open`). The kinds are those in [challenger.md](challenger.md).
+`problem_id`, `reviewer` (the subagent type, the agentId the Agent tool returned, the date, and how many files it read), `context_given` (array of strings), and `findings`, each with `id`, `kind`, `target` (the problem card id or a requirement id), `severity` (`high`, `medium`, `low`), `statement`, `disposition` (`open`, `accepted`, `rejected`), and `resolution` (required unless `open`). The kinds are those in [challenger.md](challenger.md). `findings` is empty only when the challenger read both files and returned no finding; a challenger that did not review writes no report (SKILL.md, step 3). The checker reads only the shape: it cannot tell an empty `findings` from a review that did not run.
 
 | Rule | Passes when |
 |---|---|

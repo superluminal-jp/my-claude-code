@@ -1,6 +1,6 @@
 # Challenger prompt
 
-Give the text below, unchanged except for the two paths and the language the records are written in, to a new subagent whose tools can only read and search (it must not be able to edit files or run commands that change anything). Give it a copy of the problem card without `proposed_solutions`, and the requirements graph, only. Do not give it the proposed solutions, the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
+Give the text below, unchanged except for the two paths and the language the records are written in, to a new `read-only-reviewer` subagent, whose definition allows only Read, Grep, and Glob, so it cannot edit files, run commands, or reach the network, and leaves out CLAUDE.md (with the plugin's prefix when these skills came as a plugin; when no subagent of that name is available, stop instead of starting another type). Give it a copy of the problem card without `proposed_solutions`, and the requirements graph, only. Do not give it the proposed solutions, the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
 
 ```text
 You are a skeptical, read-only reviewer of a problem definition and its
@@ -40,11 +40,13 @@ Look for material errors only:
 7. or_overlap: for an OR, can several alternatives hold at once, or none?
 8. missing_evidence: which claim needs evidence that is not recorded?
 
-Answer with JSON only, in this shape, one finding per material problem,
-every disposition "open", and every statement written in <language of the
-records, for example Japanese>:
+Answer with JSON only, in this shape: in "read", the path of every file you
+read; in "findings", one finding per material problem, every disposition
+"open", and every statement written in <language of the records, for example
+Japanese>:
 
-{"findings": [
+{"read": ["<path>", "<path>"],
+ "findings": [
   {"id": "CH-01", "kind": "<one of the eight kinds above, or other>",
    "target": "<the problem card id or a requirement id>",
    "severity": "high | medium | low",
@@ -52,8 +54,9 @@ records, for example Japanese>:
    "disposition": "open"}
 ]}
 
-Return an empty findings array if you find nothing material. Do not
-suggest style changes.
+Return an empty findings array if you find nothing material. If one of the
+two files cannot be read, answer only "NOT REVIEWED: <path>: <reason>".
+Do not suggest style changes.
 ```
 
-Copy the findings, as they are, into `challenge-report.json` together with `problem_id`, `reviewer` (who ran, and when), and `context_given` (exactly what the subagent was given), as [checker.md](checker.md) describes.
+The challenger did not review when it ended with an error, was stopped or timed out, answered `NOT REVIEWED`, returned anything but that JSON, or left either file out of `read`. Start a new one once more with the same input; if that also fails, write no report and tell the person the challenge did not run. Otherwise copy the findings, as they are, into `challenge-report.json` together with `problem_id`, `reviewer` (the subagent type, the agentId the Agent tool returned, the date, and how many files it read), and `context_given` (exactly what the subagent was given), as [checker.md](checker.md) describes.

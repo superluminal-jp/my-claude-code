@@ -1,0 +1,6 @@
+# mutation check for R1c-A1 (2026-11-10): install.sh with 'agents' removed from its managed paths, then bash tests/run-install.sh; install.sh restored afterwards (git diff --stat install.sh printed nothing)
+# exit of the mutant run: 1
+FAIL: agents directory matches the repository (read-only-reviewer, spec 070)
+# the same run with install.sh as committed: exit 0
+PASS: agents directory matches the repository (read-only-reviewer, spec 070)
+All installer contract checks passed.

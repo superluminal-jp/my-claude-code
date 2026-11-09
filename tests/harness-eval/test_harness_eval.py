@@ -1290,12 +1290,29 @@ class ReviewRound7(unittest.TestCase):
             t = Tree(tmp, extra={".claude/commands/ship.md": "Ship it.\n"})
             self.assertTrue(has(t.violations(), "component command:ship.md (.claude/commands/ship.md) is missing"))
 
-    def test_a_harness_with_a_mapped_agent_stops_the_build(self):
-        extra = {".claude/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"}
+    # spec 070: the review procedures start an agent, so the eval builds it.
+
+    def test_a_harness_with_a_mapped_agent_builds_it_into_the_plugin(self):
+        text = "---\nname: reviewer\ntools: Read, Grep, Glob\n---\nReview.\n"
+        extra = {".claude/agents/reviewer.md": text}
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("agent:reviewer.md", ".claude/agents/reviewer.md"))
             self.assertEqual(he.check(repo, repo), [])
-            with self.assertRaisesRegex(he.BuildError, "agents and commands"):
+            try:
+                b = Build().build(repo, tmp)
+            except he.BuildError as e:
+                self.fail(f"the build stopped: {e}")
+            copied = b.plugin_dir / "agents/reviewer.md"
+            self.assertEqual(copied.read_text() if copied.exists() else None, text)
+
+    def test_an_agent_the_map_leaves_out_of_the_eval_stops_the_build(self):
+        extra = {".claude/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"}
+        cmap = self.mapped("agent:reviewer.md", ".claude/agents/reviewer.md")
+        cmap["components"][-1].update({"in_eval": False, "reason": "not measured"})
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Build().make_repo(tmp, extra=extra, cmap=cmap)
+            self.assertEqual(he.check(repo, repo), [])
+            with self.assertRaisesRegex(he.BuildError, "leaves agents out of the eval"):
                 Build().build(repo, tmp)
 
     def test_a_harness_with_a_mapped_command_stops_the_build(self):
@@ -1303,7 +1320,7 @@ class ReviewRound7(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("command:ship.md", ".claude/commands/ship.md"))
             self.assertEqual(he.check(repo, repo), [])
-            with self.assertRaisesRegex(he.BuildError, "agents and commands"):
+            with self.assertRaisesRegex(he.BuildError, "has commands, which the eval does not build"):
                 Build().build(repo, tmp)
 
     # AR-03: only reach graders depend on their phrase being present.
