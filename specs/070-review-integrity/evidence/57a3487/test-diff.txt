@@ -1,0 +1,7 @@
+# git diff --name-only 55c54f4 57a3487 -- tests (tests the change touched) at 57a3487 (working tree clean outside specs/070-review-integrity), 2026-11-10
+ tests/assert_reviewer_agent.py          | 162 ++++++++++++++++++++++++++++++++
+ tests/harness-eval/harness_eval.py      |  18 +++-
+ tests/harness-eval/test_harness_eval.py |  25 ++++-
+ tests/run-install.sh                    |   5 +-
+ tests/run-verified-delivery-skill.sh    |   2 +
+ 5 files changed, 203 insertions(+), 9 deletions(-)

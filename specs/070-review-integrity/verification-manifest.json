@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-070",
+    "problem_id": "P-070",
+    "reviewed_commit": "57a34875eb04467c2df56399d5a25b5e924068c4",
+    "implementer": "claude",
+    "risk": {
+      "class": "medium",
+      "rationale": "requirements-decomposition と verified-delivery の手順と参照、新しいサブエージェントの定義 .claude/agents/read-only-reviewer.md、install の試験、README、ハーネスの評価の組み立て（agents をプラグインに写す）と対応表にまたがる。サブエージェントの道具は狭める向きにだけ変え、認証・秘密・基盤の権限・公開には触れず、git revert と install.sh の再実行で戻せる。install.sh は前と同じく ~/.claude/agents/ を置き換える。"
+    },
+    "approvals": [
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "feat/review-integrity のブランチ、コミット、push、PR（マージと install.sh の実行は別に確かめる）。2026-11-10 の会話の質問「Git の操作はどこまで行ってよいですか」への回答「ブランチ・コミット・push・PR」"
+      }
+    ],
+    "checks": [
+      {
+        "check_id": "R0-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "ci_job",
+          "ref": "specs/070-review-integrity/evidence/57a3487/ci-test-job.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R0-A2",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      },
+      {
+        "check_id": "R0-A4",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/57a3487/probes.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R0-A3",
+        "status": "not_run",
+        "reason": "post_deploy の受け入れ条件。マージと install.sh の後に、このリポジトリ以外のプロジェクトで確かめる"
+      },
+      {
+        "check_id": "R1-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/57a3487/probes.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R1a-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/57a3487/reviewer-agent.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R1b-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/57a3487/reviewer-agent.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R1b-A2",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      },
+      {
+        "check_id": "R1c-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/57a3487/install.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R1c-A2",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）。tests/run-readme-skill-index.sh は合格した（readme-skill-index.txt）"
+      },
+      {
+        "check_id": "R1d-A1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/57a3487/harness-eval-agents.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R1d-A2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/57a3487/harness-eval.txt",
+          "commit": "57a34875eb04467c2df56399d5a25b5e924068c4"
+        }
+      },
+      {
+        "check_id": "R1e-A1",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      },
+      {
+        "check_id": "R2-A1",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      },
+      {
+        "check_id": "R3-A1",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      },
+      {
+        "check_id": "R3-A2",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      },
+      {
+        "check_id": "R3-A3",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      },
+      {
+        "check_id": "R4-A1",
+        "status": "not_run",
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+      }
+    ],
+    "test_changes": [
+      {
+        "path": "tests/harness-eval/test_harness_eval.py::ReviewRound7::test_a_harness_with_a_mapped_agent_stops_the_build",
+        "change": "deleted"
+      },
+      {
+        "path": "tests/run-install.sh: assert_absent \"$TARGET/agents\" \"absent managed agents are removed\"",
+        "change": "deleted"
+      }
+    ],
+    "infra_changes": []
+  }
+}
