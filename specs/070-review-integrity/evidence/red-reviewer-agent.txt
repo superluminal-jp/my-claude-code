@@ -1,0 +1,12 @@
+# red: python3 -I -B tests/assert_reviewer_agent.py . with a stub definition (tools with Bash, model inherit) and the procedures of main 55c54f4, 2026-11-10
+FAIL repository: model must be sonnet, not 'inherit'
+FAIL repository: tools must be exactly ['Glob', 'Grep', 'Read'], not ['Bash', 'Glob', 'Grep', 'Read']
+FAIL repository: .claude/skills/requirements-decomposition/SKILL.md does not name the reviewer read-only-reviewer
+FAIL repository: .claude/skills/requirements-decomposition/SKILL.md still describes the reviewer as 'a new subagent that can only read and search'
+FAIL repository: .claude/skills/requirements-decomposition/references/challenger.md does not name the reviewer read-only-reviewer
+FAIL repository: .claude/skills/requirements-decomposition/references/challenger.md still describes the reviewer as 'a new subagent whose tools can only read and search'
+FAIL repository: .claude/skills/verified-delivery/SKILL.md does not name the reviewer read-only-reviewer
+FAIL repository: .claude/skills/verified-delivery/SKILL.md still describes the reviewer as 'a new subagent that can only read and search'
+FAIL repository: .claude/skills/verified-delivery/references/reviewer.md does not name the reviewer read-only-reviewer
+FAIL repository: .claude/skills/verified-delivery/references/reviewer.md still describes the reviewer as 'a new subagent whose tools can only read and search'
+exit 1

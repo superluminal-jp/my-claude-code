@@ -1,0 +1,111 @@
+{
+  "schema_version": 2,
+  "problem_id": "P-070",
+  "requirements": [
+    {
+      "id": "R0",
+      "statement": "requirements-decomposition の challenger と verified-delivery の assurance review の手順は、レビュー役を、読む・探すことしかできず、利用者とプロジェクトの指示や記憶を読み込まずに始まる一通りの型として起動させ、起動した型を後から確かめられる形で記録させる。失敗した回は記録に残らない。却下の根拠は、次の回のレビュー役か人が読んで確かめられる。assurance review は回数の区切りと往復で人に続けるかを尋ねる。",
+      "decomposition": "AND",
+      "children": ["R1", "R2", "R3", "R4"],
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、Claude が示した EGM から取り入れる4項目の質問に4つすべて（読み取り専用レビュアー、失敗＝指摘ゼロにしない、却下の根拠を検証可能に、レビュー回数の上限）を選び、続く質問で問題文 G1〜G4 で進めることと spec 069 の方策 C を改めて採ることを選び、challenger の CH-01 の質問で「理想を狭める」を選んだ"},
+      "counterexamples": [
+        "子がすべて成り立っても、~/.claude に入っているのが変更前のスキルなら、別のプロジェクトでは古い手順が読まれ、Explore が選ばれ続ける（install.sh を実行するまで）。",
+        "子がすべて成り立っても、2つのスキルの手順が互いに違う規則（やり直しの回数、却下の根拠の扱い）を書けば、同じレビュー役の失敗が手順ごとに違う扱いになる。",
+        "子がすべて成り立っても、変更後の手順の文が、主のモデルに read-only-reviewer を選ばせるほど明らかでなければ、主のモデルは Explore を選び続ける（R1-A1 は型を直接指示するので、これを確かめない）。"
+      ],
+      "acceptance": [
+        {"id": "R0-A1", "level": "L3", "description": "reviewed_commit の上で CI の test ジョブ（install、2つのスキルの試験、ハーネスの評価の試験と check を含む）がすべて合格する。"},
+        {"id": "R0-A2", "level": "L3", "description": "利用者が、対応表のすべての行を、変更後の requirements-decomposition と verified-delivery の手順と参照の全文、およびレビュー役の定義と突き合わせ、G1〜G4 がそれぞれ閉じていて、2つのスキルが同じ規則（レビュー役の型、失敗の扱い、却下の根拠）を書いていると確かめる。"},
+        {"id": "R0-A4", "level": "L3", "description": "このリポジトリで、新しい Claude Code のセッションを claude -p で2回始める（このリポジトリの .claude/agents/ が読み込まれ、手順の本文はこのリポジトリの .claude/skills/ のファイルを読ませる）。型を名指さずに、1回目は「requirements-decomposition の手順3に沿って、この problem card と graph に challenger を走らせ、challenge report に写す内容まで」、2回目は「verified-delivery の手順5と references/reviewer.md に沿って、この bundle に1回目の assurance review を行い、review の記録に写す内容まで」と頼む。どちらのセッションでも、サブエージェントのトランスクリプトと meta を evidence/reviewer_tools.py で要約すると、レビュー役の型が read-only-reviewer で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、起動の時点の instructions の添付が無く（起動の後に、読んだファイルのディレクトリの CLAUDE.md が nested_memory として、MCP サーバーの説明文が mcp_instructions_delta として入ることは、要約の2つ目の表に出す）、主のモデルが書いた reviewer の欄に型と agentId が入っている。"},
+        {"id": "R0-A3", "level": "L3", "stage": "post_deploy", "description": "マージの後に install.sh を実行し、このリポジトリ以外のプロジェクトで始めた新しいセッションで、requirements-decomposition か verified-delivery の手順に沿って起動したレビュー役のトランスクリプトを evidence/reviewer_tools.py で要約すると、型が read-only-reviewer で、Bash などの道具を使っておらず、instructions の添付が無い。ユーザーの範囲の ~/.claude/agents/ と ~/.claude/skills/ から読まれることは、install.sh で利用者の ~/.claude を置き換えた後にしか観測できない。"}
+      ]
+    },
+    {
+      "id": "R1",
+      "statement": "レビュー役は、.claude/agents/ に置いた read-only-reviewer の定義（道具は Read・Grep・Glob だけ、omitClaudeMd、sonnet、effort xhigh）として起動される。2つの手順はその名前を指し、その型が無いときは別の型で代えずに止まり、記録の reviewer の欄に起動した型と agentId を書かせる。Bash の無いレビュー役が判断に要るものを読める。install.sh がそれを ~/.claude/agents/ に入れ、README とハーネスの評価がそれを扱う。",
+      "decomposition": "AND",
+      "children": ["R1a", "R1b", "R1c", "R1d", "R1e"],
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「読み取り専用レビュアー（.claude/agents/ に tools: [Read, Grep, Glob]・omitClaudeMd: true・model: sonnet の定義を1つ置き、challenger と assurance reviewer はその名前を指すだけにする）」を選んだ"},
+      "counterexamples": [
+        "定義が正しく、手順がその名前を指しても、Claude Code がプロジェクトの agents の定義の omitClaudeMd や tools を守らなければ、レビュー役は Bash や CLAUDE.md を持つ。",
+        "定義の name と手順が指す名前が1字でも違えば、主のモデルはその型を見つけられず、止まるか、手順に背いて Explore を選ぶ。",
+        "Read の道具が、レビューの資料（リポジトリの外の bundle のディレクトリ）を読めなければ、どのレビューも NOT REVIEWED になる。"
+      ],
+      "acceptance": [
+        {"id": "R1-A1", "level": "L2", "description": "新しい Claude Code のセッション（このリポジトリで claude -p --effort medium を実行し、.claude/agents/ の定義を読み込ませる。主のセッションの effort を xhigh 以外にして、定義の effort の効果を区別する）で、主のモデルに read-only-reviewer を3回起動させる。1回目は、リポジトリの外の一時のディレクトリに置いたファイルと空のファイル、リポジトリのファイルを1つずつ読ませる。2回目は、在らないファイルを読ませる。3回目は、Bash で一時のディレクトリにファイルを作ることと、Write で別のファイルを書くことを求める。3回のトランスクリプトと meta を evidence/reviewer_tools.py で要約すると（meta は Agent の呼び出しで上書きしたときだけ model と effort を記録するので、model はトランスクリプトのモデルの添付と応答の model、effort はメッセージごとの値で見る。主のセッションの effort も同じ規則で見る）、型が read-only-reviewer、model が sonnet、各回の effort が xhigh（主のセッションは medium）で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、WebFetch・WebSearch・EnterWorktree・SendMessage・TaskStop と MCP の道具が使える道具として渡されておらず、起動の時点の instructions の添付が無い。1回目は3つのファイルを read に挙げて中身を答え（空のファイルでは NOT REVIEWED と答えない）、2回目は NOT REVIEWED の1行で答え、3回目は Bash も Write も呼ばず、2つのファイルは作られない。"}
+      ]
+    },
+    {
+      "id": "R1a",
+      "statement": ".claude/agents/read-only-reviewer.md が、name を read-only-reviewer、tools を Read・Grep・Glob、model を sonnet、effort を xhigh（spec 068・069 のレビュー役の model と effort を保つ）、omitClaudeMd を true とする定義を持つ。本文は、課題が名指すファイルを読み、何も変えず、課題が求める形でだけ答え、名指されたファイルを読めないときは指摘の代わりに「NOT REVIEWED: <パス>: <理由>」の1行で答えるよう求める。description は、手順がこの型を名指したときにだけ使うと書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1a-A1", "level": "L1", "description": "試験（tests/assert_reviewer_agent.py、tests/run-verified-delivery-skill.sh から呼ぶ）が、.claude/agents/read-only-reviewer.md のフロントマターを読み、キーが name・description・tools・model・effort・omitClaudeMd だけで、tools がちょうど Read・Grep・Glob、model が sonnet、effort が xhigh、omitClaudeMd が true であること、本文に NOT REVIEWED の形があることを確かめ、どれか1つを変えた写しでは不合格になる。対応表の行で、利用者が、description が、手順がこの型を名指したときにだけ使うと書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R1b",
+      "statement": "requirements-decomposition の手順3と references/challenger.md、verified-delivery の手順5と references/reviewer.md が、レビュー役を read-only-reviewer の型（プラグインとして入ったときはプラグインの接頭辞の付いた同じ名前）で起動するよう求め、その型が無いときは別の型で代えずに止まり、人に伝えるよう求める。記録の reviewer の欄には、起動した型、Agent の道具が返した agentId、日付を書かせる。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1b-A1", "level": "L1", "description": "試験（tests/assert_reviewer_agent.py）が、4つのファイルがどれも定義の name と同じ read-only-reviewer を名指し、「a new subagent that can only read and search」と「a new subagent whose tools can only read and search」の文が残っていないことを確かめる。"},
+        {"id": "R1b-A2", "level": "L1", "description": "対応表の行で、利用者が、変更後の4つのファイルが、read-only-reviewer で起動すること、その型が無ければ代えずに止まること、reviewer の欄に型と agentId と日付を書くことを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R1c",
+      "statement": "install.sh が .claude/agents/ を ~/.claude/agents/ に置き換えで同期し、read-only-reviewer.md を入れ、リポジトリから消えた agents のファイルは消す。README.md と README.ja.md は、agents/ に中身があること、そこに何があるか、スキルが agents の定義を名前で名指してよいこと、その定義は CLAUDE.md を読み込まずに始めさせるが、読んだファイルのディレクトリの CLAUDE.md と MCP サーバーの説明文は起動の後に入ることを、同じ見出しの構造で書く。verified-delivery の README.md と README.ja.md の 2.4 も、この2つが入ることを書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1c-A1", "level": "L1", "description": "tests/run-install.sh が、一時の HOME への install の後に ~/.claude/agents/ がリポジトリの .claude/agents/ と同じ中身で、前からあった別の agents のファイルが消えていることを確かめて合格する。"},
+        {"id": "R1c-A2", "level": "L1", "description": "tests/run-readme-skill-index.sh が合格し、対応表の行で、利用者が、README.md と README.ja.md の agents/ の記述と、verified-delivery の README.md と README.ja.md の 2.4 が上のことを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R1d",
+      "statement": "ハーネスの評価（tests/harness-eval/harness_eval.py と docs/harness/capability-map.json）が read-only-reviewer を扱う。対応表は agent:read-only-reviewer.md を部品として載せ、D-decompose と H-verify の担い手にする。組み立ては .claude/agents/ のファイルをプラグインの agents/ に写して止まらない（commands は今までどおり止める）。docs/harness-eval.md は、評価ではその型がプラグインの接頭辞の付いた名前になること、プラグインの定義で omitClaudeMd と tools が効くことは公式文書が無視する欄に挙げていないだけで確かめていないことを、実際の環境との違いとして書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1d-A1", "level": "L1", "description": "tests/harness-eval/test_harness_eval.py の試験で、対応表に載った agents のファイルを持つハーネスの組み立てが止まらず、そのファイルがプラグインの agents/ に同じ内容で写る。commands のファイルを持つハーネスの組み立ては今までどおり止まる。"},
+        {"id": "R1d-A2", "level": "L1", "description": "tests/run-harness-eval.sh が合格し、その中の harness_eval.py check がこのリポジトリで違反を出さず、docs/harness/capability-map.md が render の出力と一致する。対応表の行で、利用者が、docs/harness-eval.md の導入と §4 の9が、評価ではその型がプラグインの接頭辞の付いた名前になること、プラグインの定義で omitClaudeMd と tools が効くことは確かめていないことを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R1e",
+      "statement": "references/reviewer.md の資料の説明と2つのプロンプトが、レビュー役はコマンドもスクリプトも実行できないこと、作業ツリーの記録の場所の外のファイルは reviewed_commit のものと同じであること（review_prep.py check が確かめる）を書く。判断に要る別の版のファイルやコマンドの結果が、資料にも作業ツリーにも無いときは、NOT REVIEWED ではなく、何が足りないかを書いた指摘（evidence_mismatch か other）として報告させる。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1e-A1", "level": "L1", "description": "対応表の行で、利用者が、変更後の references/reviewer.md が、レビュー役が実行できないこと、作業ツリーのファイルが reviewed_commit と同じであること、足りないものを指摘として報告させることを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R2",
+      "statement": "2つの手順が、レビュー役の答えに、読んだファイルの一覧（read）を含めさせる。エラーで終わった、止められた、時間切れになった、NOT REVIEWED と答えた、決まった JSON の形でない答えを返した、または渡したファイル（challenger では2つのファイル、assurance review ではプロンプトが名指す資料のファイルで、evidence/ の中は要るものだけを読む）を read に挙げなかったレビュー役は、レビューしていないとする。同じ入力で新しいレビュー役を1回だけ起動し直し、それでも駄目なら challenge report や assurance review の記録を書かずに止まり、レビューが動かなかったことを人に伝える。findings を空にするのは、レビュー役がそれらのファイルをすべて read に挙げ、空の findings を返したときだけである。reviewer の欄には read の数も書く。",
+      "decomposition": "LEAF",
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「失敗＝指摘ゼロにしない（失敗・時間切れ・JSON でない返答のときは1回だけやり直し、それでも駄目なら止めて人に伝える）」を選んだ"},
+      "acceptance": [
+        {"id": "R2-A1", "level": "L1", "description": "対応表の行で、利用者が、変更後の requirements-decomposition の手順3と references/challenger.md、verified-delivery の手順5と references/reviewer.md が、答えの read の一覧、上の失敗の種類、1回だけのやり直し、記録を書かずに止まること、空の findings を書いてよい場合を、同じ規則として書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R3",
+      "statement": "2つの手順が、指摘を却下する理由を2つの形に限る。1つは、次の回のレビュー役が読めるファイルと行を引くものである（assurance review では資料かリポジトリのコミット済みのファイル、challenger では problem card か graph）。もう1つは、人に尋ねて得た決定で、誰がいつ答えたかと答えの言葉を resolution に書く（challenger では problem card の evidence にも書く）。人がまだ答えていない決定を、人の決定として書かない。レビュー役が読めない事実（会話、慣習、読めない系）に頼るときは、その事実を読めるファイルに書いて引くか、人に尋ねる。却下したい気持ちは指摘が誤っている証拠ではないと書く。2回目以降のレビュー役のプロンプトは、読めるものも人の決定も引かない却下を、成り立たない却下として報告させる。",
+      "decomposition": "LEAF",
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「却下の根拠を検証可能に（根拠はレビュアーが読めるファイルに限り、読めない事実に頼るなら人に判断を回す）」を選んだ"},
+      "acceptance": [
+        {"id": "R3-A1", "level": "L1", "description": "対応表の行で、利用者が、変更後の2つの手順が、却下の理由の2つの形（読めるファイルと行、人に尋ねて得た決定）と、それぞれで次のレビュー役が読める場所を書いていると確かめる。"},
+        {"id": "R3-A2", "level": "L1", "description": "対応表の行で、利用者が、変更後の2つの手順が、読めない事実に頼るときに読めるファイルに書いて引くか人に尋ねること、人がまだ答えていない決定を書かないこと、却下したい気持ちが証拠でないことを書いていると確かめる。"},
+        {"id": "R3-A3", "level": "L1", "description": "対応表の行で、利用者が、変更後の references/reviewer.md の2回目以降のプロンプトが、読めるものも人の決定も引かない却下を報告させることを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R4",
+      "statement": "verified-delivery の手順が、同じ変更の assurance review の6回目を始める前（その後は5回ごと）と、往復の指摘が出たときに、止まって人に、もう1回レビューするか、残る指摘を人が決めるか、手順2に戻るかを尋ねるよう求める。回は書いた assurance review の記録で数え、レビューしなかったレビュー役のやり直しは数えない。往復の指摘は、直すと、この変更の前の指摘のための直しが変えたものを戻すことになる指摘で、主のモデルが判断し、その前の指摘の id を resolution に書く。迷うときは往復として尋ねる。",
+      "decomposition": "LEAF",
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「レビュー回数の上限（例: 5回、または修正が同じ箇所に新しい指摘を生む往復が起きたら人に尋ねる）」を選び、続く質問で spec 069 の方策 C を「改めて採る」を選んだ"},
+      "acceptance": [
+        {"id": "R4-A1", "level": "L1", "description": "対応表の行で、利用者が、変更後の verified-delivery の手順が、6回目の前とその後5回ごとに、また往復の指摘のときに、3つの選択肢で人に尋ねること、回の数え方、往復の判断とその記録を書いていると確かめる。"}
+      ]
+    }
+  ]
+}

@@ -23,16 +23,20 @@ python3 <skill-dir>/scripts/review_prep.py bundle --records <record directory> -
 
 `--previous` makes the round `fixes` only when the requirements graph changed in its text fields alone (requirements' `statement`, `assumptions`, and `counterexamples`, criteria's `description`, and the conditions of a `selection`), the problem card did not change, and the committed manifest of the previous round has the same risk class. Anything else — a requirement or criterion added or removed, a changed decomposition, child, level, stage, or origin, a missing previous graph, card, or manifest — makes it `whole`. The record directory is the one directory that holds the change's records, `verification-manifest.json` among them. Its records are data files (`.json`, `.md`, `.txt`, `.xml`, `.csv`, `.yaml`, `.yml`, `.html`, `.log`); any other file kept there, such as a script that makes evidence, is part of the change and is reviewed with it. `review_prep.py` runs git with read-only subcommands only, opens no network connection (so it never opens a URL in the evidence), and writes only under `--out`, which must be outside the repository and new or empty. It needs Python 3.9 or later and git.
 
+The reviewer is a `read-only-reviewer` subagent ([SKILL.md](../SKILL.md), step 5): its tools are Read, Grep, and Glob, so it cannot run git, these scripts, or the change's tests, and it relies on the bundle and the repository's files. Keep the working tree clean (`git status --short` prints nothing) while it reads: `check` has confirmed that the commits after `reviewed_commit` change only the record directory, so the repository's files outside it are then those of `reviewed_commit`. A version or a command output that neither shows is something the reviewer reports as missing, not something it fetches.
+
 ## First round, and any `whole` round
 
-Give the text below, with the change id, the bundle directory, and the language of the records filled in, to a new subagent whose tools can only read and search. Give it the bundle only — not the conversation, the implementer's reasoning, or a summary written by the implementer.
+Give the text below, with the change id, the bundle directory, and the language of the records filled in, to a new `read-only-reviewer` subagent. Give it the bundle only — not the conversation, the implementer's reasoning, or a summary written by the implementer.
 
 ```text
 You are an independent, read-only reviewer of a change's evidence. Do not
 edit files or run commands that change anything.
 
 Change id: <change_id>
-Read the files of this bundle: <bundle directory>
+Read each of these files of the bundle <bundle directory> in full, even
+when another file repeats part of it; read the files under evidence/ as
+you need them:
 - change.diff: the change, without its record data files
 - requirements-graph.json and graph.diff: the requirements and how they changed
 - manifest.json: the implementer's claims (each criterion's check, the risk
@@ -42,7 +46,11 @@ Read the files of this bundle: <bundle directory>
 - excluded.txt: the names of the record files left out of change.diff
 - scope.json: the commits the diff spans
 Read anything else only when the bundle is not enough to judge a finding,
-and say in that finding's statement what you read.
+and say in that finding's statement what you read. You cannot run commands.
+The repository's files outside the record directory are as of
+reviewed_commit. When judging a finding needs another version of a file or
+the output of a command that neither the bundle nor those files show, report
+it as a finding (evidence_mismatch, or other) that names what is missing.
 
 The records that name reviewed_commit (manifest, evidence, reviews, review
 card) are committed after it, in commits that change only the record
@@ -67,11 +75,13 @@ problems only:
 5. risk_mismatch: a permission, exposure, or deletion in the diff that the
    risk class does not reflect.
 
-Answer with JSON only, in this shape, one finding per material problem,
-every disposition "open", and every statement written in <language of the
-records, for example Japanese>:
+Answer with JSON only, in this shape: in "read", the path of every file you
+read; in "findings", one finding per material problem, every disposition
+"open", and every statement written in <language of the records, for
+example Japanese>:
 
-{"findings": [
+{"read": ["<path>", "<path>"],
+ "findings": [
   {"id": "AR-01", "kind": "<one of the five kinds above, or other>",
    "target": "<a requirement id, an acceptance criterion id, or the change id>",
    "severity": "high | medium | low",
@@ -79,22 +89,25 @@ records, for example Japanese>:
    "disposition": "open"}
 ]}
 
-Return an empty findings array if you find nothing material. Do not
-suggest style changes.
+Return an empty findings array if you find nothing material. If a file
+named above cannot be read, answer only "NOT REVIEWED: <path>: <reason>".
+Do not suggest style changes.
 ```
 
-Copy the findings, as they are, into the review record together with `change_id`, `reviewed_commit` (the commit the diff ends at), `reviewer` (who ran, and when), and `context_given` (exactly what the subagent was given, including the bundle's range and scope), as [manifest.md](manifest.md) describes. Then answer each finding there; the gate counts a finding as answered only when it is `accepted` or `rejected` with a `resolution`.
+The reviewer did not review when it ended with an error, was stopped or timed out, answered `NOT REVIEWED`, returned anything but that JSON, or left out of `read` a file the prompt names (the files under `evidence/` it reads as needed). Start a new one once more with the same bundle; if that also fails, write no review record and tell the person the review did not run. Otherwise copy the findings, as they are, into the review record together with `change_id`, `reviewed_commit` (the commit the diff ends at), `reviewer` (the subagent type, the agentId the Agent tool returned, the date, and how many files it read), and `context_given` (exactly what the subagent was given, including the bundle's range and scope), as [manifest.md](manifest.md) describes. Then answer each finding there; the gate counts a finding as answered only when it is `accepted` or `rejected` with a `resolution`. A rejection's resolution cites the file and line that shows the finding does not hold, in a file the next reviewer can read, or a decision the person gave when asked, with who, when, and their words ([SKILL.md](../SKILL.md), step 5).
 
 ## Later rounds whose scope is `fixes`
 
-When a fix made a new commit and the bundle's `scope.json` says `fixes`, give a new subagent the text below and the bundle (made with `--previous` and `--previous-review`). When it says `whole`, use the first-round prompt with that bundle instead.
+When a fix made a new commit and the bundle's `scope.json` says `fixes`, give a new `read-only-reviewer` subagent the text below and the bundle (made with `--previous` and `--previous-review`). When it says `whole`, use the first-round prompt with that bundle instead.
 
 ```text
 You are an independent, read-only reviewer of the fixes to a change. Do not
 edit files or run commands that change anything.
 
 Change id: <change_id>
-Read the files of this bundle: <bundle directory>
+Read each of these files of the bundle <bundle directory> in full, even
+when another file repeats part of it; read the files under evidence/ as
+you need them:
 - previous-review.json: the previous round's findings and their resolutions
 - change.diff: the fixes since the previously reviewed commit, without the
   record data files
@@ -103,7 +116,11 @@ Read the files of this bundle: <bundle directory>
   facts), evidence/, excluded.txt, scope.json
 Read anything else of the repository at the new commit only when the bundle
 is not enough to judge a finding, and say in that finding's statement what
-you read.
+you read. You cannot run commands. The repository's files outside the record
+directory are as of the new reviewed commit. When judging a finding needs
+another version of a file or the output of a command that neither the bundle
+nor those files show, report it as a finding (evidence_mismatch, or other)
+that names what is missing.
 
 The records that name the reviewed commit are committed after it; report it
 only when excluded.txt names a file that is not a record.
@@ -115,8 +132,12 @@ facts. Check four things only:
    problem it states. Report a finding that is not fixed as kind "other",
    naming the previous finding's id.
 2. For each finding marked rejected, whether its resolution really shows
-   that the problem does not hold. Report a rejection that does not hold as
-   kind "other", naming the previous finding's id.
+   that the problem does not hold. A resolution can show it in two ways
+   only: by citing a file and line you can read that shows it, or by giving
+   a decision of a named person with when they answered and their words.
+   Report a rejection that does not hold, one whose cited file does not
+   show what it claims, and one that cites neither, as kind "other",
+   naming the previous finding's id.
 3. Whether a text change in graph.diff weakens what an acceptance criterion
    or requirement verifies. Report it as kind "other", naming the criterion
    or requirement.
@@ -124,11 +145,13 @@ facts. Check four things only:
    parent_by_children, evidence_mismatch, uncovered_path, weakened_test, or
    risk_mismatch.
 
-Answer with JSON only, in the same shape as the first round, one finding
-per material problem, ids continuing after the previous round's, every
-disposition "open", and every statement written in <language of the
-records, for example Japanese>. Return an empty findings array if you find
-nothing material. Do not suggest style changes.
+Answer with JSON only, in the same shape as the first round: in "read", the
+path of every file you read; in "findings", one finding per material
+problem, ids continuing after the previous round's, every disposition
+"open", and every statement written in <language of the records, for
+example Japanese>. Return an empty findings array if you find nothing
+material. If a file named above cannot be read, answer only
+"NOT REVIEWED: <path>: <reason>". Do not suggest style changes.
 ```
 
 The gate reads the latest round's record and does not tell a `fixes` round from a `whole` one; the range and scope written in `context_given` are what show it.

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-070",
+    "reviewed_commit": "570a91c0decece73d96b98fbbb21a52420408d00",
+    "reviewer": "read-only-reviewer, agentId a81d0b4336d47bddd, 2026-11-10, read 19 files（プロンプトが名指す bundle のファイルすべてと evidence/ の5つ、ほかにリポジトリの problem.md・.claude/agents/read-only-reviewer.md・reviewer_tools.py・f05ce79/probes.txt、Grep だけで reviewer-tools.txt・references/reviewer.md・ci.yml）。3回目（scope fixes）。完了通知のトークンは93,206、ツールの呼び出しは26回",
+    "context_given": [
+      "references/reviewer.md の2回目以降のプロンプト（570a91c の版。変更の id CHG-070、bundle のディレクトリ、記録の言語の日本語のほかは変えずに）",
+      "bundle /tmp/claude-501/bundle-070-r3（review_prep.py bundle --records specs/070-review-integrity --base 55c54f4 --previous f05ce79… --previous-review assurance-review-2.f05ce79.json で作ったもの）: previous-review.json、change.diff、graph.diff、requirements-graph.json、manifest.json、evidence/（570a91c の5つの証跡）、excluded.txt、scope.json",
+      "scope: fixes、範囲 f05ce79c20a92e535dea790ca5b579acf0a7785b..570a91c0decece73d96b98fbbb21a52420408d00"
+    ],
+    "findings": [
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "R1-A1",
+        "severity": "low",
+        "statement": "AR-05 は、メッセージごとの effort や model を出した手順の記録が無いことを指摘した。直しは、サブエージェント側については evidence/reviewer_tools.py（読んだ）に2つ目の表を足して解決している。しかし R1-A1 の「主のセッションは medium」の根拠である 570a91c/probes.txt の「Effort per message of each main session」の節（main 452142fb: {'medium': 6} など）は、reviewer_tools.py が出すものではない。reviewer_tools.py が読むのは <session>/subagents/agent-*.jsonl だけで、主のセッションのトランスクリプトを読む処理も、主のセッションの effort を数える処理も無い。この節は「the same rule as the second table」と書くだけで、どのファイルをどう読んで作ったか（コマンドやスクリプト）が bundle にもリポジトリにも無い。R1-A1 は「主のセッションの effort も同じ規則で見る」と書き、定義の effort と主のセッションの effort を区別することが基準の目的なので、その片方の値の出し方が再現できない。主のセッションの値を出すスクリプトか手順を evidence に記録するか、reviewer_tools.py に主のセッションを数える処理を足す必要がある。なお claude -p --effort medium を使ったこと自体は probes.txt のスクリプト本文に残っている。",
+        "disposition": "accepted",
+        "resolution": "記録の場所に specs/070-review-integrity/evidence/570a91c/main-session-effort.txt を足した。主のセッションの effort を数えたスクリプト（main_effort.py、主のセッションのトランスクリプト <session>.jsonl を読み、メッセージごとの effort と応答の model を数える。reviewer_tools.py の2つ目の表と同じ規則）の本文と、そのコマンドと、3つの確かめのセッションに対する出力を書いた。21行目が R1-A1 のセッション 452142fb の「effort per message {'medium': 6}」である。変更そのものは変えていないので、新しい回は始めない。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "evidence_mismatch",
+        "target": "R1c-A2",
+        "severity": "low",
+        "statement": "AR-04 の指摘は、nested_memory の添付の中身（パスと本文）が bundle にもリポジトリにも無いので判断できない、というものだった。直しは基準と文を「起動の時点」に狭め、READMEと2つの SKILL.md に「読んだファイルのディレクトリの CLAUDE.md が起動の後に入る（このリポジトリでは .claude/ の下のファイルを読むと .claude/CLAUDE.md が入る）」と書いた。この記述は、コミット済みのどの記録にも、パスつきの観測が無い。f05ce79/probes.txt（読んだ）には 'nested_memory': 1 という個数があるだけで、パスは無い。resolution が引く、トランスクリプトの72行目の path と3,921字は、次のレビュー役も人も読めないトランスクリプトにしか無い。570a91c/probes.txt の2つ目の表は、nested memory の欄がすべて '-' で、この記述を示す観測を含まない（どのレビュー役も .claude/ の下を読んでいない）。resolution が挙げる spec 068・069 の Explore の2つ目の表も、evidence/reviewer-tools.txt（Grep で確認）は新しい表を含まず、再生成されていない。このレビュー役自身は .claude/agents/read-only-reviewer.md を読んだ後に .claude/CLAUDE.md の本文を受け取ったので、記述は事実に合うと見えるが、それは記録ではない。R1c-A2 の対応表の行で利用者が確かめる記述の根拠が、記録に無い。パスと文字数の観測を evidence のファイル（reviewer_tools.py の出力の2つ目の表を、当該のトランスクリプトに対して再生成したものなど）に残すか、.claude/ の下のファイルを読ませる確かめを足す必要がある。",
+        "disposition": "accepted",
+        "resolution": "記録の場所に specs/070-review-integrity/evidence/570a91c/reviewer-tools-all.txt を足した。570a91c の reviewer_tools.py を、このプロジェクトのすべてのレビュー役のトランスクリプトに対して走らせ直した出力である。2つ目の表（64行目から）の nested memory の欄が、読み込まれたパスとトランスクリプトの行を示す。105行目は f05ce79 の R0-A4 の2回目のレビュー役（63e9c90b 99a66c92）の「.claude/CLAUDE.md (line 72)」、73・77・80行目は spec 068・069 の Explore のレビュー役、71行目はこの3回目のレビュー役自身（.claude/agents/read-only-reviewer.md を読んだ後の65行目）である。どれも起動の時点の instructions の添付は無い（1つ目の表の instruction files の欄が0）。文字数（3,921字）は表に出さないので、resolution からは外す。変更そのものは変えていないので、新しい回は始めない。"
+      }
+    ]
+  }
+}

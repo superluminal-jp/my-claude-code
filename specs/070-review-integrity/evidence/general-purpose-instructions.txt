@@ -1,0 +1,16 @@
+# Instruction files given to a general-purpose subagent started in this session (2026-11-10).
+# Source: the instructions attachment of agent-aedc2a608bbca78f6.jsonl; type from agent-aedc2a608bbca78f6.meta.json.
+agentType: general-purpose | model: sonnet | effort: xhigh
+User /Users/taikiogihara/.claude/CLAUDE.md 3760 chars
+User /Users/taikiogihara/.claude/rules/permissions.md 2576 chars
+User /Users/taikiogihara/.claude/rules/clarifier.md 2271 chars
+User /Users/taikiogihara/.claude/rules/pyramid-principle.md 6710 chars
+User /Users/taikiogihara/.claude/rules/thinking-lenses.md 2751 chars
+Project /Users/taikiogihara/work/my-claude-code/CLAUDE.md 1053 chars
+Project /Users/taikiogihara/work/my-claude-code/.claude/CLAUDE.md 3760 chars
+Project /Users/taikiogihara/work/my-claude-code/.claude/rules/permissions.md 2576 chars
+Project /Users/taikiogihara/work/my-claude-code/.claude/rules/clarifier.md 2271 chars
+Project /Users/taikiogihara/work/my-claude-code/.claude/rules/pyramid-principle.md 6710 chars
+Project /Users/taikiogihara/work/my-claude-code/.claude/rules/thinking-lenses.md 2751 chars
+AutoMem /Users/taikiogihara/.claude/projects/-Users-taikiogihara-work-my-claude-code/memory/MEMORY.md 1709 chars
+total 38898 chars; attachment as JSON 40596 chars

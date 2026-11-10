@@ -1,0 +1,40 @@
+# bash tests/run-install.sh at 57a3487 (working tree clean outside specs/070-review-integrity), 2026-11-10
+PASS: install.sh completes against the isolated home
+PASS: CLAUDE.md matches the repository
+PASS: settings.json matches the repository
+PASS: settings.json fixes the main session's effort at xhigh
+PASS: installed install.sh matches the repository
+PASS: rules directory matches the repository
+PASS: skills contain only repository-managed shared skills besides synced/
+PASS: the Claude app's skills/synced/ is preserved unchanged
+PASS: no temporary keep directory is left behind
+PASS: agents directory matches the repository (read-only-reviewer, spec 070)
+PASS: an agent file removed from the repository is removed
+PASS: retired commands are removed
+PASS: unrelated user file is preserved
+PASS: unmanaged settings.local.json is preserved
+PASS: installer does not mutate the source Spec Kit configuration
+PASS: installer runs no claude mcp command
+PASS: official plugin marketplace is added on a fresh environment
+PASS: official plugins (frontend-design, code-review, skill-creator) are installed and enabled
+PASS: MCP-bundling plugins (github, deploy-on-aws, microsoft-docs) are neither installed nor enabled
+PASS: installer has no source-tree Spec Kit mutation
+PASS: installed install.sh is executable
+PASS: install.sh fails fast with a clear message when claude/jq are missing
+PASS: install.sh fails fast with a clear message when jq is missing
+PASS: install.sh is idempotent on a second run
+PASS: rules directory still matches the repository after a second run
+PASS: skills/synced/ is still preserved after a second run
+PASS: settings.json merge: repo-declared model wins over a prior user value
+PASS: settings.json merge: a user's undeclared env block survives a reinstall
+PASS: settings.json merge: a user's undeclared enabledPlugins key survives a reinstall
+PASS: settings.json merge: an undeclared key nested in a shared object survives (recursive merge)
+PASS: settings.json merge: repo-declared permissions.deny still matches the repository
+PASS: settings.json merge: the repo's github plugin stop wins over a user's enabled github plugin
+PASS: settings.json merge: the repo's sandbox wins over a user's sandbox.enabled false
+PASS: settings.json merge: a user's own key inside sandbox survives a reinstall
+PASS: second run updates rather than re-adds an already-registered marketplace
+PASS: second run does not re-install any already-installed plugin
+PASS: second run runs no claude mcp command
+All installer contract checks passed.
+exit 0

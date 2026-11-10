@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "P-070",
+    "ideal": "requirements-decomposition の challenger と verified-delivery の assurance review が起動するレビュー役は、ホスト（Claude Code）の宣言によって、ファイルを読む・探す道具だけを持ち、利用者とプロジェクトの指示や記憶を読み込まずに始まり、それは主のモデルがどの型を選ぶかに依らない（G1）。失敗した、時間切れになった、または決まった JSON を返さなかったレビュー役の回は、指摘なしとして記録されない（G2）。指摘の却下の根拠は、次の回のレビュー役か人が読んで確かめられるもので、レビュー役が読めない事実に頼る却下は人が決め、誰がどこで決めたかが残る（G3）。assurance review の回数には上限があり、上限に達したとき、または直しが前の回の直しの箇所に新しい指摘を生む往復になったときは、続けるかどうかを人が決める（G4）。",
+    "current": "2つの手順は、レビュー役を「Start a new subagent that can only read and search」と文で書くだけで、型も道具も名指さない。spec 066〜069 の29回のレビュー役はすべて主のモデルが選んだ Explore で、Bash・WebFetch・WebSearch・221個の MCP の道具（ブラウザの操作を含む）・EnterWorktree・SendMessage が使えた。Bash を652回呼び、うち67回は python を実行し（assure.py gate、review_prep.py check を含む）、WebFetch を2回使った。Explore は CLAUDE.md を読み込まないが、手順の文は、CLAUDE.md・4つのルール・記憶の索引を読み込む general-purpose 型も許す。記録の形は空の findings を「指摘なし」として認め、手順はレビュー役の失敗の扱いを書かない。却下には理由だけを求め、spec 066 では、レビュー役に渡していない manifest を根拠に却下した指摘が次の回に戻った。人に尋ねるのは同じ理由で gate が3回続けて止まったときだけで、spec 066 は10回、068 は6回、069 は5回のレビューを重ねた。",
+    "gap": "理想では、レビュー役の道具と読み込む指示はホストが決めるが、実際には主のモデルの選択とレビュー役の自制に任され、レビュー役はコードを実行していた（G1）。理想では、動かなかったレビューは指摘なしとして残らないが、実際にはそれを防ぐものが手順にも記録の形にもない（G2）。理想では、却下の根拠は読んで確かめられるが、実際にはレビュー役が読めない根拠でも却下でき、同じ指摘が次の回に戻った（G3）。理想では、回数が上限に達したところで人が決めるが、実際には上限がなく、10回まで続いた（G4）。",
+    "significance": "レビュー役は人が見ていない背景で、利用者のサンドボックスとネットワークの許可のまま動き、サンドボックスは作業ディレクトリへの書き込みを許すので、Bash が使えるレビュー役はレビュー中のリポジトリを変えうる（G1）。medium と high の変更は assurance review がなければ gate を通らないので、動かなかったレビューを空の findings として記録すると、レビューのない変更が gate を通る（G2）。読めない根拠による却下は次の回のレビュー役が確かめられず、同じ指摘が戻って回数を増やす（G3）。1回のレビューは完了通知で8.1〜20.7万トークンで、10回では人が決めないまま100万トークンを越えうる（G4）。",
+    "status": "verified",
+    "status_rationale": "反対の証拠は2つあり、どちらも問題の一部を弱めるが、無くしはしない。Explore は CLAUDE.md を読み込まないので、G1 のうち指示を読み込まないことは、Explore が選ばれた29回では実際に満たされていた。ただし手順はそれを保証せず、道具の範囲は満たされていなかった。観測した29回のレビュー役はすべて終わっていて、G2 の失敗はまだ起きていない。G2 は、手順と記録の形がそれを防がないという現在の状態であり、起きた出来事ではない。",
+    "evidence": [
+      {
+        "source": "specs/070-review-integrity/evidence/reviewer-tools.txt（evidence/reviewer_tools.py で、このプロジェクトの全セッションのサブエージェントのトランスクリプトと meta を要約したもの、2026-11-10）",
+        "observation": "challenger か assurance reviewer のプロンプトで始まるサブエージェントは29回で、型はすべて Explore だった。Bash を652回呼び、うち67回は python を実行した。WebFetch を2回使った。各回に、WebFetch・WebSearch・EnterWorktree・SendMessage・TaskStop と221個の MCP の道具が、使える道具として渡されていた。instructions の添付（CLAUDE.md・ルール・記憶）は29回とも無かった。29回とも meta の finished は true だった。"
+      },
+      {
+        "source": "spec 068 と 069 の Explore のレビュー役のトランスクリプト（セッション 1ba20efd と 61a4a52e）の Bash の呼び出し",
+        "observation": "レビュー役は「git show 9cd7932:.claude/skills/verified-delivery/scripts/assure.py | python3 -B -I - …」「python3 -B scripts/assure.py gate examples/…」「python3 -I -B .claude/skills/verified-delivery/scripts/review_prep.py check --records …」のように、リポジトリのスクリプトと、ある版のスクリプトを実行して指摘を確かめた。"
+      },
+      {
+        "source": "specs/070-review-integrity/evidence/general-purpose-instructions.txt（このセッションで起動した general-purpose 型のサブエージェントのトランスクリプトの instructions の添付、2026-11-10）",
+        "observation": "general-purpose 型には、利用者の CLAUDE.md と4つのルール、プロジェクトの CLAUDE.md と .claude/CLAUDE.md と4つのルール、記憶の索引 MEMORY.md の、計38,898字が読み込まれた。"
+      },
+      {
+        "source": ".claude/skills/requirements-decomposition/SKILL.md の手順3、references/challenger.md、.claude/skills/verified-delivery/SKILL.md の手順5（main 55c54f4）",
+        "observation": "どれも「Start a new subagent that can only read and search」「a new subagent whose tools can only read and search」と書き、サブエージェントの型も道具も名指さない。.claude/agents/ にはファイルが無い。"
+      },
+      {
+        "source": "Claude Code の公式文書（https://code.claude.com/docs/en/sub-agents、2026-11-10 に読んだもの）",
+        "observation": "サブエージェントの定義の tools は許可リストとして働く（「To restrict tools, use the tools field as an allowlist」）。omitClaudeMd: true は、利用者・プロジェクト・ローカルの CLAUDE.md を読み込まずにサブエージェントを始める。"
+      },
+      {
+        "source": ".claude/skills/verified-delivery/references/manifest.md の assurance review の形と、SKILL.md の手順5、references/challenger.md（main 55c54f4）",
+        "observation": "findings は「an array, empty when the reviewer found nothing material」とされる。手順はどちらも、レビュー役の答えを「Copy its findings … as they are」と書き、失敗した・時間切れになった・JSON でない答えのときの扱いを書かない。"
+      },
+      {
+        "source": "specs/066-harness-behavior-baseline/assurance-review-4.44b6b8e.json の AR-05 と assurance-review-5.112db91.json の AR-09",
+        "observation": "4回目の AR-05（risk_mismatch）を「risk は verification-manifest.json に high と記録し…（reviewer.md の手順どおり、レビューに渡す資料に manifest は含めない）」と、レビュー役に渡していないファイルを根拠に却下した。5回目に同じ趣旨の指摘が AR-09 として戻り、同じ manifest と「利用者が 2026-11-07 にその残存リスクを承認した」ことを根拠に、再び却下した。"
+      },
+      {
+        "source": "specs/067-sandbox-by-default/challenge-report.json の CH-17",
+        "observation": "missing_evidence の指摘を「利用者は 2026-11-07 の質問で「claude.ai コネクタ全部」を明示して選んだ」と、会話での利用者の回答を根拠に却下し、その決定を問題カードの evidence に加えた。手順は、読めない根拠を記録に足すことを求めていない。"
+      },
+      {
+        "source": ".claude/skills/verified-delivery/SKILL.md の手順5と、手順の終わりの「Stop and ask」の段落（main 55c54f4）",
+        "observation": "直しが新しいコミットを作るたびに次の回を始める（「A fix to the change makes a new commit: collect its evidence and start the next round」）。人に尋ねるのは「when the same reason blocks or fails the gate three times in a row」と、権限が要るときと、触れない系からしか証拠を得られないときだけで、回数の上限は無い。"
+      },
+      {
+        "source": "specs/066〜069 の assurance-review-*.json の数と各回の findings",
+        "observation": "spec 066 は10回（各回の指摘は12・11・10・10・9・7・6・6・4・7件で、ほとんどが accepted）、spec 068 は6回、spec 069 は5回のレビューを重ねた。spec 068 と 069 の各回の reviewer の欄に記録した完了通知のトークンは8.1万〜20.7万だった。"
+      }
+    ],
+    "counter_evidence": [
+      {
+        "source": "specs/070-review-integrity/evidence/reviewer-tools.txt",
+        "observation": "29回のレビュー役はすべて Explore で、どれにも instructions の添付が無かった。G1 のうち、利用者とプロジェクトの指示を読み込まないことは、実際の29回では満たされていた。"
+      },
+      {
+        "source": "specs/070-review-integrity/evidence/reviewer-tools.txt",
+        "observation": "29回のレビュー役は、meta の finished がすべて true で、失敗した回は観測されていない。"
+      }
+    ],
+    "hypotheses": [
+      "主のモデルが毎回 Explore を選んだのは、「can only read and search」に最も近い組み込みの型の説明が Explore だからである（検証していない）。",
+      "レビュー役がスクリプトを実行したのは、Bash が使え、指摘を自分で確かめようとしたからである（検証していない）。"
+    ],
+    "out_of_scope": [
+      "EGM（google/elephant-goldfish-model）のプラグインそのものの導入",
+      "assure.py と check_graph.py の判定の規則の変更（disposition の値の追加など）",
+      "challenger の回数の上限（G4 は assurance review だけを扱う）",
+      "レビュー役の effort の既定の変更"
+    ]
+  }
+}

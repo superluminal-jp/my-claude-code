@@ -42,7 +42,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
     `requirements-decomposition`(合意済みの問題を、根拠・原因の仮説・解決策を分けた問題カードに記録し、
     親が固有の L2 か L3 の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、読み取り専用の反証役の
-    サブエージェントに異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
+    サブエージェント（`read-only-reviewer`、`.claude/agents/` を参照）に異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
     (ready か blocked)を決める。人の指示で入れた要件は `origin` を持ち、反証役はそれを与えられた制約として扱う。
     deploy の後でしか確かめられない受け入れ条件は `stage` を持つ。[spec 059](specs/059-refinement-graph-checker/spec.md)、
     [spec 060](specs/060-goal-refinement/spec.md))、
@@ -97,7 +97,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     [`archive/minto-pyramid/`](archive/minto-pyramid/) に退避した。従来の Minto スイート
     （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
     [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した。`meta-spec` スキルは不要と判断し、[`archive/meta-spec/`](archive/meta-spec/) に退避した（[spec 058](specs/058-parent-skill-references/spec.md)）
-  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言せず、親がなくても使える（[spec 058](specs/058-parent-skill-references/spec.md)）
+  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言せず、親がなくても使える（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `.claude/agents/` に定義したサブエージェントも名前で名指せる。`requirements-decomposition` と `verified-delivery` のレビューの手順は `read-only-reviewer` を起動する。その定義は道具を Read・Grep・Glob だけに限り、CLAUDE.md を読み込まずに始めさせる（読んだファイルのディレクトリの CLAUDE.md と、MCP サーバーの説明文は、起動の後に入る）。手順は、その型が無ければ止まる（[spec 070](specs/070-review-integrity/problem.md)）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
@@ -173,9 +173,13 @@ bash path/to/my-claude-code/install.sh
   スコープと合わせて読むプロジェクトかローカルの設定に置いてください。
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側の置換対象パスでも
   削除されます。
-- `agents/` と `commands/` はこのリポジトリに元ファイルがなく、以前のバージョンが
-  入れたものを片付けるためだけに管理対象に残しています。そのため実行のたびに
-  `~/.claude/agents/` と `~/.claude/commands/` は削除されます。
+- `agents/` には、レビューの手順が起動する読み取り専用のサブエージェント
+  `read-only-reviewer.md` があります。ほかの管理対象と同じく `~/.claude/agents/` を
+  置き換えるので、そこに自分で置いたエージェントのファイルは削除されます。自分の
+  エージェントはプロジェクトの `.claude/agents/` に置いてください。
+- `commands/` はこのリポジトリに元ファイルがなく、以前のバージョンが入れたものを
+  片付けるためだけに管理対象に残しています。そのため実行のたびに
+  `~/.claude/commands/` は削除されます。
 - `settings.local.json` を含む `~/.claude` の管理対象外パスは保持されます。個人用ファイルは上記の管理対象外に置いてください。
 
 ## 代替: `CLAUDE.md` から import
@@ -217,6 +221,8 @@ my-claude-code/
     │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
     │   ├── permissions.md          # 権限と安全性。強制される deny は settings.json
     │   └── pyramid-principle.md    # 読み手本位の構造: ピラミッド、論文の構成の順序、前提と用語
+    ├── agents/
+    │   └── read-only-reviewer.md   # 反証役と保証レビューが起動するサブエージェント: Read/Grep/Glob だけ、CLAUDE.md なしで始まる
     └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型
         ├── coder/SKILL.md          # 変更手順 + TDD + SDD + 品質 + 安全 + 型安全性 + ドキュメント
         ├── pyramid-structure/      # 全実質タスクに Minto のピラミッド + 同梱の構成検査(scripts/check.py)

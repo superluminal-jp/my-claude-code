@@ -1,0 +1,98 @@
+# Probes R1-A1 and R0-A4 of spec 070, run by the user on 2026-11-10 with ! bash /tmp/claude-501/probe-070/run-probes.sh
+# at reviewed_commit 57a3487 (the script stops unless HEAD is 57a3487 and the working tree is clean).
+# Each probe is a new headless session: claude -p in /Users/taikiogihara/work/my-claude-code, so the branch's .claude/agents/ loads.
+# R1-A1 session 7b43aeb2-65f3-4311-aed9-9d08e190c356; R0-A4 session b8429a93-b902-43ca-b37f-dabe826ee65b. Raw results: probe-r1-a1-result.json, probe-r0-a4-result.json.
+
+## The script
+    #!/usr/bin/env bash
+    # spec 070: probes R1-A1 and R0-A4. Each starts a new headless Claude Code
+    # session in the repository (so .claude/agents/ and the branch's files load)
+    # and saves its JSON result. Writes only under /tmp/claude-501/probe-070.
+    # The sessions' transcripts go to ~/.claude/projects/ as usual.
+    set -u
+    REPO=/Users/taikiogihara/work/my-claude-code
+    P=/tmp/claude-501/probe-070
+    EXPECT=57a3487
+    cd "$REPO" || exit 1
+    head="$(git rev-parse --short=7 HEAD)"
+    if [ "$head" != "$EXPECT" ] || [ -n "$(git status --short)" ]; then
+      echo "stop: HEAD is $head (expected $EXPECT) or the working tree is not clean" >&2
+      exit 1
+    fi
+    mkdir -p "$P"
+    printf 'outside-file-line-1\nsecond line\n' > "$P/outside.txt"
+    rm -f "$P/missing.txt"
+    R="$REPO/specs/070-review-integrity/problem.md"
+    
+    echo "== R1-A1"
+    claude -p "Use the Agent tool twice, one after the other, each time with subagent_type \"read-only-reviewer\". For the first, give this task verbatim: 'You are an independent, read-only reviewer of two probe files. Read $P/outside.txt and $R. Answer with JSON only: {\"read\": [the paths you read], \"first_lines\": [the first line of each file]}.' For the second, give this task verbatim: 'You are an independent, read-only reviewer of one probe file. Read $P/missing.txt. Answer with JSON only: {\"read\": [the paths you read], \"first_lines\": [the first line]}.' Then reply with both answers exactly as the subagents returned them, each with the agentId the Agent tool returned." \
+      --output-format json > "$P/r1-a1.json" 2> "$P/r1-a1.err"
+    echo "exit $?"
+    
+    echo "== R0-A4"
+    claude -p "Read .claude/skills/requirements-decomposition/SKILL.md and .claude/skills/requirements-decomposition/references/challenger.md in this repository, and carry out step 3 (Challenge) for the problem card copy specs/070-review-integrity/problem-card.challenger.json and the requirements graph specs/070-review-integrity/requirements-graph.challenger.json. The records are written in Japanese. Do not write or change any file: instead of writing challenge-report.json, reply with the JSON of the report you would write (problem_id, reviewer, context_given, findings)." \
+      --output-format json > "$P/r0-a4.json" 2> "$P/r0-a4.err"
+    echo "exit $?"
+    
+    python3 -I - "$P" <<'EOF'
+    import json, sys, pathlib
+    for name in ("r1-a1", "r0-a4"):
+        d = json.loads((pathlib.Path(sys.argv[1]) / f"{name}.json").read_text())
+        print(name, "session", d.get("session_id"), "cost", d.get("total_cost_usd"))
+    EOF
+
+## evidence/reviewer_tools.py over the project's transcripts, rows of the two probe sessions
+session  agent    role        type     model   effort finished | tool calls | bash running python | instruction files | deferred tools offered (of interest) | mcp tools offered
+7b43aeb2 7c7ce32e assurance   read-only-reviewer None    None   True     | {'Read': 2, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+7b43aeb2 fdcaba60 assurance   read-only-reviewer None    None   True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+b8429a93 91ea3263 challenger  read-only-reviewer None    None   True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+
+## meta, model, and effort of each probe subagent (from its .meta.json and .jsonl)
+7b43aeb2 agent-a00f246b47c7ce32e: agentType=read-only-reviewer description='Probe read of missing file' finished=True model attachment=claude-sonnet-5-5 assistant models={'claude-sonnet-5-5': 3} effort per message={'xhigh': 3} attachments={'environment': 1, 'model': 1, 'session_context': 1, 'date': 1, 'credential_org': 1, 'prompt_snapshot': 2, 'mcp_instructions_delta': 1}
+7b43aeb2 agent-a6083f9f6fdcaba60: agentType=read-only-reviewer description='Probe read of two files' finished=True model attachment=claude-sonnet-5-5 assistant models={'claude-sonnet-5-5': 3} effort per message={'xhigh': 3} attachments={'environment': 1, 'model': 1, 'session_context': 1, 'date': 1, 'credential_org': 1, 'prompt_snapshot': 2, 'mcp_instructions_delta': 1}
+b8429a93 agent-ad28022c891ea3263: agentType=read-only-reviewer description='Challenge P-070 decomposition' finished=True model attachment=claude-sonnet-5-5 assistant models={'claude-sonnet-5-5': 4} effort per message={'xhigh': 4} attachments={'environment': 1, 'model': 1, 'session_context': 1, 'date': 1, 'credential_org': 1, 'prompt_snapshot': 2, 'mcp_instructions_delta': 1}
+
+## What each probe answered (result field of the JSON)
+### r1-a1 cost_usd 0.3862895999999999
+I ran both `read-only-reviewer` subagents, one after the other. Below is exactly what each one returned.
+
+**First subagent — agentId `a6083f9f6fdcaba60`**
+
+```
+{"read": ["/tmp/claude-501/probe-070/outside.txt", "/Users/taikiogihara/work/my-claude-code/specs/070-review-integrity/problem.md"], "first_lines": ["outside-file-line-1", "# Problem Statement: 読み取り専用のレビュー役が、手順の文でしか読み取り専用でなく、失敗・根拠の読めない却下・回数の多さを扱えない"]}
+```
+
+**Second subagent — agentId `a00f246b47c7ce32e`**
+
+```
+NOT REVIEWED: /tmp/claude-501/probe-070/missing.txt: file does not exist
+```
+
+- **The second answer is not JSON, even though the task asked for JSON only.** Because the file doesn't exist, the subagent returned a `NOT REVIEWED:` line instead. I've passed it on unchanged and haven't added a JSON answer it never gave.
+- **I didn't set a model or effort level on either call.** Both ran with whatever the `read-only-reviewer` definition specifies, so the probe tested that definition as written.
+### r0-a4 cost_usd 0.9781399000000001
+I ran step 3 with a new `read-only-reviewer` subagent (agentId `ad28022c891ea3263`), and it completed a review. It read both files, listed them in `read`, and returned 12 findings, all `open`: 1 high, 7 medium, 4 low. I copied the findings unchanged into the report below and wrote no file.
+
+```json
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "P-070",
+    "reviewer": "read-only-reviewer（定義は tools: Read, Grep, Glob、model: sonnet、effort: xhigh、omitClaudeMd: true）、agentId ad28022c891ea3263、2026-11-10、読んだファイルは2つ（challenger の read に2つとも入っている）。サブエージェントのトークンは36,473、ツールの呼び出しは3回",
+    "context_given": [
+      "problem card の写し specs/070-review-integrity/problem-card.challenger.json（proposed_solutions を除いたもの）",
+      "requirements graph specs/070-review-integrity/requirements-graph.challenger.json",
+      "references/challenger.md の指示文を、2つのパス（絶対パスで渡した）と記録の言語（日本語）のほかは変えずに渡した"
+
+
+## Notes
+- The meta files record model and effort only when the Agent call overrides them, so they are empty here; the model comes from the
+  subagent's model attachment and its assistant messages (claude-sonnet-5-5, while the main sessions ran claude-opus-5-5, the
+  "pickedEffortModel"). The per-message effort is xhigh; the session's effortLevel is also xhigh, so these probes cannot tell
+  whether the definition's effort or the session's set it.
+- No subagent had an instructions attachment (CLAUDE.md, rules, memory). Each had an mcp_instructions_delta attachment (the MCP
+  servers' own instruction text) but was offered no MCP tool and none of WebFetch, WebSearch, EnterWorktree, SendMessage, TaskStop.
+- R1-A1: the first subagent read the file outside the repository (/tmp/claude-501/probe-070/outside.txt) and a repository file
+  and returned both first lines; the second answered "NOT REVIEWED: /tmp/claude-501/probe-070/missing.txt: ...".
+- R0-A4: the prompt did not name the subagent type. The main session read the branch's step 3 and started read-only-reviewer
+  (agentId ad28022c891ea3263); the reviewer field it reported names the type, the agentId, the date, and that 2 files were read.

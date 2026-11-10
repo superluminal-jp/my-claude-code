@@ -1,6 +1,6 @@
 # harness 全体の振る舞いの基準
 
-この仕組みを使うと、harness を変える前と後で、代表的な依頼に対する Claude の振る舞いを同じシナリオ集で測り、比べられる。ここで harness は、`install.sh` が `~/.claude/` に入れる `.claude/CLAUDE.md`、`.claude/rules/`、`.claude/skills/` を指す。`install.sh` は `.claude/agents/` と `.claude/commands/` も入れるが、今はどちらも中身がない。中身が入ると、`check` はそれを対応表にない部品として報告する。対応表に載せても、評価はまだそれを組み立てられないので、組み立てを止める。測る対象は2つある。1つは、どの部品（スキル、常時ロードの指示）が選ばれるか。もう1つは、その部品の記述が約束する観測できる振る舞いである。経緯と要件は [spec 066](../specs/066-harness-behavior-baseline/problem.md) にある。
+この仕組みを使うと、harness を変える前と後で、代表的な依頼に対する Claude の振る舞いを同じシナリオ集で測り、比べられる。ここで harness は、`install.sh` が `~/.claude/` に入れる `.claude/CLAUDE.md`、`.claude/rules/`、`.claude/skills/`、`.claude/agents/` を指す。`.claude/agents/` には、2つのレビューの手順（requirements-decomposition の challenger と verified-delivery の assurance review）が起動する `read-only-reviewer` の定義がある（[spec 070](../specs/070-review-integrity/problem.md)）。そのファイルは対応表の部品で、組み立てはそれをプラグインの `agents/` に写す（§4 の9）。`install.sh` は `.claude/commands/` も入れるが、今は中身がない。中身が入ると、`check` はそれを対応表にない部品として報告する。対応表に載せても、評価はまだそれを組み立てられないので、組み立てを止める。測る対象は2つある。1つは、どの部品（スキル、常時ロードの指示）が選ばれるか。もう1つは、その部品の記述が約束する観測できる振る舞いである。経緯と要件は [spec 066](../specs/066-harness-behavior-baseline/problem.md) にある。
 
 ## 1. 3つの部品が、期待・実行・比較を分けて受け持つ
 
@@ -61,7 +61,7 @@ python3 tests/harness-eval/harness_eval.py compare 前の結果 後の結果
   - 生成の型: 最初の命令は、空のディレクトリでなければ止まる確認の行である。ファイルは引用符で囲んだヒアドキュメントで書くので、内容の中の `$(...)` などは実行されない。git のすべての命令は `core.hooksPath=/dev/null` でフックを無効にし、`init` はテンプレートも使わない（`init.templateDir=`）。
   - 二重の確かめ: 生成したスクリプトが、許可した命令（`set`、`cat`、`printf`、`mkdir`、`chmod` と、git の `init`、`checkout`、`add`、`commit`）しか使わないことも、`check` が確かめる。
 
-## 4. 実際の環境とは8点が違い、結果はその範囲でしか成り立たない
+## 4. 実際の環境とは9点が違い、結果はその範囲でしか成り立たない
 
 1. **常時ロードの読み込み方**: 常時ロードの5ファイルは、メモリとしてではなく、SessionStart フックの出力として注入する。フックの出力の上限は10,000字なので、ファイルごとに1つずつ注入する。本文が届いたことは到達確認で確かめる。同じように振る舞いに効くかどうかは、確かめていない。
 2. **スキルの名前**: スキルは `harness:<名前>` の名前で現れる。判定は、名前空間のない名前と、ある名前の両方を受け付ける。
@@ -71,6 +71,7 @@ python3 tests/harness-eval/harness_eval.py compare 前の結果 後の結果
 6. **測らない段階と含めないスキル**: メモ（`apple-notes`）とリマインダー（`apple-reminders`）は、段階を評価せず、スキルも組み立てるプラグインに含めない。評価のエージェントがそのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうるためである。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめていない。実際の環境ではこの2つの description も選択の候補に並ぶので、選択の結果はその分だけ実際と違いうる。
 7. **公式のプラグイン**: `install.sh` は、利用者のスコープに公式のプラグイン（`frontend-design`、`code-review`、`skill-creator`）も入れて有効にする。評価にはこれらを含めない。eval は、評価するプラグインのほかのプラグインを読み込まないためである。実際の環境では、これらのスキルとコマンドも選択の候補に並ぶ。たとえば、`obs-code-review` の依頼では `code-review` が、`e-dads-frontend` の依頼では `frontend-design` が使われうる。対応表の「担い手なし」は harness の中に担い手がないことを指し、これらのプラグインが受け持つかどうかは測っていない。
 8. **SessionStart のフックの注意**: `settings.json` の SessionStart のフックは、実際の環境では、Bash が zsh のとき・macOS のとき・aws CLI があるときに、短い注意を文脈に足す（[ADR-0020](adr/0020-enable-sandbox-by-default.md)）。組み立てるプラグインのフックは常時ロードの注入だけに限るので、評価にはこの注意が届かない。zsh の書き方、サンドボックスの中の Chromium、aws の実行のしかたに関わる振る舞いは、その分だけ実際と違いうる。
+9. **エージェントの名前と前付け**: `.claude/agents/` の定義は、プラグインの `agents/` から `harness:<名前>`（たとえば `harness:read-only-reviewer`）の名前で現れる。手順は、プラグインの接頭辞の付いた名前を同じ型として認める。公式文書は、プラグインのサブエージェントが無視する前付けを `hooks`・`mcpServers`・`permissionMode` とし、`tools` と `omitClaudeMd` を挙げていない。ただし、それらがプラグインの定義で効くことは確かめていない。4のとおり評価では `Agent` を許していないので、その型が起動されること自体が評価では観測されない。対応表が評価から外す（`in_eval: false`）エージェントは、今は組み立てられないので、組み立てを止める。
 
 ## 5. harness を変えたら、対応表とシナリオも同じ変更で直す
 
