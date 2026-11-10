@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-070",
     "problem_id": "P-070",
-    "reviewed_commit": "fc65d8f906c250a9fea3e6db854ff9db1869aa34",
+    "reviewed_commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -22,8 +22,8 @@
         "status": "passed",
         "evidence": {
           "kind": "ci_job",
-          "ref": "specs/070-review-integrity/evidence/fc65d8f/ci-test-job.txt",
-          "commit": "fc65d8f906c250a9fea3e6db854ff9db1869aa34"
+          "ref": "specs/070-review-integrity/evidence/f05ce79/ci-test-job.txt",
+          "commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b"
         }
       },
       {
@@ -36,8 +36,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/070-review-integrity/evidence/fc65d8f/probes.txt",
-          "commit": "fc65d8f906c250a9fea3e6db854ff9db1869aa34"
+          "ref": "specs/070-review-integrity/evidence/f05ce79/probes.txt",
+          "commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b"
         }
       },
       {
@@ -50,22 +50,22 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/070-review-integrity/evidence/fc65d8f/probes.txt",
-          "commit": "fc65d8f906c250a9fea3e6db854ff9db1869aa34"
+          "ref": "specs/070-review-integrity/evidence/f05ce79/probes.txt",
+          "commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b"
         }
       },
       {
         "check_id": "R1a-A1",
         "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）（対応表の行10）。tests/assert_reviewer_agent.py は合格した（evidence/fc65d8f/reviewer-agent.txt）"
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）（対応表の行10）。tests/assert_reviewer_agent.py は合格した（evidence/f05ce79/reviewer-agent.txt）"
       },
       {
         "check_id": "R1b-A1",
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/070-review-integrity/evidence/fc65d8f/reviewer-agent.txt",
-          "commit": "fc65d8f906c250a9fea3e6db854ff9db1869aa34"
+          "ref": "specs/070-review-integrity/evidence/f05ce79/reviewer-agent.txt",
+          "commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b"
         }
       },
       {
@@ -78,8 +78,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/070-review-integrity/evidence/fc65d8f/install.txt",
-          "commit": "fc65d8f906c250a9fea3e6db854ff9db1869aa34"
+          "ref": "specs/070-review-integrity/evidence/f05ce79/install.txt",
+          "commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b"
         }
       },
       {
@@ -92,14 +92,14 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/070-review-integrity/evidence/fc65d8f/harness-eval-agents.txt",
-          "commit": "fc65d8f906c250a9fea3e6db854ff9db1869aa34"
+          "ref": "specs/070-review-integrity/evidence/f05ce79/harness-eval-agents.txt",
+          "commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b"
         }
       },
       {
         "check_id": "R1d-A2",
         "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）（対応表の行11）。tests/run-harness-eval.sh は合格した（evidence/fc65d8f/harness-eval.txt）"
+        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）（対応表の行11）。tests/run-harness-eval.sh は合格した（evidence/f05ce79/harness-eval.txt）"
       },
       {
         "check_id": "R1e-A1",
