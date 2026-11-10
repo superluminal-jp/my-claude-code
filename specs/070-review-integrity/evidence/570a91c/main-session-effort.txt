@@ -1,0 +1,24 @@
+# How the main sessions' effort in probes.txt was counted (spec 070, answer to AR-06), 2026-11-10.
+# The script below was run as: python3 -I main_effort.py ~/.claude/projects/-Users-taikiogihara-work-my-claude-code <session ids>
+# It reads each main session's own transcript (<session>.jsonl, not the subagents/ files that evidence/reviewer_tools.py reads),
+# and counts the effort recorded with each message, the same rule as the second table of reviewer_tools.py.
+
+## main_effort.py
+    """Count, in each main session transcript (<project>/<session>.jsonl), the effort recorded with each message and the model of each assistant message."""
+    import json, sys, pathlib, collections
+    root = pathlib.Path(sys.argv[1])
+    for sid in sys.argv[2:]:
+        eff, models = collections.Counter(), collections.Counter()
+        for line in (root / f"{sid}.jsonl").read_text().splitlines():
+            d = json.loads(line)
+            if "effort" in d:
+                eff[d["effort"]] += 1
+            if d.get("type") == "assistant" and (d.get("message") or {}).get("model"):
+                models[d["message"]["model"]] += 1
+        print(f"main {sid}: effort per message {dict(eff)}, assistant models {dict(models)}")
+
+## Output for the three probe sessions at 570a91c
+main 452142fb-0417-4c6e-a14e-0878940047a1: effort per message {'medium': 6}, assistant models {'claude-opus-5-5': 6}
+main cc55dd3d-e497-4312-acbd-fd1b65c75d44: effort per message {'xhigh': 17}, assistant models {'claude-opus-5-5': 17}
+main 27d30ecc-4933-423f-85f4-b896c6232688: effort per message {'xhigh': 17}, assistant models {'claude-opus-5-5': 17}
+exit 0
