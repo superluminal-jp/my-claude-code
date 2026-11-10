@@ -98,8 +98,17 @@ synced_snapshot="$TEST_ROOT/synced-snapshot"
 cp -R "$TARGET/skills/synced" "$synced_snapshot"
 printf '%s\n' '{"local":true}' >"$TARGET/settings.local.json"
 
-git_config="$REPO_ROOT/.specify/extensions/git/git-config.yml"
-git_config_before="$(cksum <"$git_config")"
+# .specify/ is each checkout's local Spec Kit installation and is not tracked
+# (docs/adr/0022): a CI checkout has none, a working checkout may have one.
+# Either way the installer must leave it as it was.
+specify_snapshot() {
+  if [ -d "$REPO_ROOT/.specify" ]; then
+    (cd "$REPO_ROOT" && find .specify -type f -print0 | LC_ALL=C sort -z | xargs -0 cksum)
+  else
+    printf 'absent\n'
+  fi
+}
+specify_before="$(specify_snapshot)"
 
 install_output="$TEST_ROOT/install.out"
 if ! HOME="$TEST_HOME" \
@@ -152,10 +161,9 @@ grep -qx '{"local":true}' "$TARGET/settings.local.json" ||
   fail "unmanaged settings.local.json is preserved"
 pass "unmanaged settings.local.json is preserved"
 
-git_config_after="$(cksum <"$git_config")"
-[ "$git_config_before" = "$git_config_after" ] ||
-  fail "installer does not mutate the source Spec Kit configuration"
-pass "installer does not mutate the source Spec Kit configuration"
+[ "$specify_before" = "$(specify_snapshot)" ] ||
+  fail "installer leaves the checkout's local Spec Kit files (.specify/) as they were"
+pass "installer leaves the checkout's local Spec Kit files (.specify/) as they were"
 
 # MCP servers are the user's to add: the installer registers and removes none,
 # so a server the user added (or an earlier install left) is never touched.
@@ -182,7 +190,7 @@ for mcp_plugin in github deploy-on-aws microsoft-docs; do
 done
 pass "MCP-bundling plugins (github, deploy-on-aws, microsoft-docs) are neither installed nor enabled"
 
-if grep -qF '.specify/extensions/git/git-config.yml' "$REPO_ROOT/install.sh"; then
+if grep -qF '.specify/' "$REPO_ROOT/install.sh"; then
   fail "installer has no source-tree Spec Kit mutation"
 fi
 pass "installer has no source-tree Spec Kit mutation"

@@ -273,7 +273,7 @@ my-claude-code/
 ├── docs/                           # Maintainer documentation: design rationale, MCP background, ADRs (not synced)
 ├── tests/                          # Offline contract suites (run-*.sh) + fixtures; see Verification
 ├── specs/                          # Spec Kit feature specifications for this repository's own changes
-├── .specify/                       # Spec Kit project files for this repository (templates, scripts, git extension)
+├── .specify/                       # Spec Kit project files, local to each checkout (gitignored; ADR-0022)
 ├── archive/                        # Retired skills kept for reference (not synced)
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
@@ -762,6 +762,13 @@ specify extension add git
 
 This adds 5 commands: `speckit.git.feature`, `speckit.git.validate`,
 `speckit.git.remote`, `speckit.git.initialize`, and `speckit.git.commit`.
+
+This repository follows the same rule for itself: `.specify/` is gitignored
+and local to each checkout ([ADR-0022](docs/adr/0022-keep-spec-kit-project-files-local.md)).
+Nothing of Spec Kit is pushed; each user runs the sequence above with the
+latest release. The constitution (`.specify/memory/constitution.md`), the
+hook wiring (`.specify/extensions.yml`), and the git extension's settings
+are therefore each checkout's own, starting from spec-kit's defaults.
 
 Keeping an already-adopted project's generated `speckit-*` skills current is
 a manual step — run `specify init --here --force` periodically yourself. The
