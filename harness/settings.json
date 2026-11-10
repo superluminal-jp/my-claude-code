@@ -76,12 +76,19 @@
     }
   },
   "enabledPlugins": {
-    "github@claude-plugins-official": false
+    "github@claude-plugins-official": false,
+    "deploy-on-aws@claude-plugins-official": false,
+    "microsoft-docs@claude-plugins-official": false
   },
+  "allowedMcpServers": [
+    { "serverUrl": "https://knowledge-mcp.global.api.aws" },
+    { "serverCommand": ["uvx", "awslabs.aws-documentation-mcp-server@latest"] }
+  ],
   "deniedMcpServers": [
     { "serverUrl": "https://api.githubcopilot.com/*" },
     { "serverName": "bedrock-agentcore" },
-    { "serverCommand": ["uvx", "awslabs.amazon-bedrock-agentcore-mcp-server@latest"] }
+    { "serverCommand": ["uvx", "awslabs.amazon-bedrock-agentcore-mcp-server@latest"] },
+    { "serverName": "claude-in-chrome" }
   ],
   "disableClaudeAiConnectors": true,
   "syncClaudeAiPlugins": false,

@@ -114,6 +114,42 @@ check "MCP-05 claude.ai connectors are off" \
 check "MCP-06 plugins are not synced from claude.ai" \
   "$(q '.syncClaudeAiPlugins == false')"
 
+# --- MCP servers it allows -----------------------------------------------
+# Only the two AWS documentation servers may load, whoever defines them: a
+# user, a project's .mcp.json, a plugin, or claude.ai. A remote server is
+# matched by URL and a stdio server by its exact command; a name is a label
+# anyone can choose, so the allowlist has no name entry.
+
+check "MCP-07 the allowlist is exactly the AWS knowledge URL and the AWS documentation command" \
+  "$(q '((.allowedMcpServers // []) | sort_by(tojson)) == ([{"serverUrl": "https://knowledge-mcp.global.api.aws"}, {"serverCommand": ["uvx", "awslabs.aws-documentation-mcp-server@latest"]}] | sort_by(tojson))')"
+
+check "MCP-08 the allowlist matches by URL and command, never by name" \
+  "$(q '[.allowedMcpServers[]? | select(has("serverName"))] | length == 0')"
+
+# A built-in server skips the allowlist, so the browser integration is
+# stopped by the denylist, which nothing overrides.
+check "MCP-09 the built-in Chrome integration is denied" \
+  "$(q '[.deniedMcpServers[]? | select(.serverName == "claude-in-chrome")] | length == 1')"
+
+# The project's own .mcp.json must not define a server the allowlist refuses.
+MCP_JSON="$REPO_ROOT/.mcp.json"
+mcp_json_ok="$(jq -e --slurpfile settings "$SETTINGS" '
+  ($settings[0].allowedMcpServers // []) as $allowed
+  | (.mcpServers | keys | sort) == ["aws-documentation", "aws-knowledge"]
+    and ([.mcpServers[]
+          | if has("url") then {serverUrl: .url} else {serverCommand: ([.command] + (.args // []))} end
+          | . as $entry | ($allowed | index($entry)) != null] | all)
+' "$MCP_JSON" >/dev/null 2>&1 && printf 1 || printf 0)"
+check "MCP-10 .mcp.json defines only the two allowed servers, each matching an allowlist entry" "$mcp_json_ok"
+
+# A plugin whose skills depend on a server the allowlist refuses is turned
+# off as a whole, so that no skill is listed that cannot do its work.
+check "MCP-11 the deploy-on-aws plugin is disabled" \
+  "$(q '.enabledPlugins["deploy-on-aws@claude-plugins-official"] == false')"
+
+check "MCP-12 the microsoft-docs plugin is disabled" \
+  "$(q '.enabledPlugins["microsoft-docs@claude-plugins-official"] == false')"
+
 # --- SessionStart hooks --------------------------------------------------
 
 ENV_HOOK="Removing Bedrock AWS variables from Bash commands..."

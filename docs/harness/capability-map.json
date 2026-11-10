@@ -662,11 +662,15 @@
     },
     "enabledPlugins": {
       "in_eval": false,
-      "reason": "github プラグインを無効にする。eval は評価するプラグインのほかのプラグインを読み込まない"
+      "reason": "MCP サーバーを同梱する github・deploy-on-aws・microsoft-docs の各プラグインを無効にする。eval は評価するプラグインのほかのプラグインを読み込まない"
+    },
+    "allowedMcpServers": {
+      "in_eval": false,
+      "reason": "読み込んでよい MCP サーバーを、AWS の文書を検索する2つ（aws-knowledge の URL と aws-documentation のコマンド）に限る。eval は MCP サーバーを読み込まない。許可する内容は tests/run-sandbox-settings.sh で確かめる"
     },
     "deniedMcpServers": {
       "in_eval": false,
-      "reason": "使わない MCP サーバーを拒む。eval は MCP サーバーを読み込まない"
+      "reason": "使わない MCP サーバーと、許可リストの対象にならない組み込みの Chrome 連携を拒む。eval は MCP サーバーを読み込まない"
     },
     "disableClaudeAiConnectors": {
       "in_eval": false,

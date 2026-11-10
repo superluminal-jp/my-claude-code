@@ -37,7 +37,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   その推論の effort（`claude-opus-5-5` については `modelSettings` にも同じ段階を置く。理由は
   [`docs/harness-zero-base.md`](docs/harness-zero-base.md) に記録）、資格情報の読み取りの拒否、Bash の
   すべてのコマンドにかける OS のサンドボックス（日常作業に要る出口だけを開ける）、3つの
-  `SessionStart` フック、止める MCP サーバーを持つ（後述「サンドボックスとセッション開始のフック」
+  `SessionStart` フック、許可する2つの MCP サーバーと、直接止めるサーバーを持つ（後述「サンドボックスとセッション開始のフック」
   「MCP サーバー」参照）
 - **`harness/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
@@ -159,7 +159,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     プロジェクトローカルな成果物で、すべて gitignore 対象（後述「spec-kit のオプトイン」参照）
 - **`install.sh`**: `harness/` を `~/.claude/` にコピーし、このリポジトリの Claude Code
   プラグインをインストール/有効化する（後述「プラグイン」参照）。MCP サーバーは
-  インストールしない — 必要なものは各自で追加する（後述「MCP サーバー」参照）
+  インストールしない — 許可された2つを各自で登録する（後述「MCP サーバー」参照）
 - **`team/package-safety/`**: 他の開発メンバーに配布するパッケージインストール安全化バンドル。
   リポジトリの `.claude/settings.json` としても managed settings の drop-in としても使える
   Claude Code 設定ファイル 1 つと、公開から 7 日以上たった版だけを入れるための npm・pnpm・uv の
@@ -200,10 +200,10 @@ bash path/to/my-claude-code/install.sh
 実行には `claude` CLI と `jq` が必要です。
 
 インストーラーは MCP サーバーの登録・更新・削除を行わず、MCP サーバーを同梱する
-プラグインもインストールしません。必要なものは各自で追加してください（後述
+プラグインもインストールしません。許可された2つのサーバーは、各自で登録してください（後述
 「MCP サーバー」参照）。以前のバージョンのインストーラーなどで登録済みの
 ユーザースコープ MCP サーバーは、そのまま残ります。ただし `settings.json` は、
-いくつかのサーバーの読み込みを止めます（一覧は「MCP サーバー」）。
+許可された2つだけを読み込ませます。
 
 ### 重要: 上書き置換（削除同期）について
 
@@ -257,7 +257,7 @@ my-claude-code/
 ├── README.md                       # 英語版ガイド(本書は README.ja.md)
 ├── README.ja.md
 ├── install.sh                      # 管理対象の Claude パスを harness/ から同期 + プラグインをインストール(MCP サーバーは入れない)
-├── .mcp.json                       # プロジェクトスコープの MCP サーバー定義。自分で追加するときの参照
+├── .mcp.json                       # 許可された2つの MCP サーバーの、プロジェクトスコープの定義
 ├── .living-documentation.json      # sync-docs のスクリプト設定(specs/ を除外)
 ├── chatgpt-system-prompt.md        # ChatGPT のカスタム指示用ポータブルプロンプト(同期対象外)
 ├── claude-ai-system-prompt.md      # Claude.ai の指示欄用ポータブルプロンプト(同期対象外)
@@ -274,7 +274,7 @@ my-claude-code/
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── harness/                        # インストーラーが管理する Claude パスの正本(~/.claude/ にインストールされる)
     ├── CLAUDE.md                   # 達成目標: 定義 → 実行 → 引き渡し。設計根拠は docs/
-    ├── settings.json               # ユーザーレベル設定: deny、サンドボックス、SessionStart フック、止める MCP
+    ├── settings.json               # ユーザーレベル設定: deny、サンドボックス、SessionStart フック、MCP の許可リストと停止
     ├── rules/                      # 常時ロード: 毎セッション読み込む、独立した4つの関心事
     │   ├── clarifier.md            # 要件確実性: 確認するか進めるか
     │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
@@ -517,8 +517,9 @@ hooks のディレクトリ（`harness/hooks/` と `.claude/hooks/`）や `scrip
 `run-sandbox-settings.sh` は、`harness/settings.json` の `sandbox`、`SessionStart`、
 MCP のキーを [spec 067](specs/067-sandbox-by-default/spec.md) に照らして検査します。
 開け直した場所のどれも `~/.aws/credentials` や GPG の秘密鍵に届かないこと、
-開けたパス・ソケット・ホストがレビュー済みのものとちょうど一致すること、止めた
-MCP サーバーが止まったままであることを確かめます。各 `SessionStart` フックも、
+開けたパス・ソケット・ホストがレビュー済みのものとちょうど一致すること、許可する
+MCP サーバーが AWS のドキュメントの2つだけで、`.mcp.json` もその2つだけを定義する
+こと、止めた MCP サーバーが止まったままであることを確かめます。各 `SessionStart` フックも、
 一時的な HOME と stub のコマンドで `sh`・`bash`・`zsh` のもとで実行します。
 Claude Code がこれらのキーに従うかは、`install.sh` の後の新しいセッションで
 手作業で確かめます。
@@ -613,8 +614,10 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
   できます。代わりに `git commit` を外で動かすと、リポジトリの git フックも外で
   動きます。
 - `settings.json` の `env` は、Bash だけでなくフックと stdio の MCP サーバーにも
-  届きます。そのため Bedrock のセッションでは、`deploy-on-aws` の AWS を呼ぶ MCP
-  サーバーが Bedrock 用のアカウントとして動きます。Bedrock の認証情報を
+  届きます。そのため、AWS を呼ぶ stdio の MCP サーバーは、Bedrock のセッションでは
+  Bedrock 用のアカウントとして動きます。AWS を呼ぶサーバーを持つ `deploy-on-aws`
+  プラグインは無効にしてあり、許可された2つのサーバーは、公開されたドキュメントを
+  検索します。Bedrock の認証情報を
   `env.AWS_PROFILE` ではなく `awsCredentialExport`（例:
   `aws configure export-credentials --profile <bedrock> --format process`）で渡せば、
   どの子プロセスにもプロファイルは届きません。
@@ -636,37 +639,52 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
 
 ## MCP サーバー
 
-このリポジトリは MCP サーバーをユーザー設定に取り込みません。`install.sh` は
-MCP サーバーを登録も削除もせず、`harness/` 配下も特定のサーバーがあることを
-前提にしていません（`research-aws` は、そのセッションで実際に使える
-ドキュメントツールを使います）。必要なサーバーは各自で追加してください。
+読み込める MCP サーバーは、どのプロジェクトでも、AWS の公式ドキュメントを検索する
+2つだけです。`settings.json` がこの2つだけを許可し、ほかは、だれが定義した
+サーバーでも読み込みません（ユーザースコープの登録、プロジェクトの `.mcp.json`、
+プラグイン、claude.ai）。理由はセキュリティです。MCP サーバーは Bash の
+サンドボックスの外で動き、いくつかは起動のたびに公開されたばかりの最新版を実行し、
+どれも、コマンドを実行できる同じセッションに、外部の文章と、場合によっては認証情報や
+操作を持ち込みます。
 
-[`.mcp.json`](.mcp.json) は、このリポジトリ内で作業するときのプロジェクトスコープ
-定義で、自分で登録するときの参照カタログも兼ねます。`.mcp.json` に書けることや
-各サーバーのベンダー公式リファレンスは [`docs/mcp-servers.md`](docs/mcp-servers.md)
-にあります。
+| 許可するもの | 照合の方法 | 何をするか |
+|---|---|---|
+| `aws-knowledge` | URL `https://knowledge-mcp.global.api.aws` | AWS のドキュメントを HTTP で検索して読む。認証情報は使わない |
+| `aws-documentation` | コマンド `uvx awslabs.aws-documentation-mcp-server@latest` | AWS のドキュメントを検索して読む。`uvx` で起動し、起動のたびに最新版を実行する |
 
-ユーザースコープに登録するときは、必要な行だけを実行してください（`uvx` を使う
-サーバーには [uv](https://docs.astral.sh/uv/) が必要です）:
+リモートのサーバーは URL で、ローカルのサーバーはコマンドの完全一致で照合します。
+名前では照合しません。名前は、だれでも付けられるラベルだからです。別のサーバーを
+使うには、`harness/settings.json` の `allowedMcpServers` を変えて、インストールし直す
+必要があります。
+
+このリポジトリが MCP サーバーをユーザー設定に取り込まないことは変わりません。
+`install.sh` は MCP サーバーを登録も削除もせず、`harness/` 配下も特定のサーバーが
+あることを前提にしていません（`research-aws` は、そのセッションで実際に使える
+ドキュメントツールを使います）。2つをユーザースコープに登録するには、次を
+実行してください（2つ目には [uv](https://docs.astral.sh/uv/) が必要です）:
 
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
 claude mcp add -s user aws-documentation -- uvx awslabs.aws-documentation-mcp-server@latest
-claude mcp add -s user \
-  --transport http \
-  google-developer-knowledge \
-  https://developerknowledge.googleapis.com/mcp \
-  --header "X-Goog-Api-Key: ${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}"
-claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
-claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/mcp
 ```
 
-`settings.json` は、次のサーバーを、どこで定義されていても読み込ませません
+[`.mcp.json`](.mcp.json) は、このリポジトリ内で作業するときのために、同じ2つを
+定義します。`.mcp.json` に書けること、各サーバーのベンダー公式リファレンス、
+何をいつ止めたかは [`docs/mcp-servers.md`](docs/mcp-servers.md) にあります。
+
+以前に登録していて、許可から外れたサーバーは、設定には残りますが読み込まれません。
+登録そのものを消すときは、各自で実行してください（例:
+`claude mcp remove -s user wolfram`）。
+
+許可リストに加えて、`settings.json` は次のものを直接拒否します。拒否は、どの
+許可リストでも上書きできません
 （[ADR-0021](docs/adr/0021-block-mcp-servers-by-settings.md)）:
 
 | 止めるもの | 方法 | 理由 |
 |---|---|---|
+| 組み込みの Chrome 連携（`claude-in-chrome`） | `deniedMcpServers` の名前 | 組み込みのサーバーは、許可リストの対象にならない。外部の文章を読む同じセッションから、ログイン済みの利用者自身のブラウザを操作する |
 | GitHub がホストする MCP サーバーと `github` プラグイン | `deniedMcpServers` の URL（`https://api.githubcopilot.com/*`）、`enabledPlugins` の `false` | 使っていない。作業は `gh` CLI で足りる |
+| `deploy-on-aws` と `microsoft-docs` のプラグイン | `enabledPlugins` の `false` | 同梱する MCP サーバーが許可リストにないので、そのサーバーに頼るスキルが働かない（「プラグイン」参照） |
 | `bedrock-agentcore` | `deniedMcpServers` の名前とコマンド | Claude Code が持つ AWS の認証情報で、AWS の実際のリソースを作成・変更・削除し、AWS でコードを実行する |
 | claude.ai のコネクタ（Gmail、Google Calendar、Google Drive、Notion、Moneytree、Claude Docs、Wolfram） | `disableClaudeAiConnectors: true` | 私的なデータと外部の文章が Bash と同じセッションにそろうと、プロンプトインジェクションでデータを持ち出す経路になる |
 | claude.ai から同期されるプラグイン（`productivity`、`pdf-viewer`） | `syncClaudeAiPlugins: false` | SaaS の MCP サーバーを、さらにすべてのセッションに持ち込む |
@@ -681,15 +699,21 @@ claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/m
 追加し、各プラグインをユーザースコープでインストール/有効化するため、このリポジトリに
 限らず全プロジェクトで使えます。
 
-MCP サーバーを同梱するプラグインは、MCP サーバーと同じく必要に応じて各自で
-追加してください。インストーラーはインストールも削除もしません。同じ
-マーケットプレイスには、たとえば
-`deploy-on-aws`（AWS アーキテクチャ図 + デプロイ/IaC skill と AWS の MCP サーバー。
-デプロイ/AWS CLI 変更系操作は
-[`harness/rules/permissions.md`](harness/rules/permissions.md) により毎回確認が必要、AWS）、
-`microsoft-docs`（Microsoft 公式ドキュメント MCP サーバー + skill、Microsoft）があります。
+同じマーケットプレイスの3つのプラグインは MCP サーバーを同梱しており、
+`settings.json` が3つとも無効にしています。インストーラーはこれらをインストール
+せず、各自が入れたものを削除もしません。無効にしたプラグインは、スキルも
+サーバーも読み込まれません。
 
-同等のコマンド:
+| プラグイン | 提供元 | 同梱するもの | 無効にしている理由 |
+|---|---|---|---|
+| `github` | GitHub | GitHub がホストする MCP サーバー | 使っていない。作業は `gh` CLI で足りる |
+| `deploy-on-aws` | AWS | AWS のアーキテクチャ図とデプロイのスキル、インフラのコードと料金を扱う AWS の MCP サーバー | サーバーが許可リストにない（「MCP サーバー」参照）。デプロイのスキルは、そのサーバーに頼っている |
+| `microsoft-docs` | Microsoft | Microsoft のドキュメントの MCP サーバーと、それを検索するスキル | サーバーが許可リストにない。スキルは、サーバーがないと用をなさない |
+
+インストールそのものも消すときは、`claude plugin uninstall <名前>@claude-plugins-official`
+を実行してください。
+
+`install.sh` が行う3つのプラグインのインストールは、次のコマンドと同等です:
 
 ```sh
 claude plugin marketplace add anthropics/claude-plugins-official
@@ -697,16 +721,6 @@ claude plugin install frontend-design@claude-plugins-official
 claude plugin install code-review@claude-plugins-official
 claude plugin install skill-creator@claude-plugins-official
 ```
-
-MCP サーバーを同梱するプラグインを入れる場合:
-
-```sh
-claude plugin install deploy-on-aws@claude-plugins-official
-claude plugin install microsoft-docs@claude-plugins-official
-```
-
-同じマーケットプレイスの `github` プラグインは `settings.json` で無効にし、その
-サーバーも拒否しています（「MCP サーバー」参照）。
 
 ## プロジェクト単位の上書き
 

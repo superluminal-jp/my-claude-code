@@ -117,10 +117,11 @@ chmod +x "$TARGET_DIR"/install.sh
 # claude-plugins-official marketplace catalog: frontend-design (UI/UX
 # implementation guidance), code-review (multi-agent PR review, incl.
 # `/code-review ultra`), skill-creator (scaffold/evaluate skills). Plugins
-# that bundle an MCP server (github, deploy-on-aws, microsoft-docs) are left
-# for the user to install, like the MCP servers themselves, and an existing
-# install of them is not removed. Installed at user scope so the plugins work
-# across projects.
+# that bundle an MCP server (github, deploy-on-aws, microsoft-docs) are never
+# installed here, and an existing install of them is not removed; the
+# settings.json this script merges turns those three off, because the servers
+# their skills depend on are not allowed to load. Installed at user scope so
+# the plugins work across projects.
 if ! claude plugin marketplace list 2>/dev/null | grep -q "claude-plugins-official"; then
   claude plugin marketplace add anthropics/claude-plugins-official
 else

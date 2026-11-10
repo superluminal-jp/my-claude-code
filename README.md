@@ -47,8 +47,8 @@ redesign that produced this layout is recorded in
   for `claude-opus-5-5`, again under `modelSettings` (the reason is recorded in
   [`docs/harness-zero-base.md`](docs/harness-zero-base.md)); the credential
   deny list; the OS sandbox turned on for every Bash command with only the
-  openings everyday work needs; three `SessionStart` hooks; and the MCP
-  servers it stops (see [Sandbox and session hooks](#sandbox-and-session-hooks)
+  openings everyday work needs; three `SessionStart` hooks; and the two MCP
+  servers it allows, with the ones it stops outright (see [Sandbox and session hooks](#sandbox-and-session-hooks)
   and [MCP Servers](#mcp-servers))
 - **`harness/rules/`** — Always-on universal rules, each kept to what changes
   Claude's decisions and nothing else, and each supporting exactly one apex
@@ -246,7 +246,7 @@ redesign that produced this layout is recorded in
     [Opt-in to spec-kit](#opt-in-to-spec-kit))
 - **`install.sh`** — Copies `harness/` to `~/.claude/` and installs/enables
   this repository's Claude Code plugins (see [Plugins](#plugins)). It installs
-  no MCP servers — add the ones you need yourself (see
+  no MCP servers — register the two allowed ones yourself (see
   [MCP Servers](#mcp-servers))
 - **`team/package-safety/`** — A package-install safety bundle to hand to
   other developers: one Claude Code settings file that works as a
@@ -289,11 +289,10 @@ bash path/to/my-claude-code/install.sh
 Requires the `claude` CLI and `jq`.
 
 The installer does not register, update, or remove MCP servers, and does not
-install plugins that bundle one. Add whichever you need yourself (see
+install plugins that bundle one. Register the two allowed servers yourself (see
 [MCP Servers](#mcp-servers)); servers already registered at user scope, for
-example by an earlier version of this installer, are left as they are.
-`settings.json` does stop a few of them from loading; the list is in
-[MCP Servers](#mcp-servers).
+example by an earlier version of this installer, are left as they are, but
+`settings.json` lets only the two allowed ones load.
 
 Re-running is safe: it re-syncs managed paths and re-checks the plugins.
 
@@ -344,7 +343,7 @@ my-claude-code/
 ├── CLAUDE.md                       # Repo purpose and how to work here (in-repo only, not synced)
 ├── README.md                       # This guide (README.ja.md: Japanese)
 ├── install.sh                      # Sync managed Claude paths from harness/ + install plugins (no MCP servers)
-├── .mcp.json                       # Project-scope MCP server definitions; reference for adding servers yourself
+├── .mcp.json                       # Project-scope definitions of the two allowed MCP servers
 ├── .living-documentation.json      # Settings for the sync-docs scripts (excludes specs/)
 ├── chatgpt-system-prompt.md        # Portable prompt for ChatGPT custom instructions (not synced)
 ├── claude-ai-system-prompt.md      # Portable prompt for Claude.ai instructions (not synced)
@@ -361,7 +360,7 @@ my-claude-code/
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── harness/                        # Source for installer-managed Claude paths (installed to ~/.claude/)
     ├── CLAUDE.md                   # Governing proposition: define → execute → hand off; rationale → docs/
-    ├── settings.json               # User-level settings: deny list, sandbox, SessionStart hooks, MCP stops
+    ├── settings.json               # User-level settings: deny list, sandbox, SessionStart hooks, MCP allowlist and stops
     ├── rules/                      # Always-on: loaded every session, 4 independent concerns
     │   ├── clarifier.md            # Requirements certainty: when to ask vs proceed
     │   ├── thinking-lenses.md      # Reasoning completeness: four self-checks applied every task
@@ -629,7 +628,8 @@ scope.
 of `harness/settings.json` against [spec 067](specs/067-sandbox-by-default/spec.md):
 that nothing under `~/.aws` is re-opened and the GPG secrets and other
 credential files stay closed, that the opened paths, sockets, hosts, and
-excluded commands are exactly the reviewed ones, and
+excluded commands are exactly the reviewed ones, that only the two AWS
+documentation servers are allowed and `.mcp.json` defines only those, and
 that the stopped MCP servers stay stopped. It also runs each `SessionStart`
 hook under `sh`, `bash`, and `zsh` with a scratch home and stub commands.
 Whether Claude Code honours these keys is checked by hand in a new session
@@ -734,8 +734,10 @@ Claude Code 2.1.319:
   it could also export it. Running `git commit` outside the sandbox instead
   would run the repository's git hooks outside too.
 - `env` in `settings.json` reaches hooks and stdio MCP servers as well as
-  Bash. In a Bedrock session, the AWS-calling MCP servers of `deploy-on-aws`
-  therefore act as the Bedrock account. Giving Bedrock its credentials with
+  Bash. A stdio MCP server that calls AWS would therefore act as the Bedrock
+  account in a Bedrock session; the `deploy-on-aws` plugin, whose servers
+  call AWS, is turned off, and the two allowed servers search public
+  documentation. Giving Bedrock its credentials with
   `awsCredentialExport` (for example
   `aws configure export-credentials --profile <bedrock> --format process`)
   instead of `env.AWS_PROFILE` keeps the profile away from every subprocess.
@@ -757,38 +759,53 @@ Claude Code 2.1.319:
 
 ## MCP Servers
 
-This repository does not install MCP servers into your user configuration.
-`install.sh` neither registers nor removes any, and nothing under `harness/`
-assumes a particular server is present — `research-aws` uses
-whatever documentation tools the session actually exposes. Add the servers you
-need yourself.
+Only two MCP servers may load, in any project: the two that search official
+AWS documentation. `settings.json` allows them and nothing else, whoever
+defines a server - you at user scope, a project's `.mcp.json`, a plugin, or
+claude.ai. The reason is security: an MCP server runs outside the Bash
+sandbox, several start the newest published version on every launch, and each
+one adds outside text, and sometimes credentials or actions, to the same
+session that can run commands.
 
-[`.mcp.json`](.mcp.json) defines the servers used when working inside this
-repository (project scope) and doubles as a catalog to copy from. Background —
-what `.mcp.json` can carry and each server's vendor reference — is in
-[`docs/mcp-servers.md`](docs/mcp-servers.md).
+| Allowed | Matched by | What it does |
+|---|---|---|
+| `aws-knowledge` | URL `https://knowledge-mcp.global.api.aws` | Searches and reads AWS documentation over HTTP, without credentials |
+| `aws-documentation` | Command `uvx awslabs.aws-documentation-mcp-server@latest` | Searches and reads AWS documentation; started with `uvx`, which runs the newest version on every launch |
 
-To register any of them at user scope, run only the lines you want (the
-`uvx`-based servers need [uv](https://docs.astral.sh/uv/)):
+A remote server is matched by its URL and a local one by its exact command,
+never by its name: a name is a label that anyone can choose. To use another
+server you would have to change `allowedMcpServers` in `harness/settings.json`
+and reinstall.
+
+This repository still does not install MCP servers into your user
+configuration. `install.sh` neither registers nor removes any, and nothing
+under `harness/` assumes a particular server is present - `research-aws` uses
+whatever documentation tools the session actually exposes. To register the
+two at user scope (the second needs [uv](https://docs.astral.sh/uv/)):
 
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
 claude mcp add -s user aws-documentation -- uvx awslabs.aws-documentation-mcp-server@latest
-claude mcp add -s user \
-  --transport http \
-  google-developer-knowledge \
-  https://developerknowledge.googleapis.com/mcp \
-  --header "X-Goog-Api-Key: ${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}"
-claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
-claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/mcp
 ```
 
-`settings.json` stops these from loading, wherever they are defined
+[`.mcp.json`](.mcp.json) defines the same two for work inside this repository.
+Background - what `.mcp.json` can carry, each server's vendor reference, and
+what was stopped and when - is in
+[`docs/mcp-servers.md`](docs/mcp-servers.md).
+
+A server you registered earlier and that is no longer allowed stays in your
+configuration but does not load. Remove it yourself when you want it gone, for
+example `claude mcp remove -s user wolfram`.
+
+On top of the allowlist, `settings.json` denies these outright. A denial
+cannot be overridden by any allowlist
 ([ADR-0021](docs/adr/0021-block-mcp-servers-by-settings.md)):
 
 | Stopped | How | Why |
 |---|---|---|
+| The built-in Chrome integration (`claude-in-chrome`) | `deniedMcpServers` by name | A built-in server skips the allowlist. It drives your own browser, with your signed-in sessions, from the same session that reads outside text |
 | GitHub's MCP server and the `github` plugin | `deniedMcpServers` by URL (`https://api.githubcopilot.com/*`); `enabledPlugins` `false` | Not used; the `gh` CLI covers the work |
+| The `deploy-on-aws` and `microsoft-docs` plugins | `enabledPlugins` `false` | Their MCP servers are not on the allowlist, so the skills that depend on those servers could not do their work (see [Plugins](#plugins)) |
 | `bedrock-agentcore` | `deniedMcpServers` by name and by command | Creates, changes, and deletes live AWS resources and runs code in AWS with whatever AWS credentials Claude Code holds |
 | claude.ai connectors (Gmail, Google Calendar, Google Drive, Notion, Moneytree, Claude Docs, Wolfram) | `disableClaudeAiConnectors: true` | Private data and outside text in the same session as Bash is a path for prompt injection to carry data out |
 | Plugins synced from claude.ai (`productivity`, `pdf-viewer`) | `syncClaudeAiPlugins: false` | Bring further SaaS MCP servers into every session |
@@ -815,22 +832,18 @@ claude plugin install code-review@claude-plugins-official
 claude plugin install skill-creator@claude-plugins-official
 ```
 
-Plugins that bundle an MCP server are, like the servers themselves, yours to
-add when you need them; the installer neither installs nor removes them. The
-same marketplace carries, for example:
+Three plugins of the same marketplace bundle an MCP server, and
+`settings.json` turns all three off. The installer never installs them, and
+it does not remove an install you made yourself; a plugin that is turned off
+loads none of its skills and none of its servers.
 
-| Plugin | Author | Bundles |
-|---|---|---|
-| `deploy-on-aws` | AWS | AWS architecture diagrams + deploy/IaC skills, with AWS MCP servers. Its deploy and mutating AWS CLI operations still require confirmation on every use per [`harness/rules/permissions.md`](harness/rules/permissions.md) |
-| `microsoft-docs` | Microsoft | Official Microsoft/Azure/.NET docs MCP server + skills |
+| Plugin | Author | Bundles | Why it is off |
+|---|---|---|---|
+| `github` | GitHub | GitHub's hosted MCP server | Not used; the `gh` CLI covers the work |
+| `deploy-on-aws` | AWS | AWS architecture diagram and deploy skills, with AWS MCP servers for infrastructure code and pricing | Its servers are not on the allowlist (see [MCP Servers](#mcp-servers)), and its deploy skills depend on them |
+| `microsoft-docs` | Microsoft | The Microsoft documentation MCP server, with skills that query it | Its server is not on the allowlist, and its skills do nothing without it |
 
-```sh
-claude plugin install deploy-on-aws@claude-plugins-official
-claude plugin install microsoft-docs@claude-plugins-official
-```
-
-The same marketplace's `github` plugin is disabled by `settings.json`, and its
-server denied (see [MCP Servers](#mcp-servers)).
+To remove an install as well, run `claude plugin uninstall <name>@claude-plugins-official`.
 
 ## Overriding per project
 

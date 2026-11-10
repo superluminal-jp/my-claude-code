@@ -53,8 +53,9 @@
 | `permissions` | 含めない | defaultMode（auto）と資格情報の読み取り拒否。eval の実行は許可を求めず、許していない道具を外す。シェルのコマンドは OS サンドボックスがホームを読めなくするが、ファイルを読む道具（Read、Glob、Grep）はサンドボックスの外で動き、この読み取り拒否も効かない。run は、結果のうち利用者のホームのパスを含むファイルを記録する。許可の仕組みが実際の環境と違うことは強制の配置（軸4）で扱う |
 | `hooks` | 含めない | PreToolUse の1つは speckit-specify が呼ばれたときだけ specify-cli の更新を確かめるもので、speckit-* は harness に含まれないため動く機会がない。SessionStart の3つ（Bash から Bedrock の AWS の変数を外す、gpg-agent を外で起動する、Bash が zsh のとき・macOS のとき・aws CLI があるときに注意を文脈に足す）は、組み立てるプラグインのフックを常時ロードの注入に限るため含めない。そのため注意が振る舞いに与える効果は測らない |
 | `sandbox` | 含めない | Bash の OS サンドボックスと、日常作業のために開ける場所。eval の Bash は eval 自身の OS サンドボックスで動き（書き込みは作業領域、ホームは読めず、ネットワークは許さない）、この設定は再現しない。開ける場所と守る場所は tests/run-sandbox-settings.sh で確かめる |
-| `enabledPlugins` | 含めない | github プラグインを無効にする。eval は評価するプラグインのほかのプラグインを読み込まない |
-| `deniedMcpServers` | 含めない | 使わない MCP サーバーを拒む。eval は MCP サーバーを読み込まない |
+| `enabledPlugins` | 含めない | MCP サーバーを同梱する github・deploy-on-aws・microsoft-docs の各プラグインを無効にする。eval は評価するプラグインのほかのプラグインを読み込まない |
+| `allowedMcpServers` | 含めない | 読み込んでよい MCP サーバーを、AWS の文書を検索する2つ（aws-knowledge の URL と aws-documentation のコマンド）に限る。eval は MCP サーバーを読み込まない。許可する内容は tests/run-sandbox-settings.sh で確かめる |
+| `deniedMcpServers` | 含めない | 使わない MCP サーバーと、許可リストの対象にならない組み込みの Chrome 連携を拒む。eval は MCP サーバーを読み込まない |
 | `disableClaudeAiConnectors` | 含めない | claude.ai のコネクタを止める。eval は一時的なホームと設定で動き、MCP サーバーを読み込まない |
 | `syncClaudeAiPlugins` | 含めない | claude.ai からのプラグインの同期を止める。eval は利用者の設定とほかのプラグインを読み込まない |
 
