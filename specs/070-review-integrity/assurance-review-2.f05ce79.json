@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-070",
+    "reviewed_commit": "f05ce79c20a92e535dea790ca5b579acf0a7785b",
+    "reviewer": "read-only-reviewer, agentId a67b2bbaadd65c12b, 2026-11-10, read 19 files（プロンプトが名指す bundle のファイルすべてと evidence/ の5つ、ほかにリポジトリの reviewer_tools.py・human-review-table.md・docs/harness-eval.md・.claude/agents/read-only-reviewer.md・.claude/CLAUDE.md・references/reviewer.md・tests/assert_reviewer_agent.py）。2回目（scope fixes）。完了通知のトークンは78,385、ツールの呼び出しは29回",
+    "context_given": [
+      "references/reviewer.md の2回目以降のプロンプト（f05ce79 の版。変更の id CHG-070、bundle のディレクトリ、記録の言語の日本語のほかは変えずに）",
+      "bundle /tmp/claude-501/bundle-070-r2（review_prep.py bundle --records specs/070-review-integrity --base 55c54f4 --previous 57a3487… --previous-review assurance-review-1.57a3487.json で作ったもの）: previous-review.json、change.diff、graph.diff、requirements-graph.json、manifest.json、evidence/（f05ce79 の5つの証跡）、excluded.txt、scope.json",
+      "scope: fixes、範囲 57a34875eb04467c2df56399d5a25b5e924068c4..f05ce79c20a92e535dea790ca5b579acf0a7785b"
+    ],
+    "findings": [
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "R0-A4",
+        "severity": "medium",
+        "statement": "R0-A4 は passed で、「instructions の添付が無い」ことを、利用者とプロジェクトの指示を読み込まない（R0 の文、G1）ことの確かめとしている。しかし f05ce79/probes.txt の「Effort and model per message, and attachments」は、2回目の確かめのレビュー役（agent-aa3978d6299a66c92）の添付に 'nested_memory': 1 を挙げ、R1-A1 の2つのレビュー役と1回目の確かめのレビュー役の添付に 'mcp_instructions_delta': 1 を挙げている。Notes の「No reviewer had an instructions attachment」はこれに触れない。evidence/reviewer_tools.py（読んだ）が数えるのは type が instructions の添付と deferred_tools_delta だけで、nested_memory と mcp_instructions_delta は数えない。このリポジトリには .claude/CLAUDE.md が在り（読んだ）、2回目のレビュー役の reviewer の欄は .claude/agents/read-only-reviewer.md を読んだと書く。したがって nested_memory は、.claude/ の下のファイルを読んだことで読み込まれた .claude/CLAUDE.md（プロジェクトの指示）の可能性が高く、その場合 omitClaudeMd は効いていても、レビュー役はプロジェクトの指示を受け取っている。nested_memory と mcp_instructions_delta の中身（パスと本文）は bundle にもリポジトリにも無いので、判断には、そのレビュー役のトランスクリプトの当該添付の中身が足りない。基準の字面（instructions の添付）は満たすが、基準が確かめるはずの「指示を読み込まない」が成り立つとは示されていない。添付の中身を示して問題なしと説明するか、R0-A4 と R0 の文を、nested_memory と MCP の指示を含めて何が入らないかに合わせて直す必要がある。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。f05ce79 の R0-A4 の2回目のレビュー役（セッション 63e9c90b、agent-aa3978d6299a66c92）のトランスクリプトの72行目の nested_memory の添付は、path が /Users/taikiogihara/work/my-claude-code/.claude/CLAUDE.md（type Project、3,921字）で、レビュー役が .claude/ の下のファイルを読んだ後に入った。spec 068・069 の Explore のレビュー役にも同じ添付が入っていた（直しのコミットの evidence/reviewer_tools.py の2つ目の表）。どのレビュー役にも MCP サーバーの説明文（mcp_instructions_delta、4〜6のサーバー）が入っていた。起動の時点の instructions の添付は、どの回にも無い。そこで、利用者が 2026-11-10 の質問（AR-04 の扱い）に「直してもう1回回す (Recommended)」と答えたのに従い、直しのコミットで次を変えた。R0 の文を問題文の G1 の理想と同じ「指示や記憶を読み込まずに始まる」に狭め、R0-A4 と R1-A1 の基準を「起動の時点の instructions の添付が無い」とし、起動の後に入る2つは要約の2つ目の表に出すとした。evidence/reviewer_tools.py に nested_memory と mcp_instructions_delta を出す表を足した。2つの手順（requirements-decomposition の手順3と challenger.md、verified-delivery の手順5）、README.md と README.ja.md、verified-delivery の README の 2.4 に、読んだディレクトリの CLAUDE.md と MCP の説明文が起動の後に入ることを書き、R1c と R1c-A2 にその記述を加えた。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "evidence_mismatch",
+        "target": "R1-A1",
+        "severity": "low",
+        "statement": "R1-A1 の文は、3回のトランスクリプトと meta を evidence/reviewer_tools.py と同じ規則で要約すると「model が sonnet、各回の effort が xhigh」と述べる。しかし f05ce79/probes.txt の reviewer_tools.py の行では、R1-A1 の3つのレビュー役（bff5c3b1 の826420b8・1c36afb4・8b312a6a）の model と effort がどれも None である（meta.get('model')、meta.get('effort') が空）。sonnet と xhigh を示すのは、別の節「Effort and model per message」の、トランスクリプトのメッセージごとの値（effort {'xhigh': N}、models {'claude-sonnet-5-5': N}）だが、その節を作った規則や手順は bundle にもスクリプトにも無く、基準の「meta を reviewer_tools.py と同じ規則で」とも違う。内容としては AR-01 の指摘（定義の effort とセッションの effort の区別）に答える観測だが、表と基準の字面が合わず、なぜ meta が空なのかの説明も無い。meta の欄が空であることの説明と、メッセージごとの値を出した手順を記録するか、基準の言い方をトランスクリプトの値に合わせる必要がある。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。meta は Agent の呼び出しで model と effort を上書きしたときだけそれらを記録する（spec 068・069 の回は上書きしたので sonnet と xhigh があり、確かめの R1-A1 は上書きしないので空になる。evidence/reviewer-tools.txt と f05ce79/probes.txt の表）。直しのコミットで evidence/reviewer_tools.py に、トランスクリプトのモデルの添付、応答の model、メッセージごとの effort を出す表を足し、R1-A1 の文を、model はモデルの添付と応答の model、effort はメッセージごとの値で、主のセッションの effort も同じ規則で見る、と直した。"
+      }
+    ]
+  }
+}
