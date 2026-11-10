@@ -4,7 +4,7 @@
   "requirements": [
     {
       "id": "R0",
-      "statement": "requirements-decomposition の challenger と verified-delivery の assurance review の手順は、レビュー役を、読む・探すことしかできず利用者とプロジェクトの指示を読み込まない一通りの型として起動させ、起動した型を後から確かめられる形で記録させる。失敗した回は記録に残らない。却下の根拠は、次の回のレビュー役か人が読んで確かめられる。assurance review は回数の区切りと往復で人に続けるかを尋ねる。",
+      "statement": "requirements-decomposition の challenger と verified-delivery の assurance review の手順は、レビュー役を、読む・探すことしかできず、利用者とプロジェクトの指示や記憶を読み込まずに始まる一通りの型として起動させ、起動した型を後から確かめられる形で記録させる。失敗した回は記録に残らない。却下の根拠は、次の回のレビュー役か人が読んで確かめられる。assurance review は回数の区切りと往復で人に続けるかを尋ねる。",
       "decomposition": "AND",
       "children": ["R1", "R2", "R3", "R4"],
       "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、Claude が示した EGM から取り入れる4項目の質問に4つすべて（読み取り専用レビュアー、失敗＝指摘ゼロにしない、却下の根拠を検証可能に、レビュー回数の上限）を選び、続く質問で問題文 G1〜G4 で進めることと spec 069 の方策 C を改めて採ることを選び、challenger の CH-01 の質問で「理想を狭める」を選んだ"},
@@ -16,7 +16,7 @@
       "acceptance": [
         {"id": "R0-A1", "level": "L3", "description": "reviewed_commit の上で CI の test ジョブ（install、2つのスキルの試験、ハーネスの評価の試験と check を含む）がすべて合格する。"},
         {"id": "R0-A2", "level": "L3", "description": "利用者が、対応表のすべての行を、変更後の requirements-decomposition と verified-delivery の手順と参照の全文、およびレビュー役の定義と突き合わせ、G1〜G4 がそれぞれ閉じていて、2つのスキルが同じ規則（レビュー役の型、失敗の扱い、却下の根拠）を書いていると確かめる。"},
-        {"id": "R0-A4", "level": "L3", "description": "このリポジトリで、新しい Claude Code のセッションを claude -p で2回始める（このリポジトリの .claude/agents/ が読み込まれ、手順の本文はこのリポジトリの .claude/skills/ のファイルを読ませる）。型を名指さずに、1回目は「requirements-decomposition の手順3に沿って、この problem card と graph に challenger を走らせ、challenge report に写す内容まで」、2回目は「verified-delivery の手順5と references/reviewer.md に沿って、この bundle に1回目の assurance review を行い、review の記録に写す内容まで」と頼む。どちらのセッションでも、サブエージェントのトランスクリプトと meta を evidence/reviewer_tools.py で要約すると、レビュー役の型が read-only-reviewer で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、instructions の添付が無く、主のモデルが書いた reviewer の欄に型と agentId が入っている。"},
+        {"id": "R0-A4", "level": "L3", "description": "このリポジトリで、新しい Claude Code のセッションを claude -p で2回始める（このリポジトリの .claude/agents/ が読み込まれ、手順の本文はこのリポジトリの .claude/skills/ のファイルを読ませる）。型を名指さずに、1回目は「requirements-decomposition の手順3に沿って、この problem card と graph に challenger を走らせ、challenge report に写す内容まで」、2回目は「verified-delivery の手順5と references/reviewer.md に沿って、この bundle に1回目の assurance review を行い、review の記録に写す内容まで」と頼む。どちらのセッションでも、サブエージェントのトランスクリプトと meta を evidence/reviewer_tools.py で要約すると、レビュー役の型が read-only-reviewer で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、起動の時点の instructions の添付が無く（起動の後に、読んだファイルのディレクトリの CLAUDE.md が nested_memory として、MCP サーバーの説明文が mcp_instructions_delta として入ることは、要約の2つ目の表に出す）、主のモデルが書いた reviewer の欄に型と agentId が入っている。"},
         {"id": "R0-A3", "level": "L3", "stage": "post_deploy", "description": "マージの後に install.sh を実行し、このリポジトリ以外のプロジェクトで始めた新しいセッションで、requirements-decomposition か verified-delivery の手順に沿って起動したレビュー役のトランスクリプトを evidence/reviewer_tools.py で要約すると、型が read-only-reviewer で、Bash などの道具を使っておらず、instructions の添付が無い。ユーザーの範囲の ~/.claude/agents/ と ~/.claude/skills/ から読まれることは、install.sh で利用者の ~/.claude を置き換えた後にしか観測できない。"}
       ]
     },
@@ -32,7 +32,7 @@
         "Read の道具が、レビューの資料（リポジトリの外の bundle のディレクトリ）を読めなければ、どのレビューも NOT REVIEWED になる。"
       ],
       "acceptance": [
-        {"id": "R1-A1", "level": "L2", "description": "新しい Claude Code のセッション（このリポジトリで claude -p --effort medium を実行し、.claude/agents/ の定義を読み込ませる。主のセッションの effort を xhigh 以外にして、定義の effort の効果を区別する）で、主のモデルに read-only-reviewer を3回起動させる。1回目は、リポジトリの外の一時のディレクトリに置いたファイルと空のファイル、リポジトリのファイルを1つずつ読ませる。2回目は、在らないファイルを読ませる。3回目は、Bash で一時のディレクトリにファイルを作ることと、Write で別のファイルを書くことを求める。3回のトランスクリプトと meta を evidence/reviewer_tools.py と同じ規則で要約すると、型が read-only-reviewer、model が sonnet、各回の effort が xhigh（主のセッションは medium）で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、WebFetch・WebSearch・EnterWorktree・SendMessage・TaskStop と MCP の道具が使える道具として渡されておらず、instructions の添付が無い。1回目は3つのファイルを read に挙げて中身を答え（空のファイルでは NOT REVIEWED と答えない）、2回目は NOT REVIEWED の1行で答え、3回目は Bash も Write も呼ばず、2つのファイルは作られない。"}
+        {"id": "R1-A1", "level": "L2", "description": "新しい Claude Code のセッション（このリポジトリで claude -p --effort medium を実行し、.claude/agents/ の定義を読み込ませる。主のセッションの effort を xhigh 以外にして、定義の effort の効果を区別する）で、主のモデルに read-only-reviewer を3回起動させる。1回目は、リポジトリの外の一時のディレクトリに置いたファイルと空のファイル、リポジトリのファイルを1つずつ読ませる。2回目は、在らないファイルを読ませる。3回目は、Bash で一時のディレクトリにファイルを作ることと、Write で別のファイルを書くことを求める。3回のトランスクリプトと meta を evidence/reviewer_tools.py で要約すると（meta は Agent の呼び出しで上書きしたときだけ model と effort を記録するので、model はトランスクリプトのモデルの添付と応答の model、effort はメッセージごとの値で見る。主のセッションの effort も同じ規則で見る）、型が read-only-reviewer、model が sonnet、各回の effort が xhigh（主のセッションは medium）で、使った道具が Read・Grep・Glob と、結果を主のセッションに返す SubagentHandback だけで、WebFetch・WebSearch・EnterWorktree・SendMessage・TaskStop と MCP の道具が使える道具として渡されておらず、起動の時点の instructions の添付が無い。1回目は3つのファイルを read に挙げて中身を答え（空のファイルでは NOT REVIEWED と答えない）、2回目は NOT REVIEWED の1行で答え、3回目は Bash も Write も呼ばず、2つのファイルは作られない。"}
       ]
     },
     {
@@ -54,11 +54,11 @@
     },
     {
       "id": "R1c",
-      "statement": "install.sh が .claude/agents/ を ~/.claude/agents/ に置き換えで同期し、read-only-reviewer.md を入れ、リポジトリから消えた agents のファイルは消す。README.md と README.ja.md は、agents/ に中身があること、そこに何があるか、スキルが agents の定義を名前で名指してよいことを、同じ見出しの構造で書く。",
+      "statement": "install.sh が .claude/agents/ を ~/.claude/agents/ に置き換えで同期し、read-only-reviewer.md を入れ、リポジトリから消えた agents のファイルは消す。README.md と README.ja.md は、agents/ に中身があること、そこに何があるか、スキルが agents の定義を名前で名指してよいこと、その定義は CLAUDE.md を読み込まずに始めさせるが、読んだファイルのディレクトリの CLAUDE.md と MCP サーバーの説明文は起動の後に入ることを、同じ見出しの構造で書く。verified-delivery の README.md と README.ja.md の 2.4 も、この2つが入ることを書く。",
       "decomposition": "LEAF",
       "acceptance": [
         {"id": "R1c-A1", "level": "L1", "description": "tests/run-install.sh が、一時の HOME への install の後に ~/.claude/agents/ がリポジトリの .claude/agents/ と同じ中身で、前からあった別の agents のファイルが消えていることを確かめて合格する。"},
-        {"id": "R1c-A2", "level": "L1", "description": "tests/run-readme-skill-index.sh が合格し、対応表の行で、利用者が、README.md と README.ja.md の agents/ の記述が上のことを書いていると確かめる。"}
+        {"id": "R1c-A2", "level": "L1", "description": "tests/run-readme-skill-index.sh が合格し、対応表の行で、利用者が、README.md と README.ja.md の agents/ の記述と、verified-delivery の README.md と README.ja.md の 2.4 が上のことを書いていると確かめる。"}
       ]
     },
     {

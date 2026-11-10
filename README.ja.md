@@ -97,7 +97,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     [`archive/minto-pyramid/`](archive/minto-pyramid/) に退避した。従来の Minto スイート
     （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
     [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した。`meta-spec` スキルは不要と判断し、[`archive/meta-spec/`](archive/meta-spec/) に退避した（[spec 058](specs/058-parent-skill-references/spec.md)）
-  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言せず、親がなくても使える（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `.claude/agents/` に定義したサブエージェントも名前で名指せる。`requirements-decomposition` と `verified-delivery` のレビューの手順は `read-only-reviewer` を起動する。その定義は道具を Read・Grep・Glob だけに限り、CLAUDE.md を読み込ませない。手順は、その型が無ければ止まる（[spec 070](specs/070-review-integrity/problem.md)）
+  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言せず、親がなくても使える（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `.claude/agents/` に定義したサブエージェントも名前で名指せる。`requirements-decomposition` と `verified-delivery` のレビューの手順は `read-only-reviewer` を起動する。その定義は道具を Read・Grep・Glob だけに限り、CLAUDE.md を読み込まずに始めさせる（読んだファイルのディレクトリの CLAUDE.md と、MCP サーバーの説明文は、起動の後に入る）。手順は、その型が無ければ止まる（[spec 070](specs/070-review-integrity/problem.md)）
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
@@ -222,7 +222,7 @@ my-claude-code/
     │   ├── permissions.md          # 権限と安全性。強制される deny は settings.json
     │   └── pyramid-principle.md    # 読み手本位の構造: ピラミッド、論文の構成の順序、前提と用語
     ├── agents/
-    │   └── read-only-reviewer.md   # 反証役と保証レビューが起動するサブエージェント: Read/Grep/Glob だけ、CLAUDE.md なし
+    │   └── read-only-reviewer.md   # 反証役と保証レビューが起動するサブエージェント: Read/Grep/Glob だけ、CLAUDE.md なしで始まる
     └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型
         ├── coder/SKILL.md          # 変更手順 + TDD + SDD + 品質 + 安全 + 型安全性 + ドキュメント
         ├── pyramid-structure/      # 全実質タスクに Minto のピラミッド + 同梱の構成検査(scripts/check.py)

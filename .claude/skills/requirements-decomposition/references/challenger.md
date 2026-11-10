@@ -1,6 +1,6 @@
 # Challenger prompt
 
-Give the text below, unchanged except for the two paths and the language the records are written in, to a new `read-only-reviewer` subagent, whose definition allows only Read, Grep, and Glob, so it cannot edit files, run commands, or reach the network, and leaves out CLAUDE.md (with the plugin's prefix when these skills came as a plugin; when no subagent of that name is available, stop instead of starting another type). Give it a copy of the problem card without `proposed_solutions`, and the requirements graph, only. Do not give it the proposed solutions, the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
+Give the text below, unchanged except for the two paths and the language the records are written in, to a new `read-only-reviewer` subagent, whose definition allows only Read, Grep, and Glob, so it cannot edit files, run commands, or reach the network, and starts it without CLAUDE.md (with the plugin's prefix when these skills came as a plugin; when no subagent of that name is available, stop instead of starting another type). Give it a copy of the problem card without `proposed_solutions`, and the requirements graph, only. Do not give it the proposed solutions, the planned implementation, the conversation, or your own assessment: the point is that it does not start from your conclusions.
 
 ```text
 You are a skeptical, read-only reviewer of a problem definition and its

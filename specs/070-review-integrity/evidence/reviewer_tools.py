@@ -10,7 +10,12 @@ For each reviewer it prints the subagent type, the model and effort recorded
 in the meta file, the tool calls it made, how many Bash commands ran Python or
 a git command whose output was piped into Python, whether the transcript has
 an ``instructions`` attachment (the user's and project's CLAUDE.md, rules, and
-memory index), and which deferred tools were offered to it. At the end it
+memory index, given at start), and which deferred tools were offered to it.
+A second table gives, from the transcript, the model attachment, the models
+of the assistant messages, the effort recorded with each message, every
+nested_memory attachment (a CLAUDE.md that Claude Code loads while the
+subagent works with files in its directory), and how many MCP servers'
+instructions were given (mcp_instructions_delta). At the end it
 counts, over all reviewers' Bash commands, the programs the commands started
 (each segment between ``&&``, ``||``, ``;``, ``|`` and newlines, by its first
 word after ``cd`` and variable assignments; ``git`` with its subcommand), and
@@ -88,11 +93,26 @@ def main(project_dir):
         instructions = []
         offered = set()
         mcp_offered = 0
-        for d in lines:
+        model_attachment = None
+        assistant_models = collections.Counter()
+        efforts = collections.Counter()
+        nested = []
+        mcp_instructions = []
+        for i, d in enumerate(lines):
+            if "effort" in d:
+                efforts[d["effort"]] += 1
+            if d.get("type") == "assistant" and (d.get("message") or {}).get("model"):
+                assistant_models[d["message"]["model"]] += 1
             att = d.get("attachment")
             if isinstance(att, dict):
                 if att.get("type") == "instructions":
                     instructions = [f.get("path", "") for f in att.get("files", [])]
+                if att.get("type") == "model":
+                    model_attachment = (att.get("identity") or {}).get("modelId")
+                if att.get("type") == "nested_memory":
+                    nested.append(f"{att.get('displayPath') or att.get('path')} (line {i})")
+                if att.get("type") == "mcp_instructions_delta":
+                    mcp_instructions.extend(att.get("addedNames") or [])
                 if att.get("type") == "deferred_tools_delta":
                     names = att.get("addedNames") or []
                     offered.update(n for n in names if n in OFFERED_OF_INTEREST)
@@ -113,7 +133,8 @@ def main(project_dir):
         role = "challenger" if first.startswith(OPENINGS[0]) else "assurance"
         rows.append((path.parent.parent.name[:8], path.stem[-8:], role, meta.get("agentType"),
                      meta.get("model"), meta.get("effort"), meta.get("finished"), dict(tools),
-                     python_runs, len(instructions), sorted(offered), mcp_offered))
+                     python_runs, len(instructions), sorted(offered), mcp_offered,
+                     model_attachment, dict(assistant_models), dict(efforts), nested, len(mcp_instructions)))
         totals["reviewers"] += 1
         totals["bash"] += tools.get("Bash", 0)
         totals["python_runs"] += python_runs
@@ -126,6 +147,13 @@ def main(project_dir):
     for r in rows:
         print(f"{r[0]} {r[1]} {r[2]:<11} {r[3]!s:<8} {r[4]!s:<7} {r[5]!s:<6} {r[6]!s:<8} | {r[7]} | {r[8]} | "
               f"{r[9]} | {r[10]} | {r[11]}")
+    print()
+    # The meta file records model and effort only when the Agent call
+    # overrides them; the transcript records what each turn ran with.
+    print("session  agent    | model attachment | assistant models | effort per message | "
+          "nested memory loaded while working (path, transcript line) | MCP servers whose instructions were given")
+    for r in rows:
+        print(f"{r[0]} {r[1]} | {r[12]} | {r[13]} | {r[14]} | {r[15] or '-'} | {r[16]}")
     print()
     print("totals:", dict(sorted(totals.items())))
     print()
