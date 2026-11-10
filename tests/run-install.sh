@@ -140,7 +140,10 @@ pass "the Claude app's skills/synced/ is preserved unchanged"
   fail "no temporary keep directory is left behind"
 pass "no temporary keep directory is left behind"
 
-assert_absent "$TARGET/agents" "absent managed agents are removed"
+diff -r "$REPO_ROOT/.claude/agents" "$TARGET/agents" >/dev/null ||
+  fail "agents directory matches the repository (read-only-reviewer, spec 070)"
+pass "agents directory matches the repository (read-only-reviewer, spec 070)"
+assert_absent "$TARGET/agents/stale.md" "an agent file removed from the repository is removed"
 assert_absent "$TARGET/commands" "retired commands are removed"
 
 grep -qx 'preserve' "$TARGET/user-owned.txt" || fail "unrelated user file is preserved"

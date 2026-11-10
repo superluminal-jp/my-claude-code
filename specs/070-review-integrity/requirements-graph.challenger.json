@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "problem_id": "P-070",
+  "requirements": [
+    {
+      "id": "R0",
+      "statement": "requirements-decomposition の challenger と verified-delivery の assurance review のレビュー役は、ホストが道具と読み込む指示を決める読み取り専用のサブエージェントとして起動される。失敗した回は指摘なしとして記録されない。却下の根拠は、次の回のレビュー役か人が読んで確かめられる。assurance review は回数の上限と往復で人に続けるかを尋ねる。",
+      "decomposition": "AND",
+      "children": ["R1", "R2", "R3", "R4"],
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、Claude が示した EGM から取り入れる4項目の質問に4つすべて（読み取り専用レビュアー、失敗＝指摘ゼロにしない、却下の根拠を検証可能に、レビュー回数の上限）を選び、続く質問で問題文 G1〜G4 で進めることと、spec 069 の方策 C を改めて採ることを選んだ"},
+      "counterexamples": [
+        "子がすべて成り立っても、~/.claude に入っているのが変更前のスキルなら、別のプロジェクトでは古い手順が読まれ、Explore が選ばれ続ける（install.sh を実行するまで）。",
+        "子がすべて成り立っても、2つのスキルの手順が互いに違う規則（やり直しの回数、却下の根拠の扱い）を書けば、同じレビュー役の失敗が手順ごとに違う扱いになる。"
+      ],
+      "acceptance": [
+        {"id": "R0-A1", "level": "L3", "description": "reviewed_commit の上で CI の test ジョブ（install、2つのスキルの試験、ハーネスの評価の試験と check を含む）がすべて合格する。"},
+        {"id": "R0-A2", "level": "L3", "description": "利用者が、対応表のすべての行を、変更後の requirements-decomposition と verified-delivery の手順と参照の全文、およびレビュー役の定義と突き合わせ、G1〜G4 がそれぞれ閉じていて、2つのスキルが同じ規則（レビュー役の型、失敗の扱い、却下の根拠）を書いていると確かめる。"},
+        {"id": "R0-A3", "level": "L3", "stage": "post_deploy", "description": "マージの後に install.sh を実行し、新しいセッションで requirements-decomposition か verified-delivery の手順に沿って起動したレビュー役のトランスクリプトを evidence/reviewer_tools.py で要約すると、型が read-only-reviewer で、Bash などの道具を使っておらず、instructions の添付が無い。"}
+      ]
+    },
+    {
+      "id": "R1",
+      "statement": "レビュー役は、.claude/agents/ に置いた read-only-reviewer の定義（道具は Read・Grep・Glob だけ、omitClaudeMd、sonnet、effort xhigh）として起動される。2つの手順はその名前を指し、その型が無いときは別の型で代えずに止まる。install.sh がそれを ~/.claude/agents/ に入れ、README とハーネスの評価がそれを扱う。",
+      "decomposition": "AND",
+      "children": ["R1a", "R1b", "R1c", "R1d"],
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「読み取り専用レビュアー（.claude/agents/ に tools: [Read, Grep, Glob]・omitClaudeMd: true・model: sonnet の定義を1つ置き、challenger と assurance reviewer はその名前を指すだけにする）」を選んだ"},
+      "counterexamples": [
+        "定義が正しく、手順がその名前を指しても、Claude Code がプロジェクトかユーザーの agents の定義の omitClaudeMd や tools を守らなければ、レビュー役は Bash や CLAUDE.md を持つ。",
+        "定義の name と手順が指す名前が1字でも違えば、主のモデルはその型を見つけられず、止まるか、手順に背いて Explore を選ぶ。"
+      ],
+      "acceptance": [
+        {"id": "R1-A1", "level": "L2", "description": "新しい Claude Code のセッション（このリポジトリで claude -p を実行し、.claude/agents/ の定義を読み込ませる）で、主のモデルに read-only-reviewer を起動させて決まったファイルを読ませる。そのレビュー役のトランスクリプトと meta を evidence/reviewer_tools.py と同じ規則で要約すると、型が read-only-reviewer、model が sonnet、effort が xhigh で、使った道具が Read・Grep・Glob だけで、WebFetch・WebSearch・EnterWorktree・SendMessage・TaskStop と MCP の道具が使える道具として渡されておらず、instructions の添付が無い。"}
+      ]
+    },
+    {
+      "id": "R1a",
+      "statement": ".claude/agents/read-only-reviewer.md が、name を read-only-reviewer、tools を Read・Grep・Glob、model を sonnet、effort を xhigh、omitClaudeMd を true とする定義を持つ。本文は、課題が名指すファイルだけを読み、何も変えず、課題が求める形でだけ答え、名指されたファイルを読めないときは指摘の代わりに「NOT REVIEWED: <パス>: <理由>」の1行で答えるよう求める。description は、手順がこの型を名指したときにだけ使うと書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1a-A1", "level": "L1", "description": "試験（tests/assert_reviewer_agent.py、tests/run-verified-delivery-skill.sh から呼ぶ）が、.claude/agents/read-only-reviewer.md のフロントマターを読み、キーが name・description・tools・model・effort・omitClaudeMd だけで、tools がちょうど Read・Grep・Glob、model が sonnet、effort が xhigh、omitClaudeMd が true であること、本文に NOT REVIEWED の形があることを確かめ、どれか1つを変えた写しでは不合格になる。"}
+      ]
+    },
+    {
+      "id": "R1b",
+      "statement": "requirements-decomposition の手順3と references/challenger.md、verified-delivery の手順5と references/reviewer.md が、レビュー役を read-only-reviewer の型（プラグインとして入ったときはプラグインの接頭辞の付いた同じ名前）で起動するよう求め、その型が無いときは別の型で代えずに止まり、人に伝えるよう求める。記録の reviewer の欄には起動した型を書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1b-A1", "level": "L1", "description": "試験（tests/assert_reviewer_agent.py）が、4つのファイルがどれも定義の name と同じ read-only-reviewer を名指し、「a new subagent that can only read and search」と「a new subagent whose tools can only read and search」の文が残っていないことを確かめる。"},
+        {"id": "R1b-A2", "level": "L1", "description": "対応表の行で、利用者が、変更後の4つのファイルが、read-only-reviewer で起動すること、その型が無ければ代えずに止まること、reviewer の欄に型を書くことを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R1c",
+      "statement": "install.sh が .claude/agents/ を ~/.claude/agents/ に置き換えで同期し、read-only-reviewer.md を入れ、リポジトリから消えた agents のファイルは消す。README.md と README.ja.md は、agents/ に中身があること、そこに何があるか、スキルが agents の定義を名前で名指してよいことを、同じ見出しの構造で書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1c-A1", "level": "L1", "description": "tests/run-install.sh が、一時の HOME への install の後に ~/.claude/agents/read-only-reviewer.md がリポジトリのものと同じ内容で在り、前からあった別の agents のファイルが消えていることを確かめて合格する。"},
+        {"id": "R1c-A2", "level": "L1", "description": "tests/run-readme-skill-index.sh が合格し、対応表の行で、利用者が、README.md と README.ja.md の agents/ の記述が上のことを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R1d",
+      "statement": "ハーネスの評価（tests/harness-eval/harness_eval.py と docs/harness/capability-map.json）が read-only-reviewer を扱う。対応表は agent:read-only-reviewer.md を部品として載せ、D-decompose と H-verify の担い手にする。組み立ては .claude/agents/ のファイルをプラグインの agents/ に写して止まらない（commands は今までどおり止める）。docs/harness-eval.md は、評価ではその型がプラグインの接頭辞の付いた名前になることを、実際の環境との違いとして書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {"id": "R1d-A1", "level": "L1", "description": "tests/harness-eval/test_harness_eval.py の試験で、対応表に載った agents のファイルを持つハーネスの組み立てが止まらず、そのファイルがプラグインの agents/ に同じ内容で写る。commands のファイルを持つハーネスの組み立ては今までどおり止まる。"},
+        {"id": "R1d-A2", "level": "L1", "description": "tests/run-harness-eval.sh が合格し、その中の harness_eval.py check がこのリポジトリで違反を出さず、docs/harness/capability-map.md が render の出力と一致する。"}
+      ]
+    },
+    {
+      "id": "R2",
+      "statement": "2つの手順が、エラーで終わった、止められた、時間切れになった、NOT REVIEWED と答えた、または決まった JSON の形でない答えを返したレビュー役は、レビューしていないとする。同じ入力で新しいレビュー役を1回だけ起動し直し、それでも駄目なら challenge report や assurance review の記録を書かずに止まり、レビューが動かなかったことを人に伝える。findings を空にするのは、レビュー役が空の findings の JSON を返したときだけである。",
+      "decomposition": "LEAF",
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「失敗＝指摘ゼロにしない（失敗・時間切れ・JSON でない返答のときは1回だけやり直し、それでも駄目なら止めて人に伝える）」を選んだ"},
+      "acceptance": [
+        {"id": "R2-A1", "level": "L1", "description": "対応表の行で、利用者が、変更後の requirements-decomposition の手順3と references/challenger.md、verified-delivery の手順5と references/reviewer.md が、上の失敗の種類、1回だけのやり直し、記録を書かずに止まること、空の findings を書いてよい場合を、同じ規則として書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R3",
+      "statement": "2つの手順が、指摘を却下する理由を、次の回のレビュー役か人が読めるファイルと行を引くものか、名指した人が決めたこと（誰が、どこで）に限る。レビュー役が読めない事実（会話での決定、慣習、読めない系）に頼るときは、その事実を、誰がどこで決めたかとともに、次のレビュー役に渡る記録（challenger では problem card の evidence、assurance review では manifest が引く記録の場所のファイル）に先に書くか、まだ人が決めていなければ人に尋ねる。却下したい気持ちは指摘が誤っている証拠ではないと書く。2回目以降のレビュー役のプロンプトは、読めるものを何も引かない却下を、成り立たない却下として報告させる。",
+      "decomposition": "LEAF",
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「却下の根拠を検証可能に（根拠はレビュアーが読めるファイルに限り、読めない事実に頼るなら人に判断を回す）」を選んだ"},
+      "acceptance": [
+        {"id": "R3-A1", "level": "L1", "description": "対応表の行で、利用者が、変更後の2つの手順と references/reviewer.md の2回目以降のプロンプトが、却下の理由の2つの形、読めない事実を記録に書くか人に尋ねること、読めるものを引かない却下を報告させることを書いていると確かめる。"}
+      ]
+    },
+    {
+      "id": "R4",
+      "statement": "verified-delivery の手順が、同じ変更の assurance review の6回目を始める前（その後は5回ごと）と、ある回の指摘が往復（前の回の直しが変えた箇所を指し、その直しを戻せば消える指摘）であるときに、止まって人に、もう1回レビューするか、残る指摘を人が決めるか、手順2に戻るかを尋ねるよう求める。",
+      "decomposition": "LEAF",
+      "origin": {"kind": "instruction", "by": "Taiki Ogihara", "ref": "2026-11-10 の会話で、取り入れる項目の質問に「レビュー回数の上限（例: 5回、または修正が同じ箇所に新しい指摘を生む往復が起きたら人に尋ねる）」を選び、続く質問で spec 069 の方策 C を「改めて採る」を選んだ"},
+      "acceptance": [
+        {"id": "R4-A1", "level": "L1", "description": "対応表の行で、利用者が、変更後の verified-delivery の手順が、6回目の前とその後5回ごとに、また往復の指摘のときに、3つの選択肢で人に尋ねることを書いていると確かめる。"}
+      ]
+    }
+  ]
+}

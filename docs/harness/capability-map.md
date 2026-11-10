@@ -9,7 +9,7 @@
 | `D-intent` | 定義 | 目的・範囲・完了条件を定め、結果を変える選択が残るときは着手前に尋ねる | `apex`, `rule:clarifier`, `skill:clarifier` | `d-intent-ambiguous` |
 | `D-problem` | 定義 | 漠然とした不満を、現状と理想の差としての問題文にする | `skill:problem-definition` | `d-problem-vague` |
 | `D-product` | 定義 | 開発の前に、プロダクトの方向（対象、価値、指標、範囲）を定める | `skill:product-strategy` | `d-product-direction` |
-| `D-decompose` | 定義 | 合意した問題を、検査できる要件のグラフに分解する | `skill:requirements-decomposition` | `d-decompose-agreed`, `e-proportion-typo` |
+| `D-decompose` | 定義 | 合意した問題を、検査できる要件のグラフに分解する | `skill:requirements-decomposition`, `agent:read-only-reviewer.md` | `d-decompose-agreed`, `e-proportion-typo` |
 | `D-evidence` | 定義 | 事実の主張を、適用できる最新の一次の証拠に基づかせる | `apex`, `rule:thinking-lenses`, `skill:aws-research` | `d-evidence-aws` |
 | `D-reasoning` | 定義 | 依存、分岐、反復、推論の完全さを確かめてから決める（観測しない: 内部の判断の形成を律する規則で、出力の形を求めないため、決定的な判定で確かめられない） | `apex`, `rule:thinking-lenses` | — |
 | `D-root-cause` | 定義 | 根本原因を分析する | **担い手なし** | `obs-root-cause` |
@@ -29,7 +29,7 @@
 | `E-diagrams` | 実行 | システム構成図を、1枚に1つの問い・1種類の読者・1つの抽象度で作る | `skill:system-diagrams` | `e-system-diagrams`, `e-diagrams-vendor-icons` |
 | `E-notes` | 実行 | Apple のメモの読み書き（観測しない: 評価のエージェントが利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめられていないので、この段階は評価しない） | `skill:apple-notes` | — |
 | `E-reminders` | 実行 | Apple のリマインダーの読み書き（観測しない: 評価のエージェントが利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめられていないので、この段階は評価しない） | `skill:apple-reminders` | — |
-| `H-verify` | 引き渡し | 完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする | `apex`, `skill:verified-delivery`, `skill:coder` | `h-verify-evidence`, `e-proportion-typo` |
+| `H-verify` | 引き渡し | 完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする | `apex`, `skill:verified-delivery`, `skill:coder`, `agent:read-only-reviewer.md` | `h-verify-evidence`, `e-proportion-typo` |
 | `H-structure` | 引き渡し | 答えを先に置き、支えを下に組む | `apex`, `rule:pyramid-principle`, `skill:pyramid-structure` | `h-structure-recommend` |
 | `H-docs` | 引き渡し | 公開の契約と文書を、変更と同期させる | `apex`, `skill:maintaining-living-documentation`, `skill:coder` | `h-docs-flag-rename` |
 | `H-code-review` | 引き渡し | 変更をコードレビューする | **担い手なし** | `obs-code-review` |

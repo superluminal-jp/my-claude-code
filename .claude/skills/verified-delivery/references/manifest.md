@@ -73,14 +73,14 @@ The gate reads the graph's problem id, its acceptance criteria, and the structur
 ```json
 {"schema_version": 1, "assurance_review": {
   "change_id": "CHG-001", "reviewed_commit": "0f5a148c2d7a9e1b3f6a8c0d2e4f6a8b0c2d4e6f",
-  "reviewer": "read-only subagent (Explore), 2026-11-06",
+  "reviewer": "read-only-reviewer, agentId a1b2c3d4e5f6a7b8c, 2026-11-06, read 6 files",
   "context_given": ["requirements graph", "diff of 0f5a148", "CI log of run 1"],
   "findings": [{"id": "AR-01", "kind": "parent_by_children", "target": "TEST-PARENT-001", "severity": "medium",
                 "statement": "<what is wrong and the line that shows it>", "disposition": "rejected",
                 "resolution": "<why it does not hold, or what changed>"}]}}
 ```
 
-- Exactly these fields; `change_id`, `reviewed_commit`, and `reviewer` are non-empty strings, `context_given` lists exactly what the reviewer was given, and `findings` is an array, empty when the reviewer found nothing material. Otherwise, or when `change_id` is not the manifest's, the input cannot be interpreted (exit 2).
+- Exactly these fields; `change_id`, `reviewed_commit`, and `reviewer` are non-empty strings (`reviewer` gives the subagent type, the agentId the Agent tool returned, the date, and how many files it read), `context_given` lists exactly what the reviewer was given, and `findings` is an array, empty only when the reviewer read every file its prompt names and found nothing material. A reviewer that did not review writes no record ([SKILL.md](../SKILL.md), step 5); the checker reads only the shape and cannot tell an empty `findings` from a review that did not run. Otherwise, or when `change_id` is not the manifest's, the input cannot be interpreted (exit 2).
 - `reviewed_commit` must be the manifest's `reviewed_commit`, written the same way; a review of another commit is stale and A-10 blocks it.
 - Each finding has `id`, `kind` (`parent_by_children`, `evidence_mismatch`, `uncovered_path`, `weakened_test`, `risk_mismatch`, or `other`, after the reviewer prompt), `target`, `severity` (`high`, `medium`, `low`), `statement`, `disposition`, and `resolution` once answered. The gate reads `id`, `target`, `disposition`, and `resolution`; the card also shows the others.
 

@@ -1,0 +1,22 @@
+# Human review of spec 070 at reviewed commit 570a91c0decece73d96b98fbbb21a52420408d00
+# Reviewer: Taiki Ogihara (the person who asked for the change; not the implementer), 2026-11-10, in the Claude Code conversation.
+# Table reviewed: specs/070-review-integrity/human-review-table.md (11 rows, line numbers as of 570a91c).
+
+Question 1 (asked by Claude): "対応表 specs/070-review-integrity/human-review-table.md の11行を、右の列のファイルと行
+（reviewed_commit 570a91c）と突き合わせた結果はどうですか。合うと答えた行は、受け入れ条件を人の確認（human_review）で
+passed として記録します。"
+Answer: "すべての行が合う"
+-> R1b-A2 (row 1), R1c-A2 (row 2), R1e-A1 (row 3), R2-A1 (row 4), R3-A1 (row 5), R3-A2 (row 6), R3-A3 (row 7), R4-A1 (row 8),
+   R0-A2 (row 9), R1a-A1 (row 10, with tests/assert_reviewer_agent.py passed in reviewer-agent.txt),
+   R1d-A2 (row 11, with tests/run-harness-eval.sh passed in harness-eval.txt).
+
+Question 2: "置き換えた2つの試験を承認しますか。(1) tests/harness-eval/test_harness_eval.py の
+test_a_harness_with_a_mapped_agent_stops_the_build を消し、agents をプラグインに写す試験と、評価から外す agents で止まる試験に
+置き換えた。(2) tests/run-install.sh の「~/.claude/agents が消える」確認を消し、「リポジトリと同じ中身で、消えたファイルは消える」
+確認に置き換えた（install.sh から agents を外すと落ちることも確かめた）。"
+Answer: "2つとも承認する"
+
+Question 3: "公式の回とは別の確かめのレビューが挙げた点をどう扱いますか。R2〜R4 の手順（失敗時のやり直しと停止、却下の根拠、
+回数の区切り）は対応表の目視だけで、R1 自身の L2 は定義だけを確かめる。（R2 は d6fc197 の確かめで、主のモデルが1回やり直して
+記録を書かずに止まるのを1度観測している。）"
+Answer: "限界として受け入れる (Recommended)"

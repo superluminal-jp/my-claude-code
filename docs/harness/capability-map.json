@@ -2,6 +2,10 @@
   "schema_version": 1,
   "components": [
     {
+      "id": "agent:read-only-reviewer.md",
+      "path": ".claude/agents/read-only-reviewer.md"
+    },
+    {
       "id": "apex",
       "path": ".claude/CLAUDE.md"
     },
@@ -157,7 +161,8 @@
       "branch": "define",
       "title": "合意した問題を、検査できる要件のグラフに分解する",
       "owners": [
-        "skill:requirements-decomposition"
+        "skill:requirements-decomposition",
+        "agent:read-only-reviewer.md"
       ],
       "basis": [
         {
@@ -474,7 +479,8 @@
       "owners": [
         "apex",
         "skill:verified-delivery",
-        "skill:coder"
+        "skill:coder",
+        "agent:read-only-reviewer.md"
       ],
       "basis": [
         {

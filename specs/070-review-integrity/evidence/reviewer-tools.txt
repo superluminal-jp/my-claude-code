@@ -1,0 +1,523 @@
+# Output of: python3 -I -B specs/070-review-integrity/evidence/reviewer_tools.py ~/.claude/projects/-Users-taikiogihara-work-my-claude-code
+# Run 2026-11-10 on branch feat/review-integrity, after this spec's own challenger run (session 10c2364d), which is included.
+# The "programs started" list splits commands naively, so words from inline Python and awk bodies also appear in it.
+# The state-changing matches were read one by one: all but one are the pattern inside grep or awk text; agent 38e9dfe6
+# wrote `git diff ... > "$TMPDIR/sk.diff"`. None changed a file of the repository.
+session  agent    role        type     model   effort finished | tool calls | bash running python | instruction files | deferred tools offered (of interest) | mcp tools offered
+04ec7447 04a189d7 challenger  Explore  None    None   True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 223
+04ec7447 6c6169fb challenger  Explore  None    None   True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 223
+04ec7447 3209fa42 challenger  Explore  None    None   True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 223
+04ec7447 9adb6fa3 challenger  Explore  None    None   True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 223
+10c2364d b3c59943 challenger  Explore  sonnet  xhigh  True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 59
+1ba20efd 1b83188e assurance   Explore  sonnet  xhigh  True     | {'Bash': 51, 'Read': 2, 'SubagentHandback': 1} | 1 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd 9d570abd assurance   Explore  sonnet  xhigh  True     | {'Bash': 17, 'Read': 1, 'SubagentHandback': 1} | 2 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd 5935d883 assurance   Explore  sonnet  xhigh  True     | {'Bash': 23, 'SubagentHandback': 1} | 1 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd ae64cb75 assurance   Explore  sonnet  xhigh  True     | {'Bash': 39, 'Read': 3, 'SubagentHandback': 1} | 4 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd 4295c9b9 assurance   Explore  sonnet  xhigh  True     | {'Bash': 60, 'Read': 2, 'SubagentHandback': 1} | 9 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd ef1cbb29 challenger  Explore  sonnet  xhigh  True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd f3a25a52 assurance   Explore  sonnet  xhigh  True     | {'Bash': 15, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd e30a886c assurance   Explore  sonnet  xhigh  True     | {'Bash': 18, 'SubagentHandback': 1} | 4 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd 20bcafb1 assurance   Explore  sonnet  xhigh  True     | {'Bash': 33, 'Read': 2, 'SubagentHandback': 1} | 10 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd 384628f6 assurance   Explore  sonnet  xhigh  True     | {'Bash': 23, 'SubagentHandback': 1} | 3 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd 6ccea252 assurance   Explore  sonnet  xhigh  True     | {'Bash': 18, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd 38e9dfe6 assurance   Explore  sonnet  xhigh  True     | {'Bash': 60, 'SubagentHandback': 1} | 2 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+1ba20efd ccb115eb challenger  Explore  sonnet  xhigh  True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 197
+61a4a52e 51263c8e challenger  Explore  None    None   True     | {'Read': 2, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e cc9c378d assurance   Explore  None    None   True     | {'Bash': 27, 'SubagentHandback': 1} | 3 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e 85f3e054 assurance   Explore  None    None   True     | {'Bash': 19, 'Read': 13, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e ccb733f3 assurance   Explore  None    None   True     | {'Bash': 25, 'SubagentHandback': 1} | 5 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e 8ca82463 assurance   Explore  None    None   True     | {'Bash': 35, 'SubagentHandback': 1} | 5 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e 89911d20 assurance   Explore  None    None   True     | {'Bash': 25, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e 5ca83063 assurance   Explore  None    None   True     | {'Bash': 71, 'SubagentHandback': 1} | 6 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e 9ad797b6 assurance   Explore  None    None   True     | {'Bash': 36, 'SubagentHandback': 1} | 6 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e da002890 assurance   Explore  None    None   True     | {'Bash': 22, 'Read': 10, 'ToolSearch': 1, 'WebFetch': 2, 'TaskStop': 1, 'SubagentHandback': 1} | 1 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e b499e3c0 assurance   Explore  None    None   True     | {'Bash': 6, 'Read': 9, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+61a4a52e fe6a6742 assurance   Explore  None    None   True     | {'Bash': 29, 'Read': 6, 'SubagentHandback': 1} | 5 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+e164dbe3 9a51e3cf challenger  Explore  None    None   True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | ['EnterWorktree', 'SendMessage', 'TaskStop', 'WebFetch', 'WebSearch'] | 221
+
+totals: {'bash': 652, 'finished:True': 30, 'python_runs': 67, 'reviewers': 30, 'type:Explore': 30, 'webfetch': 2, 'with_instructions': 0}
+
+programs started by the reviewers' Bash commands (segment count):
+   384  head
+   380  grep
+   277  git show
+   204  sed
+   187  cat
+   171  git diff
+   153  echo
+   104  for
+    77  python3
+    71  cut
+    55  git ls-tree
+    52  do
+    52  done
+    51  ls
+    51  tail
+    50  git log
+    40  import
+    37  def
+    27  wc
+    27  awk
+    25  diff
+    25  sort
+    22  git /Users/taikiogihara/work/my-claude-code
+    21  git status
+    20  git grep
+    20  "
+    17  git rev-parse
+    17  uniq
+    13  if
+    13  '
+    10  find
+     9  git cat-file
+     6  cmp
+     6  ^class
+     6  ^
+     5  git ls-files
+     5  ---'
+     5  git branch
+     5  cp
+     5  NR<3439'
+     4  ^```\
+     4  (cd
+     4  print(json.dumps({k:v
+     4  git merge-base
+     4  <skipped'
+     4  git check-ignore
+     4  archive\
+     4  print(==,
+     4  print([
+     3  failure
+     3  ^==
+     3  print(list(d.keys()))
+     3  allowed_tools
+     3  target
+     3  $0!=---{exit}
+     3  plugin.json
+     3  settings'
+     3  harness'
+     3  <error\
+     3  \
+     3  agents\
+     3  commands\
+     3  hooks\
+     3  print(   prompt:,
+     3  id:
+     3  hooks
+     2  ==
+     2  PARENT-10\
+     2  mktemp\
+     2  TMPDIR"
+     2  OriginCardTests"
+     2  permission
+     2  rm
+     2  delete
+     2  chmod)"
+     2  TEST-PARENT-001"
+     2  限界\
+     2  limitation\
+     2  miss"
+     2  only_staged\
+     2  climbs_out\
+     2  committed_records"
+     2  R0-A3\
+     2  R0-A1"
+     2  limit\
+     2  miss\
+     2  undercount"
+     2  P-03\
+     2  committed
+     2  run:"
+     2  sys.path.insert(0,
+     2  sys.dont_write_bytecode=True
+     2  b[risk][class]=medium
+     2  L1'
+     2  L1.*leaf"
+     2  git .
+     2  (gh
+     2  git reflog
+     2  +++
+     2  ---
+     2  diff)'
+     2  bash
+     2  b37a71c'
+     2  skipped'
+     2  deferred\
+     2  left_out\
+     2  CRITERION_STAGES\
+     2  post_deploy_criteria\
+     2  elif
+     2  g')
+     2  [print(json.dumps(c,ensure_ascii=False))
+     2  "--stage"
+     2  pre_deploy
+     2  InputError"
+     2  add_argument"
+     2  accepted
+     2  rejected"
+     2  every
+     2  written
+     2  ^```
+     2  Check
+     2  origin
+     2  post_deploy
+     2  language
+     2  Look
+     2  Gate\.\
+     2  Review
+     2  fold
+     2  xargs
+     2  ^[0-9a-f]{7}'
+     2  One
+     2  \*\*Red\*\*'
+     2  ^`--stage`\
+     2  ^`collect-jest\
+     2  ^`card'
+     2  S-07'
+     2  name:'
+     2  import'
+     2  ^import\
+     2  ^from'
+     2  run_gate\
+     2  collect_junit\
+     2  decide_checks'
+     2  archive'
+     2  test_'
+     2  check_graph.py'
+     2  print(json.dumps(s,ensure_ascii=False,indent=1))
+     2  print(s[id],
+     2  print(d.get('model'))"
+     2  git remote
+     2  count
+     2  score
+     2  allow_mismatch
+     2  not
+     2  unobservable
+     2  gap
+     2  requires_unused
+     2  in_eval
+     2  reason
+     2  settings
+     2  "members"'
+     2  kind
+     2  stages
+     2  fixture
+     2  "type":
+     2  $0=="---"{exit}
+     2  .mcp
+     2  print(len(d[scenarios]))
+     2  print(  P:,
+     2  print("
+     2  ",
+     2  print(json.dumps(d[scenarios][0],ensure_ascii=False,indent=1))
+     2  print(list(d))
+     2  print('
+     2  target:'
+     2  mock\
+     2  patch\
+     2  fake\
+     2  FAKE\
+     2  stub'
+     2  sync\
+     2  print(json.dumps(s,
+     2  {f=1
+     2  next}
+     2  {exit}
+     2  -
+     2  \+
+     2  skip)'
+     2  "(D-gap
+     2  probe)"\)\)'
+     2  [-+
+     2  [-+].*assert
+     2  [-+].*violations)'
+     2  smoke'
+     2  ^-
+     2  a_results_directory_inside\
+     2  a_run_records_the_cases_whose_runs_ended\
+     2  compare_refuses_a_result_with_runs_that_ended\)[^"]*"'
+     2  print(s['id'],
+     2  RUSG'
+     2  print(groups:)
+     2  FAIL
+     2  expected
+     2  fake
+     2  rsync
+     2  rules
+     2  agents
+     2  harness
+     2  trace
+     2  exit
+     2  ci.yml
+     2  evals
+     2  print(   G,
+     2  pattern
+     1  error"
+     1  print(json.dumps(g,ensure_ascii=False,indent=1)[:15000])"
+     1  v[risk][class]=medium
+     1  c[evidence][kind]=ai_review
+     1  print(json.dumps(m))'
+     1  print(r["id"],
+     1  print(assure.evaluate_gate.__doc__)
+     1  print(inspect.signature(assure.evaluate_gate))
+     1  r,_=assure.evaluate_gate(g,b,None,None)
+     1  print(json.dumps(r,ensure_ascii=False,indent=1)[:2500])
+     1  A-10"
+     1  ^\.claude'
+     1  <testsuite\
+     1  testsuite'
+     1  print(=====,f)
+     1  print(json.dumps(d,ensure_ascii=False,indent=1))
+     1  Bundle
+     1  Scope
+     1  Check'
+     1  script_in_the_record\
+     1  moved_into'
+     1  RA-A1\
+     1  RB-A1\
+     1  RD-A1"
+     1  NR<=143'
+     1  after
+     1  レビューの後"
+     1  review_prep\
+     1  conclusion\
+     1  head_sha\
+     1  headSha\
+     1  42433361852"
+     1  <failure\
+     1  <error'
+     1  ReviewPrep\
+     1  Bundle\
+     1  Check\
+     1  Scope'
+     1  failure'
+     1  <property
+     1  print(d[reviewer])
+     1  print(d[context_given])
+     1  print(f[id],f[kind],f[target],f[severity],f[disposition])
+     1  print(  S:,f[statement][:400])
+     1  print(  R:,f.get(resolution,)[:400])
+     1  error'
+     1  error
+     1  skipped)'
+     1  print(len(sc))
+     1  print(json.dumps(d[settings],ensure_ascii=False,indent=1))
+     1  print(c[id],
+     1  print(len(d[stages]))
+     1  print(g[id],
+     1  RESULTS_DIR
+     1  dest
+     1  agg[discovered],
+     1  compare_dirs\(run_dir,
+     1  $1<3437'
+     1  ^+class
+     1  ^+def
+     1  1016,1020p
+     1  1103,1110p
+     1  1195,1200p'
+     1  300,330p
+     1  540,591p'
+     1  prompt
+     1  "match":
+     1  436,520p
+     1  690,712p
+     1  779,800p'
+     1  allowed-tools
+     1  context
+     1  agent)\b'
+     1  $0==---{exit}
+     1  print
+     1  "--allow-tools",
+     1  repo
+     1  "source":
+     1  allowed
+     1  declares
+     1  print(json.dumps([s
+     1  print(len(sys.stdin.read()))')
+     1  print(json.dumps(m[boundary_groups],ensure_ascii=False,indent=1))
+     1  esac
+     1  prompt.md
+     1  settings\
+     1  plugin\
+     1  mcp\
+     1  statusline\
+     1  output'
+     1  print(json.dumps({k:d[k]
+     1  print(json.dumps(d.get(settings),ensure_ascii=False,indent=1))
+     1  print(c.get(id),
+     1  print(STAGE,
+     1  print(GROUP,
+     1  Software
+     1  Protection
+     1  Multiple
+     1  Logic
+     1  STUB\
+     1  print(##,
+     1  basis',
+     1  else:
+     1  print(   -,
+     1  last_message\
+     1  trace\
+     1  default\
+     1  既定'
+     1  "regex"'
+     1  print(a[id],
+     1  print()
+     1  tool_order
+     1  regex)"
+     1  "max_turns"'
+     1  owners
+     1  class
+     1  high
+     1  security'
+     1  NR<4299'
+     1  no
+     1  partialReason
+     1  unlink
+     1  allow-mismatch'
+     1  PATH_PART
+     1  part
+     1  "git
+     1  ( add 
+     1  allowed_tools:
+     1  --trust-plugin,
+     1  metas[0].get(key)
+     1  bad
+     1  stripped
+     1  "id":
+     1  Edit`、`Write`、`Agent`
+     1  null`
+     1  ERROR
+     1  print(==,s[id],s[kind],s.get(stages),s.get(fixture),s.get(allowed_tools))
+     1  print(  prompt:,s[prompt][:300].replace(\n, ))
+     1  basis:',
+     1  FAKE
+     1  370,560p'
+     1  print(list(json.load(sys.stdin)))"
+     1  ln
+     1  MANAGED
+     1  skills
+     1  commands"
+     1  print(json.dumps(d.get(hooks),indent=1))
+     1  install
+     1  範囲
+     1  スコープ
+     1  official
+     1  code-review"
+     1  754,860p'
+     1  ^allowed-tools
+     1  ^hooks:
+     1  ^context:
+     1  ^agent:'
+     1  .mcp.json
+     1  case.yaml
+     1  two_harness_commits
+     1  settings_key_the_map_does_not_classify
+     1  probe_grader_whose_phrase
+     1  run_record_lists_the_built
+     1  suite_that_maps_a_component_the_older"
+     1  print(sys.argv[2],
+     1  Error
+     1  warning
+     1  note:
+     1  error:"
+     1  which
+     1  strings
+     1  args
+     1  args.*argv.*hook
+     1  hook.*args
+     1  command.*args.*without.*shell'
+     1  SessionStart\
+     1  exec'
+     1  args\.'
+     1  scaffold
+     1  trust-plugin
+     1  aggregate-result
+     1  costUsd
+     1  aggregates
+     1  last_message
+     1  source:
+     1  SessionStart
+     1  sandbox
+     1  max_turns
+     1  timeout_seconds
+     1  threshold
+     1  ablation
+     1  --runs'
+     1  338,358p
+     1  436,490p
+     1  518,575p'
+     1  harness-eval
+     1  eval-dir
+     1  discover
+     1  finds?
+     1  every)
+     1  choose
+     1  gh
+     1  returncode
+     1  trust-plugin\
+     1  risk'
+     1  <error
+     1  ERROR'
+     1  print(TOP KEYS,
+     1  print(C,
+     1  print(S,
+     1  print(G,
+     1  print(json.dumps(d.get(settings),
+     1  commands
+     1  output-styles
+     1  statusline
+     1  plugin
+     1  CLAUDE
+     1  skills'
+     1  stub
+     1  FAKE'
+     1  GIT_AUTHOR\
+     1  GIT_COMMITTER\
+     1  user.email\
+     1  user.name'
+     1  print(d.get("commit"),
+     1  harness-eval)
+     1  settings.json":"{\"hooks\":{}}\n",
+     1  target.*default'
+     1  target'
+     1  regex.*target
+     1  target.*regex'
+     1  or
+     1  print(-,
+     1  print(   S:,
+     1  print(   R:,
+     1  description):'
+     1  fixture.sh
+     1  scaffold'
+     1  basis]
+     1  del
+     1  [graders]
+     1  [stages]
+     1  needs
+     1  defined
+     1  unique
+     1  expect
+     1  type
+     1  invalid
+     1  outside
+     1  stray
+     1  temporary
+     1  case.yaml'
+
+Bash commands matching a state-changing pattern: 15
+  1b83188e: git diff 9cd7932 b37a71c885041c33186ef49171757a9f0bfe6ac4 | grep -nE "^[+-].*(allowed-tools|permission|rm -|delete|chmod)" | head -20; git diff 9cd793
+  1b83188e: cd /Users/taikiogihara/work/my-claude-code && git diff 9cd7932 b37a71c885041c33186ef49171757a9f0bfe6ac4 | grep -nE "^[+-].*(allowed-tools|permission|r
+  384628f6: cd /private/tmp/claude-501/bundle-069-r1/evidence/specs/069-assurance-review-cost/evidence/ba76e65 && cat review-prep-flow.txt; head -c 6000 unit-test
+  38e9dfe6: git diff 9cd7932 b9a38d0bb8e1c1ad185395f6d00d54a450594825 -- .claude/skills/verified-delivery/SKILL.md > "$TMPDIR/sk.diff" 2>/dev/null; echo $TMPDIR; 
+  38e9dfe6: cd /Users/taikiogihara/work/my-claude-code && git diff 9cd7932 b9a38d0bb8e1c1ad185395f6d00d54a450594825 -- .claude/skills/verified-delivery/SKILL.md >
+  85f3e054: cd /Users/taikiogihara/work/my-claude-code; for f in $(git ls-tree -r --name-only 44b6b8e .claude/skills | grep 'SKILL.md$'); do git show 44b6b8e:$f |
+  85f3e054: cd /Users/taikiogihara/work/my-claude-code; for f in $(git ls-tree -r --name-only 44b6b8e .claude/skills | grep -E '^\.claude/skills/[^/]+/SKILL\.md$'
+  8ca82463: cd /Users/taikiogihara/work/my-claude-code; git ls-tree -r --name-only 302e2243fcfa6ad87e0d21445fae01c682ff5bc4 .claude | awk -F/ '{print $2}' | sort 
+  89911d20: cd /tmp/claude-501; grep -n -E 'FORBIDDEN_PARTS = |PATH_PART = |part in FORBIDDEN_PARTS|"git init -q", "git checkout|\(" add " in l or " commit " in l
+  5ca83063: git ls-tree -r --name-only f9dbf00 -- .claude | awk -F/ '{print $2"/"$3}' | sort | uniq -c | head -50; git show f9dbf00:install.sh | grep -n 'rsync\|c
+  5ca83063: cd /Users/taikiogihara/work/my-claude-code && git ls-tree -r --name-only f9dbf00 -- .claude | awk -F/ '{print $2"/"$3}' | sort | uniq -c | head -50; g
+  9ad797b6: cd /Users/taikiogihara/work/my-claude-code && git show 0ac8e15:install.sh | grep -nE "claude|rsync|cp |ln |MANAGED|skills|rules|hooks|agents|commands"
+  da002890: cd /Users/taikiogihara/work/my-claude-code; git ls-tree -r --name-only bc0715a .claude | awk -F/ '{print $2"/"(NF>3?$3:"")}' | sort | uniq -c | head -
+  fe6a6742: cd /Users/taikiogihara/work/my-claude-code; R=4e6b18e8b9e8c8852b7bf46500fed418076e1fd9; git show "$R:install.sh" | grep -nE '\.claude|rsync|cp |agents
+  fe6a6742: cd /Users/taikiogihara/work/my-claude-code; for f in .claude/skills/*/SKILL.md; do awk 'NR==1&&$0!="---"{exit} NR>1&&$0=="---"{exit} NR>1{print FILENA

@@ -717,11 +717,11 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     # may enter the eval (in_eval) is unknown; fail safe rather than include it.
     cmap = json.loads((src_s / MAP_PATH).read_text(encoding="utf-8"))
     components = harness_components(src_h)
-    # The build injects the apex and rules and copies skills; it would leave
-    # agents and commands out and so measure a different harness.
-    unbuilt = sorted(c for c in components if c.startswith(("agent:", "command:")))
+    # The build injects the apex and rules and copies skills and agents; it
+    # would leave commands out and so measure a different harness.
+    unbuilt = sorted(c for c in components if c.startswith("command:"))
     if unbuilt:
-        raise BuildError(f"the harness commit has agents and commands, which the eval does not build yet: "
+        raise BuildError(f"the harness commit has commands, which the eval does not build yet: "
                          f"{', '.join(unbuilt)}")
     mapped = {c.get("id") for c in cmap.get("components", []) if isinstance(c, dict)}
     unmapped = sorted(set(components) - mapped)
@@ -770,6 +770,16 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
         return []
 
     shutil.copytree(skills_root, plugin / "skills", ignore=ignore)
+    # A plugin's agents/ is scanned by default; there the agent gets the
+    # plugin's prefix (`<plugin>:<name>`), which the skills allow for.
+    agents_root = src_h / ".claude/agents"
+    left_out_agents = sorted(c["id"] for c in cmap.get("components", [])
+                             if c.get("id", "").startswith("agent:") and c.get("in_eval") is False)
+    if left_out_agents:
+        raise BuildError(f"the map leaves agents out of the eval, which the build cannot do yet: "
+                         f"{', '.join(left_out_agents)}")
+    if agents_root.is_dir():
+        shutil.copytree(agents_root, plugin / "agents")
     stray = sorted(p.relative_to(plugin).as_posix() for p in (plugin / "skills").rglob("case.yaml"))
     if stray:
         raise BuildError(f"eval cases outside the generated evals/ would also run: {', '.join(stray)}")

@@ -1,0 +1,4 @@
+# red for R1d-A1 (2026-11-10): python3 -B -m unittest test_harness_eval.ReviewRound7 with the new test and harness_eval.py of main 55c54f4
+AssertionError: the build stopped: the harness commit has agents and commands, which the eval does not build yet: agent:reviewer.md
+Ran 7 tests in 0.808s
+FAILED (failures=1)
