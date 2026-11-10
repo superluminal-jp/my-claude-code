@@ -14,6 +14,11 @@
         "by": "Taiki Ogihara",
         "decision": "approved",
         "scope": "feat/review-integrity のブランチ、コミット、push、PR（マージと install.sh の実行は別に確かめる）。2026-11-10 の会話の質問「Git の操作はどこまで行ってよいですか」への回答「ブランチ・コミット・push・PR」"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "R2〜R4 の手順（失敗時のやり直しと停止、却下の根拠、回数の区切り）は対応表の目視だけで確かめ、R1 自身の L2 は定義だけを確かめることを、限界として受け入れる。2026-11-10 の会話の質問「公式の回とは別の確かめのレビューが挙げた点をどう扱いますか」への回答「限界として受け入れる (Recommended)」（evidence/570a91c/human-review.txt）"
       }
     ],
     "checks": [
@@ -28,8 +33,12 @@
       },
       {
         "check_id": "R0-A2",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R0-A4",
@@ -56,8 +65,12 @@
       },
       {
         "check_id": "R1a-A1",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）（対応表の行10）。tests/assert_reviewer_agent.py は合格した（evidence/570a91c/reviewer-agent.txt）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R1b-A1",
@@ -70,8 +83,12 @@
       },
       {
         "check_id": "R1b-A2",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R1c-A1",
@@ -84,8 +101,12 @@
       },
       {
         "check_id": "R1c-A2",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）。tests/run-readme-skill-index.sh は合格した（readme-skill-index.txt）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R1d-A1",
@@ -98,48 +119,78 @@
       },
       {
         "check_id": "R1d-A2",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）（対応表の行11）。tests/run-harness-eval.sh は合格した（evidence/570a91c/harness-eval.txt）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R1e-A1",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R2-A1",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R3-A1",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R3-A2",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R3-A3",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R4-A1",
-        "status": "not_run",
-        "reason": "利用者の対応表の確認を待っている（2026-11-10 の時点で未確認）"
+        "status": "passed",
+        "evidence": {
+          "kind": "human_review",
+          "ref": "specs/070-review-integrity/evidence/570a91c/human-review.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       }
     ],
     "test_changes": [
       {
         "path": "tests/harness-eval/test_harness_eval.py::ReviewRound7::test_a_harness_with_a_mapped_agent_stops_the_build",
-        "change": "deleted"
+        "change": "deleted",
+        "approved_by": "Taiki Ogihara"
       },
       {
         "path": "tests/run-install.sh: assert_absent \"$TARGET/agents\" \"absent managed agents are removed\"",
-        "change": "deleted"
+        "change": "deleted",
+        "approved_by": "Taiki Ogihara"
       }
     ],
     "infra_changes": []
