@@ -19,6 +19,11 @@
         "by": "Taiki Ogihara",
         "decision": "approved",
         "scope": "R2〜R4 の手順（失敗時のやり直しと停止、却下の根拠、回数の区切り）は対応表の目視だけで確かめ、R1 自身の L2 は定義だけを確かめることを、限界として受け入れる。2026-11-10 の会話の質問「公式の回とは別の確かめのレビューが挙げた点をどう扱いますか」への回答「限界として受け入れる (Recommended)」（evidence/570a91c/human-review.txt）"
+      },
+      {
+        "by": "Taiki Ogihara",
+        "decision": "approved",
+        "scope": "PR #125 のマージ（413ad9f）と install.sh の実行、そのあと R0-A3 の記録を記録だけの PR で main に入れること。2026-11-10 の会話の「マージして install.sh を実行して」と、質問「R0-A3 の記録」への回答「記録の PR を開いてマージする (Recommended)」"
       }
     ],
     "checks": [
@@ -51,8 +56,12 @@
       },
       {
         "check_id": "R0-A3",
-        "status": "not_run",
-        "reason": "post_deploy の受け入れ条件。マージと install.sh の後に、このリポジトリ以外のプロジェクトで確かめる"
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/070-review-integrity/evidence/post-deploy/r0-a3.txt",
+          "commit": "570a91c0decece73d96b98fbbb21a52420408d00"
+        }
       },
       {
         "check_id": "R1-A1",
