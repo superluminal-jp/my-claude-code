@@ -36,16 +36,20 @@ check "ADR-0005: no hooks directory, in harness/ or in .claude/" "$c"
 
 # The managed configuration moved from this repository's .claude/ to harness/.
 # A copy left behind would load a second time as project configuration, and
-# would be the copy a reader edits by mistake. The check looks for files: an
-# empty directory holds no configuration, Git does not track one, and Claude
-# Code itself leaves empty working directories under .claude/.
-legacy=""
-for path in CLAUDE.md rules skills agents settings.json commands; do
-  if [ -n "$(find "$REPO_ROOT/.claude/$path" -type f 2>/dev/null | head -n 1)" ]; then
-    legacy="$legacy .claude/$path"
-  fi
-done
-[ -n "$legacy" ] && printf '    still present:%s\n' "$legacy" >&2
+# would be the copy a reader edits by mistake. The check looks at the files
+# Git tracks: a checkout may hold local files under .claude/ that are not
+# managed configuration and are never committed - the skills that Spec Kit
+# generates (speckit-*), results of local evaluation runs, and the working
+# directories that Claude Code itself leaves there.
+legacy_paths=(.claude/CLAUDE.md .claude/rules .claude/skills .claude/agents .claude/settings.json .claude/commands)
+if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  legacy="$(git -C "$REPO_ROOT" ls-files -- "${legacy_paths[@]}" | head -n 5 | tr '\n' ' ')"
+else
+  # Without Git there is no notion of tracked. Fall back to the files on
+  # disk, leaving out Spec Kit's generated skills.
+  legacy="$(cd "$REPO_ROOT" && find "${legacy_paths[@]}" -type f ! -path '.claude/skills/speckit-*' 2>/dev/null | head -n 5 | tr '\n' ' ')"
+fi
+[ -n "$legacy" ] && printf '    still present: %s\n' "$legacy" >&2
 [ -z "$legacy" ] && c=1 || c=0
 check "SRC-01: this repository's own .claude/ holds no managed configuration" "$c"
 
