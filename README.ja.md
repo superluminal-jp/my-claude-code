@@ -169,7 +169,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 - **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md)・
   [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)**: この設定の作業原則を
   ChatGPT と Claude.ai のカスタム指示欄へ持ち込むための、貼り付け用のポータブル
-  プロンプト。`install.sh` の同期対象ではない
+  プロンプト。Claude.ai 用のファイルには、`harness/skills/` のうち Claude.ai に
+  そのままアップロードできるスキルと、その ZIP の作り方も載せている。
+  `install.sh` の同期対象ではない
 
 ## 補足ドキュメント
 
