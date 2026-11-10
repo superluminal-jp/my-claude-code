@@ -43,6 +43,9 @@ jobs:
       - name: Run verified-delivery skill tests
         run: bash tests/run-verified-delivery-skill.sh
 
+      - name: Run system-diagrams skill tests
+        run: bash tests/run-system-diagrams-skill.sh
+
       - name: Run harness behavior baseline checks
         run: bash tests/run-harness-eval.sh
 

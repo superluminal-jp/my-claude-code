@@ -86,6 +86,10 @@
       "path": ".claude/skills/secure-logging/SKILL.md"
     },
     {
+      "id": "skill:system-diagrams",
+      "path": ".claude/skills/system-diagrams/SKILL.md"
+    },
+    {
       "id": "skill:verified-delivery",
       "path": ".claude/skills/verified-delivery/SKILL.md",
       "children": [
@@ -412,6 +416,24 @@
         {
           "file": ".claude/skills/secure-logging/SKILL.md",
           "quote": "Use when code or a workflow adds or modifies log output"
+        }
+      ]
+    },
+    {
+      "id": "E-diagrams",
+      "branch": "execute",
+      "title": "システム構成図を、1枚に1つの問い・1種類の読者・1つの抽象度で作る",
+      "owners": [
+        "skill:system-diagrams"
+      ],
+      "basis": [
+        {
+          "file": ".claude/skills/system-diagrams/SKILL.md",
+          "quote": "each answering one question for one audience at one C4 level"
+        },
+        {
+          "file": ".claude/skills/system-diagrams/SKILL.md",
+          "quote": "Do not use for diagrams built from a cloud vendor's official icon set"
         }
       ]
     },

@@ -1,0 +1,49 @@
+<mxfile host="drawio">
+  <diagram id="view" name="System context">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="System context view: &amp;lt;scope&amp;gt;" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="person1" value="&lt;b&gt;&amp;lt;Role name&amp;gt;&lt;/b&gt;&lt;br&gt;[Person]&lt;br&gt;&amp;lt;What they do with the system&amp;gt;" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#CFE0F3;strokeColor=#1F4E79;fontColor=#0B1F33;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="system1" value="&lt;b&gt;&amp;lt;System name&amp;gt;&lt;/b&gt;&lt;br&gt;[Software System]&lt;br&gt;&amp;lt;What it is responsible for&amp;gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCE9F7;strokeColor=#1F4E79;strokeWidth=2;fontColor=#0B1F33;" vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="external1" value="&lt;b&gt;&amp;lt;System name&amp;gt;&lt;/b&gt;&lt;br&gt;[Software System: external]&lt;br&gt;&amp;lt;What it does for this system&amp;gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EDEDED;strokeColor=#4D4D4D;dashed=1;fontColor=#0B1F33;" vertex="1" parent="1">
+          <mxGeometry x="780" y="140" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="&amp;lt;What they ask for and why&amp;gt;" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="person1" target="system1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="&amp;lt;What it asks for and why&amp;gt;&lt;br&gt;[&amp;lt;protocol&amp;gt;]" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="system1" target="external1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Legend" style="swimlane;html=1;startSize=24;fillColor=none;strokeColor=#808080;" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="460" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-person" value="" style="rounded=1;arcSize=40;html=1;fillColor=#CFE0F3;strokeColor=#1F4E79;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="34" width="40" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-person-text" value="Person, by their role" style="text;html=1;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="60" y="34" width="380" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-system" value="" style="rounded=0;html=1;fillColor=#DCE9F7;strokeColor=#1F4E79;strokeWidth=2;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="66" width="40" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-system-text" value="The system this view is about" style="text;html=1;align=left;" vertex="1" parent="legend">
+          <mxGeometry x="60" y="66" width="380" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-external" value="" style="rounded=0;html=1;fillColor=#EDEDED;strokeColor=#4D4D4D;dashed=1;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="98" width="40" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-external-text" value="A system outside it (external, dashed border); arrows point from who asks to who is asked" style="text;html=1;align=left;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="60" y="98" width="380" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
