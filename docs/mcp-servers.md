@@ -1,10 +1,10 @@
 # MCP サーバー — 背景と参照先
 
-このリポジトリは MCP サーバーをユーザー設定に取り込まない。`install.sh` は MCP サーバーを登録も削除もせず、MCP サーバーを同梱するプラグイン（`github` / `deploy-on-aws` / `microsoft-docs`）もインストールしない。必要なサーバーは各ユーザーが自分で登録する（手順は README の「MCP Servers」節、判断の経緯は [ADR-0016](adr/0016-do-not-install-mcp-servers-at-user-scope.md)）。`.claude/` 配下のルールとスキルも、特定の MCP サーバー名を前提にしない。ただし `.claude/settings.json` は、使わないと決めたサーバーを読み込ませない設定を持つ（§5、[ADR-0021](adr/0021-block-mcp-servers-by-settings.md)）。
+このリポジトリは MCP サーバーをユーザー設定に取り込まない。`install.sh` は MCP サーバーを登録も削除もせず、MCP サーバーを同梱するプラグイン（`github` / `deploy-on-aws` / `microsoft-docs`）もインストールしない。必要なサーバーは各ユーザーが自分で登録する（手順は README の「MCP Servers」節、判断の経緯は [ADR-0016](adr/0016-do-not-install-mcp-servers-at-user-scope.md)）。`harness/` 配下のルールとスキルも、特定の MCP サーバー名を前提にしない。ただし `harness/settings.json` は、使わないと決めたサーバーを読み込ませない設定を持つ（§5、[ADR-0021](adr/0021-block-mcp-servers-by-settings.md)）。
 
 `.mcp.json` は、このリポジトリ内で作業するときのプロジェクトスコープ定義であり、ユーザーが自分で登録するときの参照カタログでもある。本書はその背景（`.mcp.json` に何が書けるのか、各サーバーの情報がどこから来ているのか、サーバーを増やしたとき何を更新するのか、どのサーバーを止めているのか）を持つ。
 
-本書は `.claude/rules/` にも `.claude/skills/` にもないため自動ロードされない。読むのは人間で、Claude が読むのは必要になったときだけである。
+本書は `harness/rules/` にも `harness/skills/` にもないため自動ロードされない。読むのは人間で、Claude が読むのは必要になったときだけである。
 
 ## 1. `.mcp.json` に書けること、書けないこと
 
@@ -30,7 +30,7 @@
 
 `instructions` は MCP 仕様で `InitializeResult` の任意フィールドとして定義されている [2]。**サーバー作者が書くもので、利用者が手元で補うことはできない。**
 
-さらに tool search が既定で有効なため、ツール**名**はコンテキストにあるが、説明とスキーマは入っていない。必要になった時点で ToolSearch が取得する [1]。`aws-research/SKILL.md` が「利用可能なツール発見の仕組みを使ってから、提供元のドキュメントが手に入らないと判断せよ」とだけ書き、サーバー名を挙げないのはこの挙動に対応している。どのサーバーが入っているかはユーザーごとに異なる。
+さらに tool search が既定で有効なため、ツール**名**はコンテキストにあるが、説明とスキーマは入っていない。必要になった時点で ToolSearch が取得する [1]。`research-aws/SKILL.md` が「利用可能なツール発見の仕組みを使ってから、提供元のドキュメントが手に入らないと判断せよ」とだけ書き、サーバー名を挙げないのはこの挙動に対応している。どのサーバーが入っているかはユーザーごとに異なる。
 
 `alwaysLoad: true` を設定すると、そのサーバーだけ遅延読み込みから除外され、初回ターンから完全なスキーマが載る [1]。設定側から「把握の度合い」を上げられる唯一のレバーだが、内容そのものを足すことはできない。
 
@@ -55,11 +55,11 @@ stdio の 1 件（`aws-documentation`）は PyPI のパッケージメタデー�
 1. **本書の表** — ベンダー公式リファレンスを追加・削除する。stdio なら PyPI メタデータ、HTTP ならベンダーの公式ページから取る。推測で URL を書かない。
 2. **README / README.ja の「MCP Servers」節** — ユーザーが自分で実行する `claude mcp add -s user …` のコマンド例。
 
-`.claude/` 配下のルールとスキルにはサーバー名を書かない。ユーザーが入れていないサーバーを前提にした指示になるためである。止めるサーバーを増やす・減らすときは、`.claude/settings.json` のキー、§5 の表、`tests/run-sandbox-settings.sh` の MCP-* を同じ変更で更新する。
+`harness/` 配下のルールとスキルにはサーバー名を書かない。ユーザーが入れていないサーバーを前提にした指示になるためである。止めるサーバーを増やす・減らすときは、`harness/settings.json` のキー、§5 の表、`tests/run-sandbox-settings.sh` の MCP-* を同じ変更で更新する。
 
 ## 5. 止めているサーバーと、棚卸しの結果
 
-`.claude/settings.json` は、次のサーバーを、どこで定義されていても読み込ませない。ユーザー設定から効くキーだけを使う（`deniedMcpServers` と `disableClaudeAiConnectors` はどの設定ファイルからも効き、`syncClaudeAiPlugins` はユーザー・ローカル・管理の設定から効く）[1]。
+`harness/settings.json` は、次のサーバーを、どこで定義されていても読み込ませない。ユーザー設定から効くキーだけを使う（`deniedMcpServers` と `disableClaudeAiConnectors` はどの設定ファイルからも効き、`syncClaudeAiPlugins` はユーザー・ローカル・管理の設定から効く）[1]。
 
 | 止めるもの | キー | 理由 |
 |---|---|---|

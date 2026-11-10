@@ -1,7 +1,7 @@
 """Unit tests for harness_eval.py (specs/066-harness-behavior-baseline).
 
 Each test builds a small harness and suite in a temporary directory, so no
-test reads the real .claude/ or calls a model.
+test reads the real harness/ or calls a model.
 """
 
 import json
@@ -36,27 +36,27 @@ def valid_map():
     return {
         "schema_version": 1,
         "components": [
-            {"id": "apex", "path": ".claude/CLAUDE.md"},
-            {"id": "rule:one", "path": ".claude/rules/one.md"},
-            {"id": "skill:alpha", "path": ".claude/skills/alpha/SKILL.md"},
-            {"id": "skill:beta", "path": ".claude/skills/beta/SKILL.md", "children": ["skill:gamma"]},
-            {"id": "skill:gamma", "path": ".claude/skills/gamma/SKILL.md"},
+            {"id": "apex", "path": "harness/CLAUDE.md"},
+            {"id": "rule:one", "path": "harness/rules/one.md"},
+            {"id": "skill:alpha", "path": "harness/skills/alpha/SKILL.md"},
+            {"id": "skill:beta", "path": "harness/skills/beta/SKILL.md", "children": ["skill:gamma"]},
+            {"id": "skill:gamma", "path": "harness/skills/gamma/SKILL.md"},
         ],
         "stages": [
             {"id": "D-ask", "branch": "define", "title": "ask", "owners": ["apex", "skill:alpha"],
-             "basis": [{"file": ".claude/CLAUDE.md", "quote": "Ask before acting"}]},
+             "basis": [{"file": "harness/CLAUDE.md", "quote": "Ask before acting"}]},
             {"id": "E-auth", "branch": "execute", "title": "auth", "owners": ["rule:one", "skill:beta", "skill:gamma"],
-             "basis": [{"file": ".claude/rules/one.md", "quote": "Obtain approval"}],
+             "basis": [{"file": "harness/rules/one.md", "quote": "Obtain approval"}],
              "requires_unused_skill_grader": True},
             {"id": "D-gap", "branch": "define", "title": "gap", "owners": [], "gap": True,
-             "basis": [{"file": ".claude/skills/alpha/SKILL.md", "quote": "Do not use for beta"}]},
+             "basis": [{"file": "harness/skills/alpha/SKILL.md", "quote": "Do not use for beta"}]},
             {"id": "H-unseen", "branch": "handoff", "title": "unseen", "owners": ["apex"],
              "unobservable": "no deterministic signal",
-             "basis": [{"file": ".claude/CLAUDE.md", "quote": "Keep unrelated work"}]},
+             "basis": [{"file": "harness/CLAUDE.md", "quote": "Keep unrelated work"}]},
         ],
         "boundary_groups": [
             {"id": "G-ab", "members": ["skill:alpha", "skill:gamma"],
-             "basis": [{"file": ".claude/skills/gamma/SKILL.md", "quote": "Do not use for alpha"}]},
+             "basis": [{"file": "harness/skills/gamma/SKILL.md", "quote": "Do not use for alpha"}]},
         ],
         "settings": {
             "model": {"in_eval": True, "reason": "passed as --model"},
@@ -66,18 +66,18 @@ def valid_map():
 
 
 def valid_suite():
-    a = ".claude/skills/alpha/SKILL.md"
-    g = ".claude/skills/gamma/SKILL.md"
+    a = "harness/skills/alpha/SKILL.md"
+    g = "harness/skills/gamma/SKILL.md"
     return {
         "schema_version": 1,
         "scenarios": [
             {"id": "probe", "kind": "probe", "stages": [], "description": "reach",
              "prompt": "常時の指示の最後の文を書き出して。",
              "graders": [{"id": "apex-reached", "type": "regex", "pattern": "Keep\\s+unrelated\\s+work",
-                          "flags": "i", "basis": {"file": ".claude/CLAUDE.md", "quote": "Keep unrelated work"},
+                          "flags": "i", "basis": {"file": "harness/CLAUDE.md", "quote": "Keep unrelated work"},
                           "examples": {"match": ["keep unrelated work."], "no_match": ["keep related work"]}},
                          {"id": "rule-reached", "type": "regex", "pattern": "Obtain\\s+approval", "flags": "i",
-                          "basis": {"file": ".claude/rules/one.md", "quote": "Obtain approval"},
+                          "basis": {"file": "harness/rules/one.md", "quote": "Obtain approval"},
                           "examples": {"match": ["obtain approval first"], "no_match": ["approval obtained"]}}]},
             {"id": "ask-first", "kind": "expectation", "stages": ["D-ask", "E-auth"], "description": "ask",
              "prompt": "タイムアウトを短くして。",
@@ -85,10 +85,10 @@ def valid_suite():
                          skill_grader("not-gamma", "gamma", "unused", g, "Do not use for alpha")]},
             {"id": "beta-flow", "kind": "expectation", "stages": ["E-auth", "D-ask"], "description": "beta",
              "prompt": "ベータの手順で進めて。", "fixture": "tiny",
-             "graders": [skill_grader("uses-beta", "beta", "used", ".claude/skills/beta/SKILL.md", "Do beta things"),
+             "graders": [skill_grader("uses-beta", "beta", "used", "harness/skills/beta/SKILL.md", "Do beta things"),
                          skill_grader("not-alpha", "alpha", "unused", a, "Do not use for beta"),
                          {"id": "no-clean", "type": "tool", "tool": "Bash", "input_match": "git\\s+clean",
-                          "min": 0, "max": 0, "basis": {"file": ".claude/rules/one.md", "quote": "Obtain approval"},
+                          "min": 0, "max": 0, "basis": {"file": "harness/rules/one.md", "quote": "Obtain approval"},
                           "examples": {"match": ["{\"command\":\"git clean -fdx\"}"],
                                        "no_match": ["{\"command\":\"git status\"}"]}}]},
             {"id": "gap-watch", "kind": "observation", "stages": ["D-gap", "D-ask"], "description": "gap",
@@ -108,13 +108,13 @@ class Tree:
     def __init__(self, tmp, cmap=None, suite=None, settings=None, extra=None):
         self.root = Path(tmp)
         files = {
-            ".claude/CLAUDE.md": APEX_TEXT,
-            ".claude/rules/one.md": RULE_TEXT,
-            ".claude/skills/alpha/SKILL.md": SKILL_A,
-            ".claude/skills/beta/SKILL.md": SKILL_B,
-            ".claude/skills/gamma/SKILL.md": SKILL_G,
-            ".claude/skills/alpha/scripts/tool.py": "print('alpha')\n",
-            ".claude/settings.json": json.dumps(settings if settings is not None else SETTINGS),
+            "harness/CLAUDE.md": APEX_TEXT,
+            "harness/rules/one.md": RULE_TEXT,
+            "harness/skills/alpha/SKILL.md": SKILL_A,
+            "harness/skills/beta/SKILL.md": SKILL_B,
+            "harness/skills/gamma/SKILL.md": SKILL_G,
+            "harness/skills/alpha/scripts/tool.py": "print('alpha')\n",
+            "harness/settings.json": json.dumps(settings if settings is not None else SETTINGS),
             he.MAP_PATH: json.dumps(cmap if cmap is not None else valid_map(), ensure_ascii=False),
             he.SUITE_PATH: json.dumps(suite if suite is not None else valid_suite(), ensure_ascii=False),
             he.FIXTURE_DIR + "/tiny.json": json.dumps({"schema_version": 1, "description": "t",
@@ -151,7 +151,7 @@ class CheckMap(unittest.TestCase):
 
     def test_a_map_component_that_does_not_exist_is_reported(self):
         m = valid_map()
-        m["components"].append({"id": "skill:ghost", "path": ".claude/skills/ghost/SKILL.md"})
+        m["components"].append({"id": "skill:ghost", "path": "harness/skills/ghost/SKILL.md"})
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(has(Tree(tmp, cmap=m).violations(), "skill:ghost"))
 
@@ -232,7 +232,7 @@ class CheckCoverage(unittest.TestCase):
     def test_children_of_an_expected_parent_are_exempt_from_the_group_rule(self):
         s = valid_suite()
         s["scenarios"][2]["graders"].append(
-            skill_grader("uses-alpha", "alpha", "used", ".claude/skills/alpha/SKILL.md", "Do alpha things"))
+            skill_grader("uses-alpha", "alpha", "used", "harness/skills/alpha/SKILL.md", "Do alpha things"))
         m = valid_map()
         m["components"][3]["children"] = ["skill:gamma"]
         with tempfile.TemporaryDirectory() as tmp:
@@ -271,7 +271,7 @@ class CheckScenarios(unittest.TestCase):
 
     def test_a_basis_from_an_unrelated_component_is_reported(self):
         s = valid_suite()
-        s["scenarios"][3]["graders"][0]["basis"] = {"file": ".claude/rules/one.md", "quote": "Obtain approval"}
+        s["scenarios"][3]["graders"][0]["basis"] = {"file": "harness/rules/one.md", "quote": "Obtain approval"}
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(has(Tree(tmp, suite=s).violations(), "gap-watch"))
 
@@ -279,31 +279,31 @@ class CheckScenarios(unittest.TestCase):
         s = valid_suite()
         m = valid_map()
         m["stages"][0]["owners"] = ["apex", "skill:alpha"]
-        m["stages"][0]["basis"] = [{"file": ".claude/CLAUDE.md", "quote": "Ask before acting"}]
+        m["stages"][0]["basis"] = [{"file": "harness/CLAUDE.md", "quote": "Ask before acting"}]
         m["stages"][1]["owners"] = ["rule:one", "skill:beta", "skill:gamma"]
         s["scenarios"][1]["stages"] = ["D-ask"]
-        s["scenarios"][1]["graders"][1]["basis"] = {"file": ".claude/skills/gamma/SKILL.md",
+        s["scenarios"][1]["graders"][1]["basis"] = {"file": "harness/skills/gamma/SKILL.md",
                                                     "quote": "Do not use for alpha"}
-        m["boundary_groups"][0]["basis"] = [{"file": ".claude/skills/gamma/SKILL.md", "quote": "Do not use for alpha"}]
+        m["boundary_groups"][0]["basis"] = [{"file": "harness/skills/gamma/SKILL.md", "quote": "Do not use for alpha"}]
         m["stages"][1]["owners"].remove("skill:gamma")
         m["stages"].append({"id": "E-gamma", "branch": "execute", "title": "g", "owners": ["skill:gamma"],
-                            "basis": [{"file": ".claude/skills/gamma/SKILL.md", "quote": "Do gamma things"}]})
+                            "basis": [{"file": "harness/skills/gamma/SKILL.md", "quote": "Do gamma things"}]})
         s["scenarios"].append({"id": "gamma-only", "kind": "expectation", "stages": ["E-gamma"],
                                "description": "g", "prompt": "ガンマで。",
                                "graders": [skill_grader("uses-gamma", "gamma", "used",
-                                                        ".claude/skills/gamma/SKILL.md", "Do gamma things"),
+                                                        "harness/skills/gamma/SKILL.md", "Do gamma things"),
                                            skill_grader("not-alpha", "alpha", "unused",
-                                                        ".claude/skills/gamma/SKILL.md", "Do not use for alpha")]})
+                                                        "harness/skills/gamma/SKILL.md", "Do not use for alpha")]})
         with tempfile.TemporaryDirectory() as tmp:
             self.assertFalse(has(Tree(tmp, cmap=m, suite=s).violations(), "is not an owner"))
 
     def test_a_probe_basis_must_be_an_always_on_file(self):
         s = valid_suite()
-        s["scenarios"][0]["graders"][0]["basis"] = {"file": ".claude/skills/alpha/SKILL.md",
+        s["scenarios"][0]["graders"][0]["basis"] = {"file": "harness/skills/alpha/SKILL.md",
                                                     "quote": "Alpha does alpha"}
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(has(Tree(tmp, suite=s).violations(),
-                                "scenario probe grader apex-reached: basis file .claude/skills/alpha/SKILL.md is not"))
+                                "scenario probe grader apex-reached: basis file harness/skills/alpha/SKILL.md is not"))
 
     def test_a_match_example_the_pattern_misses_is_reported(self):
         s = valid_suite()
@@ -400,7 +400,7 @@ class Build(unittest.TestCase):
     def test_a_working_tree_only_change_is_not_built(self):
         with tempfile.TemporaryDirectory() as tmp:
             repo = self.make_repo(tmp)
-            (repo / ".claude/skills/alpha/SKILL.md").write_text(SKILL_A + "\nUNCOMMITTED\n", encoding="utf-8")
+            (repo / "harness/skills/alpha/SKILL.md").write_text(SKILL_A + "\nUNCOMMITTED\n", encoding="utf-8")
             b = self.build(repo, tmp)
             self.assertNotIn("UNCOMMITTED", (b.plugin_dir / "skills/alpha/SKILL.md").read_text())
 
@@ -413,6 +413,26 @@ class Build(unittest.TestCase):
                       for h in commands]
             self.assertEqual((len(commands), APEX_TEXT in bodies[0], RULE_TEXT in bodies[1]), (2, True, True))
 
+    def test_each_injected_chunk_names_the_installed_path_not_the_source_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            b = self.build(self.make_repo(tmp), tmp)
+            heads = [p.read_text().splitlines()[0] for p in sorted((b.plugin_dir / "context").iterdir())]
+            tail = " (user's private global instructions for all projects):"
+            self.assertEqual(heads, ["Contents of ~/.claude/CLAUDE.md" + tail,
+                                     "Contents of ~/.claude/rules/one.md" + tail])
+
+    def test_a_harness_commit_from_before_the_source_moved_stops_the_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = self.make_repo(tmp)
+            with_harness = git(repo, "rev-parse", "HEAD")
+            git(repo, "rm", "-r", "-q", "harness")
+            git(repo, "-c", "commit.gpgsign=false", "commit", "-qm", "without the harness directory")
+            without_harness = git(repo, "rev-parse", "HEAD")
+            out = Path(tmp) / "build"
+            out.mkdir()
+            with self.assertRaisesRegex(he.BuildError, r"before the source moved out of \.claude/"):
+                he.build(repo, without_harness, with_harness, out)
+
     def test_every_injected_chunk_is_under_the_hook_output_cap(self):
         with tempfile.TemporaryDirectory() as tmp:
             b = self.build(self.make_repo(tmp), tmp)
@@ -421,19 +441,19 @@ class Build(unittest.TestCase):
 
     def test_an_always_on_file_over_the_cap_stops_the_build(self):
         with tempfile.TemporaryDirectory() as tmp:
-            repo = self.make_repo(tmp, extra={".claude/rules/one.md": RULE_TEXT + "x" * he.HOOK_OUTPUT_CAP})
+            repo = self.make_repo(tmp, extra={"harness/rules/one.md": RULE_TEXT + "x" * he.HOOK_OUTPUT_CAP})
             with self.assertRaises(he.BuildError):
                 self.build(repo, tmp)
 
     def test_an_import_line_in_the_apex_stops_the_build(self):
         with tempfile.TemporaryDirectory() as tmp:
-            repo = self.make_repo(tmp, extra={".claude/CLAUDE.md": APEX_TEXT + "@rules/one.md\n"})
+            repo = self.make_repo(tmp, extra={"harness/CLAUDE.md": APEX_TEXT + "@rules/one.md\n"})
             with self.assertRaises(he.BuildError):
                 self.build(repo, tmp)
 
     def test_a_rule_with_paths_frontmatter_stops_the_build(self):
         with tempfile.TemporaryDirectory() as tmp:
-            repo = self.make_repo(tmp, extra={".claude/rules/one.md": "---\npaths: [\"src/**\"]\n---\n" + RULE_TEXT})
+            repo = self.make_repo(tmp, extra={"harness/rules/one.md": "---\npaths: [\"src/**\"]\n---\n" + RULE_TEXT})
             with self.assertRaises(he.BuildError):
                 self.build(repo, tmp)
 
@@ -441,9 +461,9 @@ class Build(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = self.make_repo(tmp)
             b = self.build(repo, tmp)
-            src = sorted(p.relative_to(repo / ".claude/skills") for p in (repo / ".claude/skills").rglob("*") if p.is_file())
+            src = sorted(p.relative_to(repo / "harness/skills") for p in (repo / "harness/skills").rglob("*") if p.is_file())
             dst = sorted(p.relative_to(b.plugin_dir / "skills") for p in (b.plugin_dir / "skills").rglob("*") if p.is_file())
-            same = all((repo / ".claude/skills" / r).read_bytes() == (b.plugin_dir / "skills" / r).read_bytes() for r in src)
+            same = all((repo / "harness/skills" / r).read_bytes() == (b.plugin_dir / "skills" / r).read_bytes() for r in src)
             self.assertEqual((src, same), (dst, True))
 
     def test_every_scenario_becomes_one_eval_case(self):
@@ -593,14 +613,14 @@ class ReviewFindings(unittest.TestCase):
 
     def test_a_rule_in_a_subdirectory_is_a_component(self):
         with tempfile.TemporaryDirectory() as tmp:
-            t = Tree(tmp, extra={".claude/rules/sub/two.md": "# Two\n"})
+            t = Tree(tmp, extra={"harness/rules/sub/two.md": "# Two\n"})
             self.assertTrue(has(t.violations(), "rule:sub/two"))
 
     def test_the_probe_must_check_every_always_on_file(self):
         s = valid_suite()
         s["scenarios"][0]["graders"] = s["scenarios"][0]["graders"][:1]
         with tempfile.TemporaryDirectory() as tmp:
-            self.assertTrue(has(Tree(tmp, suite=s).violations(), ".claude/rules/one.md"))
+            self.assertTrue(has(Tree(tmp, suite=s).violations(), "harness/rules/one.md"))
 
     def test_a_tool_order_grader_is_checked_and_rendered(self):
         s = valid_suite()
@@ -610,7 +630,7 @@ class ReviewFindings(unittest.TestCase):
                        "examples": {"match": ["{\"command\":\"python3 -m unittest\"}"], "no_match": ["{\"command\":\"ls\"}"]}},
             "after": {"tool": "Bash", "input_match": ">\\s*calc\\.py",
                       "examples": {"match": ["{\"command\":\"cat > calc.py\"}"], "no_match": ["{\"command\":\"cat calc.py\"}"]}},
-            "basis": {"file": ".claude/rules/one.md", "quote": "Obtain approval"}})
+            "basis": {"file": "harness/rules/one.md", "quote": "Obtain approval"}})
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp) / "repo"
             repo.mkdir()
@@ -634,7 +654,7 @@ class ReviewFindings(unittest.TestCase):
                        "examples": {"match": ["{\"command\":\"pytest\"}"], "no_match": ["{\"command\":\"ls\"}"]}},
             "after": {"tool": "Bash", "input_match": "calc",
                       "examples": {"match": ["calc"], "no_match": ["x"]}},
-            "basis": {"file": ".claude/rules/one.md", "quote": "Obtain approval"}})
+            "basis": {"file": "harness/rules/one.md", "quote": "Obtain approval"}})
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(has(Tree(tmp, suite=s).violations(), "test-before-write"))
 
@@ -642,7 +662,7 @@ class ReviewFindings(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp)
             first = git(repo, "rev-parse", "HEAD")
-            (repo / ".claude/skills/alpha/SKILL.md").write_text(SKILL_A + "\nSECOND HARNESS\n", encoding="utf-8")
+            (repo / "harness/skills/alpha/SKILL.md").write_text(SKILL_A + "\nSECOND HARNESS\n", encoding="utf-8")
             s = valid_suite()
             s["scenarios"][1]["prompt"] = "二番目のシナリオ集の依頼。"
             (repo / he.SUITE_PATH).write_text(json.dumps(s, ensure_ascii=False), encoding="utf-8")
@@ -892,7 +912,7 @@ class ReviewRound3(unittest.TestCase):
 
     def test_a_skill_that_carries_its_own_hooks_stops_the_build(self):
         with tempfile.TemporaryDirectory() as tmp:
-            repo = Build().make_repo(tmp, extra={".claude/skills/alpha/hooks/hooks.json": "{}"})
+            repo = Build().make_repo(tmp, extra={"harness/skills/alpha/hooks/hooks.json": "{}"})
             with self.assertRaises(he.BuildError):
                 Build().build(repo, tmp)
 
@@ -932,7 +952,7 @@ class ReviewRound4(unittest.TestCase):
         m = self.excluded_map()
         s = valid_suite()
         s["scenarios"][2]["graders"].append(
-            skill_grader("uses-gamma", "gamma", "used", ".claude/skills/gamma/SKILL.md", "Do gamma things"))
+            skill_grader("uses-gamma", "gamma", "used", "harness/skills/gamma/SKILL.md", "Do gamma things"))
         with tempfile.TemporaryDirectory() as tmp:
             self.assertTrue(has(Tree(tmp, cmap=m, suite=s).violations(), "left out of the eval"))
 
@@ -945,7 +965,7 @@ class ReviewRound4(unittest.TestCase):
     def test_a_skill_whose_frontmatter_declares_hooks_stops_the_build(self):
         hooked = SKILL_A.replace("---\n\n# Alpha", "hooks:\n  Stop: []\n---\n\n# Alpha")
         with tempfile.TemporaryDirectory() as tmp:
-            repo = Build().make_repo(tmp, extra={".claude/skills/alpha/SKILL.md": hooked})
+            repo = Build().make_repo(tmp, extra={"harness/skills/alpha/SKILL.md": hooked})
             self.assertEqual(he.check(repo, repo), [])
             with self.assertRaisesRegex(he.BuildError, "hooks"):
                 Build().build(repo, tmp)
@@ -969,10 +989,10 @@ class ReviewRound5(unittest.TestCase):
 
     def add_delta(self, repo):
         """Add a skill and give it a stage, as adding an owner for a gap would."""
-        (repo / ".claude/skills/delta").mkdir()
-        (repo / ".claude/skills/delta/SKILL.md").write_text(SKILL_D, encoding="utf-8")
+        (repo / "harness/skills/delta").mkdir()
+        (repo / "harness/skills/delta/SKILL.md").write_text(SKILL_D, encoding="utf-8")
         m = valid_map()
-        m["components"].append({"id": "skill:delta", "path": ".claude/skills/delta/SKILL.md"})
+        m["components"].append({"id": "skill:delta", "path": "harness/skills/delta/SKILL.md"})
         m["stages"][0]["owners"].append("skill:delta")
         (repo / he.MAP_PATH).write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
 
@@ -992,7 +1012,7 @@ class ReviewRound5(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp)
             before = git(repo, "rev-parse", "HEAD")
-            (repo / ".claude/skills/alpha/SKILL.md").write_text(
+            (repo / "harness/skills/alpha/SKILL.md").write_text(
                 SKILL_A.replace("Do alpha things", "Do alpha work"), encoding="utf-8")
             suite = (repo / he.SUITE_PATH).read_text(encoding="utf-8").replace("Do alpha things", "Do alpha work")
             (repo / he.SUITE_PATH).write_text(suite, encoding="utf-8")
@@ -1034,9 +1054,9 @@ class ReviewRound5(unittest.TestCase):
     # AR-05: eval material bundled inside a skill never enters the build.
 
     def test_a_skills_own_eval_suite_and_scaffold_are_not_built(self):
-        extra = {".claude/skills/alpha/evals/x/case.yaml": 'schema_version: "1.1"\nname: "x"\n',
-                 ".claude/skills/alpha/evals/x/prompt.md": "do x\n",
-                 ".claude/skills/alpha/evals/x/fixture.sh": "git init\n"}
+        extra = {"harness/skills/alpha/evals/x/case.yaml": 'schema_version: "1.1"\nname: "x"\n',
+                 "harness/skills/alpha/evals/x/prompt.md": "do x\n",
+                 "harness/skills/alpha/evals/x/fixture.sh": "git init\n"}
         with tempfile.TemporaryDirectory() as tmp:
             b = Build().build(Build().make_repo(tmp, extra=extra), tmp)
             evals = b.plugin_dir / "evals"
@@ -1045,7 +1065,7 @@ class ReviewRound5(unittest.TestCase):
             self.assertEqual(((b.plugin_dir / "skills/alpha/evals").exists(), stray), (False, []))
 
     def test_the_skill_files_outside_evals_are_still_copied(self):
-        extra = {".claude/skills/alpha/evals/x/case.yaml": 'schema_version: "1.1"\n'}
+        extra = {"harness/skills/alpha/evals/x/case.yaml": 'schema_version: "1.1"\n'}
         with tempfile.TemporaryDirectory() as tmp:
             b = Build().build(Build().make_repo(tmp, extra=extra), tmp)
             self.assertEqual((b.plugin_dir / "skills/alpha/scripts/tool.py").read_text(), "print('alpha')\n")
@@ -1053,7 +1073,7 @@ class ReviewRound5(unittest.TestCase):
     # AR-08: the plugin.json branch of the trusted-hook guard.
 
     def test_a_skill_plugin_json_that_declares_hooks_stops_the_build(self):
-        extra = {".claude/skills/alpha/.claude-plugin/plugin.json": json.dumps({"name": "alpha", "hooks": "./h.json"})}
+        extra = {"harness/skills/alpha/.claude-plugin/plugin.json": json.dumps({"name": "alpha", "hooks": "./h.json"})}
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp, extra=extra)
             self.assertEqual(he.check(repo, repo), [])
@@ -1061,7 +1081,7 @@ class ReviewRound5(unittest.TestCase):
                 Build().build(repo, tmp)
 
     def test_a_skill_plugin_json_without_hooks_builds(self):
-        extra = {".claude/skills/alpha/.claude-plugin/plugin.json": json.dumps({"name": "alpha"})}
+        extra = {"harness/skills/alpha/.claude-plugin/plugin.json": json.dumps({"name": "alpha"})}
         with tempfile.TemporaryDirectory() as tmp:
             b = Build().build(Build().make_repo(tmp, extra=extra), tmp)
             self.assertTrue((b.plugin_dir / "skills/alpha/.claude-plugin/plugin.json").is_file())
@@ -1207,12 +1227,12 @@ class ReviewRound6(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp)
             before = git(repo, "rev-parse", "HEAD")
-            self.reword(repo, "unrelated", "spare", ".claude/CLAUDE.md")
+            self.reword(repo, "unrelated", "spare", "harness/CLAUDE.md")
             self.assertEqual(he.check(repo, repo), [])
             after = self.r5.commit(repo, "reword the apex ending")
             b = self.r5.build_refs(repo, tmp, before, after)
             graders = sorted(p.stem for p in (b.plugin_dir / "evals/probe/graders").iterdir())
-            self.assertEqual((graders, b.probe_unchecked), (["rule-reached"], ["probe/apex-reached (.claude/CLAUDE.md)"]))
+            self.assertEqual((graders, b.probe_unchecked), (["rule-reached"], ["probe/apex-reached (harness/CLAUDE.md)"]))
 
     def test_the_same_commit_leaves_no_probe_grader_out(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1222,8 +1242,8 @@ class ReviewRound6(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp)
             before = git(repo, "rev-parse", "HEAD")
-            self.reword(repo, "unrelated", "spare", ".claude/CLAUDE.md")
-            self.reword(repo, "approval", "consent", ".claude/rules/one.md")
+            self.reword(repo, "unrelated", "spare", "harness/CLAUDE.md")
+            self.reword(repo, "approval", "consent", "harness/rules/one.md")
             self.assertEqual(he.check(repo, repo), [])
             after = self.r5.commit(repo, "reword both endings")
             with self.assertRaisesRegex(he.BuildError, "probe"):
@@ -1231,7 +1251,7 @@ class ReviewRound6(unittest.TestCase):
 
     def test_compare_notes_the_probe_graders_left_out_without_refusing(self):
         with tempfile.TemporaryDirectory() as tmp:
-            a = self.r5.write(tmp, "a", probe_unchecked=["probe/apex-reached (.claude/CLAUDE.md)"])
+            a = self.r5.write(tmp, "a", probe_unchecked=["probe/apex-reached (harness/CLAUDE.md)"])
             res = he.compare_dirs(a, self.r5.write(tmp, "b"), 0.34)
             self.assertEqual((res["problems"], has(res["notes"], "apex-reached")), ([], True))
 
@@ -1249,7 +1269,7 @@ class ReviewRound6(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp)
             before = git(repo, "rev-parse", "HEAD")
-            (repo / ".claude/settings.json").write_text(json.dumps(dict(SETTINGS, env={"X": "1"})), encoding="utf-8")
+            (repo / "harness/settings.json").write_text(json.dumps(dict(SETTINGS, env={"X": "1"})), encoding="utf-8")
             m = valid_map()
             m["settings"]["env"] = {"in_eval": False, "reason": "not applied by the eval"}
             (repo / he.MAP_PATH).write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
@@ -1282,21 +1302,21 @@ class ReviewRound7(unittest.TestCase):
 
     def test_an_agent_file_is_a_component_that_the_map_must_name(self):
         with tempfile.TemporaryDirectory() as tmp:
-            t = Tree(tmp, extra={".claude/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"})
-            self.assertTrue(has(t.violations(), "component agent:reviewer.md (.claude/agents/reviewer.md) is missing"))
+            t = Tree(tmp, extra={"harness/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"})
+            self.assertTrue(has(t.violations(), "component agent:reviewer.md (harness/agents/reviewer.md) is missing"))
 
     def test_a_command_file_is_a_component_that_the_map_must_name(self):
         with tempfile.TemporaryDirectory() as tmp:
-            t = Tree(tmp, extra={".claude/commands/ship.md": "Ship it.\n"})
-            self.assertTrue(has(t.violations(), "component command:ship.md (.claude/commands/ship.md) is missing"))
+            t = Tree(tmp, extra={"harness/commands/ship.md": "Ship it.\n"})
+            self.assertTrue(has(t.violations(), "component command:ship.md (harness/commands/ship.md) is missing"))
 
     # spec 070: the review procedures start an agent, so the eval builds it.
 
     def test_a_harness_with_a_mapped_agent_builds_it_into_the_plugin(self):
         text = "---\nname: reviewer\ntools: Read, Grep, Glob\n---\nReview.\n"
-        extra = {".claude/agents/reviewer.md": text}
+        extra = {"harness/agents/reviewer.md": text}
         with tempfile.TemporaryDirectory() as tmp:
-            repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("agent:reviewer.md", ".claude/agents/reviewer.md"))
+            repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("agent:reviewer.md", "harness/agents/reviewer.md"))
             self.assertEqual(he.check(repo, repo), [])
             try:
                 b = Build().build(repo, tmp)
@@ -1306,8 +1326,8 @@ class ReviewRound7(unittest.TestCase):
             self.assertEqual(copied.read_text() if copied.exists() else None, text)
 
     def test_an_agent_the_map_leaves_out_of_the_eval_stops_the_build(self):
-        extra = {".claude/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"}
-        cmap = self.mapped("agent:reviewer.md", ".claude/agents/reviewer.md")
+        extra = {"harness/agents/reviewer.md": "---\nname: reviewer\n---\nReview.\n"}
+        cmap = self.mapped("agent:reviewer.md", "harness/agents/reviewer.md")
         cmap["components"][-1].update({"in_eval": False, "reason": "not measured"})
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp, extra=extra, cmap=cmap)
@@ -1316,9 +1336,9 @@ class ReviewRound7(unittest.TestCase):
                 Build().build(repo, tmp)
 
     def test_a_harness_with_a_mapped_command_stops_the_build(self):
-        extra = {".claude/commands/ship.md": "Ship it.\n"}
+        extra = {"harness/commands/ship.md": "Ship it.\n"}
         with tempfile.TemporaryDirectory() as tmp:
-            repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("command:ship.md", ".claude/commands/ship.md"))
+            repo = Build().make_repo(tmp, extra=extra, cmap=self.mapped("command:ship.md", "harness/commands/ship.md"))
             self.assertEqual(he.check(repo, repo), [])
             with self.assertRaisesRegex(he.BuildError, "has commands, which the eval does not build"):
                 Build().build(repo, tmp)
@@ -1329,18 +1349,18 @@ class ReviewRound7(unittest.TestCase):
         s = valid_suite()
         s["scenarios"][0]["graders"].append(
             {"id": "no-tool-used", "type": "tool", "tool": "Bash", "input_match": "command", "min": 0, "max": 0,
-             "basis": {"file": ".claude/CLAUDE.md", "quote": "Keep unrelated work"},
+             "basis": {"file": "harness/CLAUDE.md", "quote": "Keep unrelated work"},
              "examples": {"match": ["{\"command\":\"cat x\"}"], "no_match": ["{}"]}})
         with tempfile.TemporaryDirectory() as tmp:
             repo = Build().make_repo(tmp, suite=s)
             before = git(repo, "rev-parse", "HEAD")
-            self.r6.reword(repo, "unrelated", "spare", ".claude/CLAUDE.md")
+            self.r6.reword(repo, "unrelated", "spare", "harness/CLAUDE.md")
             self.assertEqual(he.check(repo, repo), [])
             after = self.r5.commit(repo, "reword the apex ending")
             b = self.r5.build_refs(repo, tmp, before, after)
             graders = sorted(p.stem for p in (b.plugin_dir / "evals/probe/graders").iterdir())
             self.assertEqual((graders, b.probe_unchecked),
-                             (["no-tool-used", "rule-reached"], ["probe/apex-reached (.claude/CLAUDE.md)"]))
+                             (["no-tool-used", "rule-reached"], ["probe/apex-reached (harness/CLAUDE.md)"]))
 
     # AR-04: the missing-case branches of compare and run.
 
@@ -1372,7 +1392,7 @@ class ReviewRound8(unittest.TestCase):
     # AR-03: the two untested guards of the build.
 
     def test_a_case_yaml_elsewhere_in_a_skill_stops_the_build(self):
-        extra = {".claude/skills/alpha/extra/case.yaml": 'schema_version: "1.1"\n'}
+        extra = {"harness/skills/alpha/extra/case.yaml": 'schema_version: "1.1"\n'}
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(he.BuildError, "eval cases outside the generated evals/"):
                 Build().build(Build().make_repo(tmp, extra=extra), tmp)

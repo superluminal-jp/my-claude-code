@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """spec 070 R1a and R1b: the read-only reviewer the two review procedures start.
 
-R1a: `.claude/agents/read-only-reviewer.md` declares exactly the fields
+R1a: `harness/agents/read-only-reviewer.md` declares exactly the fields
 name, description, tools, model, effort, and omitClaudeMd, with tools exactly
 Read, Grep, and Glob, model sonnet, effort xhigh, and omitClaudeMd true, and
 its body tells the reviewer to answer `NOT REVIEWED: <path>: <reason>` when a
 file it was given cannot be read.
 
-R1b: the challenger procedure (requirements-decomposition's SKILL.md and
-references/challenger.md) and the assurance review procedure
-(verified-delivery's SKILL.md and references/reviewer.md) name the
+R1b: the challenger procedure (specify-requirements's SKILL.md and
+references/challenge.md) and the assurance review procedure
+(verify-change's SKILL.md and references/assurance-review.md) name the
 definition's `name`, and no longer describe the reviewer only as "a new
 subagent that can only read and search".
+
+The other subagent definitions fix the model, effort, and tools of the work
+they are for, so that delegation does not depend on a model named at each
+call: `check-runner` and `file-searcher` run on haiku without CLAUDE.md, and
+`file-searcher` cannot run commands; `task-worker` runs on sonnet at xhigh.
 
 The script checks the repository's files, then checks that every one of a set
 of single changes to them (another tool, another model, a missing field, a
@@ -28,13 +33,19 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-AGENT = ".claude/agents/read-only-reviewer.md"
+AGENT = "harness/agents/read-only-reviewer.md"
 PROCEDURES = (
-    ".claude/skills/requirements-decomposition/SKILL.md",
-    ".claude/skills/requirements-decomposition/references/challenger.md",
-    ".claude/skills/verified-delivery/SKILL.md",
-    ".claude/skills/verified-delivery/references/reviewer.md",
+    "harness/skills/specify-requirements/SKILL.md",
+    "harness/skills/specify-requirements/references/challenge.md",
+    "harness/skills/verify-change/SKILL.md",
+    "harness/skills/verify-change/references/assurance-review.md",
 )
+# name -> the frontmatter values each of the other definitions must fix.
+OTHER_AGENTS = {
+    "check-runner": {"model": "haiku", "effort": "low", "tools": "Bash, Read, Grep, Glob", "omitClaudeMd": "true"},
+    "file-searcher": {"model": "haiku", "effort": "medium", "tools": "Read, Grep, Glob", "omitClaudeMd": "true"},
+    "task-worker": {"model": "sonnet", "effort": "xhigh"},
+}
 OLD_PHRASES = (
     "a new subagent that can only read and search",
     "a new subagent whose tools can only read and search",
@@ -97,6 +108,27 @@ def procedure_violations(texts: Dict[str, str], name: str) -> List[str]:
     return out
 
 
+def other_agent_violations(root: Path) -> List[str]:
+    out = []
+    for name, expected in OTHER_AGENTS.items():
+        path = root / "harness" / "agents" / f"{name}.md"
+        if not path.is_file():
+            out.append(f"harness/agents/{name}.md is missing")
+            continue
+        head, body = split_frontmatter(path.read_text(encoding="utf-8"))
+        fields = {key: value.strip() for key, _, value in (line.partition(":") for line in head)}
+        if fields.get("name") != name:
+            out.append(f"{name}: name must be {name}, not {fields.get('name')!r}")
+        if not fields.get("description"):
+            out.append(f"{name}: description must not be empty")
+        for key, want in expected.items():
+            if fields.get(key) != want:
+                out.append(f"{name}: {key} must be {want!r}, not {fields.get(key)!r}")
+        if not body.strip():
+            out.append(f"{name}: the definition has no body")
+    return out
+
+
 def agent_name(text: str) -> str:
     head, _ = split_frontmatter(text)
     for line in head:
@@ -130,7 +162,7 @@ def main(root: Path) -> int:
     texts = {rel: (root / rel).read_text(encoding="utf-8") for rel in PROCEDURES}
     name = agent_name(agent_text)
     failures = []
-    for v in agent_violations(agent_text) + procedure_violations(texts, name):
+    for v in agent_violations(agent_text) + procedure_violations(texts, name) + other_agent_violations(root):
         failures.append(f"repository: {v}")
     if failures:
         # The changed copies are built from a passing definition; there is none.

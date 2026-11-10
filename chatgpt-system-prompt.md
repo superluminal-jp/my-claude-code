@@ -1,6 +1,6 @@
 # ChatGPT Portable Prompt
 
-Paste-ready text that carries the working principles of this repository's `.claude/` configuration (rules plus the minto-pyramid, problem-definition, clarifier and coder skills) into ChatGPT. The blocks are written for the model, in dense notation, not for people to read. Verified against official OpenAI pages and the owner's Plus-plan settings screen on 2026-10-05.
+Paste-ready text that carries the working principles of this repository's `.claude/` configuration (rules plus the minto-pyramid, problem-definition, clarifier and coder skills) into ChatGPT. The blocks are written for the model, in dense notation, not for people to read. Verified against official OpenAI pages and the owner's Plus-plan settings screen on 2026-10-05. The configuration has since moved to `harness/`, and its skills were rebuilt under new names on 2026-11-10 (see `docs/harness-zero-base.md`); this text was not derived again, and the skill names in this file are those of 2026-10-05.
 
 ## Where to paste
 

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "id": "deliver-change",
+      "children": ["define-problem", "specify-requirements"],
+      "permission": "read_only",
+      "role": "orchestrator"
+    },
+    {
+      "id": "define-problem",
+      "children": [],
+      "permission": "read_only",
+      "role": "worker"
+    },
+    {
+      "id": "specify-requirements",
+      "children": ["decomposition-checker"],
+      "permission": "read_only",
+      "role": "worker"
+    },
+    {
+      "id": "decomposition-checker",
+      "children": [],
+      "permission": "read_only",
+      "role": "checker"
+    }
+  ]
+}

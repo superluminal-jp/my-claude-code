@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Regression guard for the "removed with no replacement" decisions:
-# ADR-0005 (.claude/hooks/) and ADR-0007 (scripts/), plus the narrowed
-# permissions decision. Each ADR's own dedicated verification suite was
+# ADR-0005 (the hooks directory) and ADR-0007 (scripts/), plus the narrowed
+# permissions decision, and for the move of the managed configuration from
+# this repository's .claude/ to harness/. Each ADR's own dedicated verification suite was
 # deleted along with the thing it verified (that is the point — there is
 # nothing left to test in depth), but nothing was left behind to catch a
 # regression if one of these were silently reintroduced later. This suite is
@@ -30,17 +31,32 @@ check() {
   fi
 }
 
-[ ! -e "$REPO_ROOT/.claude/hooks" ] && c=1 || c=0
-check "ADR-0005: .claude/hooks/ stays removed" "$c"
+[ ! -e "$REPO_ROOT/harness/hooks" ] && [ ! -e "$REPO_ROOT/.claude/hooks" ] && c=1 || c=0
+check "ADR-0005: no hooks directory, in harness/ or in .claude/" "$c"
+
+# The managed configuration moved from this repository's .claude/ to harness/.
+# A copy left behind would load a second time as project configuration, and
+# would be the copy a reader edits by mistake. The check looks for files: an
+# empty directory holds no configuration, Git does not track one, and Claude
+# Code itself leaves empty working directories under .claude/.
+legacy=""
+for path in CLAUDE.md rules skills agents settings.json commands; do
+  if [ -n "$(find "$REPO_ROOT/.claude/$path" -type f 2>/dev/null | head -n 1)" ]; then
+    legacy="$legacy .claude/$path"
+  fi
+done
+[ -n "$legacy" ] && printf '    still present:%s\n' "$legacy" >&2
+[ -z "$legacy" ] && c=1 || c=0
+check "SRC-01: this repository's own .claude/ holds no managed configuration" "$c"
 
 [ ! -e "$REPO_ROOT/scripts" ] && c=1 || c=0
 check "ADR-0007: scripts/ stays removed" "$c"
 
 if command -v jq >/dev/null 2>&1; then
   jq -e '(.permissions // {}) | has("allow") or has("ask") | not' \
-    "$REPO_ROOT/.claude/settings.json" >/dev/null 2>&1 && c=1 || c=0
+    "$REPO_ROOT/harness/settings.json" >/dev/null 2>&1 && c=1 || c=0
 else
-  grep -qE '"(allow|ask)"' "$REPO_ROOT/.claude/settings.json" && c=0 || c=1
+  grep -qE '"(allow|ask)"' "$REPO_ROOT/harness/settings.json" && c=0 || c=1
 fi
 check "ADR-0006/0014: settings.json permissions carries no allow/ask tier" "$c"
 
@@ -51,7 +67,7 @@ if command -v jq >/dev/null 2>&1; then
   jq -e '[(.permissions.deny // [])[]
           | select((startswith("Read(") | not) or test("\\(/[^/]"))]
          | length == 0' \
-    "$REPO_ROOT/.claude/settings.json" >/dev/null 2>&1 && c=1 || c=0
+    "$REPO_ROOT/harness/settings.json" >/dev/null 2>&1 && c=1 || c=0
 else
   c=1  # skipped without jq
 fi

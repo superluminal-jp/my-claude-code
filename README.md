@@ -10,32 +10,47 @@ Building your own config? See
 test each always-on instruction has to pass, and what this repo deliberately
 leaves out of it.
 
-`install.sh` synchronizes the repository-managed parts of `.claude/` to
-`~/.claude/`, making its settings, rules, skills, and memory available across
-projects while preserving unrelated user files.
+`install.sh` synchronizes the repository-managed parts of `harness/` to
+`~/.claude/`, making its settings, rules, skills, agents, and memory available
+across projects while preserving unrelated user files.
+
+The source lives in `harness/`, not in this repository's own `.claude/`: a
+sandboxed Bash command cannot write under `.claude/`, and files there would
+also load a second time, as this repository's project configuration. The
+redesign that produced this layout is recorded in
+[`docs/harness-zero-base.md`](docs/harness-zero-base.md) (Japanese).
 
 ## What this provides
 
-- **`.claude/CLAUDE.md`** — Persistent user memory: one governing outcome and
-  its three lifecycle branches (define, execute, hand off), plus a generic
+- **`harness/CLAUDE.md`** — Persistent user memory: one governing outcome and
+  its three lifecycle branches (define, execute, hand off), a generic
   multi-match algorithm for applying every independently matching capability,
-  and a delegation policy. Under that policy, without waiting for the user to
-  ask, Claude hands checks with long output, read-only searches, and one fully
-  specified change repeated across many files to subagents on `haiku`, and
-  independent tasks that need judgment to subagents on `sonnet`, unless
-  writing the subagent's instructions would take about as many tokens as doing
-  the work. Claude keeps decisions and the judgment that the work is complete
-  on the main conversation's model. `.claude/CLAUDE.md` names no rule, skill,
-  or server — the design
+  a rule that scales the process to the change (a local, reversible change
+  needs a failing check and a passing run; a change to an interface, a data
+  flow, or several modules also needs evidence for each acceptance criterion
+  and an independent review; a change to authentication, secrets, personal
+  data, data migration, permissions, public exposure, or anything hard to undo
+  also needs a person's approval), and a delegation policy. Under that policy,
+  without waiting for the user to ask, Claude delegates to a subagent when one
+  of three conditions holds: the output is long and only its result is needed,
+  the pieces are independent and can run in parallel, or a reader independent
+  of the author is needed. It uses the subagent type defined for that kind of
+  work, which fixes the model, effort, and tools, and never lets two subagents
+  write the same file; otherwise it does the work itself, because a subagent
+  starts from an empty context. Decisions, design, code review, and the
+  judgment that the work is complete stay on the main conversation's model.
+  `harness/CLAUDE.md` names no rule, skill, server, or model — the design
   rationale is in [`docs/claude-config-design.md`](docs/claude-config-design.md)
-- **`.claude/settings.json`** — User-level Claude Code settings: the main
+- **`harness/settings.json`** — User-level Claude Code settings: the main
   conversation's model (`opus`) and its reasoning effort level, fixed at
-  `xhigh` (the highest level the settings file accepts) by `effortLevel`; the
-  credential deny list; the OS sandbox turned on for every Bash command with
-  only the openings everyday work needs; three `SessionStart` hooks; and the
-  MCP servers it stops (see [Sandbox and session hooks](#sandbox-and-session-hooks)
+  `xhigh` (the highest level the settings file accepts) by `effortLevel` and,
+  for `claude-opus-5-5`, again under `modelSettings` (the reason is recorded in
+  [`docs/harness-zero-base.md`](docs/harness-zero-base.md)); the credential
+  deny list; the OS sandbox turned on for every Bash command with only the
+  openings everyday work needs; three `SessionStart` hooks; and the MCP
+  servers it stops (see [Sandbox and session hooks](#sandbox-and-session-hooks)
   and [MCP Servers](#mcp-servers))
-- **`.claude/rules/`** — Always-on universal rules, each kept to what changes
+- **`harness/rules/`** — Always-on universal rules, each kept to what changes
   Claude's decisions and nothing else, and each supporting exactly one apex
   branch: requirements-certainty clarification triggers, reasoning
   completeness (four self-checks: dependencies and concurrency, conditions
@@ -44,7 +59,8 @@ projects while preserving unrelated user files.
   self-check; the parts of a research paper — summary, premises, method,
   results, discussion, conclusion — in answer-first order; structure made
   visible through numbered claim headings and bold supporting claims; premises
-  and plain definitions for a newcomer, even for a term the user has used;
+  and plain definitions for a reader new to the subject, unless the user's own
+  messages show otherwise;
   a reader who has seen none of the conversation, code, or documents, so
   every ambiguous word and pointer names what it refers to; each term in the
   form its field uses, never a coined translation; and no explanation by
@@ -52,122 +68,183 @@ projects while preserving unrelated user files.
   another rule, a skill, or a config path. What each file deliberately
   omits, and where that content went, is recorded in
   [`docs/claude-config-design.md`](docs/claude-config-design.md)
-- **`.claude/skills/`** — On-demand playbooks loaded by relevance, self-describing
-  on two independent axes so no central router is needed: lifecycle
-  operations — `coder` (change workflow, TDD, SDD, code quality, security, type safety, docs),
-  `clarifier` (agree on intent
-  first — the AI states its reading, assumptions, and scope for the user to
-  reject — then formalize it: INVEST/Gherkin), `problem-definition` (turning a vague
-  complaint into a verifiable problem statement — the gap between current
-  and ideal state), `requirements-decomposition` (recording an agreed problem as a
-  problem card that keeps evidence, causal hypotheses, and fixes apart,
-  decomposing it into an AND/OR/LEAF requirements graph whose parents carry
-  their own L2 or L3 acceptance criteria, having a read-only challenger subagent
-  (`read-only-reviewer`, see `.claude/agents/`) object, and running a bundled standard-library checker whose gate answers
-  ready or blocked before implementation starts; a requirement a person
-  directed carries its `origin`, which the challenger takes as a given
-  constraint, and a criterion verifiable only after deploy carries its `stage`;
-  [spec 059](specs/059-refinement-graph-checker/spec.md),
-  [spec 060](specs/060-goal-refinement/spec.md)), `verified-delivery` (a
-  parent skill that applies `problem-definition`, `requirements-decomposition`, and
-  `coder` in order, records for every acceptance criterion which check ran on
-  which commit with what result, and runs a bundled checker whose gate answers
-  pass, fail, or blocked — never building a parent's pass from its children's,
-  never counting stale evidence or an AI's claim, and stopping on unclassified
-  risk, a missing approval, a high-risk change without a challenge report, a
-  medium- or high-risk change without an independent assurance review of its
-  commit, any finding not answered, or a requirements graph whose structure it
-  re-checks and finds broken, so a skipped step blocks instead of passing —
-  and prints a one-screen review card for the person who decides, plus a
-  preregistered pilot decision on whether it cuts review time without losing
-  quality; criteria verified only after deploy are left out of a separate
-  decision before deploy, which the card shows under the acceptance decision,
-  Jest's `--json` results are read as well as JUnit XML, records go in a
-  records-only commit after the reviewed one, and a review after fixes reads
-  only the fix diff; each review round reads a bundle that `review_prep.py`
-  writes outside the repository (the change without its records, this
-  round's evidence), rereads the whole diff only when the requirements'
-  structure or the risk changed, and starts after a scripted check of the
-  records ([spec 069](specs/069-assurance-review-cost/problem.md));
-  [spec 061](specs/061-change-assurance/spec.md),
-  [spec 062](specs/062-review-card/spec.md), [spec 063](specs/063-pilot-metrics/spec.md),
-  [spec 064](specs/064-assurance-gate-hardening/spec.md),
-  [spec 068](specs/068-skill-procedure-gaps/problem.md)),
-  `product-strategy` (vision, target users,
-  value proposition, success metrics, and MoSCoW-prioritized scope, framed
-  before development work begins),
-  `git-workflow` (branch/commit/push/PR conventions), `aws-research`
-  (current AWS documentation lookup) — and domain overlays —
-  `digital-agency-frontend` (DADS-based accessible React/Tailwind
-  public-service frontends and web dashboards), `digital-agency-slides`
-  (DADS 16:9 slide decks delivered as HTML, built as a tree — premises, then
-  the answer, then one slide per supporting point — with a tracker on every
-  main slide showing where it sits, a 機密性/公開範囲 classification box on
-  every slide, and checked by its own bundled linter),
-  `scrum-master` (diagnose and
-  improve Scrum events, artifacts, accountabilities, and deviations against
-  the Scrum Guide 2020 alone), `secure-logging` (implement and
-  check application logging against the OWASP Logging Cheat Sheet, ASVS 5.0.0
-  V16, and CWE, and against the official logging practices of Python, React,
-  AWS Lambda and CDK, Google Cloud (including Cloud Run functions), Azure
-  (including Azure Functions), each cloud's AI inference service, and GitHub
-  Actions workflow logs;
-  code-verifiable items only, operational items reported as unverified unless
-  the repository's infrastructure code (AWS CDK, Terraform, Bicep) settles
-  them), `system-diagrams` (system architecture diagrams a first-time reader,
-  from a non-engineer to a specialist, can follow: a set of C4 views, each
-  answering one question for one audience at one level of abstraction,
-  written as Mermaid in Markdown by default, as draw.io or Structurizr DSL
-  when those fit, traced to evidence, and checked by a bundled
-  standard-library checker for title, lead text, legend, element types,
-  labelled lines, accessible text, and the index; diagrams built from a
-  cloud vendor's official icon set are out of scope), which compose with a matching
-  lifecycle operation rather than replace it. Two macOS app integrations are
-  classified on neither axis: `apple-notes` (read and write Notes.app through
-  bundled JXA scripts, with a SHA-256 hash gate on overwrite and delete) and
-  `apple-reminders` (read and write Reminders.app through a small EventKit CLI
-  built from one Swift file; see
-  [ADR-0013](docs/adr/0013-eventkit-for-reminders-automation.md)). `secure-logging` is also
-  packaged as an authored skills-directory plugin (`.claude-plugin/plugin.json`,
-  no hooks); see its `README.md`. `pyramid-structure` applies the Minto
-  pyramid to every substantive task: it structures answers, plans,
-  decisions, reviews, and documents, checks each substantive draft with a
-  bundled standard-library Python checker (headings, lists, opening
-  sentence) before it is sent, has each deliverable (a document, PR body, or
-  published page) read by a new subagent that has seen none of the
-  conversation and fixes every word whose referent it could not identify
-  ([spec 057](specs/057-context-free-reader/spec.md)), and on request checks
-  a document's claim tree for deductive validity and declared MECE
-  ([spec 055](specs/055-pyramid-structure-always-on/spec.md)). It is also
-  packaged as an authored skills-directory plugin
-  (`.claude-plugin/plugin.json`, no hooks) with a `claude plugin eval` suite;
-  see its `README.md` for the recommended models. One vendored
-  skills-directory plugin — `maintaining-living-documentation`
-  (documentation consistency workflow) — is vendored from its upstream
-  package; the local copy removes its `hooks/hooks.json` (no `SessionStart`
-  rule, no `Stop` gate), so a verbatim re-copy would restore it. See its own
-  `README.md` for options. The vendored `minto-pyramid` plugin (replaced by
-  `pyramid-structure`), the former Minto suite (`minto-builder`,
-  `minto-reviewer`, `minto-rewriter`), the `adr` skill (its rules merged
-  into `maintaining-living-documentation`) and `meta-spec` (no longer needed;
-  [spec 058](specs/058-parent-skill-references/spec.md)) are retired to
-  [`archive/`](archive/), which is not synced. No skill names another,
-  except that a parent skill — one that applies several skills in a set
-  order — may name, by name and never by path, the child skills it declares
-  in a `## Child skills` section of its `SKILL.md`; a child declares no
-  children of its own and stays usable without its parent
-  ([spec 058](specs/058-parent-skill-references/spec.md)). A skill may also
-  name, by name, a subagent defined in `.claude/agents/`: the review
-  procedures of `requirements-decomposition` and `verified-delivery` start
-  `read-only-reviewer`, whose definition allows only Read, Grep, and Glob and
-  starts it without CLAUDE.md (a CLAUDE.md in a directory whose files it reads
-  still loads, as do the MCP servers' instructions), and stop when it is missing
-  ([spec 070](specs/070-review-integrity/problem.md)). Spec Kit's `speckit-*`
-  skills are not vendored here — they're per-project artifacts generated by
-  `specify init` under whichever agent directory `--integration` targets
-  (`.claude/skills/`, `.agents/skills/`, `.cursor/skills/`), all gitignored
-  (see [Opt-in to spec-kit](#opt-in-to-spec-kit))
-- **`install.sh`** — Copies `.claude/` to `~/.claude/` and installs/enables
+- **`harness/agents/`** — Four subagent definitions, one per kind of delegated
+  work. Each definition fixes the model, reasoning effort, and tools, which is
+  what the delegation policy of `harness/CLAUDE.md` relies on:
+  - `read-only-reviewer` (`sonnet`, `xhigh`) — the independent reviewer that
+    the challenge step of `specify-requirements` and the assurance review of
+    `verify-change` start. Its tools are Read, Grep, and Glob only, and it
+    starts without CLAUDE.md (a CLAUDE.md in a directory whose files it reads
+    still loads, as do the MCP servers' instructions). When a file it was given
+    cannot be read, it answers `NOT REVIEWED: <path>: <reason>` instead of
+    judging from the rest ([spec 070](specs/070-review-integrity/problem.md))
+  - `check-runner` (`haiku`, `low`) — runs checks whose output is long (tests,
+    builds, linters, type checkers) and reports each command, its exit code,
+    and the verbatim output of every failure. Its tools are Bash, Read, Grep,
+    and Glob; it starts without CLAUDE.md, changes no file, and decides
+    nothing
+  - `file-searcher` (`haiku`, `medium`) — a read-only search of a codebase or a
+    set of documents that returns `path:line` locations with short excerpts.
+    Its tools are Read, Grep, and Glob; it starts without CLAUDE.md
+  - `task-worker` (`sonnet`, `xhigh`) — one self-contained task that needs
+    judgment, for independent tasks that run in parallel. Its definition sets
+    no tool restriction; it writes only the files its task assigns it and does
+    not declare the larger work complete
+- **`harness/skills/`** — On-demand playbooks loaded by relevance, 16 in all,
+  self-describing so that no central router is needed. Each `SKILL.md` holds
+  a `description` (when to use the skill and when not to) and, under
+  `metadata`, its `kind` (`worker`, `overlay`, or `orchestrator`), its
+  `permission` (`read_only`, `workspace_write`, or `external_effect`), and its
+  `sandbox` declaration: `inside` (every bundled command runs in the Bash
+  sandbox as it is) or `network` (some steps need the hosts the skill names).
+  13 skills are `inside`; `apply-dads-frontend`, `build-dads-slides`, and
+  `manage-git` are `network`. A skill is one unit — one trigger, one product,
+  one completion check (`Done when`) — and meets the contract that
+  `tests/assert_skill_contract.py` checks (see [Verification](#verification)).
+  - Carrying a change from problem to acceptance, in the order the work goes.
+    `clarify-intent` (agree on intent first: the AI states its reading in
+    four parts — understanding, assumptions with confidence, what is out of
+    scope, open points — for the person to reject, converges on a criterion
+    rather than on cases, grounds the criterion in a named framework within
+    three rounds, and records the agreement as a memo; it runs when asked or
+    when drift shows itself, such as a rejected deliverable or a point
+    restated twice, and writes no formal requirements),
+    `define-problem` (turn a vague complaint into one verifiable problem
+    statement — the gap between the current and the ideal state, with its
+    significance — keeping any solution or unverified cause the person brought
+    in a section of its own),
+    `specify-requirements` (record an agreed problem as a problem card that
+    keeps evidence, counter-evidence, hypotheses, and proposed solutions
+    apart; decompose it into an AND/OR/LEAF requirements graph whose parents
+    carry their own `L2` or `L3` acceptance criteria; have a read-only
+    challenger (`read-only-reviewer`) object when the change is risky or the
+    evidence is thin; and run a bundled standard-library checker whose gate
+    answers `ready` or `blocked` before implementation starts. A requirement
+    a person directed carries its `origin`, and a criterion verifiable only
+    after deploy carries its `stage`; the graph is the only place for the
+    acceptance criteria;
+    [spec 059](specs/059-refinement-graph-checker/spec.md),
+    [spec 060](specs/060-goal-refinement/spec.md)),
+    `implement-change` (change code, configuration, tests, scripts, or
+    interfaces test-first in the smallest coherent step: define the completion
+    condition, write the specification first when observable behavior
+    changes, watch a check fail for the right reason, make the smallest change
+    that passes, run the repository's own checks, update the documents that
+    state a changed contract, and commit, push, or open a pull request only on
+    request; its guidance on specification first, type safety, and system
+    boundaries such as input, errors, secrets, and logging loads only when it
+    applies), and
+    `verify-change` (record in a verification manifest, for every acceptance
+    criterion, which check ran on which commit with what result; classify the
+    change's risk; for medium and high risk have `read-only-reviewer` run an
+    independent assurance review of the committed change; and run a bundled
+    standard-library checker whose gate answers `pass`, `fail`, or `blocked` —
+    never building a parent's pass from its children's, never counting an
+    AI's claim as evidence, and stopping on unclassified risk, a missing
+    approval, a high-risk change without a challenge report, a medium- or
+    high-risk change without an assurance review of its commit, or a finding
+    not answered. It reads JUnit XML and Jest `--json` results, decides before
+    deploy with `--stage pre_deploy` when some criteria can only be verified
+    after it, keeps its records in a records-only commit after the reviewed
+    one, has each review round read a bundle that `review_prep.py` writes
+    under `$TMPDIR` and a round after fixes read only the fix diff, prints a
+    one-screen review card for the person who decides, and carries a
+    preregistered pilot procedure (`references/pilot.md`, `scripts/pilot.py`)
+    for deciding whether it cuts review time without losing quality;
+    [spec 061](specs/061-change-assurance/spec.md),
+    [spec 062](specs/062-review-card/spec.md),
+    [spec 063](specs/063-pilot-metrics/spec.md),
+    [spec 064](specs/064-assurance-gate-hardening/spec.md),
+    [spec 068](specs/068-skill-procedure-gaps/problem.md),
+    [spec 069](specs/069-assurance-review-cost/problem.md)).
+    `deliver-change` is the parent skill (`kind: orchestrator`) that applies
+    `define-problem`, `specify-requirements`, `implement-change`, and
+    `verify-change` in that order: it goes on to implementation only when the
+    requirements gate says `ready`, returns to implementation or to the
+    requirements by the reason a failed or blocked gate gives, and hands the
+    person the gate's decision with the review card unchanged
+  - Other workers: `define-product-strategy` (vision, target users, value
+    proposition, success metrics, must/should/could/won't scope, and
+    constraints, framed before development begins as one strategy brief, for a
+    new product or for an initiative on an existing one),
+    `structure-document` (structure a document — report, proposal, design
+    document, specification, README, email, slide outline, pull-request or
+    issue body — as one claim tree with its answer first, checked by a bundled
+    standard-library checker (`check.py`) of the text and, for a logic review,
+    of a claim tree written from an existing document; a document that
+    leaves the conversation is also read by a subagent that has seen none of
+    the conversation ([spec 057](specs/057-context-free-reader/spec.md));
+    the skill is used only for drafting, revising, or reviewing a document, while the
+    always-on rule `pyramid-principle.md` covers answers),
+    `sync-docs` (keep documentation consistent with code, specifications,
+    decisions, and research artifacts as they change, and audit for drift:
+    bundled read-only standard-library scripts inspect the project, list the
+    changed artifact classes and the documents next to the changed files, and
+    check links; the update goes in the same change and the report carries a
+    `Documentation impact` block; `.living-documentation.json` corrects the
+    scripts' classification),
+    `manage-git` (branches, Conventional Commits, pushes, and pull requests so
+    that history stays reviewable and nothing is published beyond what was
+    asked; each of commit, push, and pull request needs its own request),
+    `research-aws` (answer from official AWS documentation read through
+    whatever first-party documentation tools the session has, not from
+    recollection; every AWS-specific claim cites an official page or is marked
+    unverified),
+    `draw-system-diagrams` (system architecture diagrams a first-time reader,
+    from a non-engineer to a specialist, can follow: a set of C4 views, each
+    answering one question for one audience at one level of abstraction,
+    written as Mermaid in Markdown by default, as draw.io or Structurizr DSL
+    when those fit, with every element traced to a source and checked by a
+    bundled standard-library checker (`check_diagrams.py`) for title, lead
+    text, legend, labelled lines, the element limit per view, and an index
+    that links every view; diagrams built from a cloud vendor's official icon
+    set are out of scope), and
+    `build-dads-slides` (16:9 slide decks delivered as one HTML file on the
+    Digital Agency Design System's official HTML and CSS assets, built as a
+    tree — premises, then the answer, then one slide per supporting point —
+    with a tracker on every main slide showing where it sits, a
+    機密性/公開範囲 classification marking at the top right of every slide,
+    and checked by its own bundled linter and preview images)
+  - Domain overlays, which compose with a matching worker rather than replace
+    it: `apply-dads-frontend` (accessible React/Tailwind public-service
+    frontends and web dashboards on DADS, from a bundled verbatim copy of the
+    official documentation, with the sources checked, the deviations, and the
+    accessibility evidence reported), `apply-secure-logging` (implement and
+    review application and CI logging against a bundled checklist of OWASP
+    Logging Cheat Sheet, ASVS V16, and CWE items and of the logging practices
+    that the official documentation of each stack describes; every item gets
+    one status — pass, fail, N/A, or unverified — with evidence, and an item
+    about storage, transport, retention, or alerting is never passed from
+    application code), and `apply-scrum-guide` (diagnose and improve Scrum
+    events, artifacts, accountabilities, and deviations against the 2020 Scrum
+    Guide alone; read-only, with the Guide's Japanese and US PDFs and eight
+    Markdown templates bundled; the skill's text is Japanese)
+  - No skill names another, except that a parent skill — one that applies
+    several skills in a set order — may name, by name and never by path, the
+    child skills it declares in a `## Child skills` section of its `SKILL.md`;
+    a child declares no children of its own
+    ([spec 058](specs/058-parent-skill-references/spec.md)). A skill may also
+    name, by name, a subagent defined in `harness/agents/`: the review
+    procedures of `specify-requirements` and `verify-change` start
+    `read-only-reviewer` and stop when it is missing
+  - The 17 skills of the earlier layout were discarded and rebuilt as these
+    16, under new names; the old-to-new mapping is in
+    [`docs/harness-zero-base.md`](docs/harness-zero-base.md). The Apple Notes
+    and Apple Reminders integrations were removed with no replacement, and the
+    skill-level README files, evaluation suites, and plugin manifests that some
+    earlier skills carried were not carried over. The vendored `minto-pyramid`
+    plugin (replaced by `pyramid-structure`, now `structure-document`), the
+    former Minto suite (`minto-builder`, `minto-reviewer`, `minto-rewriter`),
+    the `adr` skill (its rules merged into `maintaining-living-documentation`,
+    now `sync-docs`) and `meta-spec` (no longer needed;
+    [spec 058](specs/058-parent-skill-references/spec.md)) were retired
+    earlier to [`archive/`](archive/), which is not synced
+  - Spec Kit's `speckit-*` skills are not vendored here — they're per-project
+    artifacts generated by `specify init` under whichever agent directory
+    `--integration` targets (`.claude/skills/`, `.agents/skills/`,
+    `.cursor/skills/`), all gitignored (see
+    [Opt-in to spec-kit](#opt-in-to-spec-kit))
+- **`install.sh`** — Copies `harness/` to `~/.claude/` and installs/enables
   this repository's Claude Code plugins (see [Plugins](#plugins)). It installs
   no MCP servers — add the ones you need yourself (see
   [MCP Servers](#mcp-servers))
@@ -187,12 +264,13 @@ projects while preserving unrelated user files.
 ## Supplementary documentation
 
 `docs/` is written for the maintainer, not for Claude. It is **not** synced to
-`~/.claude/` by `install.sh`, so nothing in `.claude/` links into it — the rules
+`~/.claude/` by `install.sh`, so nothing in `harness/` links into it — the rules
 and skills carry their own sources inline instead.
 
 | Document | Covers |
 |---|---|
-| [`docs/claude-config-design.md`](docs/claude-config-design.md) | The test each always-on instruction must pass, and what each file deliberately omits |
+| [`docs/claude-config-design.md`](docs/claude-config-design.md) | The test each always-on instruction must pass, what each file deliberately omits, and the reference lists the rules cite |
+| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | The redesign of the harness: why the source moved to `harness/` and the 17 skills were rebuilt as 16, the old-to-new skill mapping, the sandbox contract every skill meets, and the open work |
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, which servers `settings.json` stops, and what to update when a server is added |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | The whole-harness behavior baseline: how to check the capability map and scenario suite, run the suite with `claude plugin eval` against two commits under a cost ceiling, and compare the results, and where the eval differs from a real session |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | Which component owns each stage of the work, which stages have no owner, which skills exclude one another, and which scenarios cover each stage (generated from `capability-map.json`) |
@@ -201,7 +279,7 @@ and skills carry their own sources inline instead.
 ## Install as user configuration
 
 Run the bundled installer from the cloned repo. It synchronizes the declared
-managed paths from `.claude/` to `~/.claude/` and installs/enables this
+managed paths from `harness/` to `~/.claude/` and installs/enables this
 repository's Claude Code plugins (see [Plugins](#plugins)):
 
 ```sh
@@ -241,10 +319,10 @@ Re-running is safe: it re-syncs managed paths and re-checks the plugins.
   settings, which Claude Code combines with the user scope.
 - Files removed from this repository are also removed from `~/.claude` under
   the replaced managed paths.
-- `agents/` holds `read-only-reviewer.md`, the read-only subagent the review
-  procedures start. Like the other managed paths it replaces
-  `~/.claude/agents/`, so an agent file of your own there is removed; keep
-  your own agents in a project's `.claude/agents/`.
+- `agents/` holds the four subagent definitions (`read-only-reviewer`,
+  `check-runner`, `file-searcher`, and `task-worker`). Like the other managed
+  paths it replaces `~/.claude/agents/`, so an agent file of your own there is
+  removed; keep your own agents in a project's `.claude/agents/`.
 - `commands/` has no source in this repository; it stays managed only to
   clean up what earlier versions installed. Every run therefore deletes
   `~/.claude/commands/`.
@@ -256,32 +334,32 @@ Re-running is safe: it re-syncs managed paths and re-checks the plugins.
 If you prefer not to copy, import from any `CLAUDE.md`:
 
 ```markdown
-@/absolute/path/to/my-claude-code/.claude/CLAUDE.md
+@/absolute/path/to/my-claude-code/harness/CLAUDE.md
 ```
 
 ## File structure
 
 ```
 my-claude-code/
-├── CLAUDE.md                       # Repo purpose + re-export of @.claude/CLAUDE.md (in-repo only, not synced)
+├── CLAUDE.md                       # Repo purpose and how to work here (in-repo only, not synced)
 ├── README.md                       # This guide (README.ja.md: Japanese)
-├── install.sh                      # Sync managed Claude paths + install plugins (no MCP servers)
+├── install.sh                      # Sync managed Claude paths from harness/ + install plugins (no MCP servers)
 ├── .mcp.json                       # Project-scope MCP server definitions; reference for adding servers yourself
-├── .living-documentation.json      # Settings for the maintaining-living-documentation scripts (excludes specs/)
+├── .living-documentation.json      # Settings for the sync-docs scripts (excludes specs/)
 ├── chatgpt-system-prompt.md        # Portable prompt for ChatGPT custom instructions (not synced)
 ├── claude-ai-system-prompt.md      # Portable prompt for Claude.ai instructions (not synced)
-├── docs/                           # Maintainer documentation: design rationale, MCP background, ADRs (not synced)
-├── tests/                          # Offline contract suites (run-*.sh) + fixtures; see Verification
+├── docs/                           # Maintainer documentation: design rationale, the harness redesign, MCP background, ADRs (not synced)
+├── tests/                          # Offline contract suites (run-*.sh), assert_*.py helpers + fixtures; see Verification
 ├── specs/                          # Spec Kit feature specifications for this repository's own changes
 ├── .specify/                       # Spec Kit project files, local to each checkout (gitignored; ADR-0022)
 ├── archive/                        # Retired skills kept for reference (not synced)
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs eleven tests/run-*.sh suites on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs the tests/run-*.sh suites it lists on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
-└── .claude/                        # Source for installer-managed Claude paths
+└── harness/                        # Source for installer-managed Claude paths (installed to ~/.claude/)
     ├── CLAUDE.md                   # Governing proposition: define → execute → hand off; rationale → docs/
     ├── settings.json               # User-level settings: deny list, sandbox, SessionStart hooks, MCP stops
     ├── rules/                      # Always-on: loaded every session, 4 independent concerns
@@ -289,87 +367,126 @@ my-claude-code/
     │   ├── thinking-lenses.md      # Reasoning completeness: four self-checks applied every task
     │   ├── permissions.md          # Authorization and safety; enforced deny → settings.json
     │   └── pyramid-principle.md    # Reader-facing structure: pyramid, paper-part order, premises and terms
-    ├── agents/
-    │   └── read-only-reviewer.md   # Subagent the challenger and assurance review start: Read/Grep/Glob only, starts without CLAUDE.md
-    └── skills/                     # On-demand: body loaded when relevant, self-describing
-        ├── coder/SKILL.md          # Change workflow + TDD + SDD + code quality + security + type safety + docs
-        ├── pyramid-structure/      # Minto pyramid for every substantive task + bundled structure checker (scripts/check.py)
-        ├── maintaining-living-documentation/ # Vendored plugin: docs kept consistent with changes (locally modified: no hooks)
-        ├── clarifier/              # Shared understanding of intent, then formal requirements
-        │   ├── SKILL.md            #   two-stage playbook
-        │   └── references/         #   framework inventory (named to the user) + design basis (not named)
-        ├── problem-definition/SKILL.md # Problem = gap between current and ideal state
-        ├── verified-delivery/      # Parent skill: evidence per acceptance criterion -> pass/fail/blocked gate
-        │   ├── SKILL.md            #   playbook and its child skills
-        │   ├── README.md           #   how it works, for first-time users (README.ja.md: Japanese)
-        │   ├── references/         #   manifest format and rules, assurance reviewer prompt
-        │   ├── scripts/            #   assure.py (read-only, standard library only), review_prep.py (git read-only)
-        │   └── tests/              #   acceptance tests and fixtures
-        ├── requirements-decomposition/ # Problem card -> requirements graph -> challenger -> ready/blocked gate
+    ├── agents/                     # Subagent definitions: model, effort, and tools fixed per kind of delegated work
+    │   ├── read-only-reviewer.md   # Challenger and assurance review: Read/Grep/Glob only, starts without CLAUDE.md
+    │   ├── check-runner.md         # Long-output checks: reports each command, exit code, and failure verbatim
+    │   ├── file-searcher.md        # Read-only search: returns path:line locations
+    │   └── task-worker.md          # One self-contained task that needs judgment, run in parallel with others
+    └── skills/                     # On-demand: body loaded when relevant, self-describing; 16 skills
+        ├── clarify-intent/         # Shared understanding of intent (worker)
         │   ├── SKILL.md            #   playbook
-        │   ├── references/         #   checker formats and rules, challenger prompt
+        │   └── references/         #   framework inventory (named to the user) + design basis (not named)
+        ├── define-problem/         # Problem = gap between current and ideal state (worker)
+        │   ├── SKILL.md            #   playbook
+        │   └── references/         #   framework sources
+        ├── specify-requirements/   # Problem card -> requirements graph -> challenger -> ready/blocked gate (worker)
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   checker formats and rules, criteria forms, challenge procedure and prompt
         │   ├── scripts/            #   check_graph.py (read-only, standard library only)
+        │   ├── examples/           #   a complete set of records whose gate is ready
         │   └── tests/              #   acceptance tests and fixtures
-        ├── product-strategy/SKILL.md # Vision/users/value-prop/metrics before development begins
-        ├── git-workflow/SKILL.md   # Branch/commit/push/PR conventions
-        ├── aws-research/SKILL.md # Current AWS doc lookup
-        ├── digital-agency-frontend/ # DADS React/Tailwind workflow + source-backed references (domain overlay)
-        ├── digital-agency-slides/  # DADS 16:9 HTML decks built as premise -> answer -> points (domain overlay)
+        ├── implement-change/       # Change workflow, test-first (worker)
+        │   ├── SKILL.md            #   playbook
+        │   └── references/         #   spec first, type safety, system boundaries (each loaded when it applies)
+        ├── verify-change/          # Evidence per acceptance criterion -> pass/fail/blocked gate + review card (worker)
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   manifest format and rules, assurance review procedure and prompts, pilot
+        │   ├── scripts/            #   assure.py (read-only, standard library only), review_prep.py (git read-only), pilot.py
+        │   ├── examples/           #   a complete set of records whose gate passes
+        │   └── tests/              #   acceptance tests and fixtures
+        ├── deliver-change/SKILL.md # Parent skill: define-problem -> specify-requirements -> implement-change -> verify-change (orchestrator)
+        ├── define-product-strategy/ # Vision/users/value-prop/metrics before development begins (worker)
+        │   ├── SKILL.md            #   playbook
+        │   └── references/         #   framework per section
+        ├── structure-document/     # Claim tree for a document + bundled structure checker (worker)
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   templates, genres, claim-tree schema, read without context
+        │   ├── scripts/            #   check.py (read-only, standard library only)
+        │   └── tests/              #   unit tests
+        ├── sync-docs/              # Docs kept consistent with changes (worker)
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   practices, standards and their precedence, normative basis, bibliography
+        │   ├── scripts/            #   inspect_project.py, audit.py, find_related.py, check_links.py (standard library only)
+        │   ├── schemas/            #   config.schema.json for .living-documentation.json
+        │   ├── templates/          #   ADR, architecture description, provenance, CI workflow
+        │   └── tests/              #   unit tests
+        ├── manage-git/SKILL.md     # Branch/commit/push/PR conventions (worker; needs the remote host)
+        ├── research-aws/SKILL.md   # Current AWS doc lookup (worker)
+        ├── draw-system-diagrams/   # C4 views for first-time readers in Mermaid, draw.io, or Structurizr DSL (worker)
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   view types, notation, one file per format
+        │   ├── assets/templates/   #   view page, index, draw.io file, Structurizr workspace
+        │   ├── examples/           #   a complete example set that passes the checker
+        │   ├── scripts/            #   check_diagrams.py (read-only, standard library only)
+        │   └── tests/              #   unit tests
+        ├── build-dads-slides/      # DADS 16:9 HTML decks built as premise -> answer -> points (worker; needs network for assets)
         │   ├── SKILL.md            #   playbook
         │   ├── references/         #   slide design, markup contract, checks, sourcing
         │   ├── assets/             #   1280x720 layout CSS + annotated deck template
         │   └── scripts/            #   setup, official-asset fetch, in-browser checker, deck CLI
-        ├── scrum-master/           # Scrum Guide (2020)-only diagnosis of events, artifacts, accountabilities (domain overlay)
+        ├── apply-dads-frontend/    # DADS React/Tailwind workflow + source-backed references (overlay; needs network for package checks)
         │   ├── SKILL.md            #   playbook
-        │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
-        │       └── templates/      #   8 ready-to-use Markdown templates (artifacts + events)
-        ├── secure-logging/         # Authored plugin: OWASP + stack-practice logging checklist (domain overlay, no hooks)
+        │   └── references/         #   sourcing, component implementation, accessibility gate, dashboards, verbatim dads-docs/ archive
+        ├── apply-secure-logging/   # OWASP + stack-practice logging checklist (overlay)
         │   ├── SKILL.md            #   playbook
-        │   ├── README.md           #   install, modes, how checks work (README.ja.md: Japanese)
-        │   ├── .claude-plugin/     #   plugin manifest (secure-logging@skills-dir)
-        │   └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP, official stack docs)
-        ├── system-diagrams/        # C4 views for first-time readers in Mermaid, draw.io, or Structurizr DSL (domain overlay)
-        │   ├── SKILL.md            #   playbook
-        │   ├── references/         #   view types, notation and palette, one file per format
-        │   ├── assets/templates/   #   view page, index, draw.io file, Structurizr workspace
-        │   ├── examples/           #   a complete example set that passes the checker
-        │   ├── scripts/            #   check_diagrams.py (read-only, standard library only)
-        │   └── tests/              #   acceptance tests
-        ├── apple-notes/            # Notes.app via JXA (macOS app integration)
-        │   ├── SKILL.md            #   playbook
-        │   ├── references/         #   property surface, script usage, safe Markdown subset, hash gate
-        │   └── scripts/            #   JXA scripts + the Python hash-gate guard
-        └── apple-reminders/        # Reminders.app via EventKit (macOS app integration)
-            ├── SKILL.md            #   playbook, build step, permission model
-            └── scripts/            #   one Swift source, Info.plist, build.sh (the built remind-cli is gitignored)
+        │   └── references/         #   source-backed checklist (ASVS V16, CWE, OWASP, official stack docs)
+        └── apply-scrum-guide/      # Scrum Guide (2020)-only diagnosis of events, artifacts, accountabilities (overlay)
+            ├── SKILL.md            #   playbook
+            └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+                └── templates/      #   8 ready-to-use Markdown templates (artifacts + events)
 ```
 
 ## Verification
 
-After changing `.mcp.json`, `install.sh`, `.claude/settings.json`, or
-[`.claude/skills/aws-research/SKILL.md`](.claude/skills/aws-research/SKILL.md):
+After changing `.mcp.json`, `install.sh`, `harness/settings.json`, or
+[`harness/skills/research-aws/SKILL.md`](harness/skills/research-aws/SKILL.md):
 
 ```sh
 bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
 bash tests/run-install.sh
-bash tests/run-digital-agency-frontend-skill.sh
-bash tests/run-digital-agency-slides-skill.sh
 bash tests/run-removed-guardrails.sh
 bash tests/run-sandbox-settings.sh
 ```
 
-After changing [`.claude/skills/secure-logging/`](.claude/skills/secure-logging/):
+After changing anything under `harness/skills/` or `harness/agents/`, or after
+adding, removing, or renaming a skill or a subagent, or editing either README:
 
 ```sh
-bash tests/run-secure-logging-skill.sh
-bash tests/run-config-pyramid.sh
+bash tests/run-harness-skills.sh
+bash tests/run-readme-skill-index.sh
 ```
 
-The first checks the skill's structure, the sourcing rules of its checklist,
-its plugin manifest, and that its two READMEs share one heading structure; with
-the Claude Code CLI installed it also runs `claude plugin validate --strict`.
-How the skill behaves is checked by hand with the fixture in
-`tests/fixtures/secure-logging/`.
+The first checks the skills offline and inside the Bash sandbox (no network, no
+write outside the repository, temporary files only under `$TMPDIR`). It first
+runs [`tests/test_skill_contract.py`](tests/test_skill_contract.py), which
+shows that each rule of the contract can fail: every test builds a small valid
+skill tree in a temporary directory, breaks one thing, and expects the check to
+report the rule that covers it. It then runs
+[`tests/assert_skill_contract.py`](tests/assert_skill_contract.py), which holds
+every skill to rules C-01 to C-11 (listed in its docstring): the name matches
+the directory; the `description` is one line of at most 1,024 characters and
+states what the skill is not for; only the allowed frontmatter keys appear and
+none switches the model; `metadata` carries a defined `kind`, `permission`, and
+`sandbox`, and a skill that needs the network names its hosts; the body stays
+within its size limits; a `Done when` section exists, and a `Bundled files`
+section gives every bundled reference its load condition; no command breaks the
+sandbox (a bare `mktemp`, a `/tmp` literal, a write outside the repository,
+`osascript` or a network command in a skill that does not declare it); no skill
+names another unless it is an orchestrator naming a declared child; no path
+depends on the install location and none points into this repository's
+`specs/` or `archive/`; package-relative links resolve; and an orchestrator
+declares at least two existing children, none of them an orchestrator, while no
+other kind declares any. It then runs the unit tests of the checker scripts
+bundled in `specify-requirements`, `verify-change`, `draw-system-diagrams`,
+`structure-document`, and `sync-docs`. To run one skill's unit tests alone:
+
+```sh
+python3 -B -m unittest discover -s harness/skills/sync-docs/tests -t harness/skills/sync-docs/tests -v
+```
+
+The second fails when a skill directory under `harness/skills/` or a subagent
+definition under `harness/agents/` is not named in both `README.md` and
+`README.ja.md`, as `` `<name>` `` or as a `<name>/` path.
 
 After changing [`team/package-safety/`](team/package-safety/):
 
@@ -381,40 +498,56 @@ It checks the bundle's files against each other without network access. How
 the bundle behaves inside Claude Code is checked by hand with the procedure
 in its [README](team/package-safety/README.md#check-that-it-is-in-force).
 
-After changing [`.claude/skills/requirements-decomposition/`](.claude/skills/requirements-decomposition/):
+After changing [`harness/CLAUDE.md`](harness/CLAUDE.md) or
+[`harness/rules/`](harness/rules/):
 
 ```sh
-bash tests/run-requirements-decomposition-skill.sh
 bash tests/run-config-pyramid.sh
+```
+
+It checks the always-loaded layers offline: the apex's three branches and its
+delegation under three conditions, exactly four rule files that name no other
+rule, skill, or config path and carry no reference list, the phrases each skill
+description must keep so that requests route the same way, and that the apex
+and the rules together stay under a size budget.
+
+After changing [`harness/skills/specify-requirements/`](harness/skills/specify-requirements/):
+
+```sh
+bash tests/run-specify-requirements-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
 The first runs the bundled checker's acceptance tests (Python standard library
-only), checks its example declarations and that the example problem card,
-requirements graph, and challenge report pass the gate, and reads this
-repository's `.claude/skills/` in compatibility mode.
+only), checks that its example declarations pass, reads this repository's
+`harness/skills/` in compatibility mode, and checks that the example problem
+card, requirements graph, and challenge report pass the gate.
 
-After changing [`.claude/skills/verified-delivery/`](.claude/skills/verified-delivery/):
+After changing [`harness/skills/verify-change/`](harness/skills/verify-change/):
 
 ```sh
-bash tests/run-verified-delivery-skill.sh
-bash tests/run-config-pyramid.sh
+bash tests/run-verify-change-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
-The first runs the bundled checker's acceptance tests, including the four that
-[spec 059](specs/059-refinement-graph-checker/spec.md) deferred (a failed
-parent check, an AI claim without evidence, stale evidence, unclassified
-risk), checks that the example manifest passes the gate, and checks that the
-gate passes no requirements graph from `requirements-decomposition`'s test fixtures that
-its checker rejects under a rule the gate depends on, and carries one made-up
-change through both checkers from decomposition to acceptance
-(`tests/assert_delivery_flow.py`: a requirement a person directed, Jest results,
-the decision before deploy, and both decisions on the card).
+The first runs the bundled checker's acceptance tests, checks that the example
+manifest passes its own rules, that the example graph and manifest pass the
+gate, and that the example review card renders; that the gate passes no
+requirements graph from `specify-requirements`'s test fixtures that its checker
+rejects under a rule the gate depends on
+(`tests/assert_assurance_parity.py`); and carries one made-up change from
+decomposition to acceptance (`tests/assert_delivery_flow.py`: a requirement a
+person directed, Jest results, the decision before deploy, and both decisions
+on the card) and through two assurance review rounds with `review_prep.py` in a
+temporary Git repository (`tests/assert_review_prep_flow.py`). It also checks
+that the `read-only-reviewer` definition allows only Read, Grep, and Glob and
+that both review procedures name it (`tests/assert_reviewer_agent.py`).
 
-After changing [`.claude/skills/system-diagrams/`](.claude/skills/system-diagrams/):
+After changing [`harness/skills/draw-system-diagrams/`](harness/skills/draw-system-diagrams/):
 
 ```sh
-bash tests/run-system-diagrams-skill.sh
-bash tests/run-config-pyramid.sh
+bash tests/run-draw-system-diagrams-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
 The first runs the bundled checker's acceptance tests (Python standard library
@@ -423,33 +556,45 @@ and checks that a page with an unlabelled line and no legend fails it.
 Whether the Mermaid in a set renders is not checked; render it on GitHub or
 with `mmdc`.
 
-After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
-[`.claude/rules/`](.claude/rules/), or an authored skill:
+After changing [`harness/skills/apply-secure-logging/`](harness/skills/apply-secure-logging/):
 
 ```sh
-bash tests/run-config-pyramid.sh
+bash tests/run-apply-secure-logging-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
-It checks the configuration pyramid offline: the apex's three branches and
-its delegation policy, exactly four rule files that name no other rule, skill, or config path, and
-authored skills that describe their own exclusion boundary and name no
-other skill except the children a parent skill declares. It also runs that
-parent-child rule against fixture skills it builds in a temporary
-directory. The authored skills it covers are the `authored_skills` list at
-the top of the script.
+The first checks the skill's structure and the sourcing rules of its
+checklist. How the skill behaves is checked by hand with the fixture in
+`tests/fixtures/secure-logging/`.
 
-After changing [`.claude/skills/apple-notes/`](.claude/skills/apple-notes/):
+After changing [`harness/skills/apply-dads-frontend/`](harness/skills/apply-dads-frontend/):
 
 ```sh
-bash tests/run-note-write-guard.sh
-bash tests/run-note-body-conversion.sh # requires Node.js
+bash tests/run-apply-dads-frontend-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
-Both test logic pulled out of the scripts and need no macOS. The calls into
-Notes.app itself are not covered. `apple-reminders` has no automated suite.
+The first checks the skill's contract: its sourcing and licensing reference,
+its component implementation, accessibility, and dashboard references, and
+the bundled verbatim archive of the official documentation.
 
-After changing anything under `.claude/` (the apex, a rule, or a skill), or
-the capability map or scenario suite of the whole-harness behavior baseline:
+After changing [`harness/skills/build-dads-slides/`](harness/skills/build-dads-slides/):
+
+```sh
+bash tests/run-build-dads-slides-skill.sh
+bash tests/run-harness-skills.sh
+```
+
+It runs the deck linter against self-contained fixtures in
+`tests/fixtures/slides/`, then ends with an end-to-end section that fetches
+the official DADS stylesheets and lints and previews the bundled deck
+template. Both need a Python environment carrying `playwright` — point
+`DECK_PYTHON` at one, or they report themselves as skipped rather than
+failing — and the end-to-end section also needs network access.
+
+After changing anything under `harness/` (the apex, a rule, a subagent, or a
+skill), or the capability map or scenario suite of the whole-harness behavior
+baseline:
 
 ```sh
 bash tests/run-harness-eval.sh
@@ -464,41 +609,15 @@ Running the scenarios themselves is a billed model call and needs a cost
 ceiling (`harness_eval.py run --max-cost-usd N`); see
 [`docs/harness-eval.md`](docs/harness-eval.md).
 
-After adding, removing, or renaming a skill under `.claude/skills/`, or
-editing either README:
-
-```sh
-bash tests/run-readme-skill-index.sh
-```
-
-It fails when a skill directory (other than the generated `speckit-*`) is not
-named in both `README.md` and `README.ja.md`, as `` `<name>` `` or as a
-`<name>/` path.
-
-After changing the vendored plugin
-[`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
-or the authored skill [`pyramid-structure`](.claude/skills/pyramid-structure/)
-(its checker in `scripts/check.py`), run its own unit tests from its folder,
-as its README describes, and for `pyramid-structure` also
-`bash tests/run-config-pyramid.sh`:
-
-```sh
-python3 -B -m unittest discover -s tests -v
-```
-
-`run-digital-agency-slides-skill.sh` runs the deck linter against
-self-contained fixtures in `tests/fixtures/slides/`, then ends with an
-end-to-end section that fetches the official DADS stylesheets and lints and
-previews the bundled deck template. Both need a Python environment carrying
-`playwright` — point `DECK_PYTHON` at one, or they report themselves as
-skipped rather than failing — and the end-to-end section also needs network
-access.
-
 `run-removed-guardrails.sh` is a standing regression guard, not tied to any
-particular change — it fails if `.claude/hooks/` or `scripts/` are ever
-reintroduced ([ADR-0005](docs/adr/0005-remove-claude-hooks.md),
-[ADR-0007](docs/adr/0007-remove-scripts.md)), and it constrains the
-`permissions` block that
+particular change — it fails if a hooks directory (`harness/hooks/` or
+`.claude/hooks/`) or `scripts/` is ever reintroduced
+([ADR-0005](docs/adr/0005-remove-claude-hooks.md),
+[ADR-0007](docs/adr/0007-remove-scripts.md)), and if this repository's own
+`.claude/` ever holds managed configuration again (`CLAUDE.md`, `rules`,
+`skills`, `agents`, `settings.json`, or `commands`: a copy there would load a
+second time as project configuration). It also constrains the `permissions`
+block that
 [ADR-0014](docs/adr/0014-restore-credential-deny-rules.md) restored on top of
 [ADR-0006](docs/adr/0006-remove-permissions-config.md): only a `deny` list is
 allowed — an `allow` or `ask` tier fails — and every `deny` entry must be a
@@ -507,7 +626,7 @@ would resolve to a different path once `install.sh` copies the file to user
 scope.
 
 `run-sandbox-settings.sh` checks the `sandbox`, `SessionStart`, and MCP keys
-of `.claude/settings.json` against [spec 067](specs/067-sandbox-by-default/spec.md):
+of `harness/settings.json` against [spec 067](specs/067-sandbox-by-default/spec.md):
 that nothing under `~/.aws` is re-opened and the GPG secrets and other
 credential files stay closed, that the opened paths, sockets, hosts, and
 excluded commands are exactly the reviewed ones, and
@@ -522,14 +641,9 @@ configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-Eleven of the suites above also run automatically in CI
-(`.github/workflows/ci.yml`) on every push and pull request to `main`:
-`run-install.sh`, `run-digital-agency-frontend-skill.sh`,
-`run-removed-guardrails.sh`, `run-sandbox-settings.sh`,
-`run-package-safety-bundle.sh`,
-`run-readme-skill-index.sh`, `run-requirements-decomposition-skill.sh`,
-`run-verified-delivery-skill.sh`, `run-system-diagrams-skill.sh`,
-`run-harness-eval.sh`, and `run-mcp-startup.sh`. The others run only when you run them. `main` is
+Some of the suites above also run automatically in CI
+(`.github/workflows/ci.yml`) on every push and pull request to `main`; that
+file is the list of which ones. The others run only when you run them. `main` is
 protected by a repository ruleset
 (`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)
 to pass before anything merges.
@@ -570,6 +684,12 @@ or a prompt), and a host outside the allowlist is decided by the permission
 mode. Claude's file tools, MCP servers, and hooks run outside the sandbox.
 The decision is [ADR-0020](docs/adr/0020-enable-sandbox-by-default.md); the
 requirements are [spec 067](specs/067-sandbox-by-default/spec.md).
+
+The skills and tests of this repository are written to run inside it. The
+skill contract (rule C-07 of `tests/assert_skill_contract.py`; see
+[Verification](#verification)) rejects a bare `mktemp`, a `/tmp` literal, and a
+write outside the repository, and a skill that needs the network declares its
+hosts in `metadata`.
 
 How the everyday work it was built for runs:
 
@@ -623,7 +743,7 @@ Claude Code 2.1.319:
   managed settings can stop that.
 - Chromium (and Playwright, Puppeteer) aborts at startup in the sandbox
   unless launched with `--single-process`. The slide checker of
-  `digital-agency-slides` adds the flag itself; anything else has to pass it.
+  `build-dads-slides` adds the flag itself; anything else has to pass it.
   Through the sandbox's proxy, Chromium loaded plain HTTP but timed out on
   HTTPS.
 - `mktemp` without a template ignores `$TMPDIR` on macOS and fails in the
@@ -638,8 +758,8 @@ Claude Code 2.1.319:
 ## MCP Servers
 
 This repository does not install MCP servers into your user configuration.
-`install.sh` neither registers nor removes any, and nothing under `.claude/`
-assumes a particular server is present — `aws-research` uses
+`install.sh` neither registers nor removes any, and nothing under `harness/`
+assumes a particular server is present — `research-aws` uses
 whatever documentation tools the session actually exposes. Add the servers you
 need yourself.
 
@@ -701,7 +821,7 @@ same marketplace carries, for example:
 
 | Plugin | Author | Bundles |
 |---|---|---|
-| `deploy-on-aws` | AWS | AWS architecture diagrams + deploy/IaC skills, with AWS MCP servers. Its deploy and mutating AWS CLI operations still require confirmation on every use per [`.claude/rules/permissions.md`](.claude/rules/permissions.md) |
+| `deploy-on-aws` | AWS | AWS architecture diagrams + deploy/IaC skills, with AWS MCP servers. Its deploy and mutating AWS CLI operations still require confirmation on every use per [`harness/rules/permissions.md`](harness/rules/permissions.md) |
 | `microsoft-docs` | Microsoft | Official Microsoft/Azure/.NET docs MCP server + skills |
 
 ```sh
@@ -755,8 +875,9 @@ specify extension add git
   — a project-local artifact, gitignored regardless of which agent
   directory it lands in (see `.gitignore`). Re-run with a different
   `--integration` value to target another agent in the same project; each
-  command carries its own playbook. The `coder` skill's SDD section applies
-  regardless of whether spec-kit is installed.
+  command carries its own playbook. `implement-change`'s guidance on writing
+  the specification first (`references/spec-first.md`) applies regardless of
+  whether spec-kit is installed.
 - `specify extension add git` — installs the Git Branching Workflow
   extension (`/speckit-git.*`).
 
@@ -772,7 +893,7 @@ are therefore each checkout's own, starting from spec-kit's defaults.
 
 Keeping an already-adopted project's generated `speckit-*` skills current is
 a manual step — run `specify init --here --force` periodically yourself. The
-`specify-cli` tool itself is different: `.claude/settings.json` carries a
+`specify-cli` tool itself is different: `harness/settings.json` carries a
 narrow `PreToolUse` hook (docs/adr/0008) that, only before the
 `speckit-specify` skill runs, checks the latest `github/spec-kit` release
 tag against the `rev=` pinned in `uv`'s install receipt and reinstalls via
@@ -780,6 +901,6 @@ tag against the `rev=` pinned in `uv`'s install receipt and reinstalls via
 fails open on any network error, and no other `speckit-*` skill triggers it.
 This is a deliberate, narrow exception to the broader "no `.claude/hooks/`,
 no automatic enforcement" removal in docs/adr/0005 — see docs/adr/0008 for
-why. Nothing in `.claude/` recommends `specify init` to a project that has
-not adopted Spec Kit: the `coder` skill follows the Spec Kit lifecycle only
+why. Nothing in `harness/` recommends `specify init` to a project that has
+not adopted Spec Kit: `implement-change` follows the Spec Kit lifecycle only
 where a project already uses it.

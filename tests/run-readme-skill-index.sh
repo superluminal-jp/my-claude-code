@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
-# Every skill directory under .claude/skills/ must be named in both READMEs.
-# The READMEs list skills by hand, so a skill added without a README entry
-# used to go unnoticed (apple-notes and apple-reminders were missing from
-# both). speckit-* directories are excluded: `specify init` generates them
-# per project and they are gitignored.
+# Every skill directory under harness/skills/ and every subagent definition
+# under harness/agents/ must be named in both READMEs. The READMEs list them
+# by hand, so one added without a README entry used to go unnoticed.
 #
-# A skill counts as named when it appears as `<name>` or as a <name>/ path
-# segment. A bare substring is not enough: the clarifier skill shares its
-# name with the rule file clarifier.md.
+# A name counts as named when it appears as `<name>` or as a <name>/ path
+# segment. A bare substring is not enough: a skill can share a word with a
+# rule file or with another skill.
 #
 # Usage: bash tests/run-readme-skill-index.sh
 
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SKILL_DIR="$REPO_ROOT/.claude/skills"
+SKILL_DIR="$REPO_ROOT/harness/skills"
+AGENT_DIR="$REPO_ROOT/harness/agents"
 
 PASS=0
 FAIL=0
@@ -33,16 +32,23 @@ check() {
 skills=()
 while IFS= read -r skill; do
   skills+=("$skill")
-done < <(find "$SKILL_DIR" -mindepth 1 -maxdepth 1 -type d ! -name 'speckit-*' -exec basename {} \; | sort)
+done < <(find "$SKILL_DIR" -mindepth 2 -maxdepth 2 -type f -name SKILL.md -exec dirname {} \; | xargs -n 1 basename | sort)
+
+agents=()
+while IFS= read -r agent; do
+  agents+=("$agent")
+done < <(find "$AGENT_DIR" -mindepth 1 -maxdepth 1 -type f -name '*.md' -exec basename {} .md \; | sort)
 
 [ "${#skills[@]}" -gt 0 ] && c=1 || c=0
-check "IDX-00: .claude/skills/ has at least one skill directory" "$c"
+check "IDX-00: harness/skills/ has at least one skill directory" "$c"
+[ "${#agents[@]}" -gt 0 ] && c=1 || c=0
+check "IDX-01: harness/agents/ has at least one subagent definition" "$c"
 
-for skill in "${skills[@]}"; do
-  pattern="(\`${skill}\`|(^|[^[:alnum:]_-])${skill}/)"
+for name in "${skills[@]}" "${agents[@]}"; do
+  pattern="(\`${name}\`|(^|[^[:alnum:]_-])${name}/)"
   for readme in README.md README.ja.md; do
     grep -Eq -- "$pattern" "$REPO_ROOT/$readme" && c=1 || c=0
-    check "IDX: $readme names skill $skill" "$c"
+    check "IDX: $readme names $name" "$c"
   done
 done
 

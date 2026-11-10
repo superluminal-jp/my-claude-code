@@ -42,9 +42,9 @@ def run(*args: str) -> Tuple[int, str]:
 
 def main(argv: List[str]) -> int:
     root = Path(argv[1]) if len(argv) > 1 else Path(__file__).resolve().parent.parent
-    skills = root / ".claude" / "skills"
-    check_graph = str(skills / "requirements-decomposition" / "scripts" / "check_graph.py")
-    assure = str(skills / "verified-delivery" / "scripts" / "assure.py")
+    skills = root / "harness" / "skills"
+    check_graph = str(skills / "specify-requirements" / "scripts" / "check_graph.py")
+    assure = str(skills / "verify-change" / "scripts" / "assure.py")
     flow = root / "tests" / "fixtures" / "delivery-flow"
     card, graph, report, review = (str(flow / name) for name in
                                    ("problem-card.json", "requirements-graph.json", "challenge-report.json", "assurance-review.json"))

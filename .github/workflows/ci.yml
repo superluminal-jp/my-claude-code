@@ -22,8 +22,11 @@ jobs:
       - name: Run installer contract tests
         run: bash tests/run-install.sh
 
-      - name: Run digital-agency-frontend skill tests
-        run: bash tests/run-digital-agency-frontend-skill.sh
+      - name: Run always-loaded layer contract tests
+        run: bash tests/run-config-pyramid.sh
+
+      - name: Run skill contract and bundled script tests
+        run: bash tests/run-harness-skills.sh
 
       - name: Run removed-guardrails regression tests
         run: bash tests/run-removed-guardrails.sh
@@ -37,14 +40,23 @@ jobs:
       - name: Run README skill-index check
         run: bash tests/run-readme-skill-index.sh
 
-      - name: Run requirements-decomposition skill tests
-        run: bash tests/run-requirements-decomposition-skill.sh
+      - name: Run specify-requirements skill tests
+        run: bash tests/run-specify-requirements-skill.sh
 
-      - name: Run verified-delivery skill tests
-        run: bash tests/run-verified-delivery-skill.sh
+      - name: Run verify-change skill tests
+        run: bash tests/run-verify-change-skill.sh
 
-      - name: Run system-diagrams skill tests
-        run: bash tests/run-system-diagrams-skill.sh
+      - name: Run draw-system-diagrams skill tests
+        run: bash tests/run-draw-system-diagrams-skill.sh
+
+      - name: Run apply-secure-logging skill tests
+        run: bash tests/run-apply-secure-logging-skill.sh
+
+      - name: Run apply-dads-frontend skill tests
+        run: bash tests/run-apply-dads-frontend-skill.sh
+
+      - name: Run build-dads-slides skill tests
+        run: bash tests/run-build-dads-slides-skill.sh
 
       - name: Run harness behavior baseline checks
         run: bash tests/run-harness-eval.sh

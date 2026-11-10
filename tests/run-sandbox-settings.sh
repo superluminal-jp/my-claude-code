@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Contract for what .claude/settings.json installs at user scope about the
+# Contract for what harness/settings.json installs at user scope about the
 # OS sandbox, the SessionStart hooks, and the MCP servers it stops
 # (spec 067, ADR-0020, ADR-0021).
 #
@@ -14,7 +14,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SETTINGS="$REPO_ROOT/.claude/settings.json"
+SETTINGS="$REPO_ROOT/harness/settings.json"
 
 PASS=0
 FAIL=0

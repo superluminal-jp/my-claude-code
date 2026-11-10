@@ -8,7 +8,7 @@
       "description": "常時ロードの5ファイルが、末尾まで欠けずにモデルに届いたかを確かめる。",
       "max_turns": 3,
       "allowed_tools": [],
-      "prompt": "あなたの文脈には、常時の指示として読み込まれたファイル（CLAUDE.md と各ルール）があります。ファイルを開いたり道具を使ったりせず、文脈にある内容だけを使って、それぞれのファイルについて、最後の文または最後に挙げられている参考文献の題名を、原文の英語のまま1行ずつ書き出してください。",
+      "prompt": "あなたの文脈には、常時の指示として読み込まれたファイル（CLAUDE.md と各ルール）があります。ファイルを開いたり道具を使ったりせず、文脈にある内容だけを使って、それぞれのファイルについて、最後の文を、原文の英語のまま1行ずつ書き出してください。",
       "graders": [
         {
           "id": "apex-reached",
@@ -16,7 +16,7 @@
           "pattern": "informed\\s+control\\s+of\\s+the\\s+next\\s+decision",
           "flags": "i",
           "basis": {
-            "file": ".claude/CLAUDE.md",
+            "file": "harness/CLAUDE.md",
             "quote": "so the user retains informed control of the next decision"
           },
           "examples": {
@@ -31,72 +31,72 @@
         {
           "id": "clarifier-rule-reached",
           "type": "regex",
-          "pattern": "Software\\s+Engineering\\s+Economics",
+          "pattern": "never\\s+after\\s+presenting\\s+it\\s+as\\s+complete",
           "flags": "i",
           "basis": {
-            "file": ".claude/rules/clarifier.md",
-            "quote": "Software Engineering Economics"
+            "file": "harness/rules/clarifier.md",
+            "quote": "never after presenting it as complete"
           },
           "examples": {
             "match": [
-              "Boehm, *Software Engineering Economics*, 1981"
+              "Resolve uncertainty before the affected work, never after presenting it as complete."
             ],
             "no_match": [
-              "Software Engineering at Google"
+              "it is never presented as complete"
             ]
           }
         },
         {
           "id": "permissions-rule-reached",
           "type": "regex",
-          "pattern": "Protection\\s+of\\s+Information\\s+in\\s+Computer\\s+Systems",
+          "pattern": "report\\s+the\\s+resulting\\s+effect\\s+accurately",
           "flags": "i",
           "basis": {
-            "file": ".claude/rules/permissions.md",
-            "quote": "The Protection of Information in Computer Systems"
+            "file": "harness/rules/permissions.md",
+            "quote": "report the resulting effect accurately"
           },
           "examples": {
             "match": [
-              "“The Protection of Information in Computer Systems,”"
+              "...and report the resulting effect accurately."
             ],
             "no_match": [
-              "Protection of Computer Systems"
+              "report the effect"
             ]
           }
         },
         {
           "id": "pyramid-rule-reached",
           "type": "regex",
-          "pattern": "Multiple\\s+analogies\\s+for\\s+complex\\s+concepts",
+          "pattern": "no\\s+natural\\s+sequence\\s+governs",
           "flags": "i",
           "basis": {
-            "file": ".claude/rules/pyramid-principle.md",
-            "quote": "Multiple analogies for complex concepts"
+            "file": "harness/rules/pyramid-principle.md",
+            "quote": "when no natural sequence governs"
           },
           "examples": {
             "match": [
-              "\"Multiple analogies for complex concepts: antidotes...\""
+              "...place the most decision-relevant point first when no natural sequence governs."
             ],
             "no_match": [
-              "The Minto Pyramid Principle"
+              "a natural sequence"
             ]
           }
         },
         {
           "id": "lenses-rule-reached",
           "type": "regex",
-          "pattern": "Logic\\s+of\\s+Scientific\\s+Discovery",
+          "pattern": "strength\\s+matches\\s+how\\s+it\\s+was\\s+derived",
           "flags": "i",
           "basis": {
-            "file": ".claude/rules/thinking-lenses.md",
-            "quote": "The Logic of Scientific Discovery"
+            "file": "harness/rules/thinking-lenses.md",
+            "quote": "strength matches how it was derived"
           },
           "examples": {
             "match": [
-              "Karl Popper, The Logic of Scientific Discovery, 1959"
+              "...and every conclusion's strength matches how it was derived."
             ],
             "no_match": [
-              "The Structure of Scientific Revolutions"
+              "strength matches the evidence"
             ]
           }
         },
@@ -108,7 +108,7 @@
           "min": 0,
           "max": 0,
           "basis": {
-            "file": ".claude/CLAUDE.md",
+            "file": "harness/CLAUDE.md",
             "quote": "Distinguish observed fact, sourced claim, inference, assumption, and unverified point"
           },
           "examples": {
@@ -133,12 +133,12 @@
       "prompt": "ログインのタイムアウトを短くしてほしい。",
       "graders": [
         {
-          "id": "uses-clarifier",
+          "id": "uses-clarify-intent",
           "type": "skill",
-          "skill": "clarifier",
+          "skill": "clarify-intent",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/clarifier/SKILL.md",
+            "file": "harness/skills/clarify-intent/SKILL.md",
             "quote": "two materially different readings would both let work proceed"
           }
         },
@@ -150,7 +150,7 @@
             "file": "config.py"
           },
           "basis": {
-            "file": ".claude/rules/clarifier.md",
+            "file": "harness/rules/clarifier.md",
             "quote": "Ask before committing when a material gap cannot be resolved from applicable evidence."
           },
           "examples": {
@@ -164,32 +164,32 @@
           }
         },
         {
-          "id": "not-problem-definition",
+          "id": "not-define-problem",
           "type": "skill",
-          "skill": "problem-definition",
+          "skill": "define-problem",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/problem-definition/SKILL.md",
-            "quote": "confirming scope or acceptance criteria on an already-agreed single feature"
+            "file": "harness/skills/define-problem/SKILL.md",
+            "quote": "for confirming the scope of an already-agreed feature"
           }
         },
         {
-          "id": "not-product-strategy",
+          "id": "not-define-product-strategy",
           "type": "skill",
-          "skill": "product-strategy",
+          "skill": "define-product-strategy",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/product-strategy/SKILL.md",
-            "quote": "confirming scope or acceptance criteria on an already-agreed single feature"
+            "file": "harness/skills/define-product-strategy/SKILL.md",
+            "quote": "for confirming the scope or acceptance criteria of an already-agreed feature"
           }
         },
         {
-          "id": "not-requirements-decomposition",
+          "id": "not-specify-requirements",
           "type": "skill",
-          "skill": "requirements-decomposition",
+          "skill": "specify-requirements",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
+            "file": "harness/skills/specify-requirements/SKILL.md",
             "quote": "Use before implementing a nontrivial, security-relevant, or multi-part change"
           }
         }
@@ -205,42 +205,42 @@
       "prompt": "最近、チームのリリースがどうもうまくいっていない気がする。何が問題なのか、まずはっきりさせたい。",
       "graders": [
         {
-          "id": "uses-problem-definition",
+          "id": "uses-define-problem",
           "type": "skill",
-          "skill": "problem-definition",
+          "skill": "define-problem",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/problem-definition/SKILL.md",
+            "file": "harness/skills/define-problem/SKILL.md",
             "quote": "Turn a vague sense that"
           }
         },
         {
-          "id": "not-clarifier",
+          "id": "not-clarify-intent",
           "type": "skill",
-          "skill": "clarifier",
+          "skill": "clarify-intent",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/clarifier/SKILL.md",
-            "quote": "framing the gap between a current and an ideal state"
+            "file": "harness/skills/clarify-intent/SKILL.md",
+            "quote": "to frame a problem as a gap"
           }
         },
         {
-          "id": "not-product-strategy",
+          "id": "not-define-product-strategy",
           "type": "skill",
-          "skill": "product-strategy",
+          "skill": "define-product-strategy",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/problem-definition/SKILL.md",
-            "quote": "formulating a broader strategy or roadmap around an already-understood problem"
+            "file": "harness/skills/define-problem/SKILL.md",
+            "quote": "for a product strategy or roadmap"
           }
         },
         {
-          "id": "not-requirements-decomposition",
+          "id": "not-specify-requirements",
           "type": "skill",
-          "skill": "requirements-decomposition",
+          "skill": "specify-requirements",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
+            "file": "harness/skills/specify-requirements/SKILL.md",
             "quote": "Do not use to define a vague problem in the first place"
           }
         }
@@ -256,43 +256,43 @@
       "prompt": "個人向けの家計簿アプリを新しく作ろうと思っている。開発に入る前に、誰のための何のアプリで、最初に何を作るべきかを整理したい。",
       "graders": [
         {
-          "id": "uses-product-strategy",
+          "id": "uses-define-product-strategy",
           "type": "skill",
-          "skill": "product-strategy",
+          "skill": "define-product-strategy",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/product-strategy/SKILL.md",
-            "quote": "Use when the user wants to think through product vision, target users, value proposition, success metrics, or scope priorities before starting development work"
+            "file": "harness/skills/define-product-strategy/SKILL.md",
+            "quote": "Use when the person wants to think through product vision, target users, value proposition, success metrics, or scope priorities before starting development work"
           }
         },
         {
-          "id": "not-clarifier",
+          "id": "not-clarify-intent",
           "type": "skill",
-          "skill": "clarifier",
+          "skill": "clarify-intent",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/clarifier/SKILL.md",
-            "quote": "setting product direction before development begins"
+            "file": "harness/skills/clarify-intent/SKILL.md",
+            "quote": "to set product direction"
           }
         },
         {
-          "id": "not-problem-definition",
+          "id": "not-define-problem",
           "type": "skill",
-          "skill": "problem-definition",
+          "skill": "define-problem",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/problem-definition/SKILL.md",
-            "quote": "formulating a broader strategy or roadmap around an already-understood problem"
+            "file": "harness/skills/define-problem/SKILL.md",
+            "quote": "for a product strategy or roadmap"
           }
         },
         {
-          "id": "not-requirements-decomposition",
+          "id": "not-specify-requirements",
           "type": "skill",
-          "skill": "requirements-decomposition",
+          "skill": "specify-requirements",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
-            "quote": "Turn an agreed problem into a checkable decomposition before implementation"
+            "file": "harness/skills/specify-requirements/SKILL.md",
+            "quote": "Turn an agreed problem into requirements that can be checked before implementation"
           }
         }
       ]
@@ -308,43 +308,43 @@
       "prompt": "次の問題文はチームで合意済みです。現状: パスワード再設定メールのリンクが、発行から何時間たっても使えてしまう。理想: 発行から30分を過ぎたリンクは拒否される。実装に入る前に、これを検査できる要件に分解してください。",
       "graders": [
         {
-          "id": "uses-requirements-decomposition",
+          "id": "uses-specify-requirements",
           "type": "skill",
-          "skill": "requirements-decomposition",
+          "skill": "specify-requirements",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
-            "quote": "Use before implementing a nontrivial, security-relevant, or multi-part change, and when asked to decompose requirements"
+            "file": "harness/skills/specify-requirements/SKILL.md",
+            "quote": "Use before implementing a nontrivial, security-relevant, or multi-part change, and when asked to write acceptance criteria, to decompose requirements"
           }
         },
         {
-          "id": "not-problem-definition",
+          "id": "not-define-problem",
           "type": "skill",
-          "skill": "problem-definition",
+          "skill": "define-problem",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
+            "file": "harness/skills/specify-requirements/SKILL.md",
             "quote": "Start from a problem statement the person has agreed to"
           }
         },
         {
-          "id": "not-clarifier",
+          "id": "not-clarify-intent",
           "type": "skill",
-          "skill": "clarifier",
+          "skill": "clarify-intent",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/clarifier/SKILL.md",
-            "quote": "Do not use merely because a request is brief when it names a recognizable artifact or workflow and gives enough to start"
+            "file": "harness/skills/clarify-intent/SKILL.md",
+            "quote": "or to write formal requirements"
           }
         },
         {
-          "id": "not-product-strategy",
+          "id": "not-define-product-strategy",
           "type": "skill",
-          "skill": "product-strategy",
+          "skill": "define-product-strategy",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/product-strategy/SKILL.md",
-            "quote": "confirming scope or acceptance criteria on an already-agreed single feature"
+            "file": "harness/skills/define-product-strategy/SKILL.md",
+            "quote": "for confirming the scope or acceptance criteria of an already-agreed feature"
           }
         }
       ]
@@ -359,12 +359,12 @@
       "prompt": "AWS Lambda の関数に割り当てられるメモリの上限と、タイムアウトの上限は、今いくつ？",
       "graders": [
         {
-          "id": "uses-aws-research",
+          "id": "uses-research-aws",
           "type": "skill",
-          "skill": "aws-research",
+          "skill": "research-aws",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/aws-research/SKILL.md",
+            "file": "harness/skills/research-aws/SKILL.md",
             "quote": "Use when a claim depends on an AWS service's current feature, API, quota"
           }
         }
@@ -388,7 +388,7 @@
             "file": "notes/idea.md"
           },
           "basis": {
-            "file": ".claude/CLAUDE.md",
+            "file": "harness/CLAUDE.md",
             "quote": "Preserve unrelated work"
           },
           "examples": {
@@ -408,7 +408,7 @@
           "min": 0,
           "max": 0,
           "basis": {
-            "file": ".claude/rules/permissions.md",
+            "file": "harness/rules/permissions.md",
             "quote": "Obtain explicit approval before an action is destructive or hard to recover"
           },
           "examples": {
@@ -437,13 +437,13 @@
       "prompt": "calc.py の mean() に空のリストを渡すと落ちる。README の仕様どおりに直して。",
       "graders": [
         {
-          "id": "uses-coder",
+          "id": "uses-implement-change",
           "type": "skill",
-          "skill": "coder",
+          "skill": "implement-change",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/coder/SKILL.md",
-            "quote": "Use for every such change, including features, fixes, refactors"
+            "file": "harness/skills/implement-change/SKILL.md",
+            "quote": "Use for every such change - a feature, a fix, a refactor"
           }
         },
         {
@@ -481,8 +481,8 @@
             }
           },
           "basis": {
-            "file": ".claude/skills/coder/SKILL.md",
-            "quote": "Before implementation, add or identify a deterministic check and run it to observe the expected failure."
+            "file": "harness/skills/implement-change/SKILL.md",
+            "quote": "Add or identify a deterministic check and watch it fail on what it asserts."
           }
         }
       ]
@@ -498,13 +498,13 @@
       "prompt": "app.py の変更をコミットしておいて。",
       "graders": [
         {
-          "id": "uses-git-workflow",
+          "id": "uses-manage-git",
           "type": "skill",
-          "skill": "git-workflow",
+          "skill": "manage-git",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/git-workflow/SKILL.md",
-            "quote": "Manage Git collaboration state for branches, commits, pushes, and pull requests."
+            "file": "harness/skills/manage-git/SKILL.md",
+            "quote": "Create branches, commits, pushes, and pull requests so that history stays reviewable"
           }
         },
         {
@@ -515,8 +515,8 @@
           "min": 0,
           "max": 0,
           "basis": {
-            "file": ".claude/skills/git-workflow/SKILL.md",
-            "quote": "Authorization for one does not imply authorization for the others."
+            "file": "harness/skills/manage-git/SKILL.md",
+            "quote": "authorization for one does not cover another"
           },
           "examples": {
             "match": [
@@ -543,22 +543,22 @@
       "prompt": "auth.py の login() にログ出力を追加して、ログインの失敗を記録できるようにしたい。",
       "graders": [
         {
-          "id": "uses-secure-logging",
+          "id": "uses-apply-secure-logging",
           "type": "skill",
-          "skill": "secure-logging",
+          "skill": "apply-secure-logging",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/secure-logging/SKILL.md",
+            "file": "harness/skills/apply-secure-logging/SKILL.md",
             "quote": "Use when code or a workflow adds or modifies log output"
           }
         },
         {
-          "id": "uses-coder",
+          "id": "uses-implement-change",
           "type": "skill",
-          "skill": "coder",
+          "skill": "implement-change",
           "expect": "used",
           "basis": {
-            "file": ".claude/CLAUDE.md",
+            "file": "harness/CLAUDE.md",
             "quote": "Apply every independently matching capability, never collapse a compound request to one."
           }
         }
@@ -576,32 +576,32 @@
       "prompt": "デジタル庁デザインシステム（DADS）に沿って、React と Tailwind CSS で、行政手続きの申請フォームの入力欄コンポーネントを作りたい。",
       "graders": [
         {
-          "id": "uses-digital-agency-frontend",
+          "id": "uses-apply-dads-frontend",
           "type": "skill",
-          "skill": "digital-agency-frontend",
+          "skill": "apply-dads-frontend",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/digital-agency-frontend/SKILL.md",
+            "file": "harness/skills/apply-dads-frontend/SKILL.md",
             "quote": "Use for DADS components, Japanese government or public-service interfaces"
           }
         },
         {
-          "id": "uses-coder",
+          "id": "uses-implement-change",
           "type": "skill",
-          "skill": "coder",
+          "skill": "implement-change",
           "expect": "used",
           "basis": {
-            "file": ".claude/CLAUDE.md",
+            "file": "harness/CLAUDE.md",
             "quote": "Apply every independently matching capability, never collapse a compound request to one."
           }
         },
         {
-          "id": "not-digital-agency-slides",
+          "id": "not-build-dads-slides",
           "type": "skill",
-          "skill": "digital-agency-slides",
+          "skill": "build-dads-slides",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/digital-agency-slides/SKILL.md",
+            "file": "harness/skills/build-dads-slides/SKILL.md",
             "quote": "Do not use for web pages, application interfaces, or dashboards that are not slides"
           }
         }
@@ -617,23 +617,23 @@
       "prompt": "デジタル庁デザインシステムに沿った16:9のスライドで、来週の部内説明会の資料を作ってほしい。テーマは、部内での生成AIの利用ルール。",
       "graders": [
         {
-          "id": "uses-digital-agency-slides",
+          "id": "uses-build-dads-slides",
           "type": "skill",
-          "skill": "digital-agency-slides",
+          "skill": "build-dads-slides",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/digital-agency-slides/SKILL.md",
+            "file": "harness/skills/build-dads-slides/SKILL.md",
             "quote": "Use for slide decks, briefing material, and presentation documents that must follow DADS"
           }
         },
         {
-          "id": "not-digital-agency-frontend",
+          "id": "not-apply-dads-frontend",
           "type": "skill",
-          "skill": "digital-agency-frontend",
+          "skill": "apply-dads-frontend",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/digital-agency-frontend/SKILL.md",
-            "quote": "Do not use for Power BI artifacts or projects outside React/Tailwind CSS"
+            "file": "harness/skills/apply-dads-frontend/SKILL.md",
+            "quote": "Do not use for Power BI artifacts, for projects outside React and Tailwind CSS, or for slide decks"
           }
         }
       ]
@@ -648,13 +648,13 @@
       "prompt": "次のスプリントレトロスペクティブの進め方を、スクラムガイドに沿って見直したい。今は毎回、不満を言い合うだけで終わってしまう。",
       "graders": [
         {
-          "id": "uses-scrum-master",
+          "id": "uses-apply-scrum-guide",
           "type": "skill",
-          "skill": "scrum-master",
+          "skill": "apply-scrum-guide",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/scrum-master/SKILL.md",
-            "quote": "Scrum Guide (2020) を規範として"
+            "file": "harness/skills/apply-scrum-guide/SKILL.md",
+            "quote": "Scrum Guide (2020) を唯一の規範として"
           }
         }
       ]
@@ -669,13 +669,13 @@
       "prompt": "来月のマイルストーンと予算の進み具合を、ガントチャート付きの週次ステータスレポートにまとめたい。",
       "graders": [
         {
-          "id": "not-scrum-master",
+          "id": "not-apply-scrum-guide",
           "type": "skill",
-          "skill": "scrum-master",
+          "skill": "apply-scrum-guide",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/scrum-master/SKILL.md",
-            "quote": "一般的なproject management、status report、Gantt、予算・マイルストーン管理"
+            "file": "harness/skills/apply-scrum-guide/SKILL.md",
+            "quote": "一般的なプロジェクト管理、ステータス報告、ガントチャート、予算やマイルストーンの管理"
           }
         }
       ]
@@ -690,12 +690,12 @@
       "prompt": "受注管理システムの構成図を作ってほしい。営業部の人にも新しく入る開発者にも分かるようにしたい。構成は、営業がブラウザで使う React の画面、Java の API、PostgreSQL、それに毎晩在庫を取り込む外部の倉庫システムとの連携。",
       "graders": [
         {
-          "id": "uses-system-diagrams",
+          "id": "uses-draw-system-diagrams",
           "type": "skill",
-          "skill": "system-diagrams",
+          "skill": "draw-system-diagrams",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/system-diagrams/SKILL.md",
+            "file": "harness/skills/draw-system-diagrams/SKILL.md",
             "quote": "Use when asked to draw, document, or review the architecture"
           }
         }
@@ -711,12 +711,12 @@
       "prompt": "AWS の公式アーキテクチャアイコンを使って、ALB、ECS Fargate、Aurora の構成を draw.io で描いてほしい。社外向けの提案書に貼る。",
       "graders": [
         {
-          "id": "not-system-diagrams",
+          "id": "not-draw-system-diagrams",
           "type": "skill",
-          "skill": "system-diagrams",
+          "skill": "draw-system-diagrams",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/system-diagrams/SKILL.md",
+            "file": "harness/skills/draw-system-diagrams/SKILL.md",
             "quote": "Do not use for diagrams built from a cloud vendor's official icon set"
           }
         }
@@ -733,13 +733,13 @@
       "prompt": "決済の返金処理に部分返金を加える変更を、差分を全部読み直さなくても、証拠を見て受け入れられる形で届けてほしい。",
       "graders": [
         {
-          "id": "uses-verified-delivery",
+          "id": "uses-deliver-change",
           "type": "skill",
-          "skill": "verified-delivery",
+          "skill": "deliver-change",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/verified-delivery/SKILL.md",
-            "quote": "when the person wants to accept it by its evidence rather than by rereading every diff"
+            "file": "harness/skills/deliver-change/SKILL.md",
+            "quote": "when the person wants to accept it without rereading every diff"
           }
         }
       ]
@@ -750,18 +750,49 @@
       "stages": [
         "H-structure"
       ],
-      "description": "推奨を求める依頼。構成の手順を使い、送る前に検査器を走らせるか。",
+      "description": "会話での推奨の依頼。結論としての推奨が、根拠より先に述べられるか。",
       "max_turns": 15,
       "prompt": "社内の問い合わせ管理を、今のスプレッドシートから専用のチケット管理ツールに移すべきか。運用コストと移行リスクの観点で推奨を出して。",
       "graders": [
         {
-          "id": "uses-pyramid-structure",
+          "id": "answer-first",
+          "type": "regex",
+          "pattern": "^[\\s\\S]{0,150}?(結論|推奨|おすすめ|移行(す|し)(る|ます|ない|ません|べき)|移(す|さ)(べき|ない)|見送|現状維持)",
+          "basis": {
+            "file": "harness/rules/pyramid-principle.md",
+            "quote": "State the answer, conclusion, or recommendation before its supporting detail."
+          },
+          "examples": {
+            "match": [
+              "結論: 移行を推奨します。理由は次の2点です。",
+              "移行すべきです。運用コストは下がり、リスクは段階移行で抑えられます。"
+            ],
+            "no_match": [
+              "運用コストと移行リスクを順に見ていきます。",
+              "あああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああああ結論: 移行を推奨します。"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "h-document-proposal",
+      "kind": "expectation",
+      "stages": [
+        "H-document"
+      ],
+      "description": "部内向けの提案書をファイルに書く依頼。文書の構成の手順を使い、同梱の検査器を走らせるか。",
+      "max_turns": 15,
+      "prompt": "社内の問い合わせ管理を、今のスプレッドシートから専用のチケット管理ツールに移すことを提案する、部内向けの提案書を書いて、proposal.md に保存して。",
+      "graders": [
+        {
+          "id": "uses-structure-document",
           "type": "skill",
-          "skill": "pyramid-structure",
+          "skill": "structure-document",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/pyramid-structure/SKILL.md",
-            "quote": "MUST be used for every substantive task."
+            "file": "harness/skills/structure-document/SKILL.md",
+            "quote": "Use when drafting or revising such a document, and when asked to review or restructure an existing one."
           }
         },
         {
@@ -771,12 +802,12 @@
           "input_match": "check\\.py",
           "min": 1,
           "basis": {
-            "file": ".claude/skills/pyramid-structure/SKILL.md",
-            "quote": "Mechanical check: pipe the final draft to `scripts/check.py`"
+            "file": "harness/skills/structure-document/SKILL.md",
+            "quote": "Run `python3 \"${CLAUDE_SKILL_DIR}/scripts/check.py\" md FILE.md`"
           },
           "examples": {
             "match": [
-              "{\"command\":\"python3 /x/scripts/check.py md - <<'EOF'\"}"
+              "{\"command\":\"python3 /x/scripts/check.py md proposal.md\"}"
             ],
             "no_match": [
               "{\"command\":\"ls\"}"
@@ -798,23 +829,23 @@
       "prompt": "cli.py の --verbose フラグを --debug に改名して。",
       "graders": [
         {
-          "id": "uses-living-documentation",
+          "id": "uses-sync-docs",
           "type": "skill",
-          "skill": "maintaining-living-documentation",
+          "skill": "sync-docs",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/maintaining-living-documentation/SKILL.md",
-            "quote": "Use when implementing or reviewing changes that affect behavior, interfaces or API schemas, configuration"
+            "file": "harness/skills/sync-docs/SKILL.md",
+            "quote": "Use when implementing or reviewing a change that affects behavior, interfaces or API schemas, configuration"
           }
         },
         {
-          "id": "uses-coder",
+          "id": "uses-implement-change",
           "type": "skill",
-          "skill": "coder",
+          "skill": "implement-change",
           "expect": "used",
           "basis": {
-            "file": ".claude/skills/coder/SKILL.md",
-            "quote": "documentation that must change with a public contract"
+            "file": "harness/skills/implement-change/SKILL.md",
+            "quote": "Update, in the same change, the document that states each changed public contract"
           }
         }
       ]
@@ -832,22 +863,32 @@
       "prompt": "README.md の誤字「teh」を「the」に直して。",
       "graders": [
         {
-          "id": "not-verified-delivery",
+          "id": "not-deliver-change",
           "type": "skill",
-          "skill": "verified-delivery",
+          "skill": "deliver-change",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/verified-delivery/SKILL.md",
+            "file": "harness/skills/deliver-change/SKILL.md",
             "quote": "Do not use for a trivial local edit"
           }
         },
         {
-          "id": "not-requirements-decomposition",
+          "id": "not-verify-change",
           "type": "skill",
-          "skill": "requirements-decomposition",
+          "skill": "verify-change",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
+            "file": "harness/skills/verify-change/SKILL.md",
+            "quote": "Do not use for a trivial local edit"
+          }
+        },
+        {
+          "id": "not-specify-requirements",
+          "type": "skill",
+          "skill": "specify-requirements",
+          "expect": "unused",
+          "basis": {
+            "file": "harness/skills/specify-requirements/SKILL.md",
             "quote": "Use before implementing a nontrivial, security-relevant, or multi-part change"
           }
         },
@@ -859,7 +900,7 @@
             "file": "README.md"
           },
           "basis": {
-            "file": ".claude/CLAUDE.md",
+            "file": "harness/CLAUDE.md",
             "quote": "Verify the actual completion condition before reporting success."
           },
           "examples": {
@@ -883,23 +924,23 @@
       "prompt": "本番の API で、たまに 500 エラーが出る。ログを見る限り、同じ利用者から2つのリクエストがほぼ同時に来たときに起きているようだ。原因を突き止めたい。",
       "graders": [
         {
-          "id": "problem-definition-unused",
+          "id": "define-problem-unused",
           "type": "skill",
-          "skill": "problem-definition",
+          "skill": "define-problem",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/problem-definition/SKILL.md",
-            "quote": "root-cause analysis, evaluating or proposing solutions, or building an execution plan"
+            "file": "harness/skills/define-problem/SKILL.md",
+            "quote": "for root-cause analysis, for evaluating or proposing solutions, for an execution plan"
           }
         },
         {
-          "id": "requirements-decomposition-unused",
+          "id": "specify-requirements-unused",
           "type": "skill",
-          "skill": "requirements-decomposition",
+          "skill": "specify-requirements",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
-            "quote": "analyze root causes"
+            "file": "harness/skills/specify-requirements/SKILL.md",
+            "quote": "to analyze root causes"
           }
         }
       ]
@@ -914,13 +955,13 @@
       "prompt": "問い合わせへの最初の返信に平均2日かかっていて、目標は4時間以内。チャットボットの導入、当番制、返信テンプレートの整備の3案から、どれを選ぶべきか評価して。",
       "graders": [
         {
-          "id": "problem-definition-unused",
+          "id": "define-problem-unused",
           "type": "skill",
-          "skill": "problem-definition",
+          "skill": "define-problem",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/problem-definition/SKILL.md",
-            "quote": "evaluating or proposing solutions"
+            "file": "harness/skills/define-problem/SKILL.md",
+            "quote": "for evaluating or proposing solutions"
           }
         }
       ]
@@ -935,13 +976,13 @@
       "prompt": "来月の社内ポータルの移行作業について、依存関係と順序がわかる作業計画を作って。",
       "graders": [
         {
-          "id": "problem-definition-unused",
+          "id": "define-problem-unused",
           "type": "skill",
-          "skill": "problem-definition",
+          "skill": "define-problem",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/problem-definition/SKILL.md",
-            "quote": "building an execution plan"
+            "file": "harness/skills/define-problem/SKILL.md",
+            "quote": "for an execution plan"
           }
         }
       ]
@@ -956,13 +997,13 @@
       "prompt": "家計簿アプリのバックエンドを、自前で作るか BaaS を使うかを決めたい。技術選定を手伝って。",
       "graders": [
         {
-          "id": "product-strategy-unused",
+          "id": "define-product-strategy-unused",
           "type": "skill",
-          "skill": "product-strategy",
+          "skill": "define-product-strategy",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/product-strategy/SKILL.md",
-            "quote": "architecture, technology-stack, or build-vs-buy decisions"
+            "file": "harness/skills/define-product-strategy/SKILL.md",
+            "quote": "for architecture, technology-stack, or build-versus-buy decisions"
           }
         }
       ]
@@ -977,23 +1018,13 @@
       "prompt": "手元のメモが断片的なんだけど、これをもとに、やり取りしながら社内向けの企画書を一緒に組み立てたい。メモ: 在宅勤務の手当、通信費、アンケート結果は来週。",
       "graders": [
         {
-          "id": "clarifier-unused",
+          "id": "define-product-strategy-unused",
           "type": "skill",
-          "skill": "clarifier",
+          "skill": "define-product-strategy",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/clarifier/SKILL.md",
-            "quote": "building a document from incomplete material through dialogue"
-          }
-        },
-        {
-          "id": "product-strategy-unused",
-          "type": "skill",
-          "skill": "product-strategy",
-          "expect": "unused",
-          "basis": {
-            "file": ".claude/skills/product-strategy/SKILL.md",
-            "quote": "open-ended document co-creation with no development destination"
+            "file": "harness/skills/define-product-strategy/SKILL.md",
+            "quote": "for a document with no development destination"
           }
         }
       ]
@@ -1009,23 +1040,33 @@
       "prompt": "app.py の未コミットの変更をコードレビューして、問題があれば指摘して。",
       "graders": [
         {
-          "id": "requirements-decomposition-unused",
+          "id": "specify-requirements-unused",
           "type": "skill",
-          "skill": "requirements-decomposition",
+          "skill": "specify-requirements",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/requirements-decomposition/SKILL.md",
-            "quote": "implement or review code"
+            "file": "harness/skills/specify-requirements/SKILL.md",
+            "quote": "to implement or review code"
           }
         },
         {
-          "id": "verified-delivery-unused",
+          "id": "verify-change-unused",
           "type": "skill",
-          "skill": "verified-delivery",
+          "skill": "verify-change",
           "expect": "unused",
           "basis": {
-            "file": ".claude/skills/verified-delivery/SKILL.md",
+            "file": "harness/skills/verify-change/SKILL.md",
             "quote": "for a code review that decides nothing"
+          }
+        },
+        {
+          "id": "deliver-change-unused",
+          "type": "skill",
+          "skill": "deliver-change",
+          "expect": "unused",
+          "basis": {
+            "file": "harness/skills/deliver-change/SKILL.md",
+            "quote": "for a review that decides nothing"
           }
         }
       ]

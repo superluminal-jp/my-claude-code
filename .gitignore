@@ -88,4 +88,4 @@ tests/harness-eval/results/
 # swallows the DADS `foundations/icon/` directory in the vendored documentation
 # archive. Negate it so the archive stays a verbatim copy — see
 # docs/adr/0011-vendor-dads-docs-resolve-code-via-npm.md
-!.claude/skills/digital-agency-frontend/references/dads-docs/foundations/icon/
+!harness/skills/apply-dads-frontend/references/dads-docs/foundations/icon/
