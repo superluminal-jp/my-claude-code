@@ -1,8 +1,8 @@
 # レビューカード: CHG-070 (P-070)
 
-**判定: ⛔ blocked**
+**判定: ✅ pass**
 
-**deploy の前の判定: pass**（まだ走っていない deploy の後の検査 1 件を除く: `R0-A3`）
+**deploy の前の判定: pass**
 
 保証の判定による。記録どうしの整合を確かめるもので、変更が安全であることは示さない。
 
@@ -17,7 +17,7 @@
 - **審査の対象のコミット**: `570a91c0decece73d96b98fbbb21a52420408d00`
 - **実装担当**: claude
 - **リスク**: medium — requirements-decomposition と verified-delivery の手順と参照、新しいサブエージェントの定義 .claude/agents/read-only-reviewer.md、install の試験、README、ハーネスの評価の組み立て（agents をプラグインに写す）と対応表にまたがる。サブエージェントの道具は狭める向きにだけ変え、認証・秘密・基盤の権限・公開には触れず、git revert と install.sh の再実行で戻せる。install.sh は前と同じく \~/.claude/agents/ を置き換える。
-- **承認**: Taiki Ogihara (approved): feat/review-integrity のブランチ、コミット、push、PR（マージと install.sh の実行は別に確かめる）。2026-11-10 の会話の質問「Git の操作はどこまで行ってよいですか」への回答「ブランチ・コミット・push・PR」; Taiki Ogihara (approved): R2〜R4 の手順（失敗時のやり直しと停止、却下の根拠、回数の区切り）は対応表の目視だけで確かめ、R1 自身の L2 は定義だけを確かめることを、限界として受け入れる。2026-11-10 の会話の質問「公式の回とは別の確かめのレビューが挙げた点をどう扱いますか」への回答「限界として受け入れる (Recommended)」（evidence/570a91c/human-review.txt）
+- **承認**: Taiki Ogihara (approved): feat/review-integrity のブランチ、コミット、push、PR（マージと install.sh の実行は別に確かめる）。2026-11-10 の会話の質問「Git の操作はどこまで行ってよいですか」への回答「ブランチ・コミット・push・PR」; Taiki Ogihara (approved): R2〜R4 の手順（失敗時のやり直しと停止、却下の根拠、回数の区切り）は対応表の目視だけで確かめ、R1 自身の L2 は定義だけを確かめることを、限界として受け入れる。2026-11-10 の会話の質問「公式の回とは別の確かめのレビューが挙げた点をどう扱いますか」への回答「限界として受け入れる (Recommended)」（evidence/570a91c/human-review.txt）; Taiki Ogihara (approved): PR \#125 のマージ（413ad9f）と install.sh の実行、そのあと R0-A3 の記録を記録だけの PR で main に入れること。2026-11-10 の会話の「マージして install.sh を実行して」と、質問「R0-A3 の記録」への回答「記録の PR を開いてマージする (Recommended)」
 
 ## 水準ごとの検査
 
@@ -25,25 +25,25 @@
 |---|---|---|---|---|---|
 | L1 | 13 | 0 | 0 | 0 | 0 |
 | L2 | 1 | 0 | 0 | 0 | 0 |
-| L3 | 3 | 0 | 1 | 0 | 0 |
+| L3 | 4 | 0 | 0 | 0 | 0 |
 
 ## 合格していない検査
 
-- `R0-A3` (L3, R0): not_run
+- なし
 
 ## 未解消の事項
 
-- A-03 (blocked): "R0-A3" (L3) is not\_run
+- なし
 
 ## 人が決めること
 
-- deploy してよいかを決める。deploy の後に、deploy の後の検査を記録して判定をやり直し、変更を受け入れるか差し戻すかを決める。
+- 変更を受け入れるか、差し戻すかを決める。
 
 ## 要求
 
 ```mermaid
 flowchart TD
-  n0["R0 · AND · open"]:::open
+  n0["R0 · AND · pass"]:::pass
   n1["R1 · AND · pass"]:::pass
   n2["R1a · LEAF · pass"]:::pass
   n3["R1b · LEAF · pass"]:::pass
@@ -85,7 +85,7 @@ flowchart TD
 | R0 | `R0-A1` | L3 | passed | `specs/070-review-integrity/evidence/570a91c/ci-test-job.txt` @ `570a91c` |
 | R0 | `R0-A2` | L3 | passed | `specs/070-review-integrity/evidence/570a91c/human-review.txt` @ `570a91c` |
 | R0 | `R0-A4` | L3 | passed | `specs/070-review-integrity/evidence/570a91c/probes.txt` @ `570a91c` |
-| R0 | `R0-A3` | L3 | not_run | — |
+| R0 | `R0-A3` | L3 | passed | `specs/070-review-integrity/evidence/post-deploy/r0-a3.txt` @ `570a91c` |
 | R1 | `R1-A1` | L2 | passed | `specs/070-review-integrity/evidence/570a91c/probes.txt` @ `570a91c` |
 | R1a | `R1a-A1` | L1 | passed | `specs/070-review-integrity/evidence/570a91c/human-review.txt` @ `570a91c` |
 | R1b | `R1b-A1` | L1 | passed | `specs/070-review-integrity/evidence/570a91c/reviewer-agent.txt` @ `570a91c` |

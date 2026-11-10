@@ -1,0 +1,63 @@
+# Post-deploy check R0-A3 of spec 070, run by the user on 2026-11-10 with ! bash /tmp/claude-501/probe-070/run-r0-a3.sh
+# after PR #125 was merged (413ad9f) and install.sh synced ~/.claude to it (agents, rules, CLAUDE.md, and skills checked equal).
+# 413ad9f equals the reviewed commit 570a91c outside specs/070-review-integrity (git diff --quiet 570a91c 413ad9f -- . ':!specs/070-review-integrity'),
+# so the installed harness is that of 570a91c.
+# The session ran in /tmp/claude-501/probe-070/other-project (a new git repository outside this one), so the skill and the agent
+# could come only from ~/.claude/. Session c9dee54f-9fbb-40a7-bdcc-d3a83e26b273; raw result: probe-r0-a3-result.json.
+
+## The script
+    #!/usr/bin/env bash
+    # spec 070, R0-A3 (post-deploy): after the merge (413ad9f) and install.sh, start
+    # a new headless Claude Code session in a directory outside the repository, so
+    # the skill and the agent come only from ~/.claude/, and have it run the
+    # challenger step of the installed requirements-decomposition skill without
+    # naming the subagent type. Writes only under /tmp/claude-501/probe-070/other-project.
+    set -u
+    P=/tmp/claude-501/probe-070
+    O="$P/other-project"
+    SRC=/Users/taikiogihara/work/my-claude-code/specs/070-review-integrity
+    rm -rf "$O" && mkdir -p "$O" || exit 1
+    cp "$SRC/problem-card.challenger.json" "$SRC/requirements-graph.challenger.json" "$O/"
+    cd "$O" || exit 1
+    git init -q
+    echo "== R0-A3 (cwd $O)"
+    claude -p "Use the requirements-decomposition skill and carry out its step 3 (Challenge) for problem-card.challenger.json (the copy without proposed_solutions) and requirements-graph.challenger.json in this directory. The records are written in Japanese. Do not write or change any file: instead of writing challenge-report.json, reply with the JSON of the report you would write (problem_id, reviewer, context_given, findings), and say where the skill you used was loaded from." \
+      --output-format json > "$P/r0-a3.json" 2> "$P/r0-a3.err"
+    echo "exit $?"
+    python3 -I -c "import json; d=json.load(open('$P/r0-a3.json')); print('session', d.get('session_id'), 'cost', d.get('total_cost_usd'))"
+
+## Output of the script
+    == R0-A3 (cwd /tmp/claude-501/probe-070/other-project)
+    exit 0
+    session c9dee54f-9fbb-40a7-bdcc-d3a83e26b273 cost 0.9405487000000001
+    
+    [exited with code 0]
+
+## python3 -I -B specs/070-review-integrity/evidence/reviewer_tools.py ~/.claude/projects/-private-tmp-claude-501-probe-070-other-project
+session  agent    role        type     model   effort finished | tool calls | bash running python | instruction files | deferred tools offered (of interest) | mcp tools offered
+c9dee54f 4b9610c3 challenger  read-only-reviewer sonnet  xhigh  True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+
+session  agent    | model attachment | assistant models | effort per message | nested memory loaded while working (path, transcript line) | MCP servers whose instructions were given
+c9dee54f 4b9610c3 | claude-sonnet-5-5 | {'claude-sonnet-5-5': 4} | {'xhigh': 4} | - | 4
+
+totals: {'bash': 0, 'finished:True': 1, 'python_runs': 0, 'reviewers': 1, 'type:read-only-reviewer': 1, 'webfetch': 0, 'with_instructions': 0}
+
+
+## What the session answered (opening and the reviewer field)
+cost_usd 0.9405487000000001
+Here is the report I would write as `challenge-report.json`. I wrote and changed no files. The skill was loaded from **`/Users/taikiogihara/.claude/skills/requirements-decomposition`**, from its `SKILL.md`. The reviewer prompt came from `references/challenger.md` in that folder.
+
+```json
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "P-070",
+    "reviewer": "read-only-reviewer, agentId a823e17394
+reviewer field: read-only-reviewer, agentId a823e17394b9610c3, 2026-11-10, read 2 files (model sonnet, effort xhigh)
+
+## Notes
+- The prompt did not name the subagent type. The session used the skill installed at
+  /Users/taikiogihara/.claude/skills/requirements-decomposition and started read-only-reviewer, the definition installed at
+  ~/.claude/agents/read-only-reviewer.md (the session's project has no .claude/ directory).
+- The reviewer used only Read (and SubagentHandback, which every observed subagent uses to hand its answer back), ran no
+  Bash, had no instructions attachment at start, had no nested_memory attachment, and ran on claude-sonnet-5-5 at effort xhigh.
