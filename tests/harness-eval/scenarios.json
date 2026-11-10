@@ -681,6 +681,48 @@
       ]
     },
     {
+      "id": "e-system-diagrams",
+      "kind": "expectation",
+      "stages": [
+        "E-diagrams"
+      ],
+      "description": "構成図を、非エンジニアも読める図の一式として作る依頼。構成図の領域が使われるか。",
+      "prompt": "受注管理システムの構成図を作ってほしい。営業部の人にも新しく入る開発者にも分かるようにしたい。構成は、営業がブラウザで使う React の画面、Java の API、PostgreSQL、それに毎晩在庫を取り込む外部の倉庫システムとの連携。",
+      "graders": [
+        {
+          "id": "uses-system-diagrams",
+          "type": "skill",
+          "skill": "system-diagrams",
+          "expect": "used",
+          "basis": {
+            "file": ".claude/skills/system-diagrams/SKILL.md",
+            "quote": "Use when asked to draw, document, or review the architecture"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e-diagrams-vendor-icons",
+      "kind": "expectation",
+      "stages": [
+        "E-diagrams"
+      ],
+      "description": "クラウド事業者の公式アイコンで描く構成図の依頼。汎用の構成図の領域が使われないか。",
+      "prompt": "AWS の公式アーキテクチャアイコンを使って、ALB、ECS Fargate、Aurora の構成を draw.io で描いてほしい。社外向けの提案書に貼る。",
+      "graders": [
+        {
+          "id": "not-system-diagrams",
+          "type": "skill",
+          "skill": "system-diagrams",
+          "expect": "unused",
+          "basis": {
+            "file": ".claude/skills/system-diagrams/SKILL.md",
+            "quote": "Do not use for diagrams built from a cloud vendor's official icon set"
+          }
+        }
+      ]
+    },
+    {
       "id": "h-verify-evidence",
       "kind": "expectation",
       "stages": [

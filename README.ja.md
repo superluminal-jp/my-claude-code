@@ -72,7 +72,12 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     Google Cloud（Cloud Run functions を含む）・Azure（Azure Functions を含む）・各クラウドの
     AI 推論サービス・GitHub Actions のワークフローの公式ドキュメントにあるログの作法に基づく、アプリケーションと CI のログの実装と
     検査。コードで検証できる項目のみ判定し、運用項目は、リポジトリのインフラコード
-    （AWS CDK、Terraform、Bicep）で決まる場合を除き未検証として報告）。
+    （AWS CDK、Terraform、Bicep）で決まる場合を除き未検証として報告）、`system-diagrams`
+    （非エンジニアから専門家まで、初めて見る人が読めるシステム構成図。1枚が1つの問い・
+    1種類の読者・1つの抽象度に答える C4 の図の一式を、既定は Markdown 内の Mermaid、
+    合う場合は draw.io か Structurizr DSL で、根拠をたどれる形で作り、タイトル・導入文・
+    凡例・要素の種類・線のラベル・読み上げ用の説明・索引を同梱の標準ライブラリだけの
+    検査器で確かめる。クラウド事業者の公式アイコンで描く図は対象外）。
     `secure-logging` は自作の skills ディレクトリ型プラグインとしても構成している
     （`.claude-plugin/plugin.json`、フックなし。詳細は同パッケージの `README.md`）
   - どちらの軸にも分類していない macOS アプリ連携2件: `apple-notes`（同梱の JXA
@@ -210,7 +215,7 @@ my-claude-code/
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち10本を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち11本を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── .claude/                        # インストーラーが管理する Claude パスの正本
@@ -260,6 +265,13 @@ my-claude-code/
         │   ├── README.md           #   インストール、モード、検査の仕組み(README.ja.md: 日本語)
         │   ├── .claude-plugin/     #   プラグインのマニフェスト(secure-logging@skills-dir)
         │   └── references/         #   出典付きチェックリスト(ASVS 5.0.0 V16、CWE、OWASP、各スタックの公式文書)
+        ├── system-diagrams/        # 初めて見る人向けの C4 の図を Mermaid・draw.io・Structurizr DSL で作る(ドメインオーバーレイ)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   図の種類、表記と配色、形式ごとの書き方
+        │   ├── assets/templates/   #   図のページ、索引、draw.io ファイル、Structurizr の workspace
+        │   ├── examples/           #   検査器を通る図の一式の作例
+        │   ├── scripts/            #   check_diagrams.py(読み取り専用、標準ライブラリのみ)
+        │   └── tests/              #   受け入れテスト
         ├── apple-notes/            # JXA で Notes.app を操作(macOS アプリ連携)
         │   ├── SKILL.md            #   プレイブック
         │   ├── references/         #   プロパティ、スクリプトの使い方、安全な Markdown サブセット、ハッシュゲート
@@ -329,6 +341,17 @@ bash tests/run-config-pyramid.sh
 deploy の前の判定、カードの2つの判定)。
 受け入れテストには、[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送った4件
 (親の検証の失敗、証拠のない AI の申告、古い証拠、未分類のリスク)を含む。
+
+[`.claude/skills/system-diagrams/`](.claude/skills/system-diagrams/) を変更したら:
+
+```sh
+bash tests/run-system-diagrams-skill.sh
+bash tests/run-config-pyramid.sh
+```
+
+前者は、同梱の検査器の受け入れテスト(Python の標準ライブラリのみ)を実行し、同梱の作例の一式とひな形が
+検査器を通ること、ラベルのない線があり凡例のないページが検査器で不合格になることを確かめる。
+一式の Mermaid が描画できるかは確かめない。GitHub か `mmdc` で描画して確かめる。
 
 [`.claude/CLAUDE.md`](.claude/CLAUDE.md)・[`.claude/rules/`](.claude/rules/)・
 自作スキルを変更したら:
@@ -419,10 +442,10 @@ Claude Code がこれらのキーに従うかは、`install.sh` の後の新し�
 
 ## リポジトリのセキュリティ自動化
 
-上記のうち10本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+上記のうち11本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
 自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
 `run-removed-guardrails.sh`、`run-sandbox-settings.sh`、`run-package-safety-bundle.sh`、
-`run-readme-skill-index.sh`、`run-requirements-decomposition-skill.sh`、`run-verified-delivery-skill.sh`、`run-harness-eval.sh`、`run-mcp-startup.sh`。
+`run-readme-skill-index.sh`、`run-requirements-decomposition-skill.sh`、`run-verified-delivery-skill.sh`、`run-system-diagrams-skill.sh`、`run-harness-eval.sh`、`run-mcp-startup.sh`。
 それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
 する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
 

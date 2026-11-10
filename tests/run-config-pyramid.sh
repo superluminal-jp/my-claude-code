@@ -56,6 +56,7 @@ authored_skills=(
   pyramid-structure
   scrum-master
   secure-logging
+  system-diagrams
 )
 
 # A parent skill declares the skills it applies in a "## Child skills"
@@ -247,12 +248,12 @@ run_skill_contract() {
     "$SKILL_DIR/pyramid-structure/SKILL.md" 'subagent.*(not|never|none).*(conversation)'
 
   check_absent_pattern "SKILL-06: packages do not hard-code their install root" \
-    '\.claude/skills/(clarifier|aws-research|verified-delivery|coder|digital-agency-frontend|git-workflow|requirements-decomposition|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging)' \
+    '\.claude/skills/(clarifier|aws-research|verified-delivery|coder|digital-agency-frontend|git-workflow|requirements-decomposition|problem-definition|product-strategy|pyramid-structure|scrum-master|secure-logging|system-diagrams)' \
     "$SKILL_DIR/clarifier" "$SKILL_DIR/aws-research" "$SKILL_DIR/verified-delivery" "$SKILL_DIR/coder" \
     "$SKILL_DIR/digital-agency-frontend" "$SKILL_DIR/git-workflow" \
     "$SKILL_DIR/requirements-decomposition" "$SKILL_DIR/problem-definition" \
     "$SKILL_DIR/product-strategy" "$SKILL_DIR/pyramid-structure" "$SKILL_DIR/scrum-master" \
-    "$SKILL_DIR/secure-logging"
+    "$SKILL_DIR/secure-logging" "$SKILL_DIR/system-diagrams"
 
   check "SKILL-08: the decomposition skill is retired to archive/" \
     "$([ ! -e "$SKILL_DIR/meta-spec" ] && [ -f "$REPO_ROOT/archive/meta-spec/SKILL.md" ] && [ -f "$REPO_ROOT/archive/meta-spec/README.md" ] && echo 1 || echo 0)"
@@ -399,6 +400,7 @@ run_routing_fixtures() {
   check_contains "ROUTE-10: problem definition stays gap-framing, distinct from cause analysis/solutions/scope clarification" "$SKILL_DIR/problem-definition/SKILL.md" '^description:.*(problem|問題).*(out of scope|not for|対象外|使わない)'
   check_contains "ROUTE-12: secure logging stays a domain overlay, distinct from log infrastructure operations" "$SKILL_DIR/secure-logging/SKILL.md" '^description:.*overlay.*alongside.*supplements'
   check_contains "ROUTE-13: secure logging excludes log infrastructure operations" "$SKILL_DIR/secure-logging/SKILL.md" '^description:.*(Do not use|not for).*(SIEM|infrastructure)'
+  check_contains "ROUTE-14: system diagrams excludes diagrams built from a cloud vendor's official icon set" "$SKILL_DIR/system-diagrams/SKILL.md" "^description:.*Do not use for.*official icon set"
 }
 
 run_owned_link_contract() {

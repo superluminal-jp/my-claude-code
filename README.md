@@ -114,7 +114,14 @@ projects while preserving unrelated user files.
   Actions workflow logs;
   code-verifiable items only, operational items reported as unverified unless
   the repository's infrastructure code (AWS CDK, Terraform, Bicep) settles
-  them), which compose with a matching
+  them), `system-diagrams` (system architecture diagrams a first-time reader,
+  from a non-engineer to a specialist, can follow: a set of C4 views, each
+  answering one question for one audience at one level of abstraction,
+  written as Mermaid in Markdown by default, as draw.io or Structurizr DSL
+  when those fit, traced to evidence, and checked by a bundled
+  standard-library checker for title, lead text, legend, element types,
+  labelled lines, accessible text, and the index; diagrams built from a
+  cloud vendor's official icon set are out of scope), which compose with a matching
   lifecycle operation rather than replace it. Two macOS app integrations are
   classified on neither axis: `apple-notes` (read and write Notes.app through
   bundled JXA scripts, with a SHA-256 hash gate on overwrite and delete) and
@@ -271,7 +278,7 @@ my-claude-code/
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # Runs ten tests/run-*.sh suites on every push/PR to main (required check)
+│   │   ├── ci.yml                  # Runs eleven tests/run-*.sh suites on every push/PR to main (required check)
 │   │   └── dependabot-automerge.yml # Auto-merges patch/minor Dependabot security-fix PRs once CI is green
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── .claude/                        # Source for installer-managed Claude paths
@@ -321,6 +328,13 @@ my-claude-code/
         │   ├── README.md           #   install, modes, how checks work (README.ja.md: Japanese)
         │   ├── .claude-plugin/     #   plugin manifest (secure-logging@skills-dir)
         │   └── references/         #   source-backed checklist (ASVS 5.0.0 V16, CWE, OWASP, official stack docs)
+        ├── system-diagrams/        # C4 views for first-time readers in Mermaid, draw.io, or Structurizr DSL (domain overlay)
+        │   ├── SKILL.md            #   playbook
+        │   ├── references/         #   view types, notation and palette, one file per format
+        │   ├── assets/templates/   #   view page, index, draw.io file, Structurizr workspace
+        │   ├── examples/           #   a complete example set that passes the checker
+        │   ├── scripts/            #   check_diagrams.py (read-only, standard library only)
+        │   └── tests/              #   acceptance tests
         ├── apple-notes/            # Notes.app via JXA (macOS app integration)
         │   ├── SKILL.md            #   playbook
         │   ├── references/         #   property surface, script usage, safe Markdown subset, hash gate
@@ -395,6 +409,19 @@ its checker rejects under a rule the gate depends on, and carries one made-up
 change through both checkers from decomposition to acceptance
 (`tests/assert_delivery_flow.py`: a requirement a person directed, Jest results,
 the decision before deploy, and both decisions on the card).
+
+After changing [`.claude/skills/system-diagrams/`](.claude/skills/system-diagrams/):
+
+```sh
+bash tests/run-system-diagrams-skill.sh
+bash tests/run-config-pyramid.sh
+```
+
+The first runs the bundled checker's acceptance tests (Python standard library
+only), checks that the bundled example set and templates pass the checker,
+and checks that a page with an unlabelled line and no legend fails it.
+Whether the Mermaid in a set renders is not checked; render it on GitHub or
+with `mmdc`.
 
 After changing [`.claude/CLAUDE.md`](.claude/CLAUDE.md),
 [`.claude/rules/`](.claude/rules/), or an authored skill:
@@ -495,14 +522,14 @@ configured MCP server commands and therefore requires network access.
 
 ## Repository security automation
 
-Ten of the suites above also run automatically in CI
+Eleven of the suites above also run automatically in CI
 (`.github/workflows/ci.yml`) on every push and pull request to `main`:
 `run-install.sh`, `run-digital-agency-frontend-skill.sh`,
 `run-removed-guardrails.sh`, `run-sandbox-settings.sh`,
 `run-package-safety-bundle.sh`,
 `run-readme-skill-index.sh`, `run-requirements-decomposition-skill.sh`,
-`run-verified-delivery-skill.sh`, `run-harness-eval.sh`, and
-`run-mcp-startup.sh`. The others run only when you run them. `main` is
+`run-verified-delivery-skill.sh`, `run-system-diagrams-skill.sh`,
+`run-harness-eval.sh`, and `run-mcp-startup.sh`. The others run only when you run them. `main` is
 protected by a repository ruleset
 (`.github/rulesets/main-required-checks.json`) requiring that CI job (`test`)
 to pass before anything merges.
