@@ -6,6 +6,11 @@ deciders: repository maintainer
 
 # 0001. Remove vendored speckit-* skills; Spec Kit stays per-project opt-in only
 
+> The part of this decision that kept this repository's own `.specify/` under
+> version control is superseded by
+> [ADR-0022](0022-keep-spec-kit-project-files-local.md) (2026-11-10): `.specify/`
+> is now gitignored and local to each checkout.
+
 ## Context and problem statement
 
 This repository is a **user-level** Claude Code configuration: the entire

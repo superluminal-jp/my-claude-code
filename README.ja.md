@@ -210,7 +210,7 @@ my-claude-code/
 ├── docs/                           # 保守者向け文書: 設計根拠、MCP の背景、ADR(同期対象外)
 ├── tests/                          # オフラインの契約テスト(run-*.sh)と fixture。「検証」参照
 ├── specs/                          # このリポジトリ自身の変更の Spec Kit 機能仕様
-├── .specify/                       # このリポジトリの Spec Kit プロジェクトファイル(テンプレート、スクリプト、git 拡張)
+├── .specify/                       # Spec Kit のプロジェクトファイル。チェックアウトごとのローカル(gitignore、ADR-0022)
 ├── archive/                        # 参照用に残した退役スキル(同期対象外)
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
@@ -669,6 +669,13 @@ specify extension add git
 
 追加されるコマンド: `speckit.git.feature`、`speckit.git.validate`、
 `speckit.git.remote`、`speckit.git.initialize`、`speckit.git.commit`
+
+このリポジトリ自身も同じ扱いです。`.specify/` は gitignore されていて、
+チェックアウトごとのローカルのものです（[ADR-0022](docs/adr/0022-keep-spec-kit-project-files-local.md)）。
+Spec Kit の何もリモートには上げず、各自が最新のリリースで上の手順を実行します。
+そのため、原則（`.specify/memory/constitution.md`）、フックのつなぎ方
+（`.specify/extensions.yml`）、git 拡張の設定も、チェックアウトごとのもので、
+spec-kit の既定から始まります。
 
 すでに導入済みのプロジェクトで生成済みの `speckit-*` スキルを最新に保つのは、
 今も手動の作業です — 自分で定期的に `specify init --here --force` を
