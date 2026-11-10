@@ -427,7 +427,7 @@ Claude Code のサンドボックスは、Bash のコマンドを OS の制限�
 
 ### 8.2 オフラインのテスト 14 本は通っている。確かめていないことが4つある
 
-結果は付録B 補足にある。古い `.claude/skills`、`.claude/agents`、`.claude/settings.json` は、利用者が削除した。サンドボックスがこの3つへの Bash からの書き込みを止め、サンドボックスの外での実行は自動承認の判定で拒否されたためである。`tests/run-removed-guardrails.sh` の検査 SRC-01 は、このリポジトリの `.claude/` に配布元のファイルが残っていないことを確かめる。空のディレクトリは数えない。Git は空のディレクトリを追跡せず、Claude Code 自身が `.claude/` の下に空の作業用ディレクトリを残すためである。
+結果は付録B 補足にある。古い `.claude/skills`、`.claude/agents`、`.claude/settings.json` は、利用者が削除した。サンドボックスがこの3つへの Bash からの書き込みを止め、サンドボックスの外での実行は自動承認の判定で拒否されたためである。`tests/run-removed-guardrails.sh` の検査 SRC-01 は、このリポジトリの `.claude/` に、Git が追跡する配布元のファイルがないことを確かめる。追跡していないファイルは数えない。`.claude/` の下には、配布元ではなく、コミットもしないファイルが、チェックアウトごとに置かれるためである: Spec Kit が生成するスキル（`speckit-*`）、手元で実行した評価の結果、Claude Code 自身が残す作業用ディレクトリ。
 
 確かめていないことは4つある。
 
@@ -512,7 +512,7 @@ Claude Code のサンドボックスは、Bash のコマンドを OS の制限�
 | `run-build-dads-slides-skill.sh` | 0 | 122 passed, 0 failed, 3 skipped |
 | `run-harness-eval.sh` | 0 | 165 tests OK、check は違反 0 件 |
 
-最初の実行で失敗した1項目は SRC-01 で、出力は `still present: .claude/skills .claude/agents .claude/settings.json` だった。削除の後は、空のディレクトリ `.claude/skills/.claude/.cc-writes` だけが残っていた。検査を、ディレクトリの有無ではなくファイルの有無を見るように直し、ファイルを1つ戻した写しでは失敗することを確かめた（§8.2）。削除の後に、`run-install.sh`、`run-config-pyramid.sh`、`run-harness-eval.sh` も再実行し、通ることを確かめた。
+最初の実行で失敗した1項目は SRC-01 で、出力は `still present: .claude/skills .claude/agents .claude/settings.json` だった。削除の後は、空のディレクトリ `.claude/skills/.claude/.cc-writes` だけが残っていた。検査を、ディレクトリの有無ではなくファイルの有無を見るように直し、ファイルを1つ戻した写しでは失敗することを確かめた（§8.2）。マージの後、Spec Kit のスキルを手元に持つチェックアウトでは、この検査が失敗した。追跡していないファイルまで数えていたためである。検査を、Git が追跡するファイルだけを見るように直した。未追跡のファイルだけなら通り、配布元のパスにファイルを追跡させると失敗することを、一時的なリポジトリで確かめた。削除の後に、`run-install.sh`、`run-config-pyramid.sh`、`run-harness-eval.sh` も再実行し、通ることを確かめた。
 
 `run-harness-skills.sh` の7項目の内訳は、契約の各規則が失敗を検出することのテスト（24 件）、16 スキルの契約（違反 0 件）、同梱の検査スクリプトのテスト5組（`specify-requirements` 83 件、`verify-change` 165 件、`draw-system-diagrams` 67 件、`structure-document` 55 件、`sync-docs` 75 件）である。
 
