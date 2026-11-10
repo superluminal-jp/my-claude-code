@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Synchronize the managed .claude/ configuration into the user's ~/.claude/
+# Synchronize the managed configuration in harness/ into the user's ~/.claude/
 # and install its required Claude Code plugins. Re-running is idempotent.
+#
+# The source lives in harness/, not in this repository's own .claude/: a
+# sandboxed Bash command cannot write under .claude/, and files there would
+# also load as this repository's project configuration, a second time.
 #
 # MCP servers are not installed: register the ones you need yourself (see
 # README.md § MCP Servers). User-scope MCP registrations are left untouched.
@@ -26,7 +30,7 @@ for cmd in claude jq; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_DIR="$SCRIPT_DIR/.claude"
+SOURCE_DIR="$SCRIPT_DIR/harness"
 TARGET_DIR="$HOME/.claude"
 
 sync_path() {
@@ -67,7 +71,7 @@ sync_settings_json() {
   printf '%s\n' "$merged" >"$dst"
 }
 
-# 1. Sync managed .claude paths (prevents stale skills/rules)
+# 1. Sync managed paths from harness/ (prevents stale skills/rules)
 if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
   mkdir -p "$TARGET_DIR"
   # Declared paths are replaced exactly. Missing sources are intentional
@@ -113,10 +117,11 @@ chmod +x "$TARGET_DIR"/install.sh
 # claude-plugins-official marketplace catalog: frontend-design (UI/UX
 # implementation guidance), code-review (multi-agent PR review, incl.
 # `/code-review ultra`), skill-creator (scaffold/evaluate skills). Plugins
-# that bundle an MCP server (github, deploy-on-aws, microsoft-docs) are left
-# for the user to install, like the MCP servers themselves, and an existing
-# install of them is not removed. Installed at user scope so the plugins work
-# across projects.
+# that bundle an MCP server (github, deploy-on-aws, microsoft-docs) are never
+# installed here, and an existing install of them is not removed; the
+# settings.json this script merges turns those three off, because the servers
+# their skills depend on are not allowed to load. Installed at user scope so
+# the plugins work across projects.
 if ! claude plugin marketplace list 2>/dev/null | grep -q "claude-plugins-official"; then
   claude plugin marketplace add anthropics/claude-plugins-official
 else

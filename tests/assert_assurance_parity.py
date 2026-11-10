@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""spec 064 FR-007: the assurance gate (verified-delivery) re-checks part of the
-requirements graph structure that requirements-decomposition's checker owns (rule A-09).
+"""spec 064 FR-007: the assurance gate (verify-change) re-checks part of the
+requirements graph structure that specify-requirements's checker owns (rule A-09).
 The rules live in two places, so this check runs both checkers over every
-requirements graph in requirements-decomposition's test fixtures:
+requirements graph in specify-requirements's test fixtures:
 
-- a graph that requirements-decomposition's checker accepts passes the gate;
+- a graph that specify-requirements's checker accepts passes the gate;
 - a graph it rejects under a rule the gate depends on does not pass the gate.
 
 Each graph is given a manifest in which every acceptance criterion passed on
@@ -77,10 +77,10 @@ def run_json(*args: str) -> Tuple[int, Any]:
 
 def main(argv: List[str]) -> int:
     root = Path(argv[1]) if len(argv) > 1 else Path(__file__).resolve().parent.parent
-    skills = root / ".claude" / "skills"
-    checker = skills / "requirements-decomposition" / "scripts" / "check_graph.py"
-    gate = skills / "verified-delivery" / "scripts" / "assure.py"
-    fixtures = skills / "requirements-decomposition" / "tests" / "fixtures"
+    skills = root / "harness" / "skills"
+    checker = skills / "specify-requirements" / "scripts" / "check_graph.py"
+    gate = skills / "verify-change" / "scripts" / "assure.py"
+    fixtures = skills / "specify-requirements" / "tests" / "fixtures"
     paths = sorted((fixtures / "requirements").glob("*.json")) + sorted((fixtures / "gate").glob("graph-*.json"))
     failures = compared = 0
     with tempfile.TemporaryDirectory() as tmp:

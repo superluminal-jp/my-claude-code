@@ -1,12 +1,12 @@
 # harness 全体の振る舞いの基準
 
-この仕組みを使うと、harness を変える前と後で、代表的な依頼に対する Claude の振る舞いを同じシナリオ集で測り、比べられる。ここで harness は、`install.sh` が `~/.claude/` に入れる `.claude/CLAUDE.md`、`.claude/rules/`、`.claude/skills/`、`.claude/agents/` を指す。`.claude/agents/` には、2つのレビューの手順（requirements-decomposition の challenger と verified-delivery の assurance review）が起動する `read-only-reviewer` の定義がある（[spec 070](../specs/070-review-integrity/problem.md)）。そのファイルは対応表の部品で、組み立てはそれをプラグインの `agents/` に写す（§4 の9）。`install.sh` は `.claude/commands/` も入れるが、今は中身がない。中身が入ると、`check` はそれを対応表にない部品として報告する。対応表に載せても、評価はまだそれを組み立てられないので、組み立てを止める。測る対象は2つある。1つは、どの部品（スキル、常時ロードの指示）が選ばれるか。もう1つは、その部品の記述が約束する観測できる振る舞いである。経緯と要件は [spec 066](../specs/066-harness-behavior-baseline/problem.md) にある。
+この仕組みを使うと、harness を変える前と後で、代表的な依頼に対する Claude の振る舞いを同じシナリオ集で測り、比べられる。ここで harness は、`install.sh` が `harness/` から `~/.claude/` に写す `harness/CLAUDE.md`、`harness/rules/`、`harness/skills/`、`harness/agents/` を指す（`settings.json` は `harness/settings.json` にあり、`~/.claude/settings.json` に統合される）。`harness/agents/` には4つのサブエージェントの定義がある。`read-only-reviewer` は、2つのレビューの手順（specify-requirements の challenger と verify-change の assurance review）が起動する（[spec 070](../specs/070-review-integrity/problem.md)）。`check-runner`（出力の長い確認）、`file-searcher`（広い検索）、`task-worker`（判断の要る独立した作業）は、それぞれの定義に書かれた用途のための型で、`harness/CLAUDE.md` の委任の方針は、その用途の型を使うと定める。4つのファイルは対応表の部品で、組み立てはそれをプラグインの `agents/` に写す（§4 の8）。`install.sh` は `harness/commands/` も同期の対象にするが、今は `harness/commands/` がない。中身が入ると、`check` はそれを対応表にない部品として報告する。対応表に載せても、評価はまだそれを組み立てられないので、組み立てを止める。測る対象は2つある。1つは、どの部品（スキル、常時ロードの指示）が選ばれるか。もう1つは、その部品の記述が約束する観測できる振る舞いである。経緯と要件は [spec 066](../specs/066-harness-behavior-baseline/problem.md) にある。
 
 ## 1. 3つの部品が、期待・実行・比較を分けて受け持つ
 
 | 部品 | 場所 | 受け持つこと |
 |---|---|---|
-| 受け持ちの対応表 | [`docs/harness/capability-map.json`](harness/capability-map.json)（人が読む版は [`capability-map.md`](harness/capability-map.md)、生成物） | apex の義務と、各スキルが「別の能力の仕事」として除外している関心事を段階として並べ、段階ごとに担い手か「担い手なし」を記す。互いに除外し合うスキルは境界グループとして記す。`settings.json` の各項目を評価に含めるかどうかも、理由とともに記す |
+| 受け持ちの対応表 | [`docs/harness/capability-map.json`](harness/capability-map.json)（人が読む版は [`capability-map.md`](harness/capability-map.md)、生成物） | apex の義務と、各スキルが「別の能力の仕事」として除外している関心事を段階として並べ、段階ごとに担い手か「担い手なし」を記す。互いに除外し合うスキルは境界グループとして記す。`harness/settings.json` の各項目を評価に含めるかどうかも、理由とともに記す |
 | シナリオ集 | [`tests/harness-eval/scenarios.json`](../tests/harness-eval/scenarios.json) と `fixtures/*.json`（準備のデータ） | 日本語の依頼と、期待する部品の選択と、観測できる振る舞いを書く。各判定は根拠として harness の語句を引く |
 | 実行器 | [`tests/harness-eval/harness_eval.py`](../tests/harness-eval/harness_eval.py) | 検査（`check`）、表の生成（`render`）、評価の実行（`run`）、2つの結果の比較（`compare`） |
 
@@ -27,11 +27,12 @@ python3 tests/harness-eval/harness_eval.py run --max-cost-usd 60             # �
 python3 tests/harness-eval/harness_eval.py compare 前の結果 後の結果
 ```
 
-- `check` は作業ツリーを見る。`run` は作業ツリーを見ず、`--harness-ref` と `--suite-ref`（どちらも既定は `HEAD`）のコミットの内容を `git archive` で取り出して組み立てる。コミットしていない変更は測られない。
+- `check` は作業ツリーを見る。`run` は作業ツリーを見ず、`--harness-ref` と `--suite-ref`（どちらも既定は `HEAD`）のコミットの内容を `git archive` で取り出して組み立てる。`--harness-ref` のコミットからは `harness/` を、`--suite-ref` のコミットからは `harness/`、`docs/harness`、`tests/harness-eval` を取り出す。コミットしていない変更は測られない。
+- `harness/` のないコミット（ソースが `.claude/` にあった頃のコミット）は、どちらの ref にも指せない。取り出しが失敗し、組み立てを止める。そのため、ソースを `.claude/` から `harness/` に移した変更をまたぐ前後の比較は、今はできない。
 - 変更の前後を比べるときは、同じ `--suite-ref` で、`--harness-ref` だけを変えて2回走らせる。
 - シナリオ集は、それ自身のコミットの harness に対して `check` を通らなければならない。通らなければ組み立てを止める。
 - `--harness-ref` のコミットとシナリオ集が食い違っても、組み立ては止めない。たとえば、対応表にある部品がそのコミットにない場合や、引用した語句がそのコミットにない場合である。食い違いは警告として表示し、`metadata.json` の `harness_drift` に記録する。部品を足す変更や description を書き換える変更の「変更前」は、この形で測る。
-- 逆に、`--harness-ref` のコミットにあって対応表にない部品があると、組み立てを止める。その部品を評価に含めてよいか（`in_eval`）が分からないためである。そのコミットの `settings.json` に、対応表が分類していない項目があるときも止める。部品を消す変更は、消す前のシナリオ集で前後を比べる。部品の名前を変える変更は、今は前後を比べられない。
+- 逆に、`--harness-ref` のコミットにあって対応表にない部品があると、組み立てを止める。その部品を評価に含めてよいか（`in_eval`）が分からないためである。そのコミットの `harness/settings.json` に、対応表が分類していない項目があるときも止める。部品を消す変更は、消す前のシナリオ集で前後を比べる。部品の名前を変える変更は、今は前後を比べられない。
 - 到達確認の判定のうち、届いたことを見る判定（regex）で、引用した語句が `--harness-ref` のコミットにないものは、組み立てから外し、`metadata.json` の `probe_unchecked` に記録する。その判定はそのコミットでは合格しえず、不合格になっても注入の失敗を意味しないためである。常時ロードのファイルの末尾を書き換える変更の「変更前」は、この形で測る。届いたことを見る判定が1つも残らないときは、組み立てを止める。`compare` は、外した判定を `NOTE` として示す。
 - 結果は `tests/harness-eval/results/<UTC時刻>_h-<harness>_s-<suite>/` に置かれる。中身は `claude plugin eval` の出力（`aggregate-result.json`、`report.html`）と、`metadata.json` である。`metadata.json` には、両方のコミット、モデル、コマンド、組み立てたスキルを記録する。
 - このディレクトリは git の追跡から外してある（`.gitignore`）。結果には対話の記録と手元のパスが含まれうるためである。基準として残すときは、中身を確かめてから、必要なファイルだけを `git add -f` で加える。push はリポジトリの公開にあたるので、何を加えるかは利用者が決める。`--results-dir` で置き場所を変えるときも、`~/.claude` の中と、このディレクトリ以外の git の作業ツリーの中は拒む。
@@ -61,21 +62,22 @@ python3 tests/harness-eval/harness_eval.py compare 前の結果 後の結果
   - 生成の型: 最初の命令は、空のディレクトリでなければ止まる確認の行である。ファイルは引用符で囲んだヒアドキュメントで書くので、内容の中の `$(...)` などは実行されない。git のすべての命令は `core.hooksPath=/dev/null` でフックを無効にし、`init` はテンプレートも使わない（`init.templateDir=`）。
   - 二重の確かめ: 生成したスクリプトが、許可した命令（`set`、`cat`、`printf`、`mkdir`、`chmod` と、git の `init`、`checkout`、`add`、`commit`）しか使わないことも、`check` が確かめる。
 
-## 4. 実際の環境とは9点が違い、結果はその範囲でしか成り立たない
+## 4. 実際の環境とは8点が違い、結果はその範囲でしか成り立たない
 
-1. **常時ロードの読み込み方**: 常時ロードの5ファイルは、メモリとしてではなく、SessionStart フックの出力として注入する。フックの出力の上限は10,000字なので、ファイルごとに1つずつ注入する。本文が届いたことは到達確認で確かめる。同じように振る舞いに効くかどうかは、確かめていない。
+1. **常時ロードの読み込み方**: 常時ロードの5ファイルは、メモリとしてではなく、SessionStart フックの出力として注入する。フックの出力の上限は10,000字なので、ファイルごとに1つずつ注入する。各ファイルの先頭に付ける見出しは、`harness/` の下の元の場所ではなく、入れた先（たとえば `~/.claude/rules/clarifier.md`）を指す。本文が届いたことは到達確認で確かめる。同じように振る舞いに効くかどうかは、確かめていない。
 2. **スキルの名前**: スキルは `harness:<名前>` の名前で現れる。判定は、名前空間のない名前と、ある名前の両方を受け付ける。
 3. **許可の仕組み**: `permissions`（`defaultMode: auto` と資格情報の読み取り拒否）は評価に含まれない。eval は許可を求めず、許していない道具を外す。資格情報の読み取り拒否が効かないので、ファイルを読む道具に対する資格情報の保護は、実際の環境より弱い（§3）。
 4. **使える道具**: `Edit`、`Write`、`Agent`、`WebFetch` は許していない。ファイルを書く振る舞いと、サブエージェントを起動する振る舞いは、`Bash` を通したもの以外は観測されない。順序を見る判定（`tool_order`）は、`Bash` によるファイルへの書き込みを、よく使われる書き方（リダイレクト、`sed -i`、`tee`、`perl -i`、Python の `open(..., "w")` と `write_text`）でしか見分けられない。
-5. **モデル**: モデルは既定で `settings.json` の `model` を使う。推論の努力の水準（`settings.json` の `effortLevel`）は `claude plugin eval` に渡す手段がないので、評価は eval の既定の水準で動く。
-6. **測らない段階と含めないスキル**: メモ（`apple-notes`）とリマインダー（`apple-reminders`）は、段階を評価せず、スキルも組み立てるプラグインに含めない。評価のエージェントがそのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうるためである。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめていない。実際の環境ではこの2つの description も選択の候補に並ぶので、選択の結果はその分だけ実際と違いうる。
-7. **公式のプラグイン**: `install.sh` は、利用者のスコープに公式のプラグイン（`frontend-design`、`code-review`、`skill-creator`）も入れて有効にする。評価にはこれらを含めない。eval は、評価するプラグインのほかのプラグインを読み込まないためである。実際の環境では、これらのスキルとコマンドも選択の候補に並ぶ。たとえば、`obs-code-review` の依頼では `code-review` が、`e-dads-frontend` の依頼では `frontend-design` が使われうる。対応表の「担い手なし」は harness の中に担い手がないことを指し、これらのプラグインが受け持つかどうかは測っていない。
-8. **SessionStart のフックの注意**: `settings.json` の SessionStart のフックは、実際の環境では、Bash が zsh のとき・macOS のとき・aws CLI があるときに、短い注意を文脈に足す（[ADR-0020](adr/0020-enable-sandbox-by-default.md)）。組み立てるプラグインのフックは常時ロードの注入だけに限るので、評価にはこの注意が届かない。zsh の書き方、サンドボックスの中の Chromium、aws の実行のしかたに関わる振る舞いは、その分だけ実際と違いうる。
-9. **エージェントの名前と前付け**: `.claude/agents/` の定義は、プラグインの `agents/` から `harness:<名前>`（たとえば `harness:read-only-reviewer`）の名前で現れる。手順は、プラグインの接頭辞の付いた名前を同じ型として認める。公式文書は、プラグインのサブエージェントが無視する前付けを `hooks`・`mcpServers`・`permissionMode` とし、`tools` と `omitClaudeMd` を挙げていない。ただし、それらがプラグインの定義で効くことは確かめていない。4のとおり評価では `Agent` を許していないので、その型が起動されること自体が評価では観測されない。対応表が評価から外す（`in_eval: false`）エージェントは、今は組み立てられないので、組み立てを止める。
+5. **モデル**: モデルは既定で `harness/settings.json` の `model` を使う。推論の努力の水準（`effortLevel` と、モデルの ID ごとの `modelSettings`）は `claude plugin eval` に渡す手段がない（2.1.322 の `claude plugin eval --help` の選択肢に努力の水準はない）ので、評価は eval の既定の水準で動く。
+6. **公式のプラグイン**: `install.sh` は、利用者のスコープに公式のプラグイン（`frontend-design`、`code-review`、`skill-creator`）も入れて有効にする。評価にはこれらを含めない。eval は、評価するプラグインのほかのプラグインを読み込まないためである。実際の環境では、これらのスキルとコマンドも選択の候補に並ぶ。たとえば、`obs-code-review` の依頼では `code-review` が、`e-dads-frontend` の依頼では `frontend-design` が使われうる。対応表の「担い手なし」は harness の中に担い手がないことを指し、これらのプラグインが受け持つかどうかは測っていない。
+7. **SessionStart のフックの注意**: `harness/settings.json` の SessionStart のフックは、実際の環境では、Bash が zsh のとき・macOS のとき・aws CLI があるときに、短い注意を文脈に足す（[ADR-0020](adr/0020-enable-sandbox-by-default.md)）。組み立てるプラグインのフックは常時ロードの注入だけに限るので、評価にはこの注意が届かない。zsh の書き方、サンドボックスの中の Chromium、aws の実行のしかたに関わる振る舞いは、その分だけ実際と違いうる。
+8. **エージェントの名前と前付け**: `harness/agents/` の4つの定義は、プラグインの `agents/` から `harness:<名前>`（たとえば `harness:read-only-reviewer`）の名前で現れる。手順は、プラグインの接頭辞の付いた名前を同じ型として認める。公式文書は、プラグインのサブエージェントが無視する前付けを `hooks`・`mcpServers`・`permissionMode` とし、`tools` と `omitClaudeMd` を挙げていない。ただし、それらがプラグインの定義で効くことは確かめていない。4つの定義が前付けに持つ `model` と `effort` も、プラグインの定義で効くことは確かめていない。4のとおり評価では `Agent` を許していないので、その型が起動されること自体が評価では観測されない。対応表が評価から外す（`in_eval: false`）エージェントは、今は組み立てられないので、組み立てを止める。
 
 ## 5. harness を変えたら、対応表とシナリオも同じ変更で直す
 
-- **スキルやルールを足す・消す・改名したとき**: `check` が、対応表にない部品と実在しない部品を報告する。部品を段階に割り当て、担い手のある段階には期待のシナリオを、担い手のない段階には観測のシナリオを足す。
+- **スキル、ルール、エージェントを足す・消す・改名したとき**: `check` が、対応表にない部品と実在しない部品を報告する。部品を段階に割り当て、担い手のある段階には期待のシナリオを、担い手のない段階には観測のシナリオを足す。評価で観測できない段階は、`unobservable` に理由を書けば、シナリオを足さなくてよい（たとえば `E-delegate` は、評価が `Agent` を許さないので観測できない）。
+- **`harness/settings.json` に項目を足したとき**: `check` が、対応表の `settings` で分類していない項目を報告する。評価に含めるか（`in_eval`）と理由を書く。
+- **部品を評価に含めない理由ができたとき**: 対応表の部品に `in_eval: false` と理由を書く。スキルは組み立てるプラグインに入らず、そのスキルを使うと期待するシナリオは `check` が報告する。エージェントは今は組み立てから外せないので、組み立てを止める。今は `in_eval: false` の部品はない。
 - **引用している語句が変わったとき**: `check` が、その引用を報告する。期待そのものが変わったのかを判断してから、引用か期待を直す。
 - **境界グループのスキルを期待するシナリオでは**: 同じグループの他のスキル（期待するスキルが宣言した子を除く）が使われないことも判定する。
 - **準備が要るシナリオでは**: `fixtures/<名前>.json` にデータを書き、シナリオの `fixture` にその名前を書く。スクリプトの形の準備は受け付けない。

@@ -3,8 +3,13 @@
 Claude Code の公式仕様・ベストプラクティス（https://code.claude.com/docs/）に
 沿った、再利用可能な **ユーザーレベル設定** です。
 
-`install.sh` は `.claude/` のうちリポジトリが管理する設定、rules、skills、memory を
+`install.sh` は `harness/` のうちリポジトリが管理する設定、rules、skills、agents、memory を
 `~/.claude/` に同期し、管理対象外のユーザーファイルは保持します。
+
+配布元は、このリポジトリ自身の `.claude/` ではなく `harness/` にあります。
+サンドボックスの中の Bash のコマンドは `.claude/` の下に書き込めず、そこに置いたファイルは
+このリポジトリのプロジェクト設定としても読み込まれ、二重に入るためです。この構成にした再設計は
+[`docs/harness-zero-base.md`](docs/harness-zero-base.md)（日本語）に記録しています。
 
 英語版: [README.md](README.md)
 
@@ -14,99 +19,147 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 
 ## このリポジトリで提供するもの
 
-- **`.claude/CLAUDE.md`**: 常時メモリ。1つの達成目標と、その3つのライフサイクル分岐
+- **`harness/CLAUDE.md`**: 常時メモリ。1つの達成目標と、その3つのライフサイクル分岐
   （定義・実行・引き渡し）、独立に一致するすべての能力を適用する汎用マルチマッチ
-  アルゴリズム、そして委任の方針を持つ。委任の方針では、Claude は利用者に求められるのを待たずに、
-  出力の長い確認、読み取り専用の検索、仕様の確定した同じ変更を多数のファイルに繰り返す作業を
-  `haiku` のサブエージェントに、判断を要する独立した作業を `sonnet` のサブエージェントに渡す。
-  ただし、サブエージェントへの指示を書くトークンが作業そのものと同じくらいかかるときは自分で行う。
-  判断と、作業が完了したかの判定はメインの会話のモデルに残す。`.claude/CLAUDE.md` はルール・
-  スキル・サーバーの名前を一切含まない — 設計根拠は
+  アルゴリズム、手順と検証を変更に合わせて重くする定め（局所的で戻せる変更は、失敗する検査と
+  通る実行を要る。インターフェース・データの流れ・複数のモジュールにかかる変更は、受け入れ条件ごとの
+  証拠と独立したレビューも要る。認証・秘密・個人データ・データ移行・権限・公開・戻しにくい
+  変更は、人の承認も要る）、そして委任の方針を持つ。委任の方針では、Claude は利用者に求められるのを
+  待たずに、次の3つのいずれかに当たるときサブエージェントに委任する: 出力が長く結果だけが要る、
+  互いに独立で並行できる、書いた本人から独立した読み手が要る。委任には、その種類の作業のために
+  定義されたサブエージェントの型を使い（モデル・effort・道具はその定義が固定する）、同じファイルを
+  2つのサブエージェントに書かせない。それ以外は、サブエージェントが空の文脈から始まるため、自分で行う。
+  判断、設計、コードレビュー、作業が完了したかの判定はメインの会話のモデルに残す。
+  `harness/CLAUDE.md` はルール・スキル・サーバー・モデルの名前を一切含まない — 設計根拠は
   [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
-- **`.claude/settings.json`**: Claude Code のユーザーレベル設定。メインの会話のモデル
+- **`harness/settings.json`**: Claude Code のユーザーレベル設定。メインの会話のモデル
   （`opus`）と、`effortLevel` で `xhigh`(設定ファイルが受け付ける最も高い段階)に固定した
-  その推論の effort、資格情報の読み取りの拒否、Bash のすべてのコマンドにかける OS の
-  サンドボックス（日常作業に要る出口だけを開ける）、3つの `SessionStart` フック、止める
-  MCP サーバーを持つ（後述「サンドボックスとセッション開始のフック」「MCP サーバー」参照）
-- **`.claude/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
+  その推論の effort（`claude-opus-5-5` については `modelSettings` にも同じ段階を置く。理由は
+  [`docs/harness-zero-base.md`](docs/harness-zero-base.md) に記録）、資格情報の読み取りの拒否、Bash の
+  すべてのコマンドにかける OS のサンドボックス（日常作業に要る出口だけを開ける）、3つの
+  `SessionStart` フック、許可する2つの MCP サーバーと、直接止めるサーバーを持つ（後述「サンドボックスとセッション開始のフック」
+  「MCP サーバー」参照）
+- **`harness/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
   推論の完全性（4つの推論セルフチェック: 依存と並行・条件と分岐・反復・推論）、権限と安全性
-  （強制される deny は `settings.json`）、および読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の構成（要旨・前提・方法・結果・考察・結論）、番号付きの主張の見出しと太字の論点による構造の可視化、初学者向けの前提と平易な定義（ユーザーが使った用語も定義する）、会話・コード・文書を見ていない読み手を想定し、多義語や指示語が何を指すかを明示すること、用語はその分野で使われる形で書き訳語を作らないこと、比喩・類推による説明の禁止））。他のルール・スキル・設定パスへの言及は持たない。
+  （強制される deny は `settings.json`）、および読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の構成（要旨・前提・方法・結果・考察・結論）、番号付きの主張の見出しと太字の論点による構造の可視化、初学者向けの前提と平易な定義（ユーザー自身の発言が示す場合を除き、読み手はその主題に不慣れだと想定する）、会話・コード・文書を見ていない読み手を想定し、多義語や指示語が何を指すかを明示すること、用語はその分野で使われる形で書き訳語を作らないこと、比喩・類推による説明の禁止））。他のルール・スキル・設定パスへの言及は持たない。
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
-- **`.claude/skills/`**: 必要時に読み込まれるプレイブック。中央ルーティング表なしに
-  自己記述だけで選択できるよう、2つの独立した軸で分類する
-  - ライフサイクル操作: `coder`（変更手順、TDD/SDD、品質、安全、型安全性、ドキュメント同期）、
-    `clarifier`
-    （まず意図の共通認識を形成し——AIが自分の理解・前提・スコープを述べ、
-    ユーザーが却下できる形にする——その後、形式的要件へ変換。INVEST/Gherkin）、`problem-definition`
-    （曖昧な訴えを、現状とあるべき姿のギャップとしての検証可能な問題文に変換）、
-    `requirements-decomposition`(合意済みの問題を、根拠・原因の仮説・解決策を分けた問題カードに記録し、
-    親が固有の L2 か L3 の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、読み取り専用の反証役の
-    サブエージェント（`read-only-reviewer`、`.claude/agents/` を参照）に異議を出させ、標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか
-    (ready か blocked)を決める。人の指示で入れた要件は `origin` を持ち、反証役はそれを与えられた制約として扱う。
-    deploy の後でしか確かめられない受け入れ条件は `stage` を持つ。[spec 059](specs/059-refinement-graph-checker/spec.md)、
-    [spec 060](specs/060-goal-refinement/spec.md))、
-    `verified-delivery`(`problem-definition`・`requirements-decomposition`・`coder` を順に適用する親スキル。
-    受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを記録し、同梱の検査器の判定で
-    pass・fail・blocked を返す。子の合格から親の合格を作らず、古い証拠や AI の申告を証拠とせず、
-    未分類のリスク、承認の欠け、反証の記録のない高リスクの変更、コミットに対する独立した保証レビューのない中・高リスクの変更、
-    答えられていない指摘、判定が自分で検査し直して壊れていると分かった要求グラフで止まり、工程を飛ばすと合格せずに止まる。判断する人に1画面のレビューカードを示し、
-    レビューの時間を品質を保ったまま減らすかを、事前登録した基準の比較実験で判定する。
-    [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md)、[spec 063](specs/063-pilot-metrics/spec.md)、
-    deploy の後でしか確かめられない受け入れ条件は、別の deploy の前の判定から除き、カードは受け入れの判定の下にそれを示す。
-    JUnit XML に加えて Jest の `--json` の結果も読み、記録は審査したコミットの後の記録だけのコミットに入れ、直しの後のレビューは直しの差分だけを読む。
-    保証レビューの各回は、`review_prep.py` がリポジトリの外に書く bundle(記録を除いた変更と、その回の証拠)を読み、要求の構造かリスクが変わったときだけ差分の全体を読み直し、記録をスクリプトで確かめてから始める([spec 069](specs/069-assurance-review-cost/problem.md))。
-    [spec 064](specs/064-assurance-gate-hardening/spec.md)、[spec 068](specs/068-skill-procedure-gaps/problem.md))、
-    `product-strategy`
-    （ビジョン・ターゲットユーザー・提供価値・成功指標・MoSCoWによるスコープを、
-    開発着手前に整理）、
-    `git-workflow`（ブランチ/コミット/プッシュ/PR 運用）、
-    `aws-research`（AWS 公式ドキュメントの最新調査）
-  - ドメインオーバーレイ（一致するライフサイクル操作と組み合わさる。置き換えではない）:
-    `digital-agency-frontend`（DADS とダッシュボードガイドブックに基づく、アクセシブルな
-    React/Tailwind Web フロントエンド開発・レビュー）、`digital-agency-slides`
-    （DADS 公式資材で 16:9 スライドを HTML として作成し、前提 → 結論 → 論点ごとの
-    スライドという木の構造で組み、本編の各スライドに全体の中の現在地を、全スライドの右上に機密性と公開範囲を示し、同梱の検査ツールで確認する）、`scrum-master`（Scrum Guide 2020 だけを規範に、
-    Scrumイベント・作成物・アカウンタビリティ・逸脱を診断・改善）、`secure-logging`
-    （OWASP Logging Cheat Sheet・ASVS 5.0.0 V16・CWE と、Python・React・AWS Lambda と CDK・
-    Google Cloud（Cloud Run functions を含む）・Azure（Azure Functions を含む）・各クラウドの
-    AI 推論サービス・GitHub Actions のワークフローの公式ドキュメントにあるログの作法に基づく、アプリケーションと CI のログの実装と
-    検査。コードで検証できる項目のみ判定し、運用項目は、リポジトリのインフラコード
-    （AWS CDK、Terraform、Bicep）で決まる場合を除き未検証として報告）、`system-diagrams`
-    （非エンジニアから専門家まで、初めて見る人が読めるシステム構成図。1枚が1つの問い・
-    1種類の読者・1つの抽象度に答える C4 の図の一式を、既定は Markdown 内の Mermaid、
-    合う場合は draw.io か Structurizr DSL で、根拠をたどれる形で作り、タイトル・導入文・
-    凡例・要素の種類・線のラベル・読み上げ用の説明・索引を同梱の標準ライブラリだけの
-    検査器で確かめる。クラウド事業者の公式アイコンで描く図は対象外）。
-    `secure-logging` は自作の skills ディレクトリ型プラグインとしても構成している
-    （`.claude-plugin/plugin.json`、フックなし。詳細は同パッケージの `README.md`）
-  - どちらの軸にも分類していない macOS アプリ連携2件: `apple-notes`（同梱の JXA
-    スクリプトで Notes.app を読み書き。上書きと削除は SHA-256 ハッシュのゲート付き）、
-    `apple-reminders`（Swift ファイル1つからビルドする小さな EventKit CLI で
-    Reminders.app を読み書き。[ADR-0013](docs/adr/0013-eventkit-for-reminders-automation.md) 参照）
-  - `pyramid-structure` は、あらゆる実質的タスクに Minto のピラミッドを適用する。
-    回答・計画・意思決定・レビュー・文書を構成し、実質的な下書きは送る前に、同梱の
-    標準ライブラリだけで動く Python の検査スクリプト（見出し・箇条書き・冒頭の文）で
-    検査する。成果物（文書、PR 本文、公開ページなど）は、会話を見ていない新しい
-    サブエージェントに読ませ、指す先が分からなかった語を直してから渡す
-    （[spec 057](specs/057-context-free-reader/spec.md)）。依頼があれば、文書の主張の木について演繹の妥当性と宣言された MECE も
-    検査する（[spec 055](specs/055-pyramid-structure-always-on/spec.md)）。自作の skills ディレクトリ型
-    プラグイン（`.claude-plugin/plugin.json`、フックなし）としてもパッケージ化しており、
-    `claude plugin eval` 用の評価ケースを持つ。推奨するモデルはパッケージの `README.md` を参照
-  - skills ディレクトリ型プラグイン1件を上流のパッケージから取り込んでいる:
-    `maintaining-living-documentation`（変更とドキュメントの整合を保つワークフロー。
-    フックなし）。ローカルコピーは上流の `hooks/hooks.json` を削除しており、
-    上流からそのまま再コピーするとフックが復活する。オプションはパッケージの
-    `README.md` を参照。取り込んでいた `minto-pyramid` プラグインは
-    `pyramid-structure` に置き換え、同期対象外の
-    [`archive/minto-pyramid/`](archive/minto-pyramid/) に退避した。従来の Minto スイート
-    （`minto-builder`・`minto-reviewer`・`minto-rewriter`）は同期対象外の
-    [`archive/minto-suite/`](archive/minto-suite/) に退避している。`adr` スキルも、採番・言語の規則を `maintaining-living-documentation` へ統合したうえで [`archive/adr/`](archive/adr/) に退避した。`meta-spec` スキルは不要と判断し、[`archive/meta-spec/`](archive/meta-spec/) に退避した（[spec 058](specs/058-parent-skill-references/spec.md)）
-  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言せず、親がなくても使える（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `.claude/agents/` に定義したサブエージェントも名前で名指せる。`requirements-decomposition` と `verified-delivery` のレビューの手順は `read-only-reviewer` を起動する。その定義は道具を Read・Grep・Glob だけに限り、CLAUDE.md を読み込まずに始めさせる（読んだファイルのディレクトリの CLAUDE.md と、MCP サーバーの説明文は、起動の後に入る）。手順は、その型が無ければ止まる（[spec 070](specs/070-review-integrity/problem.md)）
+- **`harness/agents/`**: 委任する作業の種類ごとに1つ、計4つのサブエージェントの定義。各定義が
+  モデル・推論の effort・使える道具を固定し、`harness/CLAUDE.md` の委任の方針はそれを前提にする:
+  - `read-only-reviewer`（`sonnet`、`xhigh`）— `specify-requirements` の反証役と `verify-change` の
+    保証レビューが起動する、独立した読み手。道具は Read・Grep・Glob だけで、CLAUDE.md を読み込まずに
+    始まる（読んだファイルのディレクトリの CLAUDE.md と、MCP サーバーの説明文は、起動の後に入る）。
+    渡されたファイルを読めないときは、残りから判断せず `NOT REVIEWED: <パス>: <理由>` と答える
+    （[spec 070](specs/070-review-integrity/problem.md)）
+  - `check-runner`（`haiku`、`low`）— 出力の長い確認（テスト、ビルド、リンタ、型検査）を実行し、
+    各コマンド・終了コード・失敗した出力の原文を報告する。道具は Bash・Read・Grep・Glob で、
+    CLAUDE.md を読み込まずに始まり、ファイルを変えず、判断もしない
+  - `file-searcher`（`haiku`、`medium`）— コードベースや文書の集まりを読み取り専用で検索し、
+    `パス:行` と短い抜粋を返す。道具は Read・Grep・Glob で、CLAUDE.md を読み込まずに始まる
+  - `task-worker`（`sonnet`、`xhigh`）— 判断を要する、閉じた1つの作業。互いに独立な作業を並行して
+    行うときに使う。定義は道具を制限せず、作業が割り当てたファイルだけを書き、全体の作業が
+    完了したとは宣言しない
+- **`harness/skills/`**: 必要時に読み込まれるプレイブック。全部で16件あり、中央ルーティング表なしに
+  自己記述だけで選択できる。各 `SKILL.md` は `description`（いつ使い、いつ使わないか）と、
+  `metadata` に `kind`（`worker`・`overlay`・`orchestrator`）、`permission`（`read_only`・
+  `workspace_write`・`external_effect`）、`sandbox` の宣言を持つ。`sandbox` は `inside`（同梱の
+  コマンドがすべて、そのまま Bash のサンドボックスの中で動く）か `network`（一部の手順が、スキルの
+  宣言したホストを必要とする）。`inside` は13件で、`apply-dads-frontend`・`build-dads-slides`・
+  `manage-git` が `network`。スキルは、発動条件1つ・成果物1つ・完了確認（`Done when`）1つの単位であり、
+  `tests/assert_skill_contract.py` が検査する契約を満たす（後述「検証」参照）
+  - 問題から受け入れまで変更を運ぶもの（作業の順）: `clarify-intent`（まず意図の共通認識を
+    形成する。AIが自分の理解・前提と確度・スコープ外・未決の点の4つを、ユーザーが却下できる形で述べ、
+    事例ではなく基準に合意し、基準を名指しの枠組みに根拠づけ、3往復までに収め、合意をメモに記録する。
+    依頼されたとき、または成果物の却下や同じ点の言い直しなどのずれが現れたときに動く。形式的な
+    要件は書かない）、
+    `define-problem`（曖昧な訴えを、現状とあるべき姿のギャップとその重要性としての、検証可能な
+    問題文に変換する。持ち込まれた解決策や未検証の原因は、別の節に置く）、
+    `specify-requirements`（合意済みの問題を、根拠・反証・原因の仮説・解決策の案を分けた問題カードに
+    記録し、親が固有の `L2` か `L3` の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、変更が
+    危ういとき、または根拠が薄いとき、読み取り専用の反証役（`read-only-reviewer`）に異議を出させ、
+    標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか（`ready` か `blocked`）を決める。
+    人の指示で入れた要件は `origin` を持ち、deploy の後でしか確かめられない受け入れ条件は `stage` を持つ。
+    受け入れ条件を書く場所は要求グラフだけである。
+    [spec 059](specs/059-refinement-graph-checker/spec.md)、
+    [spec 060](specs/060-goal-refinement/spec.md)）、
+    `implement-change`（コード・設定・テスト・スクリプト・インターフェースを、テストを先に、
+    最小の一貫した歩幅で変える。完了条件を定め、観測できる振る舞いが変わるときは仕様を先に書き、
+    検査が正しい理由で失敗するのを見て、それを通す最小の変更を行い、リポジトリ自身の検査を実行し、
+    変えた契約を述べる文書を更新し、コミット・push・プルリクエストは依頼があったときだけ行う。
+    仕様先行、型安全、入力・エラー・秘密・ログといったシステムの境界についての指針は、当てはまるときだけ読み込む）、
+    `verify-change`（受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを検証の記録に残し、
+    変更のリスクを分類し、中・高リスクではコミットした変更の独立した保証レビューを
+    `read-only-reviewer` に行わせ、同梱の標準ライブラリだけの検査器の判定で `pass`・`fail`・`blocked`
+    を返す。子の合格から親の合格を作らず、AI の申告を証拠とせず、未分類のリスク、承認の欠け、
+    反証の記録のない高リスクの変更、コミットに対する保証レビューのない中・高リスクの変更、
+    答えられていない指摘で止まる。JUnit XML に加えて Jest の `--json` の結果も読み、deploy の後でしか
+    確かめられない受け入れ条件があるときは `--stage pre_deploy` で deploy の前に判定し、記録は
+    審査したコミットの後の記録だけのコミットに入れ、保証レビューの各回は `review_prep.py` が
+    `$TMPDIR` の下に書く bundle を読み、直しの後の回は直しの差分だけを読み、判断する人に1画面の
+    レビューカードを示し、レビューの時間を品質を保ったまま減らすかを、事前登録した基準の比較実験
+    （`references/pilot.md`、`scripts/pilot.py`）で判定する。
+    [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md)、
+    [spec 063](specs/063-pilot-metrics/spec.md)、
+    [spec 064](specs/064-assurance-gate-hardening/spec.md)、
+    [spec 068](specs/068-skill-procedure-gaps/problem.md)、
+    [spec 069](specs/069-assurance-review-cost/problem.md)）。
+    `deliver-change` は親スキル（`kind: orchestrator`）で、`define-problem`・`specify-requirements`・
+    `implement-change`・`verify-change` をこの順に適用する。要求の判定が `ready` を返したときだけ実装へ進み、
+    判定が `fail` か `blocked` のときはその理由に従って実装か要求へ戻り、判定とレビューカードを
+    そのまま判断する人に渡す
+  - そのほかの作業: `define-product-strategy`（ビジョン・ターゲットユーザー・提供価値・成功指標・
+    must/should/could/won't によるスコープ・制約を、開発着手前に1つの戦略ブリーフとして整理する。
+    新しいプロダクトにも、既存のプロダクトの新しい取り組みにも使う）、
+    `structure-document`（文書 — 報告書、提案書、設計書、仕様書、README、メール、スライドの骨子、
+    プルリクエストや issue の本文 — を、結論を先に置く1本の主張の木として組み、同梱の標準ライブラリだけの
+    検査器（`check.py`）で本文を検査し、論理の審査では既存の文書から書き起こした主張の木も検査する。
+    会話の外に出る文書は、会話を見ていないサブエージェントにも読ませる
+    （[spec 057](specs/057-context-free-reader/spec.md)）。このスキルは文書の作成・改訂・審査のときだけ使い、
+    回答は常時ロードのルール `pyramid-principle.md` が受け持つ）、
+    `sync-docs`（変更に合わせて、コード・仕様・決定・研究の成果物とドキュメントの整合を保ち、
+    ドキュメントのずれを監査する。同梱の読み取り専用の標準ライブラリのスクリプトが、プロジェクトを調べ、
+    変更された成果物の種類と、変更したファイルの近くにある文書を挙げ、リンクを検査する。更新は同じ変更に入れ、
+    報告は `Documentation impact` のブロックを持つ。`.living-documentation.json` はスクリプトの分類を補正する）、
+    `manage-git`（履歴をレビューできる形に保ち、頼まれた範囲を超えて公開しないための、ブランチ・
+    Conventional Commits・プッシュ・プルリクエストの運用。コミット・プッシュ・プルリクエストは、それぞれ
+    別の依頼を要する）、
+    `research-aws`（記憶ではなく、そのセッションで使える第一者のドキュメントツールで読んだ AWS 公式
+    ドキュメントから答える。AWS に固有の主張は、公式ページを引くか、未検証と記す）、
+    `draw-system-diagrams`（非エンジニアから専門家まで、初めて見る人が読めるシステム構成図。
+    1枚が1つの問い・1種類の読者・1つの抽象度に答える C4 の図の一式を、既定は Markdown 内の Mermaid、
+    合う場合は draw.io か Structurizr DSL で、すべての要素を根拠にたどれる形で作り、タイトル・導入文・
+    凡例・線のラベル・1枚あたりの要素数の上限・すべての図を結ぶ索引を、同梱の標準ライブラリだけの
+    検査器（`check_diagrams.py`）で確かめる。クラウド事業者の公式アイコンで描く図は対象外）、
+    `build-dads-slides`（DADS 公式の HTML と CSS の資材で、16:9 スライドを1つの HTML ファイルとして
+    作成し、前提 → 結論 → 論点ごとのスライドという木の構造で組み、本編の各スライドに全体の中の現在地を、
+    全スライドの右上に機密性と公開範囲の表示を置き、同梱のリンタとプレビュー画像で確認する）
+  - ドメインオーバーレイ（一致する作業と組み合わさる。置き換えではない）: `apply-dads-frontend`
+    （DADS に基づくアクセシブルな React/Tailwind の公共サービスのフロントエンドと Web
+    ダッシュボード。同梱の公式ドキュメントの原文の写しを使い、確認した出典・逸脱・アクセシビリティの
+    証拠を報告する）、`apply-secure-logging`（OWASP Logging Cheat Sheet・ASVS V16・CWE の項目と、
+    各スタックの公式ドキュメントにあるログの作法を載せた同梱のチェックリストに基づく、アプリケーションと
+    CI のログの実装と検査。各項目は pass・fail・N/A・未検証のいずれか1つの状態と証拠を持ち、保管・転送・
+    保持期間・アラートに関する項目は、アプリケーションのコードから pass にしない）、
+    `apply-scrum-guide`（Scrum Guide 2020 だけを規範に、Scrum のイベント・作成物・アカウンタビリティ・
+    逸脱を診断・改善する。読み取り専用で、Guide の日本語版と US 版の PDF と、8つの Markdown
+    テンプレートを同梱する。スキルの本文は日本語）
+  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言しない（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `harness/agents/` に定義したサブエージェントも名前で名指せる。`specify-requirements` と `verify-change` のレビューの手順は `read-only-reviewer` を起動し、その型が無ければ止まる
+  - 以前の構成の17件のスキルは破棄し、新しい名前で、この16件に作り直した。新旧の対応は
+    [`docs/harness-zero-base.md`](docs/harness-zero-base.md) にある。Apple Notes と Apple Reminders の
+    連携は、代わりを置かずに除いた。以前のスキルの一部が持っていたスキル内の README、評価の資料、
+    プラグインのマニフェストは引き継いでいない。取り込んでいた `minto-pyramid` プラグイン
+    （`pyramid-structure` に置き換え、それは今の `structure-document`）、従来の Minto スイート
+    （`minto-builder`・`minto-reviewer`・`minto-rewriter`）、`adr` スキル（採番・言語の規則を
+    `maintaining-living-documentation` へ統合した。それは今の `sync-docs`）、`meta-spec` スキル（不要と判断した。
+    [spec 058](specs/058-parent-skill-references/spec.md)）は、以前に同期対象外の
+    [`archive/`](archive/) に退避している
   - Spec Kit の `speckit-*` スキルはこのリポジトリでは vendoring しない。各プロジェクトで
     `specify init` を実行した際に、`--integration` が指す各エージェントのディレクトリ
     （`.claude/skills/`、`.agents/skills/`、`.cursor/skills/`）配下に生成される
     プロジェクトローカルな成果物で、すべて gitignore 対象（後述「spec-kit のオプトイン」参照）
+- **`install.sh`**: `harness/` を `~/.claude/` にコピーし、このリポジトリの Claude Code
+  プラグインをインストール/有効化する（後述「プラグイン」参照）。MCP サーバーは
+  インストールしない — 許可された2つを各自で登録する（後述「MCP サーバー」参照）
 - **`team/package-safety/`**: 他の開発メンバーに配布するパッケージインストール安全化バンドル。
   リポジトリの `.claude/settings.json` としても managed settings の drop-in としても使える
   Claude Code 設定ファイル 1 つと、公開から 7 日以上たった版だけを入れるための npm・pnpm・uv の
@@ -121,12 +174,13 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 ## 補足ドキュメント
 
 `docs/` は保守者向けで、Claude 向けではありません。`install.sh` は `~/.claude/`
-へ同期しないため、`.claude/` 配下からここへリンクしていません（ルールとスキルは
+へ同期しないため、`harness/` 配下からここへリンクしていません（ルールとスキルは
 参照元を自分の中に持っています）。
 
 | ドキュメント | 内容 |
 |---|---|
-| [`docs/claude-config-design.md`](docs/claude-config-design.md) | 常時ロードの指示が通すべき判断基準と、各ファイルが意図的に置いていないもの |
+| [`docs/claude-config-design.md`](docs/claude-config-design.md) | 常時ロードの指示が通すべき判断基準と、各ファイルが意図的に置いていないもの、ルールが引く参考文献の一覧 |
+| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | harness の再設計。配布元を `harness/` に移し、17件のスキルを16件に作り直した理由、新旧のスキルの対応、すべてのスキルが満たすサンドボックスの契約、残りの作業 |
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、`settings.json` で止めているサーバー、サーバー追加時の更新箇所 |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | harness 全体の振る舞いの基準。対応表とシナリオ集の検査、2つのコミットを費用の上限の下で `claude plugin eval` にかけて比べる手順、実際の環境との違い |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | 作業の各段階の担い手、担い手のない段階、互いに除外し合うスキル、各段階を覆うシナリオ（`capability-map.json` から生成） |
@@ -140,16 +194,16 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 bash path/to/my-claude-code/install.sh
 ```
 
-インストーラーは `~/.claude` を同期し、本リポジトリの Claude Code プラグイン
+インストーラーは `harness/` から `~/.claude` を同期し、本リポジトリの Claude Code プラグイン
 （後述「プラグイン」参照）をインストール/有効化します。
 
 実行には `claude` CLI と `jq` が必要です。
 
 インストーラーは MCP サーバーの登録・更新・削除を行わず、MCP サーバーを同梱する
-プラグインもインストールしません。必要なものは各自で追加してください（後述
+プラグインもインストールしません。許可された2つのサーバーは、各自で登録してください（後述
 「MCP サーバー」参照）。以前のバージョンのインストーラーなどで登録済みの
 ユーザースコープ MCP サーバーは、そのまま残ります。ただし `settings.json` は、
-いくつかのサーバーの読み込みを止めます（一覧は「MCP サーバー」）。
+許可された2つだけを読み込ませます。
 
 ### 重要: 上書き置換（削除同期）について
 
@@ -178,10 +232,10 @@ bash path/to/my-claude-code/install.sh
   スコープと合わせて読むプロジェクトかローカルの設定に置いてください。
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側の置換対象パスでも
   削除されます。
-- `agents/` には、レビューの手順が起動する読み取り専用のサブエージェント
-  `read-only-reviewer.md` があります。ほかの管理対象と同じく `~/.claude/agents/` を
-  置き換えるので、そこに自分で置いたエージェントのファイルは削除されます。自分の
-  エージェントはプロジェクトの `.claude/agents/` に置いてください。
+- `agents/` には、4つのサブエージェントの定義（`read-only-reviewer`、
+  `check-runner`、`file-searcher`、`task-worker`）があります。ほかの管理対象と同じく
+  `~/.claude/agents/` を置き換えるので、そこに自分で置いたエージェントのファイルは
+  削除されます。自分のエージェントはプロジェクトの `.claude/agents/` に置いてください。
 - `commands/` はこのリポジトリに元ファイルがなく、以前のバージョンが入れたものを
   片付けるためだけに管理対象に残しています。そのため実行のたびに
   `~/.claude/commands/` は削除されます。
@@ -192,120 +246,155 @@ bash path/to/my-claude-code/install.sh
 コピーせずに参照する場合:
 
 ```markdown
-@/absolute/path/to/my-claude-code/.claude/CLAUDE.md
+@/absolute/path/to/my-claude-code/harness/CLAUDE.md
 ```
 
 ## 構成
 
 ```text
 my-claude-code/
-├── CLAUDE.md                       # リポジトリの目的 + @.claude/CLAUDE.md の再エクスポート(リポジトリ内専用, 同期対象外)
+├── CLAUDE.md                       # リポジトリの目的と、ここでの作業の定め(リポジトリ内専用, 同期対象外)
 ├── README.md                       # 英語版ガイド(本書は README.ja.md)
 ├── README.ja.md
-├── install.sh                      # 管理対象の Claude パスを同期 + プラグインをインストール(MCP サーバーは入れない)
-├── .mcp.json                       # プロジェクトスコープの MCP サーバー定義。自分で追加するときの参照
-├── .living-documentation.json      # maintaining-living-documentation のスクリプト設定(specs/ を除外)
+├── install.sh                      # 管理対象の Claude パスを harness/ から同期 + プラグインをインストール(MCP サーバーは入れない)
+├── .mcp.json                       # 許可された2つの MCP サーバーの、プロジェクトスコープの定義
+├── .living-documentation.json      # sync-docs のスクリプト設定(specs/ を除外)
 ├── chatgpt-system-prompt.md        # ChatGPT のカスタム指示用ポータブルプロンプト(同期対象外)
 ├── claude-ai-system-prompt.md      # Claude.ai の指示欄用ポータブルプロンプト(同期対象外)
-├── docs/                           # 保守者向け文書: 設計根拠、MCP の背景、ADR(同期対象外)
-├── tests/                          # オフラインの契約テスト(run-*.sh)と fixture。「検証」参照
+├── docs/                           # 保守者向け文書: 設計根拠、harness の再設計、MCP の背景、ADR(同期対象外)
+├── tests/                          # オフラインの契約テスト(run-*.sh)、assert_*.py の補助、fixture。「検証」参照
 ├── specs/                          # このリポジトリ自身の変更の Spec Kit 機能仕様
 ├── .specify/                       # Spec Kit のプロジェクトファイル。チェックアウトごとのローカル(gitignore、ADR-0022)
 ├── archive/                        # 参照用に残した退役スキル(同期対象外)
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                  # main への push/PR ごとに tests/run-*.sh のうち11本を実行(必須チェック)
+│   │   ├── ci.yml                  # main への push/PR ごとに、挙げた tests/run-*.sh を実行(必須チェック)
 │   │   └── dependabot-automerge.yml # パッチ/マイナーのDependabotセキュリティ修正PRをCI通過後に自動マージ
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
-└── .claude/                        # インストーラーが管理する Claude パスの正本
+└── harness/                        # インストーラーが管理する Claude パスの正本(~/.claude/ にインストールされる)
     ├── CLAUDE.md                   # 達成目標: 定義 → 実行 → 引き渡し。設計根拠は docs/
-    ├── settings.json               # ユーザーレベル設定: deny、サンドボックス、SessionStart フック、止める MCP
+    ├── settings.json               # ユーザーレベル設定: deny、サンドボックス、SessionStart フック、MCP の許可リストと停止
     ├── rules/                      # 常時ロード: 毎セッション読み込む、独立した4つの関心事
     │   ├── clarifier.md            # 要件確実性: 確認するか進めるか
     │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
     │   ├── permissions.md          # 権限と安全性。強制される deny は settings.json
     │   └── pyramid-principle.md    # 読み手本位の構造: ピラミッド、論文の構成の順序、前提と用語
-    ├── agents/
-    │   └── read-only-reviewer.md   # 反証役と保証レビューが起動するサブエージェント: Read/Grep/Glob だけ、CLAUDE.md なしで始まる
-    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型
-        ├── coder/SKILL.md          # 変更手順 + TDD + SDD + 品質 + 安全 + 型安全性 + ドキュメント
-        ├── pyramid-structure/      # 全実質タスクに Minto のピラミッド + 同梱の構成検査(scripts/check.py)
-        ├── maintaining-living-documentation/ # 取り込んだプラグイン: 変更とドキュメントの整合(ローカル変更: フックなし)
-        ├── clarifier/              # 意図の共通認識を形成し、その後に形式的要件へ
-        │   ├── SKILL.md            #   二段構成のプレイブック
+    ├── agents/                     # サブエージェントの定義: 委任する作業の種類ごとにモデル・effort・道具を固定
+    │   ├── read-only-reviewer.md   # 反証役と保証レビュー: Read/Grep/Glob だけ、CLAUDE.md なしで始まる
+    │   ├── check-runner.md         # 出力の長い確認: 各コマンド・終了コード・失敗の原文を報告
+    │   ├── file-searcher.md        # 読み取り専用の検索: パス:行 の位置を返す
+    │   └── task-worker.md          # 判断を要する閉じた1つの作業。ほかの作業と並行して行う
+    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型。16件
+        ├── clarify-intent/         # 意図の共通認識の形成(作業)
+        │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
-        ├── problem-definition/SKILL.md # 問題 = 現状とあるべき姿のギャップ
-        ├── verified-delivery/      # 親スキル: 受け入れ条件ごとの証拠 → pass/fail/blocked の判定
-        │   ├── SKILL.md            #   手順と子スキル
-        │   ├── README.md           #   初めて使う人向けの仕組みの説明(README.ja.md: 日本語)
-        │   ├── references/         #   検証の記録の形式と規則、保証レビュー役への指示文
-        │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)、review_prep.py(git を読み取りだけで使う)
-        │   └── tests/              #   受け入れテストとフィクスチャ
-        ├── requirements-decomposition/ # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定
-        │   ├── SKILL.md            #   手順
-        │   ├── references/         #   検査器の形式と規則、反証役への指示文
+        ├── define-problem/         # 問題 = 現状とあるべき姿のギャップ(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   └── references/         #   枠組みの出典
+        ├── specify-requirements/   # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   検査器の形式と規則、受け入れ条件の書き方、反証の手順と指示文
         │   ├── scripts/            #   check_graph.py(読み取り専用、標準ライブラリのみ)
+        │   ├── examples/           #   判定が ready になる記録の一式の作例
         │   └── tests/              #   受け入れテストとフィクスチャ
-        ├── product-strategy/SKILL.md # 開発着手前のビジョン・ユーザー・提供価値・指標
-        ├── git-workflow/SKILL.md   # ブランチ/コミット/プッシュ/PR 運用
-        ├── aws-research/SKILL.md   # AWS 公式ドキュメントの最新調査
-        ├── digital-agency-frontend/ # DADS React/Tailwind の手順 + 出典付きの参考資料(ドメインオーバーレイ)
-        ├── digital-agency-slides/  # DADS 16:9 HTML デッキを 前提 -> 結論 -> 論点 で組む(ドメインオーバーレイ)
+        ├── implement-change/       # 変更手順、テスト先行(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   └── references/         #   仕様先行、型安全、システムの境界(それぞれ当てはまるときだけ読む)
+        ├── verify-change/          # 受け入れ条件ごとの証拠 → pass/fail/blocked の判定 + レビューカード(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   検証の記録の形式と規則、保証レビューの手順と指示文、比較実験
+        │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)、review_prep.py(git を読み取りだけで使う)、pilot.py
+        │   ├── examples/           #   判定が pass になる記録の一式の作例
+        │   └── tests/              #   受け入れテストとフィクスチャ
+        ├── deliver-change/SKILL.md # 親スキル: define-problem → specify-requirements → implement-change → verify-change(取りまとめ)
+        ├── define-product-strategy/ # 開発着手前のビジョン・ユーザー・提供価値・指標(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   └── references/         #   節ごとの枠組み
+        ├── structure-document/     # 文書の主張の木 + 同梱の構成検査(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   ひな形、文書の種類、主張の木の形式、文脈なしの読み直し
+        │   ├── scripts/            #   check.py(読み取り専用、標準ライブラリのみ)
+        │   └── tests/              #   単体テスト
+        ├── sync-docs/              # 変更とドキュメントの整合(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   実務、規格とその優先順位、規範の根拠、文献表
+        │   ├── scripts/            #   inspect_project.py、audit.py、find_related.py、check_links.py(標準ライブラリのみ)
+        │   ├── schemas/            #   .living-documentation.json の config.schema.json
+        │   ├── templates/          #   ADR、アーキテクチャ記述、来歴、CI ワークフロー
+        │   └── tests/              #   単体テスト
+        ├── manage-git/SKILL.md     # ブランチ/コミット/プッシュ/PR 運用(作業。リモートのホストが要る)
+        ├── research-aws/SKILL.md   # AWS 公式ドキュメントの最新調査(作業)
+        ├── draw-system-diagrams/   # 初めて見る人向けの C4 の図を Mermaid・draw.io・Structurizr DSL で作る(作業)
+        │   ├── SKILL.md            #   プレイブック
+        │   ├── references/         #   図の種類、表記、形式ごとの書き方
+        │   ├── assets/templates/   #   図のページ、索引、draw.io ファイル、Structurizr の workspace
+        │   ├── examples/           #   検査器を通る図の一式の作例
+        │   ├── scripts/            #   check_diagrams.py(読み取り専用、標準ライブラリのみ)
+        │   └── tests/              #   単体テスト
+        ├── build-dads-slides/      # DADS 16:9 HTML デッキを 前提 -> 結論 -> 論点 で組む(作業。資材の取得にネットワークが要る)
         │   ├── SKILL.md            #   プレイブック
         │   ├── references/         #   スライド設計、マークアップ契約、検査、資材の出典
         │   ├── assets/             #   1280x720 のレイアウト CSS + 注釈付きデッキテンプレート
         │   └── scripts/            #   セットアップ、公式資材の取得、ブラウザ内の検査、デッキ CLI
-        ├── scrum-master/           # Scrum Guide (2020) だけを規範に、イベント・作成物・アカウンタビリティを診断(ドメインオーバーレイ)
+        ├── apply-dads-frontend/    # DADS React/Tailwind の手順 + 出典付きの参考資料(オーバーレイ。パッケージの確認にネットワークが要る)
         │   ├── SKILL.md            #   プレイブック
-        │   └── references/         #   必要時に読む参考文書3件 + Scrum Guide の PDF
-        │       └── templates/      #   すぐ使える Markdown テンプレート8件(作成物 + イベント)
-        ├── secure-logging/         # 自作プラグイン: OWASP + 各スタックのログ作法のチェックリスト(ドメインオーバーレイ, フックなし)
+        │   └── references/         #   出典、コンポーネントの実装、アクセシビリティの関門、ダッシュボード、dads-docs/ の原文の写し
+        ├── apply-secure-logging/   # OWASP + 各スタックのログ作法のチェックリスト(オーバーレイ)
         │   ├── SKILL.md            #   プレイブック
-        │   ├── README.md           #   インストール、モード、検査の仕組み(README.ja.md: 日本語)
-        │   ├── .claude-plugin/     #   プラグインのマニフェスト(secure-logging@skills-dir)
-        │   └── references/         #   出典付きチェックリスト(ASVS 5.0.0 V16、CWE、OWASP、各スタックの公式文書)
-        ├── system-diagrams/        # 初めて見る人向けの C4 の図を Mermaid・draw.io・Structurizr DSL で作る(ドメインオーバーレイ)
-        │   ├── SKILL.md            #   プレイブック
-        │   ├── references/         #   図の種類、表記と配色、形式ごとの書き方
-        │   ├── assets/templates/   #   図のページ、索引、draw.io ファイル、Structurizr の workspace
-        │   ├── examples/           #   検査器を通る図の一式の作例
-        │   ├── scripts/            #   check_diagrams.py(読み取り専用、標準ライブラリのみ)
-        │   └── tests/              #   受け入れテスト
-        ├── apple-notes/            # JXA で Notes.app を操作(macOS アプリ連携)
-        │   ├── SKILL.md            #   プレイブック
-        │   ├── references/         #   プロパティ、スクリプトの使い方、安全な Markdown サブセット、ハッシュゲート
-        │   └── scripts/            #   JXA スクリプト + Python のハッシュゲート
-        └── apple-reminders/        # EventKit で Reminders.app を操作(macOS アプリ連携)
-            ├── SKILL.md            #   プレイブック、ビルド手順、権限モデル
-            └── scripts/            #   Swift ソース1つ、Info.plist、build.sh(ビルドした remind-cli は gitignore)
+        │   └── references/         #   出典付きチェックリスト(ASVS V16、CWE、OWASP、各スタックの公式文書)
+        └── apply-scrum-guide/      # Scrum Guide (2020) だけを規範に、イベント・作成物・アカウンタビリティを診断(オーバーレイ)
+            ├── SKILL.md            #   プレイブック
+            └── references/         #   必要時に読む参考文書3件 + Scrum Guide の PDF
+                └── templates/      #   すぐ使える Markdown テンプレート8件(作成物 + イベント)
 ```
 
 ## 検証
 
-`.mcp.json` / `install.sh` / `.claude/settings.json` /
-`.claude/skills/aws-research/SKILL.md` を変更したら:
+`.mcp.json` / `install.sh` / `harness/settings.json` /
+[`harness/skills/research-aws/SKILL.md`](harness/skills/research-aws/SKILL.md) を変更したら:
 
 ```sh
 bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な uv キャッシュが必要
 bash tests/run-install.sh
-bash tests/run-digital-agency-frontend-skill.sh
-bash tests/run-digital-agency-slides-skill.sh
 bash tests/run-removed-guardrails.sh
 bash tests/run-sandbox-settings.sh
 ```
 
-[`.claude/skills/secure-logging/`](.claude/skills/secure-logging/) を変更したら:
+`harness/skills/` か `harness/agents/` の下を変更したとき、スキルやサブエージェントを追加・削除・
+改名したとき、またはどちらかの README を編集したら:
 
 ```sh
-bash tests/run-secure-logging-skill.sh
-bash tests/run-config-pyramid.sh
+bash tests/run-harness-skills.sh
+bash tests/run-readme-skill-index.sh
 ```
 
-前者は、スキルの構造、チェックリストの出典の規則、プラグインのマニフェスト、
-2つの README の見出し構造が一致することを検査し、Claude Code CLI があれば
-`claude plugin validate --strict` も実行する。スキルの振る舞いは、
-`tests/fixtures/secure-logging/` の見本を使って手で確認する。
+前者は、スキルをオフラインで、Bash のサンドボックスの中のまま検査する（ネットワークなし、
+リポジトリの外への書き込みなし、一時ファイルは `$TMPDIR` の下だけ）。最初に
+[`tests/test_skill_contract.py`](tests/test_skill_contract.py) を実行し、契約の各規則が不合格を出せることを
+示す: 各テストは、一時ディレクトリに有効な小さなスキルの木を作り、1か所だけ壊し、その箇所を覆う規則を
+検査が報告することを確かめる。次に
+[`tests/assert_skill_contract.py`](tests/assert_skill_contract.py) を実行し、すべてのスキルに規則 C-01 から
+C-11（スクリプトの docstring に一覧がある）を課す: 名前がディレクトリと一致すること、`description` が
+1行で1,024字以内であり、使わない場面を述べていること、許された前付けのキーだけを持ち、モデルを切り替える
+ものがないこと、`metadata` が定義された `kind`・`permission`・`sandbox` を持ち、ネットワークが要る
+スキルがホストを名指していること、本文が大きさの上限に収まること、`Done when` の節があり、同梱の
+参照ファイルのそれぞれに読む条件を書いた `Bundled files` の節があること、サンドボックスを壊す
+コマンド（引数なしの `mktemp`、`/tmp` の直書き、リポジトリの外への書き込み、宣言のないスキルでの
+`osascript` やネットワークのコマンド）がないこと、宣言した子を名指す取りまとめ役のスキルでなければ、
+ほかのスキルを名指さないこと、インストール先に依存するパスや、このリポジトリの `specs/`・`archive/` への
+参照がないこと、パッケージ内の相対リンクが解決すること、取りまとめ役のスキルが実在する
+子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。続けて、
+`specify-requirements`・`verify-change`・`draw-system-diagrams`・`structure-document`・`sync-docs` に
+同梱した検査スクリプトの単体テストを実行する。1つのスキルの単体テストだけを実行するには:
+
+```sh
+python3 -B -m unittest discover -s harness/skills/sync-docs/tests -t harness/skills/sync-docs/tests -v
+```
+
+後者は、`harness/skills/` のスキルのディレクトリか、`harness/agents/` のサブエージェントの定義が、
+`README.md` と `README.ja.md` の両方に `` `<name>` `` または `<name>/` のパスとして
+書かれていなければ失敗する。
 
 [`team/package-safety/`](team/package-safety/) を変更したら:
 
@@ -317,66 +406,88 @@ bash tests/run-package-safety-bundle.sh
 振る舞いは、[バンドルの README](team/package-safety/README.ja.md#適用されたことの確認)
 の手順で手で確認する。
 
-[`.claude/skills/requirements-decomposition/`](.claude/skills/requirements-decomposition/) を変更したら:
+[`harness/CLAUDE.md`](harness/CLAUDE.md)・[`harness/rules/`](harness/rules/) を変更したら:
 
 ```sh
-bash tests/run-requirements-decomposition-skill.sh
 bash tests/run-config-pyramid.sh
 ```
 
-前者は、同梱の検査器の受け入れテスト(Python の標準ライブラリだけを使う)を実行し、例の宣言と、
-例の問題カード・要求グラフ・反証の記録が判定に合格することを確かめ、このリポジトリの
-`.claude/skills/` を互換モードで読む。
+常時ロードの層をオフラインで検査する: apex の3分岐と3つの条件による委任、他のルール・スキル・設定パスを
+名指さず参考文献の一覧も持たないちょうど4つのルールファイル、各スキルの description が保つべき語句
+（依頼が同じように振り分けられるように）、apex とルールを合わせた大きさが予算の内に収まること。
 
-[`.claude/skills/verified-delivery/`](.claude/skills/verified-delivery/) を変更したら:
+[`harness/skills/specify-requirements/`](harness/skills/specify-requirements/) を変更したら:
 
 ```sh
-bash tests/run-verified-delivery-skill.sh
-bash tests/run-config-pyramid.sh
+bash tests/run-specify-requirements-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
-前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録が判定に合格することと、`requirements-decomposition` の
-テストの要求グラフのうち、その検査器が判定の頼る規則で違反とするものを、判定が合格させないことを確かめる。
-また、1つの架空の変更を、2つの検査器で分解から受け入れまで進める(`tests/assert_delivery_flow.py`。人の指示による要件、Jest の結果、
-deploy の前の判定、カードの2つの判定)。
-受け入れテストには、[spec 059](specs/059-refinement-graph-checker/spec.md) が後の Phase へ送った4件
-(親の検証の失敗、証拠のない AI の申告、古い証拠、未分類のリスク)を含む。
+前者は、同梱の検査器の受け入れテスト(Python の標準ライブラリだけを使う)を実行し、例の宣言が通ること、
+このリポジトリの `harness/skills/` を互換モードで読めること、例の問題カード・要求グラフ・反証の記録が
+判定に合格することを確かめる。
 
-[`.claude/skills/system-diagrams/`](.claude/skills/system-diagrams/) を変更したら:
+[`harness/skills/verify-change/`](harness/skills/verify-change/) を変更したら:
 
 ```sh
-bash tests/run-system-diagrams-skill.sh
-bash tests/run-config-pyramid.sh
+bash tests/run-verify-change-skill.sh
+bash tests/run-harness-skills.sh
+```
+
+前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録がその規則を通ること、例の要求グラフと
+検証の記録が判定に合格すること、例のレビューカードが描画されることを確かめる。また、
+`specify-requirements` のテストの要求グラフのうち、その検査器が判定の頼る規則で違反とするものを、
+判定が合格させないこと(`tests/assert_assurance_parity.py`)、1つの架空の変更を分解から受け入れまで進めること
+(`tests/assert_delivery_flow.py`。人の指示による要件、Jest の結果、deploy の前の判定、カードの2つの判定)、
+一時的な Git リポジトリで、`review_prep.py` を使った2回の保証レビューを通すこと
+(`tests/assert_review_prep_flow.py`)も確かめる。さらに、`read-only-reviewer` の定義が Read・Grep・Glob
+だけを許し、2つのレビューの手順がそれを名指していること(`tests/assert_reviewer_agent.py`)を確かめる。
+
+[`harness/skills/draw-system-diagrams/`](harness/skills/draw-system-diagrams/) を変更したら:
+
+```sh
+bash tests/run-draw-system-diagrams-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
 前者は、同梱の検査器の受け入れテスト(Python の標準ライブラリのみ)を実行し、同梱の作例の一式とひな形が
 検査器を通ること、ラベルのない線があり凡例のないページが検査器で不合格になることを確かめる。
 一式の Mermaid が描画できるかは確かめない。GitHub か `mmdc` で描画して確かめる。
 
-[`.claude/CLAUDE.md`](.claude/CLAUDE.md)・[`.claude/rules/`](.claude/rules/)・
-自作スキルを変更したら:
+[`harness/skills/apply-secure-logging/`](harness/skills/apply-secure-logging/) を変更したら:
 
 ```sh
-bash tests/run-config-pyramid.sh
+bash tests/run-apply-secure-logging-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
-設定のピラミッド構造をオフラインで検査する: apex の3分岐、他のルール・スキル・設定
-パスを名指さないちょうど4つのルールファイル、自身の除外境界を記述し、親スキルが
-宣言した子を除いてほかのスキルを名指さない自作スキル。親子の規則は、一時ディレクトリに
-作る架空のスキルに対しても検査する。対象とする自作スキルは、スクリプト冒頭の
-`authored_skills` の一覧である。
+前者は、スキルの構造と、チェックリストの出典の規則を検査する。スキルの振る舞いは、
+`tests/fixtures/secure-logging/` の見本を使って手で確認する。
 
-[`.claude/skills/apple-notes/`](.claude/skills/apple-notes/) を変更したら:
+[`harness/skills/apply-dads-frontend/`](harness/skills/apply-dads-frontend/) を変更したら:
 
 ```sh
-bash tests/run-note-write-guard.sh
-bash tests/run-note-body-conversion.sh # Node.js が必要
+bash tests/run-apply-dads-frontend-skill.sh
+bash tests/run-harness-skills.sh
 ```
 
-どちらもスクリプトから切り出したロジックを検査し、macOS を必要としない。
-Notes.app への呼び出しそのものは対象外。`apple-reminders` には自動テストがない。
+前者は、スキルの契約を検査する: 出典とライセンスの参考資料、コンポーネントの実装・アクセシビリティ・
+ダッシュボードの参考資料、同梱した公式ドキュメントの原文の写し。
 
-`.claude/` 配下（apex、ルール、スキル）か、harness 全体の振る舞いの基準の
+[`harness/skills/build-dads-slides/`](harness/skills/build-dads-slides/) を変更したら:
+
+```sh
+bash tests/run-build-dads-slides-skill.sh
+bash tests/run-harness-skills.sh
+```
+
+`tests/fixtures/slides/` の自己完結した fixture に対してデッキの検査ツールを実行し、
+最後に公式 DADS スタイルシートを取得して同梱のデッキテンプレートを検査・プレビューする
+end-to-end セクションを実行します。どちらも `playwright` を備えた Python 環境が必要です —
+`DECK_PYTHON` でその環境を指定してください。指定がない場合、これらは失敗ではなく
+スキップとして報告されます。end-to-end セクションはさらにネットワーク接続を必要とします。
+
+`harness/` 配下（apex、ルール、サブエージェント、スキル）か、harness 全体の振る舞いの基準の
 対応表・シナリオ集を変更したら:
 
 ```sh
@@ -390,36 +501,12 @@ bash tests/run-harness-eval.sh
 シナリオそのものを実行するとモデルの呼び出しに費用がかかり、費用の上限
 （`harness_eval.py run --max-cost-usd N`）が要る。[`docs/harness-eval.md`](docs/harness-eval.md) を参照。
 
-`.claude/skills/` のスキルを追加・削除・改名したとき、またはどちらかの README を
-編集したら:
-
-```sh
-bash tests/run-readme-skill-index.sh
-```
-
-生成物の `speckit-*` を除くスキルのディレクトリが、`README.md` と `README.ja.md` の
-両方に `` `<name>` `` または `<name>/` のパスとして書かれていなければ失敗する。
-
-取り込んだプラグイン [`maintaining-living-documentation`](.claude/skills/maintaining-living-documentation/)
-または自作スキル [`pyramid-structure`](.claude/skills/pyramid-structure/)（検査スクリプト
-`scripts/check.py` を含む）を変更したら、その README のとおり、そのフォルダで単体テストを
-実行する。`pyramid-structure` の場合は `bash tests/run-config-pyramid.sh` も実行する:
-
-```sh
-python3 -B -m unittest discover -s tests -v
-```
-
-`run-digital-agency-slides-skill.sh` は、`tests/fixtures/slides/` の自己完結した
-fixture に対してデッキの検査ツールを実行し、最後に公式 DADS スタイルシートを取得して
-同梱のデッキテンプレートを検査・プレビューする end-to-end セクションを実行します。
-どちらも `playwright` を備えた Python 環境が必要です — `DECK_PYTHON` でその環境を
-指定してください。指定がない場合、これらは失敗ではなくスキップとして報告されます。
-end-to-end セクションはさらにネットワーク接続を必要とします。
-
 `run-removed-guardrails.sh` は特定の変更に紐づかない、常設の回帰防止チェックです —
-`.claude/hooks/`・`scripts/` が再導入されたら失敗し
+hooks のディレクトリ（`harness/hooks/` と `.claude/hooks/`）や `scripts/` が再導入されたら失敗し
 （[ADR-0005](docs/adr/0005-remove-claude-hooks.md)、
-[ADR-0007](docs/adr/0007-remove-scripts.md)）、
+[ADR-0007](docs/adr/0007-remove-scripts.md)）、このリポジトリ自身の `.claude/` に管理対象の設定
+（`CLAUDE.md`、`rules`、`skills`、`agents`、`settings.json`、`commands`）が再び置かれても失敗します
+（そこにある写しは、プロジェクト設定として二重に読み込まれるため）。また
 [ADR-0006](docs/adr/0006-remove-permissions-config.md) の上に
 [ADR-0014](docs/adr/0014-restore-credential-deny-rules.md) が復元した
 `permissions` ブロックを制約します — 許されるのは `deny` のみで、`allow` や
@@ -427,11 +514,12 @@ end-to-end セクションはさらにネットワーク接続を必要としま
 アンカーされた `Read` ルールでなければなりません。単一の先頭スラッシュは
 `install.sh` がユーザースコープへ複製した時点で別のパスに解決されるためです。
 
-`run-sandbox-settings.sh` は、`.claude/settings.json` の `sandbox`、`SessionStart`、
+`run-sandbox-settings.sh` は、`harness/settings.json` の `sandbox`、`SessionStart`、
 MCP のキーを [spec 067](specs/067-sandbox-by-default/spec.md) に照らして検査します。
 開け直した場所のどれも `~/.aws/credentials` や GPG の秘密鍵に届かないこと、
-開けたパス・ソケット・ホストがレビュー済みのものとちょうど一致すること、止めた
-MCP サーバーが止まったままであることを確かめます。各 `SessionStart` フックも、
+開けたパス・ソケット・ホストがレビュー済みのものとちょうど一致すること、許可する
+MCP サーバーが AWS のドキュメントの2つだけで、`.mcp.json` もその2つだけを定義する
+こと、止めた MCP サーバーが止まったままであることを確かめます。各 `SessionStart` フックも、
 一時的な HOME と stub のコマンドで `sh`・`bash`・`zsh` のもとで実行します。
 Claude Code がこれらのキーに従うかは、`install.sh` の後の新しいセッションで
 手作業で確かめます。
@@ -442,12 +530,10 @@ Claude Code がこれらのキーに従うかは、`install.sh` の後の新し�
 
 ## リポジトリのセキュリティ自動化
 
-上記のうち11本は `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
-自動実行されます: `run-install.sh`、`run-digital-agency-frontend-skill.sh`、
-`run-removed-guardrails.sh`、`run-sandbox-settings.sh`、`run-package-safety-bundle.sh`、
-`run-readme-skill-index.sh`、`run-requirements-decomposition-skill.sh`、`run-verified-delivery-skill.sh`、`run-system-diagrams-skill.sh`、`run-harness-eval.sh`、`run-mcp-startup.sh`。
-それ以外は手元で実行したときだけ動きます。`main` はその CI ジョブ(`test`)を必須と
-する repository ruleset(`.github/rulesets/main-required-checks.json`)で保護されています。
+上記のうちいくつかは `main` への push/PR ごとに CI(`.github/workflows/ci.yml`)でも
+自動実行されます。どれが動くかはそのファイルが一覧です。それ以外は手元で実行したときだけ動きます。
+`main` はその CI ジョブ(`test`)を必須とする repository ruleset
+(`.github/rulesets/main-required-checks.json`)で保護されています。
 
 これに加えて、GitHub自身が検知する脆弱性への対応も自動化しています:
 
@@ -482,6 +568,10 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
 権限モードに従って決まります。Claude のファイルツール、MCP サーバー、フックは
 サンドボックスの外で動きます。決定は [ADR-0020](docs/adr/0020-enable-sandbox-by-default.md)、
 要件は [spec 067](specs/067-sandbox-by-default/spec.md) にあります。
+
+このリポジトリのスキルとテストは、サンドボックスの中で動くように書いています。スキルの契約
+（`tests/assert_skill_contract.py` の規則 C-07。「検証」参照）は、引数なしの `mktemp`、`/tmp` の直書き、
+リポジトリの外への書き込みを退け、ネットワークが要るスキルは `metadata` に接続先のホストを宣言します。
 
 想定した日常作業の動き方:
 
@@ -524,15 +614,17 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
   できます。代わりに `git commit` を外で動かすと、リポジトリの git フックも外で
   動きます。
 - `settings.json` の `env` は、Bash だけでなくフックと stdio の MCP サーバーにも
-  届きます。そのため Bedrock のセッションでは、`deploy-on-aws` の AWS を呼ぶ MCP
-  サーバーが Bedrock 用のアカウントとして動きます。Bedrock の認証情報を
+  届きます。そのため、AWS を呼ぶ stdio の MCP サーバーは、Bedrock のセッションでは
+  Bedrock 用のアカウントとして動きます。AWS を呼ぶサーバーを持つ `deploy-on-aws`
+  プラグインは無効にしてあり、許可された2つのサーバーは、公開されたドキュメントを
+  検索します。Bedrock の認証情報を
   `env.AWS_PROFILE` ではなく `awsCredentialExport`（例:
   `aws configure export-credentials --profile <bedrock> --format process`）で渡せば、
   どの子プロセスにもプロファイルは届きません。
 - プロジェクトとローカルの設定は、このファイルが設定したサンドボックスを緩められます。
   止められるのは管理設定だけです。
 - Chromium（と Playwright、Puppeteer）は、`--single-process` で起動しないと、
-  サンドボックスの中で起動の時点で止まります。`digital-agency-slides` のスライドの
+  サンドボックスの中で起動の時点で止まります。`build-dads-slides` のスライドの
   検査器は自分でこのフラグを付けます。それ以外は呼び出す側が付ける必要があります。
   サンドボックスのプロキシ経由では、平文の HTTP は読めましたが、HTTPS は時間切れに
   なりました。
@@ -547,37 +639,52 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
 
 ## MCP サーバー
 
-このリポジトリは MCP サーバーをユーザー設定に取り込みません。`install.sh` は
-MCP サーバーを登録も削除もせず、`.claude/` 配下も特定のサーバーがあることを
-前提にしていません（`aws-research` は、そのセッションで実際に使える
-ドキュメントツールを使います）。必要なサーバーは各自で追加してください。
+読み込める MCP サーバーは、どのプロジェクトでも、AWS の公式ドキュメントを検索する
+2つだけです。`settings.json` がこの2つだけを許可し、ほかは、だれが定義した
+サーバーでも読み込みません（ユーザースコープの登録、プロジェクトの `.mcp.json`、
+プラグイン、claude.ai）。理由はセキュリティです。MCP サーバーは Bash の
+サンドボックスの外で動き、いくつかは起動のたびに公開されたばかりの最新版を実行し、
+どれも、コマンドを実行できる同じセッションに、外部の文章と、場合によっては認証情報や
+操作を持ち込みます。
 
-[`.mcp.json`](.mcp.json) は、このリポジトリ内で作業するときのプロジェクトスコープ
-定義で、自分で登録するときの参照カタログも兼ねます。`.mcp.json` に書けることや
-各サーバーのベンダー公式リファレンスは [`docs/mcp-servers.md`](docs/mcp-servers.md)
-にあります。
+| 許可するもの | 照合の方法 | 何をするか |
+|---|---|---|
+| `aws-knowledge` | URL `https://knowledge-mcp.global.api.aws` | AWS のドキュメントを HTTP で検索して読む。認証情報は使わない |
+| `aws-documentation` | コマンド `uvx awslabs.aws-documentation-mcp-server@latest` | AWS のドキュメントを検索して読む。`uvx` で起動し、起動のたびに最新版を実行する |
 
-ユーザースコープに登録するときは、必要な行だけを実行してください（`uvx` を使う
-サーバーには [uv](https://docs.astral.sh/uv/) が必要です）:
+リモートのサーバーは URL で、ローカルのサーバーはコマンドの完全一致で照合します。
+名前では照合しません。名前は、だれでも付けられるラベルだからです。別のサーバーを
+使うには、`harness/settings.json` の `allowedMcpServers` を変えて、インストールし直す
+必要があります。
+
+このリポジトリが MCP サーバーをユーザー設定に取り込まないことは変わりません。
+`install.sh` は MCP サーバーを登録も削除もせず、`harness/` 配下も特定のサーバーが
+あることを前提にしていません（`research-aws` は、そのセッションで実際に使える
+ドキュメントツールを使います）。2つをユーザースコープに登録するには、次を
+実行してください（2つ目には [uv](https://docs.astral.sh/uv/) が必要です）:
 
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
 claude mcp add -s user aws-documentation -- uvx awslabs.aws-documentation-mcp-server@latest
-claude mcp add -s user \
-  --transport http \
-  google-developer-knowledge \
-  https://developerknowledge.googleapis.com/mcp \
-  --header "X-Goog-Api-Key: ${GOOGLE_DEV_KNOWLEDGE_API_KEY:-}"
-claude mcp add -s user microsoft-learn --transport http https://learn.microsoft.com/api/mcp
-claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/mcp
 ```
 
-`settings.json` は、次のサーバーを、どこで定義されていても読み込ませません
+[`.mcp.json`](.mcp.json) は、このリポジトリ内で作業するときのために、同じ2つを
+定義します。`.mcp.json` に書けること、各サーバーのベンダー公式リファレンス、
+何をいつ止めたかは [`docs/mcp-servers.md`](docs/mcp-servers.md) にあります。
+
+以前に登録していて、許可から外れたサーバーは、設定には残りますが読み込まれません。
+登録そのものを消すときは、各自で実行してください（例:
+`claude mcp remove -s user wolfram`）。
+
+許可リストに加えて、`settings.json` は次のものを直接拒否します。拒否は、どの
+許可リストでも上書きできません
 （[ADR-0021](docs/adr/0021-block-mcp-servers-by-settings.md)）:
 
 | 止めるもの | 方法 | 理由 |
 |---|---|---|
+| 組み込みの Chrome 連携（`claude-in-chrome`） | `deniedMcpServers` の名前 | 組み込みのサーバーは、許可リストの対象にならない。外部の文章を読む同じセッションから、ログイン済みの利用者自身のブラウザを操作する |
 | GitHub がホストする MCP サーバーと `github` プラグイン | `deniedMcpServers` の URL（`https://api.githubcopilot.com/*`）、`enabledPlugins` の `false` | 使っていない。作業は `gh` CLI で足りる |
+| `deploy-on-aws` と `microsoft-docs` のプラグイン | `enabledPlugins` の `false` | 同梱する MCP サーバーが許可リストにないので、そのサーバーに頼るスキルが働かない（「プラグイン」参照） |
 | `bedrock-agentcore` | `deniedMcpServers` の名前とコマンド | Claude Code が持つ AWS の認証情報で、AWS の実際のリソースを作成・変更・削除し、AWS でコードを実行する |
 | claude.ai のコネクタ（Gmail、Google Calendar、Google Drive、Notion、Moneytree、Claude Docs、Wolfram） | `disableClaudeAiConnectors: true` | 私的なデータと外部の文章が Bash と同じセッションにそろうと、プロンプトインジェクションでデータを持ち出す経路になる |
 | claude.ai から同期されるプラグイン（`productivity`、`pdf-viewer`） | `syncClaudeAiPlugins: false` | SaaS の MCP サーバーを、さらにすべてのセッションに持ち込む |
@@ -592,15 +699,21 @@ claude mcp add -s user wolfram --transport http https://agenttools.wolfram.com/m
 追加し、各プラグインをユーザースコープでインストール/有効化するため、このリポジトリに
 限らず全プロジェクトで使えます。
 
-MCP サーバーを同梱するプラグインは、MCP サーバーと同じく必要に応じて各自で
-追加してください。インストーラーはインストールも削除もしません。同じ
-マーケットプレイスには、たとえば
-`deploy-on-aws`（AWS アーキテクチャ図 + デプロイ/IaC skill と AWS の MCP サーバー。
-デプロイ/AWS CLI 変更系操作は
-[`.claude/rules/permissions.md`](.claude/rules/permissions.md) により毎回確認が必要、AWS）、
-`microsoft-docs`（Microsoft 公式ドキュメント MCP サーバー + skill、Microsoft）があります。
+同じマーケットプレイスの3つのプラグインは MCP サーバーを同梱しており、
+`settings.json` が3つとも無効にしています。インストーラーはこれらをインストール
+せず、各自が入れたものを削除もしません。無効にしたプラグインは、スキルも
+サーバーも読み込まれません。
 
-同等のコマンド:
+| プラグイン | 提供元 | 同梱するもの | 無効にしている理由 |
+|---|---|---|---|
+| `github` | GitHub | GitHub がホストする MCP サーバー | 使っていない。作業は `gh` CLI で足りる |
+| `deploy-on-aws` | AWS | AWS のアーキテクチャ図とデプロイのスキル、インフラのコードと料金を扱う AWS の MCP サーバー | サーバーが許可リストにない（「MCP サーバー」参照）。デプロイのスキルは、そのサーバーに頼っている |
+| `microsoft-docs` | Microsoft | Microsoft のドキュメントの MCP サーバーと、それを検索するスキル | サーバーが許可リストにない。スキルは、サーバーがないと用をなさない |
+
+インストールそのものも消すときは、`claude plugin uninstall <名前>@claude-plugins-official`
+を実行してください。
+
+`install.sh` が行う3つのプラグインのインストールは、次のコマンドと同等です:
 
 ```sh
 claude plugin marketplace add anthropics/claude-plugins-official
@@ -608,16 +721,6 @@ claude plugin install frontend-design@claude-plugins-official
 claude plugin install code-review@claude-plugins-official
 claude plugin install skill-creator@claude-plugins-official
 ```
-
-MCP サーバーを同梱するプラグインを入れる場合:
-
-```sh
-claude plugin install deploy-on-aws@claude-plugins-official
-claude plugin install microsoft-docs@claude-plugins-official
-```
-
-同じマーケットプレイスの `github` プラグインは `settings.json` で無効にし、その
-サーバーも拒否しています（「MCP サーバー」参照）。
 
 ## プロジェクト単位の上書き
 
@@ -662,8 +765,8 @@ specify extension add git
   生成先のエージェントディレクトリによらずすべて gitignore 対象です
   （`.gitignore` 参照）。同一プロジェクト内で別のエージェントにも導入する
   場合は、`--integration` の値を変えて再実行してください。各コマンドは
-  独自のプレイブックを持ちます。`coder` スキルの SDD セクションは
-  spec-kit の導入有無にかかわらず適用されます。
+  独自のプレイブックを持ちます。`implement-change` の、仕様を先に書く指針
+  （`references/spec-first.md`）は、spec-kit の導入有無にかかわらず適用されます。
 - `specify extension add git` — Git Branching Workflow 拡張
   （`/speckit-git.*`）をインストールします。
 
@@ -679,7 +782,7 @@ spec-kit の既定から始まります。
 
 すでに導入済みのプロジェクトで生成済みの `speckit-*` スキルを最新に保つのは、
 今も手動の作業です — 自分で定期的に `specify init --here --force` を
-実行してください。`specify-cli` 本体は別です — `.claude/settings.json` には
+実行してください。`specify-cli` 本体は別です — `harness/settings.json` には
 `speckit-specify` スキル実行の直前だけ発火する狭い範囲の `PreToolUse` hook
 （docs/adr/0008）があり、`github/spec-kit` の最新リリースタグと `uv` の
 インストールレシートに記録された `rev=` を比較し、不一致なら
@@ -688,5 +791,5 @@ spec-kit の既定から始まります。
 スキルではこの hook は発火しません）。これは docs/adr/0005 の「`.claude/hooks/`
 なし・自動強制なし」という広い方針に対する、意図的かつ限定的な例外です —
 理由は docs/adr/0008 を参照してください。Spec Kit を導入していないプロジェクトへ
-`specify init` を勧める指示は `.claude/` のどこにもありません。`coder` スキルが
+`specify init` を勧める指示は `harness/` のどこにもありません。`implement-change` が
 Spec Kit の工程に従うのは、プロジェクトがすでに導入している場合だけです。

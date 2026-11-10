@@ -120,9 +120,9 @@ if ! HOME="$TEST_HOME" \
 fi
 pass "install.sh completes against the isolated home"
 
-assert_file_equals "$REPO_ROOT/.claude/CLAUDE.md" "$TARGET/CLAUDE.md" \
+assert_file_equals "$REPO_ROOT/harness/CLAUDE.md" "$TARGET/CLAUDE.md" \
   "CLAUDE.md matches the repository"
-assert_file_equals "$REPO_ROOT/.claude/settings.json" "$TARGET/settings.json" \
+assert_file_equals "$REPO_ROOT/harness/settings.json" "$TARGET/settings.json" \
   "settings.json matches the repository"
 # The user chose a fixed main-session effort over the model default.
 [ "$(jq -r '.effortLevel' "$TARGET/settings.json")" = "xhigh" ] ||
@@ -131,12 +131,12 @@ pass "settings.json fixes the main session's effort at xhigh"
 assert_file_equals "$REPO_ROOT/install.sh" "$TARGET/install.sh" \
   "installed install.sh matches the repository"
 
-diff -r "$REPO_ROOT/.claude/rules" "$TARGET/rules" >/dev/null ||
+diff -r "$REPO_ROOT/harness/rules" "$TARGET/rules" >/dev/null ||
   fail "rules directory matches the repository"
 pass "rules directory matches the repository"
 
 expected_skills="$TEST_ROOT/expected-skills"
-cp -R "$REPO_ROOT/.claude/skills" "$expected_skills"
+cp -R "$REPO_ROOT/harness/skills" "$expected_skills"
 rm -rf "$expected_skills"/speckit-* "$expected_skills/.DS_Store"
 diff -r -x synced "$expected_skills" "$TARGET/skills" >/dev/null ||
   fail "skills contain only repository-managed shared skills besides synced/"
@@ -149,7 +149,7 @@ pass "the Claude app's skills/synced/ is preserved unchanged"
   fail "no temporary keep directory is left behind"
 pass "no temporary keep directory is left behind"
 
-diff -r "$REPO_ROOT/.claude/agents" "$TARGET/agents" >/dev/null ||
+diff -r "$REPO_ROOT/harness/agents" "$TARGET/agents" >/dev/null ||
   fail "agents directory matches the repository (read-only-reviewer, spec 070)"
 pass "agents directory matches the repository (read-only-reviewer, spec 070)"
 assert_absent "$TARGET/agents/stale.md" "an agent file removed from the repository is removed"
@@ -278,7 +278,7 @@ if ! HOME="$TEST_HOME" \
 fi
 pass "install.sh is idempotent on a second run"
 
-diff -r "$REPO_ROOT/.claude/rules" "$TARGET/rules" >/dev/null ||
+diff -r "$REPO_ROOT/harness/rules" "$TARGET/rules" >/dev/null ||
   fail "rules directory still matches the repository after a second run"
 pass "rules directory still matches the repository after a second run"
 
@@ -286,7 +286,7 @@ diff -r "$synced_snapshot" "$TARGET/skills/synced" >/dev/null ||
   fail "skills/synced/ is still preserved after a second run"
 pass "skills/synced/ is still preserved after a second run"
 
-repo_model="$(jq -r '.model' "$REPO_ROOT/.claude/settings.json")"
+repo_model="$(jq -r '.model' "$REPO_ROOT/harness/settings.json")"
 [ "$(jq -r '.model' "$TARGET/settings.json")" = "$repo_model" ] ||
   fail "settings.json merge: repo-declared model wins over a prior user value"
 pass "settings.json merge: repo-declared model wins over a prior user value"
@@ -307,7 +307,7 @@ pass "settings.json merge: an undeclared key nested in a shared object survives 
 
 # Compared as strings, not with diff <(...): inside Claude Code's macOS
 # sandbox, /usr/bin/diff cannot open the /dev/fd paths that <(...) creates.
-[ "$(jq -cS '.permissions.deny' "$REPO_ROOT/.claude/settings.json")" = \
+[ "$(jq -cS '.permissions.deny' "$REPO_ROOT/harness/settings.json")" = \
   "$(jq -cS '.permissions.deny' "$TARGET/settings.json")" ] ||
   fail "settings.json merge: repo-declared permissions.deny still matches the repository"
 pass "settings.json merge: repo-declared permissions.deny still matches the repository"
@@ -319,7 +319,7 @@ pass "settings.json merge: repo-declared permissions.deny still matches the repo
 pass "settings.json merge: the repo's github plugin stop wins over a user's enabled github plugin"
 
 [ "$(jq -r '.sandbox.enabled' "$TARGET/settings.json")" = "true" ] &&
-  [ "$(jq -cS '.sandbox.filesystem, .sandbox.network' "$REPO_ROOT/.claude/settings.json")" = \
+  [ "$(jq -cS '.sandbox.filesystem, .sandbox.network' "$REPO_ROOT/harness/settings.json")" = \
     "$(jq -cS '.sandbox.filesystem, .sandbox.network' "$TARGET/settings.json")" ] ||
   fail "settings.json merge: the repo's sandbox wins over a user's sandbox.enabled false"
 pass "settings.json merge: the repo's sandbox wins over a user's sandbox.enabled false"

@@ -2,105 +2,110 @@
   "schema_version": 1,
   "components": [
     {
+      "id": "agent:check-runner.md",
+      "path": "harness/agents/check-runner.md"
+    },
+    {
+      "id": "agent:file-searcher.md",
+      "path": "harness/agents/file-searcher.md"
+    },
+    {
       "id": "agent:read-only-reviewer.md",
-      "path": ".claude/agents/read-only-reviewer.md"
+      "path": "harness/agents/read-only-reviewer.md"
+    },
+    {
+      "id": "agent:task-worker.md",
+      "path": "harness/agents/task-worker.md"
     },
     {
       "id": "apex",
-      "path": ".claude/CLAUDE.md"
+      "path": "harness/CLAUDE.md"
     },
     {
       "id": "rule:clarifier",
-      "path": ".claude/rules/clarifier.md"
+      "path": "harness/rules/clarifier.md"
     },
     {
       "id": "rule:permissions",
-      "path": ".claude/rules/permissions.md"
+      "path": "harness/rules/permissions.md"
     },
     {
       "id": "rule:pyramid-principle",
-      "path": ".claude/rules/pyramid-principle.md"
+      "path": "harness/rules/pyramid-principle.md"
     },
     {
       "id": "rule:thinking-lenses",
-      "path": ".claude/rules/thinking-lenses.md"
+      "path": "harness/rules/thinking-lenses.md"
     },
     {
-      "id": "skill:apple-notes",
-      "path": ".claude/skills/apple-notes/SKILL.md",
-      "in_eval": false,
-      "reason": "評価のエージェントが Bash でこのスキルのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスが Apple Events と EventKit を止めることは確かめていないので、組み立てるプラグインに含めない"
+      "id": "skill:apply-dads-frontend",
+      "path": "harness/skills/apply-dads-frontend/SKILL.md"
     },
     {
-      "id": "skill:apple-reminders",
-      "path": ".claude/skills/apple-reminders/SKILL.md",
-      "in_eval": false,
-      "reason": "評価のエージェントが Bash でこのスキルのスクリプトを動かすと、利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスが Apple Events と EventKit を止めることは確かめていないので、組み立てるプラグインに含めない"
+      "id": "skill:apply-scrum-guide",
+      "path": "harness/skills/apply-scrum-guide/SKILL.md"
     },
     {
-      "id": "skill:aws-research",
-      "path": ".claude/skills/aws-research/SKILL.md"
+      "id": "skill:apply-secure-logging",
+      "path": "harness/skills/apply-secure-logging/SKILL.md"
     },
     {
-      "id": "skill:clarifier",
-      "path": ".claude/skills/clarifier/SKILL.md"
+      "id": "skill:build-dads-slides",
+      "path": "harness/skills/build-dads-slides/SKILL.md"
     },
     {
-      "id": "skill:coder",
-      "path": ".claude/skills/coder/SKILL.md"
+      "id": "skill:clarify-intent",
+      "path": "harness/skills/clarify-intent/SKILL.md"
     },
     {
-      "id": "skill:digital-agency-frontend",
-      "path": ".claude/skills/digital-agency-frontend/SKILL.md"
+      "id": "skill:define-problem",
+      "path": "harness/skills/define-problem/SKILL.md"
     },
     {
-      "id": "skill:digital-agency-slides",
-      "path": ".claude/skills/digital-agency-slides/SKILL.md"
+      "id": "skill:define-product-strategy",
+      "path": "harness/skills/define-product-strategy/SKILL.md"
     },
     {
-      "id": "skill:git-workflow",
-      "path": ".claude/skills/git-workflow/SKILL.md"
-    },
-    {
-      "id": "skill:maintaining-living-documentation",
-      "path": ".claude/skills/maintaining-living-documentation/SKILL.md"
-    },
-    {
-      "id": "skill:problem-definition",
-      "path": ".claude/skills/problem-definition/SKILL.md"
-    },
-    {
-      "id": "skill:product-strategy",
-      "path": ".claude/skills/product-strategy/SKILL.md"
-    },
-    {
-      "id": "skill:pyramid-structure",
-      "path": ".claude/skills/pyramid-structure/SKILL.md"
-    },
-    {
-      "id": "skill:requirements-decomposition",
-      "path": ".claude/skills/requirements-decomposition/SKILL.md"
-    },
-    {
-      "id": "skill:scrum-master",
-      "path": ".claude/skills/scrum-master/SKILL.md"
-    },
-    {
-      "id": "skill:secure-logging",
-      "path": ".claude/skills/secure-logging/SKILL.md"
-    },
-    {
-      "id": "skill:system-diagrams",
-      "path": ".claude/skills/system-diagrams/SKILL.md"
-    },
-    {
-      "id": "skill:verified-delivery",
-      "path": ".claude/skills/verified-delivery/SKILL.md",
+      "id": "skill:deliver-change",
+      "path": "harness/skills/deliver-change/SKILL.md",
       "children": [
-        "skill:coder",
-        "skill:problem-definition",
-        "skill:requirements-decomposition"
+        "skill:define-problem",
+        "skill:implement-change",
+        "skill:specify-requirements",
+        "skill:verify-change"
       ]
+    },
+    {
+      "id": "skill:draw-system-diagrams",
+      "path": "harness/skills/draw-system-diagrams/SKILL.md"
+    },
+    {
+      "id": "skill:implement-change",
+      "path": "harness/skills/implement-change/SKILL.md"
+    },
+    {
+      "id": "skill:manage-git",
+      "path": "harness/skills/manage-git/SKILL.md"
+    },
+    {
+      "id": "skill:research-aws",
+      "path": "harness/skills/research-aws/SKILL.md"
+    },
+    {
+      "id": "skill:specify-requirements",
+      "path": "harness/skills/specify-requirements/SKILL.md"
+    },
+    {
+      "id": "skill:structure-document",
+      "path": "harness/skills/structure-document/SKILL.md"
+    },
+    {
+      "id": "skill:sync-docs",
+      "path": "harness/skills/sync-docs/SKILL.md"
+    },
+    {
+      "id": "skill:verify-change",
+      "path": "harness/skills/verify-change/SKILL.md"
     }
   ],
   "stages": [
@@ -111,19 +116,19 @@
       "owners": [
         "apex",
         "rule:clarifier",
-        "skill:clarifier"
+        "skill:clarify-intent"
       ],
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Ask only when an unresolved choice would materially change the result"
         },
         {
-          "file": ".claude/rules/clarifier.md",
+          "file": "harness/rules/clarifier.md",
           "quote": "Ask before committing when a material gap cannot be resolved from applicable evidence."
         },
         {
-          "file": ".claude/skills/clarifier/SKILL.md",
+          "file": "harness/skills/clarify-intent/SKILL.md",
           "quote": "two materially different readings would both let work proceed"
         }
       ]
@@ -133,11 +138,11 @@
       "branch": "define",
       "title": "漠然とした不満を、現状と理想の差としての問題文にする",
       "owners": [
-        "skill:problem-definition"
+        "skill:define-problem"
       ],
       "basis": [
         {
-          "file": ".claude/skills/problem-definition/SKILL.md",
+          "file": "harness/skills/define-problem/SKILL.md",
           "quote": "Turn a vague sense that"
         }
       ]
@@ -147,12 +152,12 @@
       "branch": "define",
       "title": "開発の前に、プロダクトの方向（対象、価値、指標、範囲）を定める",
       "owners": [
-        "skill:product-strategy"
+        "skill:define-product-strategy"
       ],
       "basis": [
         {
-          "file": ".claude/skills/product-strategy/SKILL.md",
-          "quote": "Formulate product/business strategy"
+          "file": "harness/skills/define-product-strategy/SKILL.md",
+          "quote": "Formulate product or business strategy before development begins"
         }
       ]
     },
@@ -161,13 +166,13 @@
       "branch": "define",
       "title": "合意した問題を、検査できる要件のグラフに分解する",
       "owners": [
-        "skill:requirements-decomposition",
+        "skill:specify-requirements",
         "agent:read-only-reviewer.md"
       ],
       "basis": [
         {
-          "file": ".claude/skills/requirements-decomposition/SKILL.md",
-          "quote": "Turn an agreed problem into a checkable decomposition before implementation"
+          "file": "harness/skills/specify-requirements/SKILL.md",
+          "quote": "Turn an agreed problem into requirements that can be checked before implementation"
         }
       ]
     },
@@ -178,20 +183,20 @@
       "owners": [
         "apex",
         "rule:thinking-lenses",
-        "skill:aws-research"
+        "skill:research-aws"
       ],
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Ground factual claims in the most applicable, authoritative, and current evidence available."
         },
         {
-          "file": ".claude/rules/thinking-lenses.md",
+          "file": "harness/rules/thinking-lenses.md",
           "quote": "Keep observations, sourced claims, assumptions, and inferences distinct while reasoning."
         },
         {
-          "file": ".claude/skills/aws-research/SKILL.md",
-          "quote": "Research current AWS services and answer from official AWS documentation"
+          "file": "harness/skills/research-aws/SKILL.md",
+          "quote": "Answer a question about a current AWS service from official AWS documentation"
         }
       ]
     },
@@ -206,7 +211,7 @@
       "unobservable": "内部の判断の形成を律する規則で、出力の形を求めないため、決定的な判定で確かめられない",
       "basis": [
         {
-          "file": ".claude/rules/thinking-lenses.md",
+          "file": "harness/rules/thinking-lenses.md",
           "quote": "This guidance governs internal decision formation, not the wording, hierarchy, or layout of the result presented to a reader."
         }
       ]
@@ -219,12 +224,12 @@
       "gap": true,
       "basis": [
         {
-          "file": ".claude/skills/problem-definition/SKILL.md",
-          "quote": "root-cause analysis, evaluating or proposing solutions, or building an execution plan"
+          "file": "harness/skills/define-problem/SKILL.md",
+          "quote": "for root-cause analysis, for evaluating or proposing solutions, for an execution plan"
         },
         {
-          "file": ".claude/skills/requirements-decomposition/SKILL.md",
-          "quote": "analyze root causes"
+          "file": "harness/skills/specify-requirements/SKILL.md",
+          "quote": "to analyze root causes"
         }
       ]
     },
@@ -236,8 +241,8 @@
       "gap": true,
       "basis": [
         {
-          "file": ".claude/skills/problem-definition/SKILL.md",
-          "quote": "evaluating or proposing solutions"
+          "file": "harness/skills/define-problem/SKILL.md",
+          "quote": "for evaluating or proposing solutions"
         }
       ]
     },
@@ -249,8 +254,8 @@
       "gap": true,
       "basis": [
         {
-          "file": ".claude/skills/problem-definition/SKILL.md",
-          "quote": "building an execution plan"
+          "file": "harness/skills/define-problem/SKILL.md",
+          "quote": "for an execution plan"
         }
       ]
     },
@@ -262,8 +267,8 @@
       "gap": true,
       "basis": [
         {
-          "file": ".claude/skills/product-strategy/SKILL.md",
-          "quote": "architecture, technology-stack, or build-vs-buy decisions"
+          "file": "harness/skills/define-product-strategy/SKILL.md",
+          "quote": "for architecture, technology-stack, or build-versus-buy decisions"
         }
       ]
     },
@@ -275,12 +280,8 @@
       "gap": true,
       "basis": [
         {
-          "file": ".claude/skills/clarifier/SKILL.md",
-          "quote": "building a document from incomplete material through dialogue"
-        },
-        {
-          "file": ".claude/skills/product-strategy/SKILL.md",
-          "quote": "open-ended document co-creation with no development destination"
+          "file": "harness/skills/define-product-strategy/SKILL.md",
+          "quote": "for a document with no development destination"
         }
       ]
     },
@@ -294,11 +295,11 @@
       ],
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Obtain explicit approval before destructive, hard-to-recover, credential-bearing, machine-wide, or externally consequential actions"
         },
         {
-          "file": ".claude/rules/permissions.md",
+          "file": "harness/rules/permissions.md",
           "quote": "Obtain explicit approval before an action is destructive or hard to recover"
         }
       ]
@@ -312,7 +313,7 @@
       ],
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Apply every independently matching capability, never collapse a compound request to one."
         }
       ]
@@ -327,8 +328,43 @@
       "requires_unused_skill_grader": true,
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
-          "quote": "Choose process and verification proportional to complexity, reversibility, and impact."
+          "file": "harness/CLAUDE.md",
+          "quote": "Choose process and verification proportional to complexity, reversibility, and impact"
+        }
+      ]
+    },
+    {
+      "id": "E-delegate",
+      "branch": "execute",
+      "title": "出力が長い確認や広い検索、独立して並べられる作業、作者から独立した読み手が要る作業は、その型のサブエージェントに任せ、それ以外は自分で行う",
+      "owners": [
+        "apex",
+        "agent:check-runner.md",
+        "agent:file-searcher.md",
+        "agent:read-only-reviewer.md",
+        "agent:task-worker.md"
+      ],
+      "unobservable": "評価は Agent の道具を許さないので、サブエージェントを起動する振る舞いは観測できない。docs/harness-eval.md §4 の4 に記す",
+      "basis": [
+        {
+          "file": "harness/CLAUDE.md",
+          "quote": "delegate to a subagent when one of three conditions holds"
+        },
+        {
+          "file": "harness/agents/check-runner.md",
+          "quote": "Runs checks whose output is long"
+        },
+        {
+          "file": "harness/agents/file-searcher.md",
+          "quote": "Searches a codebase or a set of documents read-only"
+        },
+        {
+          "file": "harness/agents/task-worker.md",
+          "quote": "Carries out one self-contained task that needs judgment"
+        },
+        {
+          "file": "harness/agents/read-only-reviewer.md",
+          "quote": "Independent read-only reviewer"
         }
       ]
     },
@@ -337,12 +373,12 @@
       "branch": "execute",
       "title": "コード・設定・テストを、失敗する検査を先に観測してから変える",
       "owners": [
-        "skill:coder"
+        "skill:implement-change"
       ],
       "basis": [
         {
-          "file": ".claude/skills/coder/SKILL.md",
-          "quote": "Implement and modify code, configuration, tests, scripts, interfaces, or observable behavior safely"
+          "file": "harness/skills/implement-change/SKILL.md",
+          "quote": "Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first"
         }
       ]
     },
@@ -351,12 +387,12 @@
       "branch": "execute",
       "title": "ブランチ、コミット、push、プルリクエストを、求められた操作だけ行う",
       "owners": [
-        "skill:git-workflow"
+        "skill:manage-git"
       ],
       "basis": [
         {
-          "file": ".claude/skills/git-workflow/SKILL.md",
-          "quote": "Manage Git collaboration state for branches, commits, pushes, and pull requests."
+          "file": "harness/skills/manage-git/SKILL.md",
+          "quote": "Create branches, commits, pushes, and pull requests so that history stays reviewable"
         }
       ]
     },
@@ -365,15 +401,15 @@
       "branch": "execute",
       "title": "DADS に沿った React と Tailwind CSS のフロントエンド",
       "owners": [
-        "skill:digital-agency-frontend"
+        "skill:apply-dads-frontend"
       ],
       "basis": [
         {
-          "file": ".claude/skills/digital-agency-frontend/SKILL.md",
+          "file": "harness/skills/apply-dads-frontend/SKILL.md",
           "quote": "Use for DADS components, Japanese government or public-service interfaces"
         },
         {
-          "file": ".claude/skills/digital-agency-slides/SKILL.md",
+          "file": "harness/skills/build-dads-slides/SKILL.md",
           "quote": "Do not use for web pages, application interfaces, or dashboards that are not slides"
         }
       ]
@@ -383,16 +419,16 @@
       "branch": "execute",
       "title": "DADS に沿った 16:9 の HTML スライド",
       "owners": [
-        "skill:digital-agency-slides"
+        "skill:build-dads-slides"
       ],
       "basis": [
         {
-          "file": ".claude/skills/digital-agency-slides/SKILL.md",
+          "file": "harness/skills/build-dads-slides/SKILL.md",
           "quote": "Use for slide decks, briefing material, and presentation documents that must follow DADS"
         },
         {
-          "file": ".claude/skills/digital-agency-frontend/SKILL.md",
-          "quote": "Do not use for Power BI artifacts or projects outside React/Tailwind CSS"
+          "file": "harness/skills/apply-dads-frontend/SKILL.md",
+          "quote": "Do not use for Power BI artifacts, for projects outside React and Tailwind CSS, or for slide decks"
         }
       ]
     },
@@ -401,12 +437,12 @@
       "branch": "execute",
       "title": "Scrum のイベント・作成物・説明責任の診断と改善",
       "owners": [
-        "skill:scrum-master"
+        "skill:apply-scrum-guide"
       ],
       "basis": [
         {
-          "file": ".claude/skills/scrum-master/SKILL.md",
-          "quote": "Scrum Guide (2020) を規範として"
+          "file": "harness/skills/apply-scrum-guide/SKILL.md",
+          "quote": "Scrum Guide (2020) を唯一の規範として"
         }
       ]
     },
@@ -415,11 +451,11 @@
       "branch": "execute",
       "title": "ログ出力の実装と確認を、セキュリティの要件に照らして行う",
       "owners": [
-        "skill:secure-logging"
+        "skill:apply-secure-logging"
       ],
       "basis": [
         {
-          "file": ".claude/skills/secure-logging/SKILL.md",
+          "file": "harness/skills/apply-secure-logging/SKILL.md",
           "quote": "Use when code or a workflow adds or modifies log output"
         }
       ]
@@ -429,48 +465,18 @@
       "branch": "execute",
       "title": "システム構成図を、1枚に1つの問い・1種類の読者・1つの抽象度で作る",
       "owners": [
-        "skill:system-diagrams"
+        "skill:draw-system-diagrams"
       ],
       "basis": [
         {
-          "file": ".claude/skills/system-diagrams/SKILL.md",
+          "file": "harness/skills/draw-system-diagrams/SKILL.md",
           "quote": "each answering one question for one audience at one C4 level"
         },
         {
-          "file": ".claude/skills/system-diagrams/SKILL.md",
+          "file": "harness/skills/draw-system-diagrams/SKILL.md",
           "quote": "Do not use for diagrams built from a cloud vendor's official icon set"
         }
       ]
-    },
-    {
-      "id": "E-notes",
-      "branch": "execute",
-      "title": "Apple のメモの読み書き",
-      "owners": [
-        "skill:apple-notes"
-      ],
-      "basis": [
-        {
-          "file": ".claude/skills/apple-notes/SKILL.md",
-          "quote": "Use when a request needs content out of Notes.app"
-        }
-      ],
-      "unobservable": "評価のエージェントが利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめられていないので、この段階は評価しない"
-    },
-    {
-      "id": "E-reminders",
-      "branch": "execute",
-      "title": "Apple のリマインダーの読み書き",
-      "owners": [
-        "skill:apple-reminders"
-      ],
-      "basis": [
-        {
-          "file": ".claude/skills/apple-reminders/SKILL.md",
-          "quote": "when items must be added or completed there"
-        }
-      ],
-      "unobservable": "評価のエージェントが利用者の実際のメモやリマインダーを変えうる。eval のサンドボックスがファイルの書き込みを作業領域に限ることは公式文書にあるが、Apple Events と EventKit による変更を止めることは確かめられていないので、この段階は評価しない"
     },
     {
       "id": "H-verify",
@@ -478,42 +484,60 @@
       "title": "完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする",
       "owners": [
         "apex",
-        "skill:verified-delivery",
-        "skill:coder",
+        "skill:deliver-change",
+        "skill:verify-change",
+        "skill:implement-change",
         "agent:read-only-reviewer.md"
       ],
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Verify the actual completion condition before reporting success."
         },
         {
-          "file": ".claude/skills/verified-delivery/SKILL.md",
-          "quote": "Carry a change from an agreed problem to an evidence-backed acceptance decision"
+          "file": "harness/skills/deliver-change/SKILL.md",
+          "quote": "Carry a change from an agreed problem to an acceptance decision that a person can make from its evidence"
+        },
+        {
+          "file": "harness/skills/verify-change/SKILL.md",
+          "quote": "Record, for every acceptance criterion of a change, which check ran on which commit with what result"
         }
       ]
     },
     {
       "id": "H-structure",
       "branch": "handoff",
-      "title": "答えを先に置き、支えを下に組む",
+      "title": "会話の答えで、答えを先に置き、支えを下に組む",
       "owners": [
         "apex",
-        "rule:pyramid-principle",
-        "skill:pyramid-structure"
+        "rule:pyramid-principle"
       ],
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Communicate the answer before its support"
         },
         {
-          "file": ".claude/rules/pyramid-principle.md",
+          "file": "harness/rules/pyramid-principle.md",
           "quote": "State the answer, conclusion, or recommendation before its supporting detail."
+        }
+      ]
+    },
+    {
+      "id": "H-document",
+      "branch": "handoff",
+      "title": "文書を1つの主張の木に組み、同梱の検査器で確かめる",
+      "owners": [
+        "skill:structure-document"
+      ],
+      "basis": [
+        {
+          "file": "harness/skills/structure-document/SKILL.md",
+          "quote": "Use when drafting or revising such a document, and when asked to review or restructure an existing one."
         },
         {
-          "file": ".claude/skills/pyramid-structure/SKILL.md",
-          "quote": "MUST be used for every substantive task."
+          "file": "harness/skills/structure-document/SKILL.md",
+          "quote": "Do not use for a short conversational answer, a single fact, raw command output, or a commit message"
         }
       ]
     },
@@ -523,17 +547,17 @@
       "title": "公開の契約と文書を、変更と同期させる",
       "owners": [
         "apex",
-        "skill:maintaining-living-documentation",
-        "skill:coder"
+        "skill:sync-docs",
+        "skill:implement-change"
       ],
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Keep public contracts, usage guidance, and durable rationale synchronized with the change"
         },
         {
-          "file": ".claude/skills/maintaining-living-documentation/SKILL.md",
-          "quote": "Keeps documentation consistent with code"
+          "file": "harness/skills/sync-docs/SKILL.md",
+          "quote": "Keep documentation consistent with code, specifications, decisions, and research artifacts as they change"
         }
       ]
     },
@@ -545,12 +569,16 @@
       "gap": true,
       "basis": [
         {
-          "file": ".claude/skills/requirements-decomposition/SKILL.md",
-          "quote": "implement or review code"
+          "file": "harness/skills/specify-requirements/SKILL.md",
+          "quote": "to implement or review code"
         },
         {
-          "file": ".claude/skills/verified-delivery/SKILL.md",
+          "file": "harness/skills/verify-change/SKILL.md",
           "quote": "for a code review that decides nothing"
+        },
+        {
+          "file": "harness/skills/deliver-change/SKILL.md",
+          "quote": "for a review that decides nothing"
         }
       ]
     },
@@ -564,7 +592,7 @@
       "unobservable": "何を書けば満たすかが依頼ごとに違い、決定的な判定で確かめられる形の約束ではない",
       "basis": [
         {
-          "file": ".claude/CLAUDE.md",
+          "file": "harness/CLAUDE.md",
           "quote": "Report actions, limits, unresolved risks, and work left undone plainly"
         }
       ]
@@ -574,26 +602,26 @@
     {
       "id": "G-define",
       "members": [
-        "skill:clarifier",
-        "skill:problem-definition",
-        "skill:product-strategy",
-        "skill:requirements-decomposition"
+        "skill:clarify-intent",
+        "skill:define-problem",
+        "skill:define-product-strategy",
+        "skill:specify-requirements"
       ],
       "basis": [
         {
-          "file": ".claude/skills/clarifier/SKILL.md",
-          "quote": "framing the gap between a current and an ideal state, setting product direction before development begins"
+          "file": "harness/skills/clarify-intent/SKILL.md",
+          "quote": "to frame a problem as a gap, to set product direction, or to write formal requirements"
         },
         {
-          "file": ".claude/skills/problem-definition/SKILL.md",
-          "quote": "confirming scope or acceptance criteria on an already-agreed single feature"
+          "file": "harness/skills/define-problem/SKILL.md",
+          "quote": "for confirming the scope of an already-agreed feature, or for a product strategy or roadmap"
         },
         {
-          "file": ".claude/skills/product-strategy/SKILL.md",
-          "quote": "confirming scope or acceptance criteria on an already-agreed single feature"
+          "file": "harness/skills/define-product-strategy/SKILL.md",
+          "quote": "for confirming the scope or acceptance criteria of an already-agreed feature"
         },
         {
-          "file": ".claude/skills/requirements-decomposition/SKILL.md",
+          "file": "harness/skills/specify-requirements/SKILL.md",
           "quote": "Do not use to define a vague problem in the first place"
         }
       ]
@@ -616,6 +644,10 @@
       "in_eval": false,
       "reason": "主の会話の推論の努力の水準（xhigh）。claude plugin eval には努力の水準を渡す手段がなく、評価の実行は利用者の settings を読まないので、評価は eval の既定の水準で動く。実際の環境との違いとして docs/harness-eval.md §4 に記す"
     },
+    "modelSettings": {
+      "in_eval": false,
+      "reason": "モデルの ID ごとの設定で、今は claude-opus-5-5 の effortLevel を xhigh にする。claude plugin eval には努力の水準を渡す手段がなく、評価の実行は利用者の settings を読まないので、評価は eval の既定の水準で動く。実際の環境との違いとして docs/harness-eval.md §4 に記す"
+    },
     "permissions": {
       "in_eval": false,
       "reason": "defaultMode（auto）と資格情報の読み取り拒否。eval の実行は許可を求めず、許していない道具を外す。シェルのコマンドは OS サンドボックスがホームを読めなくするが、ファイルを読む道具（Read、Glob、Grep）はサンドボックスの外で動き、この読み取り拒否も効かない。run は、結果のうち利用者のホームのパスを含むファイルを記録する。許可の仕組みが実際の環境と違うことは強制の配置（軸4）で扱う"
@@ -630,11 +662,15 @@
     },
     "enabledPlugins": {
       "in_eval": false,
-      "reason": "github プラグインを無効にする。eval は評価するプラグインのほかのプラグインを読み込まない"
+      "reason": "MCP サーバーを同梱する github・deploy-on-aws・microsoft-docs の各プラグインを無効にする。eval は評価するプラグインのほかのプラグインを読み込まない"
+    },
+    "allowedMcpServers": {
+      "in_eval": false,
+      "reason": "読み込んでよい MCP サーバーを、AWS の文書を検索する2つ（aws-knowledge の URL と aws-documentation のコマンド）に限る。eval は MCP サーバーを読み込まない。許可する内容は tests/run-sandbox-settings.sh で確かめる"
     },
     "deniedMcpServers": {
       "in_eval": false,
-      "reason": "使わない MCP サーバーを拒む。eval は MCP サーバーを読み込まない"
+      "reason": "使わない MCP サーバーと、許可リストの対象にならない組み込みの Chrome 連携を拒む。eval は MCP サーバーを読み込まない"
     },
     "disableClaudeAiConnectors": {
       "in_eval": false,

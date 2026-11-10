@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """spec 069: one made-up change taken through two assurance review rounds with
-verified-delivery's scripts/review_prep.py, in a temporary git repository:
+verify-change's scripts/review_prep.py, in a temporary git repository:
 check before the first round, the first round's bundle, a fix that changes
 only the graph's text (a fix round), a fix that adds an acceptance criterion
 (a whole round), and a commit outside the record directory after the review.
@@ -32,7 +32,7 @@ CARD = {"schema_version": 1, "problem_card": {"id": "PRB-FLOW", "ideal": "i", "c
 
 def main(argv: List[str]) -> int:
     root = (Path(argv[1]) if len(argv) > 1 else Path(__file__).parent.parent).resolve()
-    script = root / ".claude" / "skills" / "verified-delivery" / "scripts" / "review_prep.py"
+    script = root / "harness" / "skills" / "verify-change" / "scripts" / "review_prep.py"
     work = Path(tempfile.mkdtemp())
     repo = work / "repo"
     repo.mkdir()

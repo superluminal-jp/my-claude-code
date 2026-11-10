@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Check, build, run, and compare the whole-harness behavior baseline.
 
-The harness is what install.sh puts in ~/.claude: .claude/CLAUDE.md, the
-rules, and the skills. This script measures it as a whole with
-`claude plugin eval`:
+The harness is what install.sh copies from harness/ into ~/.claude:
+harness/CLAUDE.md, the rules, the skills, and the agents. This script
+measures it as a whole with `claude plugin eval`:
 
   check    the capability map (docs/harness/capability-map.json) and the
            scenario suite (tests/harness-eval/scenarios.json) against the
@@ -33,6 +33,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+# The source of the user-level configuration install.sh copies to ~/.claude.
+HARNESS_DIR = "harness"
 MAP_PATH = "docs/harness/capability-map.json"
 MAP_MD_PATH = "docs/harness/capability-map.md"
 SUITE_PATH = "tests/harness-eval/scenarios.json"
@@ -135,12 +137,12 @@ def basis_present(basis, harness: Path) -> bool:
 def harness_components(root: Path, files: list[str] | None = None) -> dict[str, str]:
     """Map component id to path for the harness under `root`."""
     if files is None:
-        base = root / ".claude"
+        base = root / HARNESS_DIR
         files = [p.relative_to(root).as_posix() for p in base.rglob("*") if p.is_file()] if base.is_dir() else []
     found: dict[str, str] = {}
     for rel in files:
         parts = rel.split("/")
-        if rel == ".claude/CLAUDE.md":
+        if rel == f"{HARNESS_DIR}/CLAUDE.md":
             found["apex"] = rel
         elif len(parts) >= 3 and parts[1] == "rules" and rel.endswith(".md"):
             found["rule:" + "/".join(parts[2:])[:-3]] = rel
@@ -389,7 +391,7 @@ def check_map(cmap: dict, harness: Path, files: list[str] | None, out: list[str]
             out.append(f"boundary group {gid}: needs two or more skill components of the map")
         _check_basis(f"boundary group {gid}", g.get("basis", []), harness, None, out)
 
-    settings_text = read_text(harness, ".claude/settings.json")
+    settings_text = read_text(harness, f"{HARNESS_DIR}/settings.json")
     classified = cmap.get("settings", {})
     if settings_text is not None:
         for key in json.loads(settings_text):
@@ -669,9 +671,14 @@ def extract(repo: Path, sha: str, paths: tuple[str, ...], dest: Path) -> None:
 
 def always_on(harness: Path) -> list[tuple[str, str]]:
     """(relative path, text) of the apex and the rules, apex first."""
-    files = [".claude/CLAUDE.md"] + sorted(
-        p.relative_to(harness).as_posix() for p in (harness / ".claude/rules").rglob("*.md"))
+    files = [f"{HARNESS_DIR}/CLAUDE.md"] + sorted(
+        p.relative_to(harness).as_posix() for p in (harness / HARNESS_DIR / "rules").rglob("*.md"))
     return [(rel, (harness / rel).read_text(encoding="utf-8")) for rel in files if (harness / rel).is_file()]
+
+
+def installed_path(rel: str) -> str:
+    """Where install.sh puts a file of the harness: harness/rules/x.md is ~/.claude/rules/x.md."""
+    return "~/.claude/" + rel[len(HARNESS_DIR) + 1:]
 
 
 def render_grader(g: dict) -> dict:
@@ -707,8 +714,13 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     ensure_outside(out_dir, repo)
     harness_sha, suite_sha = resolve(repo, harness_ref), resolve(repo, suite_ref)
     src_h, src_s = out_dir / "src-harness", out_dir / "src-suite"
-    extract(repo, harness_sha, (".claude",), src_h)
-    extract(repo, suite_sha, SUITE_PATHS + (".claude",), src_s)
+    try:
+        extract(repo, harness_sha, (HARNESS_DIR,), src_h)
+    except BuildError as exc:
+        # The source of the harness lived in .claude/ before it moved to harness/.
+        raise BuildError(f"cannot extract {HARNESS_DIR}/ from the harness commit {harness_sha[:12]}; a commit from "
+                         f"before the source moved out of .claude/ has no {HARNESS_DIR}/ and cannot be built: {exc}") from exc
+    extract(repo, suite_sha, SUITE_PATHS + (HARNESS_DIR,), src_s)
     # The suite must hold against the harness it was written for, its own commit.
     violations = check(src_s, src_s)
     if violations:
@@ -729,7 +741,7 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
         raise BuildError(f"the harness commit has components the suite's map does not name: {', '.join(unmapped)}; "
                          "whether they may enter the eval is unknown, so use a suite commit whose map names them")
     # Likewise every settings.json key must be classified as in or out of the eval.
-    harness_settings = read_text(src_h, ".claude/settings.json")
+    harness_settings = read_text(src_h, f"{HARNESS_DIR}/settings.json")
     if harness_settings is not None:
         unclassified = sorted(set(json.loads(harness_settings)) - set(cmap.get("settings", {})))
         if unclassified:
@@ -740,7 +752,7 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     drift = check(src_h, src_s)
 
     # The plugin's only hooks are the generated ones, which --trust-plugin trusts.
-    for found in (src_h / ".claude/skills").rglob("*"):
+    for found in (src_h / HARNESS_DIR / "skills").rglob("*"):
         declares = found.name == "hooks.json" or (
             found.name == "plugin.json" and "hooks" in json.loads(found.read_text(encoding="utf-8") or "{}"))
         if found.name == "SKILL.md":
@@ -756,11 +768,11 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     (plugin / ".claude-plugin").mkdir(parents=True)
     (plugin / ".claude-plugin/plugin.json").write_text(json.dumps({
         "name": PLUGIN_NAME,
-        "description": f"Whole-harness behavior baseline: .claude/ at {harness_sha[:12]}, suite at {suite_sha[:12]}.",
+        "description": f"Whole-harness behavior baseline: {HARNESS_DIR}/ at {harness_sha[:12]}, suite at {suite_sha[:12]}.",
     }, indent=2) + "\n", encoding="utf-8")
     # A skill's own evals/ is test material, not instructions, and its
     # hand-written scaffold scripts would run as the user under --scaffold.
-    skills_root = src_h / ".claude/skills"
+    skills_root = src_h / HARNESS_DIR / "skills"
 
     def ignore(d: str, names: list[str]) -> list[str]:
         if Path(d) == skills_root:
@@ -772,7 +784,7 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     shutil.copytree(skills_root, plugin / "skills", ignore=ignore)
     # A plugin's agents/ is scanned by default; there the agent gets the
     # plugin's prefix (`<plugin>:<name>`), which the skills allow for.
-    agents_root = src_h / ".claude/agents"
+    agents_root = src_h / HARNESS_DIR / "agents"
     left_out_agents = sorted(c["id"] for c in cmap.get("components", [])
                              if c.get("id", "").startswith("agent:") and c.get("in_eval") is False)
     if left_out_agents:
@@ -789,10 +801,11 @@ def build(repo: Path, harness_ref: str, suite_ref: str, out_dir: Path) -> Built:
     for i, (rel, text) in enumerate(always_on(src_h), start=1):
         if any(re.match(r"^@\S", line) for line in text.splitlines()):
             raise BuildError(f"{rel} imports another file with @; injecting its text would not expand it")
-        if rel.startswith(".claude/rules/") and re.match(r"^---\n(?:.*\n)*?paths\s*:", text):
+        if rel.startswith(f"{HARNESS_DIR}/rules/") and re.match(r"^---\n(?:.*\n)*?paths\s*:", text):
             raise BuildError(f"{rel} is path-scoped; it would not load in every session")
-        name = f"{i:02d}-" + rel[len(".claude/"):].replace("/", "-")
-        chunk = (f"Contents of ~/{rel} (user's private global instructions for all projects):\n\n{text}")
+        name = f"{i:02d}-" + rel[len(HARNESS_DIR) + 1:].replace("/", "-")
+        # Claude Code names the installed file, not its source in this repository.
+        chunk = (f"Contents of {installed_path(rel)} (user's private global instructions for all projects):\n\n{text}")
         if len(chunk) >= HOOK_OUTPUT_CAP:
             raise BuildError(f"{rel} is {len(chunk)} characters with its header; a hook can inject fewer than {HOOK_OUTPUT_CAP}")
         (plugin / "context" / name).write_text(chunk, encoding="utf-8")
@@ -898,7 +911,7 @@ def cmd_run(args) -> int:
         print(f"note: the harness commit differs from the suite's: {line}", file=sys.stderr)
     model = args.model
     if model is None:
-        settings = json.loads((work / "src-harness/.claude/settings.json").read_text(encoding="utf-8"))
+        settings = json.loads((work / "src-harness" / HARNESS_DIR / "settings.json").read_text(encoding="utf-8"))
         model = settings.get("model")
         if not model:
             print("error: the harness sets no model; pass --model", file=sys.stderr)
@@ -1100,7 +1113,7 @@ def cmd_compare(args) -> int:
 
 def working_tree_files(repo: Path) -> list[str]:
     out = subprocess.run(["git", "-C", str(repo), "ls-files", "--cached", "--others", "--exclude-standard",
-                          "--", ".claude"], capture_output=True, text=True, check=True).stdout
+                          "--", HARNESS_DIR], capture_output=True, text=True, check=True).stdout
     return [line for line in out.splitlines() if (repo / line).is_file()]
 
 
