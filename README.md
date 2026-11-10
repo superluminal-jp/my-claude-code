@@ -258,8 +258,10 @@ redesign that produced this layout is recorded in
 - **[`chatgpt-system-prompt.md`](chatgpt-system-prompt.md),
   [`claude-ai-system-prompt.md`](claude-ai-system-prompt.md)** — Paste-ready
   portable prompts that carry this configuration's working principles into
-  the custom-instruction fields of ChatGPT and Claude.ai. They are not synced
-  by `install.sh`
+  the custom-instruction fields of ChatGPT and Claude.ai. The Claude.ai file
+  also lists the skills under `harness/skills/` that can be uploaded to
+  Claude.ai unchanged, and how to package them. They are not synced by
+  `install.sh`
 
 ## Supplementary documentation
 
