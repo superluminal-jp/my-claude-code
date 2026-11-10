@@ -1,0 +1,16 @@
+# python3 -B -m unittest -v test_harness_eval.ReviewRound7 (in tests/harness-eval) at 570a91c (HEAD; the working tree is clean), 2026-11-10
+test_a_command_file_is_a_component_that_the_map_must_name (test_harness_eval.ReviewRound7.test_a_command_file_is_a_component_that_the_map_must_name) ... ok
+test_a_harness_with_a_mapped_agent_builds_it_into_the_plugin (test_harness_eval.ReviewRound7.test_a_harness_with_a_mapped_agent_builds_it_into_the_plugin) ... ok
+test_a_harness_with_a_mapped_command_stops_the_build (test_harness_eval.ReviewRound7.test_a_harness_with_a_mapped_command_stops_the_build) ... ok
+test_a_non_reach_probe_grader_is_kept_when_its_phrase_is_gone (test_harness_eval.ReviewRound7.test_a_non_reach_probe_grader_is_kept_when_its_phrase_is_gone) ... ok
+test_a_partial_run_that_lacks_cases_records_them_and_succeeds (test_harness_eval.ReviewRound7.test_a_partial_run_that_lacks_cases_records_them_and_succeeds) ... warning: the cost ceiling stopped the run; the result is partial
+ok
+test_an_agent_file_is_a_component_that_the_map_must_name (test_harness_eval.ReviewRound7.test_an_agent_file_is_a_component_that_the_map_must_name) ... ok
+test_an_agent_the_map_leaves_out_of_the_eval_stops_the_build (test_harness_eval.ReviewRound7.test_an_agent_the_map_leaves_out_of_the_eval_stops_the_build) ... ok
+test_compare_refuses_a_complete_result_whose_run_missed_suite_cases (test_harness_eval.ReviewRound7.test_compare_refuses_a_complete_result_whose_run_missed_suite_cases) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.912s
+
+OK
+exit 0

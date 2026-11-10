@@ -1,11 +1,11 @@
-# spec 070 の対応表（人の確認用、reviewed_commit f05ce79）
+# spec 070 の対応表（人の確認用、reviewed_commit 570a91c）
 
-各行の受け入れ条件を、右の列の場所の文と突き合わせて確かめてください。行番号は `f05ce79` のものです。手順の本文は英語です。
+各行の受け入れ条件を、右の列の場所の文と突き合わせて確かめてください。行番号は `570a91c` のものです。手順の本文は英語です。
 
 | 行 | 受け入れ条件 | 確かめる場所 | 確かめること |
 |---|---|---|---|
 | 1 | R1b-A2 | `.claude/skills/requirements-decomposition/SKILL.md:16`、`references/challenger.md:3` と `:62`、`.claude/skills/verified-delivery/SKILL.md:22`、`references/reviewer.md:26`・`:30`・`:97`・`:101` | `read-only-reviewer` で起動する（プラグインでは接頭辞付き）。その型が無ければ別の型で代えずに止まり、人に伝える。reviewer の欄に、型、agentId、日付、読んだファイルの数を書く |
-| 2 | R1c-A2 | `README.md:66`・`:152-157`・`:236-242`・`:284-285`、`README.ja.md:45`・`:100`・`:176-182`・`:224-225`（`tests/run-readme-skill-index.sh` は合格） | `agents/` に `read-only-reviewer.md` があること、`~/.claude/agents/` を置き換えること、スキルが agents の定義を名前で名指してよいことを、英語と日本語の両方で書いている |
+| 2 | R1c-A2 | `README.md:66`・`:152-158`・`:237-243`・`:285-286`、`.claude/skills/verified-delivery/README.md:124` と `README.ja.md:124`（2.4）、`README.ja.md:45`・`:100`・`:176-182`・`:224-225`（`tests/run-readme-skill-index.sh` は合格） | `agents/` に `read-only-reviewer.md` があること、`~/.claude/agents/` を置き換えること、スキルが agents の定義を名前で名指してよいこと、その定義は CLAUDE.md なしで始めさせるが、読んだファイルのディレクトリの CLAUDE.md と MCP サーバーの説明文は起動の後に入ることを、英語と日本語の両方で書いている。verified-delivery の README の 2.4 も、この2つが入ることを書いている |
 | 3 | R1e-A1 | `references/reviewer.md:26`（資料の説明）、`:37-39` と `:48-53`（1回目のプロンプト）、`:108-110` と `:118-123`（2回目以降のプロンプト） | レビュー役はコマンドもスクリプトも実行できない。作業ツリーの記録の場所の外のファイルは reviewed_commit と同じ。足りない版や出力は、NOT REVIEWED ではなく指摘として報告させる |
 | 4 | R2-A1 | `requirements-decomposition/SKILL.md:16`、`references/challenger.md:43-62`、`verified-delivery/SKILL.md:22`、`references/reviewer.md:37-39`・`:78-97`・`:108-110`・`:148-154`、`references/checker.md:48`、`references/manifest.md:83` | 答えに `read` を含めさせる。エラー・停止・時間切れ・`NOT REVIEWED`・JSON でない答え・渡したファイルを `read` に挙げない答えを、レビューしていないとする。1回だけやり直し、駄目なら記録を書かずに止まって人に伝える。空の findings は、ファイルを読んで指摘が無かったときだけ。assurance review のプロンプトは、名指したファイルをそれぞれ全部読み、evidence/ の中は要るものだけ読むと書く（f05ce79）。2つのスキルで同じ規則 |
 | 5 | R3-A1 | `requirements-decomposition/SKILL.md:16`、`verified-delivery/SKILL.md:22`、`references/reviewer.md:97` | 却下の理由は2つの形だけ。読めるファイルと行（challenger では problem card か graph、assurance review では bundle かリポジトリのコミット済みのファイル）か、人に尋ねて得た決定（誰が、いつ、答えの言葉） |
@@ -13,8 +13,8 @@
 | 7 | R3-A3 | `references/reviewer.md:134-140` | 2回目以降のレビュー役に、読めるものも人の決定も引かない却下を報告させる |
 | 8 | R4-A1 | `verified-delivery/SKILL.md:22`（手順5の終わり）と `:26` | 6回目の前とその後5回ごと、往復の指摘のときに、3つの選択肢（もう1回、残る指摘を人が決める、手順2に戻る）で尋ねる。回は書いた記録で数え、レビューしなかった回は数えない。往復の判断は主のモデルがし、前の指摘の id を resolution に書き、迷えば尋ねる |
 | 9 | R0-A2 | ほかの行（1〜8、10、11）のすべてと `.claude/agents/read-only-reviewer.md` | G1〜G4 がそれぞれ閉じていて、2つのスキルが同じ規則（型、失敗の扱い、却下の根拠）を書いている |
-| 10 | R1a-A1 | `.claude/agents/read-only-reviewer.md:3`（description）。試験 `tests/assert_reviewer_agent.py` は合格（`evidence/f05ce79/reviewer-agent.txt`） | description が、手順がこの型を名指したときにだけ起動すると書いている |
-| 11 | R1d-A2 | `docs/harness-eval.md:3`（導入）と `:74`（§4 の9）。`tests/run-harness-eval.sh` は合格（`evidence/f05ce79/harness-eval.txt`） | 評価ではこの型がプラグインの接頭辞の付いた名前（`harness:read-only-reviewer`）になること、プラグインの定義で omitClaudeMd と tools が効くことは確かめていないことを書いている |
+| 10 | R1a-A1 | `.claude/agents/read-only-reviewer.md:3`（description）。試験 `tests/assert_reviewer_agent.py` は合格（`evidence/570a91c/reviewer-agent.txt`） | description が、手順がこの型を名指したときにだけ起動すると書いている |
+| 11 | R1d-A2 | `docs/harness-eval.md:3`（導入）と `:74`（§4 の9）。`tests/run-harness-eval.sh` は合格（`evidence/570a91c/harness-eval.txt`） | 評価ではこの型がプラグインの接頭辞の付いた名前（`harness:read-only-reviewer`）になること、プラグインの定義で omitClaudeMd と tools が効くことは確かめていないことを書いている |
 
 ## 承認が要る試験の置き換え（gate の A-06）
 

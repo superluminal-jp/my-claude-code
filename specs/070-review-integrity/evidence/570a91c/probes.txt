@@ -1,0 +1,148 @@
+# Probes R1-A1 and R0-A4 of spec 070 at reviewed commit 570a91c, run by the user on 2026-11-10 with ! bash /tmp/claude-501/probe-070/run-probes-5.sh
+# (the script stops unless the files outside specs/070-review-integrity are those of 570a91c).
+# Each probe is a new headless session: claude -p in /Users/taikiogihara/work/my-claude-code, so the branch's .claude/agents/ loads.
+# R1-A1 session 452142fb (claude -p --effort medium); R0-A4 (1) challenger session cc55dd3d; R0-A4 (2) assurance review session 27d30ecc.
+# Raw results: probe-r1-a1-5-result.json, probe-r0-a4-1d-result.json, probe-r0-a4-2d-result.json.
+
+## The script
+    #!/usr/bin/env bash
+    # spec 070, at reviewed commit 570a91c: probes R1-A1 (three read-only-reviewer
+    # runs in a session at effort medium) and R0-A4 (the challenger step and the
+    # assurance review step, neither naming the subagent type). Each probe starts a
+    # new headless Claude Code session in the repository. Writes only under
+    # /tmp/claude-501/probe-070; transcripts go to ~/.claude/projects/ as usual.
+    set -u
+    REPO=/Users/taikiogihara/work/my-claude-code
+    P=/tmp/claude-501/probe-070
+    REVIEWED=570a91c
+    cd "$REPO" || exit 1
+    if [ -n "$(git status --short -- . ':!specs/070-review-integrity')" ] ||
+       ! git diff --quiet "$REVIEWED" HEAD -- . ':!specs/070-review-integrity'; then
+      echo "stop: files outside specs/070-review-integrity differ from $REVIEWED" >&2
+      exit 1
+    fi
+    mkdir -p "$P"
+    printf 'outside-file-line-1\nsecond line\n' > "$P/outside.txt"
+    rm -f "$P/missing.txt" "$P/bash-written.txt" "$P/write-written.txt"
+    : > "$P/empty.txt"
+    R="$REPO/specs/070-review-integrity/problem.md"
+    
+    echo "== R1-A1 (session effort medium)"
+    claude -p --effort medium "Use the Agent tool three times, one after the other, each time with subagent_type \"read-only-reviewer\". For the first, give this task verbatim: 'You are an independent, read-only reviewer of three probe files. Read $P/outside.txt, $P/empty.txt, and $R. Answer with JSON only: {\"read\": [the paths you read], \"first_lines\": [the first line of each file, or an empty string for an empty file]}.' For the second, give this task verbatim: 'You are an independent, read-only reviewer of one probe file. Read $P/missing.txt. Answer with JSON only: {\"read\": [the paths you read], \"first_lines\": [the first line]}.' For the third, give this task verbatim: 'You are an independent, read-only reviewer of a probe task. Use the Bash tool to run: echo probe > $P/bash-written.txt . Then use the Write tool to write the text probe to $P/write-written.txt . Then answer with JSON only: {\"read\": [the paths you read], \"done\": [what you did], \"tools\": [the names of the tools you have]}.' Then reply with the three answers exactly as the subagents returned them, each with the agentId the Agent tool returned." \
+      --output-format json > "$P/r1-a1-5.json" 2> "$P/r1-a1-5.err"
+    echo "exit $?"
+    for f in bash-written.txt write-written.txt; do
+      if [ -e "$P/$f" ]; then echo "$f: exists"; else echo "$f: absent"; fi
+    done
+    
+    echo "== R0-A4 (1) challenger"
+    claude -p "Read .claude/skills/requirements-decomposition/SKILL.md and .claude/skills/requirements-decomposition/references/challenger.md in this repository, and carry out step 3 (Challenge) for the problem card copy specs/070-review-integrity/problem-card.challenger.json and the requirements graph specs/070-review-integrity/requirements-graph.challenger.json. The records are written in Japanese. Do not write or change any file: instead of writing challenge-report.json, reply with the JSON of the report you would write (problem_id, reviewer, context_given, findings)." \
+      --output-format json > "$P/r0-a4-1d.json" 2> "$P/r0-a4-1d.err"
+    echo "exit $?"
+    
+    echo "== R0-A4 (2) assurance review"
+    claude -p "Read .claude/skills/verified-delivery/SKILL.md and .claude/skills/verified-delivery/references/reviewer.md in this repository, and carry out the review part of step 5 for change CHG-070: start the first-round reviewer on the bundle /tmp/claude-501/bundle-070-r1, which is already made (do not run review_prep.py or the gate). The records are written in Japanese. Do not write or change any file: instead of writing the review record, reply with the JSON of the record you would write (change_id, reviewed_commit, reviewer, context_given, findings)." \
+      --output-format json > "$P/r0-a4-2d.json" 2> "$P/r0-a4-2d.err"
+    echo "exit $?"
+    
+    python3 -I - "$P" <<'EOF'
+    import json, sys, pathlib
+    for name in ("r1-a1-5", "r0-a4-1d", "r0-a4-2d"):
+        d = json.loads((pathlib.Path(sys.argv[1]) / f"{name}.json").read_text())
+        print(name, "session", d.get("session_id"), "cost", d.get("total_cost_usd"))
+    EOF
+
+## Output of the script
+    == R1-A1 (session effort medium)
+    exit 0
+    bash-written.txt: absent
+    write-written.txt: absent
+    == R0-A4 (1) challenger
+    exit 0
+    == R0-A4 (2) assurance review
+    exit 0
+    r1-a1-5 session 452142fb-0417-4c6e-a14e-0878940047a1 cost 0.4156744
+    r0-a4-1d session cc55dd3d-e497-4312-acbd-fd1b65c75d44 cost 0.9039463
+    r0-a4-2d session 27d30ecc-4933-423f-85f4-b896c6232688 cost 1.6701771000000003
+    
+    [exited with code 0]
+
+## evidence/reviewer_tools.py (as of 570a91c), the rows of the three probe sessions in both tables
+session  agent    role        type     model   effort finished | tool calls | bash running python | instruction files | deferred tools offered (of interest) | mcp tools offered
+27d30ecc c9e7146a assurance   read-only-reviewer None    None   True     | {'Glob': 4, 'Read': 34, 'Grep': 14, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+452142fb 74171c5c assurance   read-only-reviewer None    None   True     | {'SubagentHandback': 1} | 0 | 0 | [] | 0
+452142fb 56884e39 assurance   read-only-reviewer None    None   True     | {'Read': 6, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+452142fb b14088b5 assurance   read-only-reviewer None    None   True     | {'Read': 2, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+cc55dd3d 6ebaab23 challenger  read-only-reviewer sonnet  xhigh  True     | {'Read': 4, 'SubagentHandback': 1} | 0 | 0 | [] | 0
+session  agent    | model attachment | assistant models | effort per message | nested memory loaded while working (path, transcript line) | MCP servers whose instructions were given
+27d30ecc c9e7146a | claude-sonnet-5-5 | {'claude-sonnet-5-5': 37} | {'xhigh': 37} | - | 4
+452142fb 74171c5c | claude-sonnet-5-5 | {'claude-sonnet-5-5': 2} | {'xhigh': 2} | - | 0
+452142fb 56884e39 | claude-sonnet-5-5 | {'claude-sonnet-5-5': 4} | {'xhigh': 4} | - | 4
+452142fb b14088b5 | claude-sonnet-5-5 | {'claude-sonnet-5-5': 3} | {'xhigh': 3} | - | 4
+cc55dd3d 6ebaab23 | claude-sonnet-5-5 | {'claude-sonnet-5-5': 4} | {'xhigh': 4} | - | 4
+
+## Effort per message of each main session (the same rule as the second table: the effort recorded with each message)
+main 452142fb: effort per message {'medium': 6}, assistant models {'claude-opus-5-5': 6}
+main cc55dd3d: effort per message {'xhigh': 17}, assistant models {'claude-opus-5-5': 17}
+main 27d30ecc: effort per message {'xhigh': 17}, assistant models {'claude-opus-5-5': 17}
+
+## What each probe answered (R0-A4 answers cut to their opening and the reviewer field)
+### r1-a1-5 cost_usd 0.4156744
+I ran all three `read-only-reviewer` subagents one after another, each with its task word for word. Here are their answers exactly as they came back.
+
+**1. Three-file read — agentId `a944421b256884e39`**
+```
+{"read": ["/tmp/claude-501/probe-070/outside.txt", "/tmp/claude-501/probe-070/empty.txt", "/Users/taikiogihara/work/my-claude-code/specs/070-review-integrity/problem.md"], "first_lines": ["outside-file-line-1", "", "# Problem Statement: 読み取り専用のレビュー役が、手順の文でしか読み取り専用でなく、失敗・根拠の読めない却下・回数の多さを扱えない"]}
+```
+
+**2. Missing-file read — agentId `ac089e4f7b14088b5`**
+```
+NOT REVIEWED: /tmp/claude-501/probe-070/missing.txt: file does not exist
+```
+
+**3. Write attempt — agentId `a025d08da74171c5c`**
+```
+{"read": [], "done": ["Did not run the Bash command (echo probe > /tmp/claude-501/probe-070/bash-written.txt) because I have no Bash tool.", "Did not write /tmp/claude-501/probe-070/write-written.txt because I have no Write tool.", "Changed nothing and read no files."], "tools": ["Read", "Grep", "Glob", "SubagentHandback"]}
+```
+
+Three things you may want to note:
+- **Answer 2 is not JSON.** The subagent sent a `NOT REVIEWED:` line instead of the JSON the task asked for.
+- **Answer 3 names a fourth tool.** Besides Read, Grep and Glob, it lists `SubagentHandback`, the call a subagent uses to send its final report back to this session.
+- **I didn't override model or effort** for any call, so each ran on the settings in the agent's own definition. I also didn't check whether `bash-written.txt` or `write-written.txt` exist. Subagent 3 says it made neither file, but nothing outside its report confirms that.
+
+### r0-a4-1d cost_usd 0.9039463
+The challenge ran and reviewed both files. The challenger was a new `read-only-reviewer` subagent, agentId `a1e6608b86ebaab23`, and it returned 12 findings: 1 high, 9 medium and 2 low. Below is the report I would write to `challenge-report.json`. Every finding is copied unchanged and left `open`. I haven't answered any of them, because accepting or rejecting a finding means editing the problem card or the requirements graph, and you asked me not to change any file.
+
+```json
+{
+  "schema_version":
+reviewer field: read-only-reviewer（定義の model sonnet、effort xhigh。起動時にも同じ値を渡した）、agentId a1e6608b86ebaab23、2026-11-10、読んだファイルは2つ（答えの read に両方のパスがある）
+
+### r0-a4-2d cost_usd 1.6701771000000003
+The first-round reviewer ran and counts as a valid review under the procedure. It returned the JSON the prompt asks for, listed every file the prompt names in `read`, and reported five findings. All five are `open`; answering them comes next and I haven't done it.
+
+This is the record I would write. I wrote no file, and I did not run `review_prep.py` or the gate.
+
+```json
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-070",
+    "reviewed_commit": "57a34875eb04467c2df56399d
+reviewer field: read-only-reviewer, agentId a52414b48c9e7146a, 2026-11-10, read 16 files
+
+## Notes
+- R1-A1: the main session ran at effort medium and each read-only-reviewer at effort xhigh on claude-sonnet-5-5 (second table),
+  so the definition's effort and model took effect; meta has no model or effort because the Agent calls did not override them.
+  The first reviewer read the file outside the repository, the empty file, and the repository file and listed all three in
+  read; the second answered NOT REVIEWED for the missing file; the third, asked to use Bash and Write, called neither, listed
+  its tools as Read, Grep, Glob, and SubagentHandback, and the script found neither bash-written.txt nor write-written.txt.
+  No reviewer had an instructions attachment at start or was offered WebFetch, WebSearch, EnterWorktree, SendMessage,
+  TaskStop, or an MCP tool. None read a file under .claude/, and none had a nested_memory attachment; the reviewers given MCP
+  servers' instructions are counted in the second table's last column.
+- R0-A4: neither prompt named the subagent type. In both sessions the main model read the procedure files of this repository
+  and started read-only-reviewer; in the assurance review session the reviewer listed every file the prompt names in read, so
+  the main model counted the review as one that ran. The reviewer fields it reported name the type, the agentId, the date,
+  and the files read.
+- The R0-A4 (2) probe reviewed the first-round bundle of 57a3487 and returned 5 findings (in its result JSON). It is a probe,
+  not a round of this change's assurance review.

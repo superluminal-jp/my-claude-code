@@ -1,0 +1,24 @@
+# CI of PR #125 (superluminal-jp/my-claude-code), read from the GitHub REST API without authentication on 2026-11-10
+# run: https://github.com/superluminal-jp/my-claude-code/actions/runs/42728828621 (event pull_request)
+# PR head (reviewed_commit): 570a91c0decece73d96b98fbbb21a52420408d00
+# PR base: main at 55c54f418287227c4747def7e8d650630eb49e62; main is now at 55c54f418287227c4747def7e8d650630eb49e62
+# merge commit the job checks out (refs/pull/125/merge): e889beb1bbc75354c3fd0804e75a3a5de4c136ac
+# The base has not moved since the change branched from 55c54f4, so the merge tests exactly the change on top of main.
+# The job's log needs authentication and was not read; the step results below come from the jobs API.
+job test: completed / success  https://github.com/superluminal-jp/my-claude-code/actions/runs/42728828621/job/129541319733  head_sha 570a91c0decece73d96b98fbbb21a52420408d00
+  step  1 success  Set up job
+  step  2 success  Run actions/checkout@v4
+  step  3 success  Install uv (provides uvx)
+  step  4 success  Run installer contract tests
+  step  5 success  Run digital-agency-frontend skill tests
+  step  6 success  Run removed-guardrails regression tests
+  step  7 success  Run sandbox settings contract tests
+  step  8 success  Run package-safety bundle contract tests
+  step  9 success  Run README skill-index check
+  step 10 success  Run requirements-decomposition skill tests
+  step 11 success  Run verified-delivery skill tests
+  step 12 success  Run harness behavior baseline checks
+  step 13 success  Run MCP startup smoke test
+  step 25 success  Post Install uv (provides uvx)
+  step 26 success  Post Run actions/checkout@v4
+  step 27 success  Complete job
