@@ -39,7 +39,7 @@ Keep repository history reviewable without extending the person's authorization 
 - Use the same subject grammar for the title. In the body put the conclusion first, then what changed, why, how it was verified, and any known limitation; link stable requirements or issues when there are any.
 - Push only the designated branch, and set its upstream explicitly on the first push.
 - Retry only a failure that is plausibly transient, with bounded backoff. Authentication, authorization, rejected-history, policy, and validation failures are not network noise.
-- Inside the Bash sandbox, a push or a pull-request command needs the remote host. When the sandbox blocks it, report the host and stop; do not work around the sandbox.
+- Inside the Bash sandbox, a push or a pull-request command usually cannot run: it needs the remote host and the credentials for it (SSH keys, the GitHub CLI's token), and the sandbox withholds both. When the sandbox blocks an operation the person asked for, ask to run that one command outside the sandbox through the session's permission prompt, and say what was blocked. If that is refused, give the person the exact command and stop. Never reach the remote another way, such as another credential, another host, or another tool.
 
 ## Safety boundaries
 
