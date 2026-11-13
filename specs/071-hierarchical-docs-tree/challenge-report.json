@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "PRB-071",
+    "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId a37265274ebe381eb、2026-11-14。specify-requirements の references/challenge.md の手順に沿って起動した。読んだファイルは2つ。完了通知のトークンは33,860、ツールの呼び出しは3回",
+    "context_given": [
+      "problem card の写し specs/071-hierarchical-docs-tree/problem-card.challenger.json（proposed_solutions を除いたもの。指摘に答えて直す前の版）",
+      "requirements graph specs/071-hierarchical-docs-tree/requirements-graph.json（渡したときの版を requirements-graph.challenger.json に残した）",
+      "references/challenge.md の指示文を、2つのパスと記録の言語（日本語）のほかは変えずに渡した"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "solution_as_problem",
+        "target": "PRB-071",
+        "severity": "medium",
+        "statement": "gap の2文目が、理想と現状の差ではなく、足りない手段の一覧になっている。「階層の宣言も、README のひな形も、上の階層の README を更新候補に挙げる仕組みも、木の形の検査も、まとめて作る手順もない」は、設定キー、ひな形、find_related の拡張、検査スクリプト、手順書という解決策の部品を並べたものである。理想の状態(README が欠けたまま、または親子のリンクが切れたまま残る)に対し、現状で何が起きているかを書いていない。たとえば、検査を足さず別の手段で同じ状態にしても gap は埋まるが、この gap の書き方ではそれを認められない。",
+        "disposition": "accepted",
+        "resolution": "gap を、足りない手段の一覧から、状態の差に書き直した。現状の側を『README の無い段や親子のつながっていない README が何の報告もなく残り、機能フォルダの中を変えてもその README は更新候補に挙がらず、既存のリポジトリに一度に作ることもできない』とし、current も同じ観点（起きていること）で書き直した。problem.md のギャップも同じ文に直した。"
+      },
+      {
+        "id": "CH-02",
+        "kind": "missing_evidence",
+        "target": "PRB-071",
+        "severity": "medium",
+        "statement": "significance は「利用者の懸念は、文書がコードと食い違い、AI がそれをもとに答えること」と書く。しかし、README の木が欠けた、またはリンクが切れたために実際に困った事例を、evidence は1件も記録していない。evidence は sync-docs に機能がないことを示すだけである。また、親子リンクの検査は構造の欠けしか見つけられない。README の本文とコードの食い違いは out_of_scope である。そのため、木の形の検査が通っても、懸念されている「コードとの食い違い」は残る。「親子のリンクが欠けた README は機械的に見つけられる食い違い」という書き方は、構造の不整合とコードとのずれを混同している。「木を作れば懸念が減る」は仮説だが、hypotheses は空で status は verified になっている。さらに、evidence 自身が practices.md:135 を引き、この階層を示す出典はないと認めている。",
+        "disposition": "accepted",
+        "resolution": "significance から『機械的に見つけられる食い違い』の書き方を外し、機械で見つけられるのは構造の欠け（README の欠けと親子のリンクの欠け）だけで、本文とコードの食い違いではないと書いた。『木があれば懸念が減る』を hypotheses に移し、未検証と明記した。困った事例のデータがないことを significance に書いた。利用者の発言（2026-11-10 と 2026-11-14 の原文）を evidence に加え、status が current の観察だけに基づくことを status_rationale に書いた。"
+      },
+      {
+        "id": "CH-03",
+        "kind": "missing_evidence",
+        "target": "PRB-071",
+        "severity": "medium",
+        "statement": "「仕組みがない」という否定の主張に対し、それを支える観察が足りない。(1) 既存の設定には `related` キーがある。これで機能フォルダの README を手動で更新候補に挙げられるのかを、evidence は確かめていない。find_related.py の P1 以外の近接度(祖先フォルダなど)が機能フォルダの README を拾うかも記録がない。それでも gap は「更新候補に挙げる仕組みがない」と断定している。(2) 木の形の検査が既にないことは、check_links.py の docstring だけで示している。docstring は実装そのものではない。sync-docs の scripts/ の一覧(templates/ には ls がある)も記録がない。README の有無や親子を見る別のスクリプトが既にある可能性を、evidence は除いていない。",
+        "disposition": "accepted",
+        "resolution": "evidence を足した。(1) find_related.py:8-13 の docstring と 92-101 の find_candidates を引き、候補の種類が P0〜P3 の4つだけで、上のフォルダをたどる処理がないことを書いた。config.schema.json の related のメンバーが max_candidates と min_name_length だけで、特定の文書を候補に加える設定がないことを書いた。(2) scripts/ の一覧（5つ）と grep の結果を引き、README の有無や親子を調べる処理がどのスクリプトにもないこと、check_links.py の check_file（181-239行）の実装が調べる範囲を書いた。"
+      },
+      {
+        "id": "CH-04",
+        "kind": "missing_child",
+        "target": "REQ-ROOT",
+        "severity": "medium",
+        "statement": "宣言した各節に、ルート・プロダクト・機能フォルダのどのひな形を当てるかを決める要件がない。REQ-DECLARE の宣言は glob の並びだけで、節の種類を持たない。それなのに REQ-TEMPLATES は3種類のひな形を用意し、REQ-BUILD は「宣言したすべての節の README をひな形から作る」とする。REQ-PROPOSE が出す packages/* や services/* がプロダクトなのか機能なのか、products/* と products/*/src/features/* のように深さが違うときにどちらを使うのかも定まらない。子の要件がすべて満たされても、一括構築がどの節にどのひな形を使うかは実行する AI の推測になり、ひな形ごとの欄(機能フォルダにだけある「扱わないこと」など)が誤った節に入る。",
+        "disposition": "accepted",
+        "resolution": "REQ-DECLARE を、プロダクトの段と機能フォルダの段を段ごとに宣言する形に直し、節が種類（リポジトリ、プロダクト、機能フォルダ）を持つようにした。REQ-TEMPLATES と REQ-BUILD は節の種類のひな形を当てると書き、AC-BUILD-1 に (d) を加えた。REQ-PROPOSE は、workspaces と uv の members をプロダクトの段、features の子を機能フォルダの段の候補にすると定めた。両方の宣言に一致するフォルダは設定エラーとした（AC-DECL-2）。"
+      },
+      {
+        "id": "CH-05",
+        "kind": "missing_child",
+        "target": "REQ-ROOT",
+        "severity": "medium",
+        "statement": "REQ-ROOT 自身が挙げた counterexamples の3つ目「find_related.py と木の検査が宣言を別々に解釈するので、片方が認める節をもう片方が認めない」を防ぐ子の要件も受け入れ基準もない。REQ-DECLARE は節と親の決まりをテストするが、find_related.py と木の検査が同じ解釈を使うことは要求していない。REQ-RELATED の AC-REL-1/2 は独自のフィクスチャで動くだけである。両者が別々に glob を展開しても、すべての子の AC は通る。その状態では、README が必要と検査が言う節に更新候補が挙がらない、またはその逆が起きる。",
+        "disposition": "accepted",
+        "resolution": "子 REQ-SHARED を加えた。AC-SHARED-1 は、除外フォルダ、ファイルに一致するパターン、入れ子の宣言を含む1つのフィクスチャで、木の検査が出す節の一覧と、find_related.py が挙げる節の README のフォルダの一覧が一致することを確かめる。"
+      },
+      {
+        "id": "CH-06",
+        "kind": "counterexample",
+        "target": "REQ-BUILD",
+        "severity": "medium",
+        "statement": "REQ-ROOT の counterexamples の4つ目「一括構築が、確かめていない内容を README に事実として書き、木の形の検査は通ってしまう」を、受け入れ基準が検出できない。AC-BUILD-1 は SKILL.md の本文に「確かめた事実だけを書く」「未記入と書く」という語句があることしか確かめない。AC-ROOT-1 は木の形(終了コード 0 と下向きのリンクでたどれること)しか見ない。作られた README の本文が事実か未記入かは、どの基準にも入っていない。手順書に文言があるのに、AI が推測を事実として書く状況でも、すべての AC が通る。",
+        "disposition": "accepted",
+        "resolution": "REQ-BUILD の報告に、書いた事実ごとの出典（ファイルと行）を加えた（AC-BUILD-1 の (g)）。REQ-ROOT に AC-ROOT-4 を加えた。一括構築の dry run で作った README と報告を、会話を渡さない読み取り専用のレビュー役がフィクスチャと照らし、出典も未記入の印も無い記述が0件であることを確かめる。"
+      },
+      {
+        "id": "CH-07",
+        "kind": "counterexample",
+        "target": "REQ-CHECK",
+        "severity": "medium",
+        "statement": "REQ-CHECK の counterexamples の2つ目「2段目の節の検査が1段目の結果に依存して止まり、3段目の欠けが報告されない」を確かめる基準がない。AC-CHECK-1 は1回に1か所しか壊さない。「README を1つ消す」がどの段(プロダクトか機能フォルダか)かも指定していない。プロダクトの README を消すと、その子の上向きリンクと、その節からの下向きリンクをどう扱うか(飛ばすのか、読めないとして報告するのか)が仕様にない。複数の段で同時に欠けた木の検査結果も、AC のどこにも書かれていない。実装が中間の README の欠けで検査を打ち切っても、AC-CHECK-1 は通る。",
+        "disposition": "accepted",
+        "resolution": "REQ-CHECK に、1か所の欠けにつき1件のエラーとすること、リンクがあるかはリンク先のパスで判断すること、README の無い節より下の節も検査することを書いた。AC-CHECK-1 を、どの段のどの欠けかを指定した6通りに直した。違う段の3か所を同時に壊す AC-CHECK-3 を加えた。"
+      },
+      {
+        "id": "CH-08",
+        "kind": "missing_child",
+        "target": "REQ-MAINTAIN",
+        "severity": "medium",
+        "statement": "「その後はコードの変更に合わせて保たれる」「木が崩れたときは検査がエラーにする」という保守の面が、AI が SKILL.md の手順に従ったときだけ働く構造になっている。AC-MAINT-1 は SKILL.md の本文に語句があるかしか確かめない。evidence は、この skill に enforcement 設定と ci/github-actions.yml のひな形があることを示している。しかし、木の検査を enforcement の方針や CI のひな形にどう組み込むかの要件がない。人が sync-docs を使わずに機能フォルダを足してコミットすると、README の欠けは次に sync-docs が動くまで検出されない。すべての子が満たされても、親の「木が崩れたときは検査がエラーにする」は、CI や手作業の変更という別の経路では成り立たない。(CI のひな形の中身はこの2ファイルでは読めず、実際の扱いは未確認。)",
+        "disposition": "accepted",
+        "resolution": "子 REQ-CI を加えた。CI のひな形が木の検査を実行し、sync-docs を使わない変更でも木が崩れていれば CI が失敗する。AC-CI-1 はひな形の run の行を実際に実行して確かめる。ひな形を読んだところ、SKILL_DIR が廃止された skill の名前 .claude/skills/maintaining-living-documentation を指していた（変更前からの食い違い）。木の検査の段も同じ SKILL_DIR を使うので、この変更の範囲として直す（AC-CI-2）。enforcement の設定は Stop フックの方針を述べるが、harness/settings.json には Stop フックがない（2026-11-14 に確認）。そのため、この変更では enforcement に組み込まない。"
+      },
+      {
+        "id": "CH-09",
+        "kind": "counterexample",
+        "target": "REQ-ROOT",
+        "severity": "low",
+        "statement": "理想は「各 README はその範囲が何のためにあるかを書く」だが、一括構築は確かめられない事実を「未記入」と書くので、目的の欄が未記入のままの README の木ができる。木の検査は構造しか見ないため、それでも終了コード 0 を返す。「未記入」が残っていることを後から検出する要件もなく、報告は構築時の1回だけである。すべての子の要件が満たされても、目的を書いていない README が、通った木のまま残り続ける。",
+        "disposition": "accepted",
+        "resolution": "子 REQ-UNFILLED を加えた。木の検査は、実行のたびに、未記入の印が残る README とその数を警告として出す。終了コードは変えない。中身のずれは報告にとどめるという利用者の決定（problem.md の『構造の欠けはエラーにする。』の項）に合わせた。ひな形には決まった未記入の印を置く（REQ-TEMPLATES）。"
+      },
+      {
+        "id": "CH-10",
+        "kind": "missing_child",
+        "target": "REQ-DECLARE",
+        "severity": "low",
+        "statement": "宣言のキーを schemas/config.schema.json に加える要件がない。evidence は、このスキーマに階層を宣言するキーがないことを根拠にしている。AC-DECL-2 が確かめるのは設定の読み込み(Python 側)だけである。スキーマのファイルを更新しなくても、すべての AC は通る。そのとき、スキーマに従って設定を検証する利用者や編集環境は、新しい宣言のキーを不正とする。",
+        "disposition": "accepted",
+        "resolution": "REQ-DECLARE に AC-DECL-4 を加えた。schemas/config.schema.json が宣言のキーを、2つのメンバー（どちらも文字列の配列）と additionalProperties: false で定義することと、読み込みとスキーマが一致することを確かめる。"
+      },
+      {
+        "id": "CH-11",
+        "kind": "other",
+        "target": "REQ-DECLARE",
+        "severity": "low",
+        "statement": "instruction の origin を持つ要件(REQ-DECLARE、REQ-CHECK-README、REQ-CHECK-DOWN、REQ-CHECK-UP、REQ-PROPOSE、REQ-BUILD)の `by` が「利用者」で、個人を指す名前ではなく役割名になっている。指示した人を特定できない。`ref` は problem.md の見出しを指しているが、この確認ではそのファイルを読めておらず、引用された見出し(例 『構造の欠けはエラーにする』)が存在するかは確かめていない。問題カードの evidence が引くユーザーの回答の文言は「README の欠けと親子のリンクの欠けはエラーにする」で、ref の見出しの文言とは違う。",
+        "disposition": "accepted",
+        "resolution": "6つの origin の by を、このリポジトリの過去の requirements graph（specs/066〜070 の10件）と同じく、回答した人の名前 Taiki Ogihara に直した。ref は、problem.md の『合意済みの決定（利用者の回答、2026-11-14）』にある項の書き出しの文（『階層は設定で宣言する。』『構造の欠けはエラーにする。』『まとめて作る機能を含める。』と、宣言がないときの文）をそのまま引くようにした。問題カードの evidence も、利用者が選んだ選択肢の文言と problem.md の項の名前を並べて書くようにした。"
+      }
+    ]
+  }
+}

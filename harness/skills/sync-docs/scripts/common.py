@@ -450,3 +450,66 @@ def classify(relative: str, config: dict) -> set[str]:
     if not cats:
         cats.add("implementation")
     return cats
+
+
+# --------------------------------------------------------------------------
+# Documentation tree (the optional "tree" declaration)
+# --------------------------------------------------------------------------
+
+TREE_KINDS = {"products": "product", "features": "feature"}
+ROOT_KIND = "repository"
+README_NAME = "README.md"
+
+
+class TreeNode(NamedTuple):
+    path: str            # project-relative directory; "" is the repository root
+    kind: str            # "repository", "product", or "feature"
+    parent: str | None   # path of the nearest node above; None for the root
+
+
+def segment_match(relative: str, pattern: str) -> bool:
+    """Match a directory path segment by segment: '*' stays inside a segment, '**' spans any number."""
+    parts = relative.split("/")
+    pattern_parts = pattern.removeprefix("./").strip("/").split("/")
+
+    def match(i: int, j: int) -> bool:
+        if j == len(pattern_parts):
+            return i == len(parts)
+        if pattern_parts[j] == "**":
+            return any(match(k, j + 1) for k in range(i, len(parts) + 1))
+        return i < len(parts) and fnmatch.fnmatchcase(parts[i], pattern_parts[j]) and match(i + 1, j + 1)
+
+    return match(0, 0)
+
+
+def directories_of(files: Iterable[str]) -> set[str]:
+    """Every directory that holds at least one of ``files`` (project-relative), the root excluded."""
+    dirs: set[str] = set()
+    for rel in files:
+        parts = rel.split("/")[:-1]
+        dirs.update("/".join(parts[:i]) for i in range(1, len(parts) + 1))
+    return dirs
+
+
+def tree_nodes(root: Path, config: dict, files: list[str] | None = None) -> list[TreeNode]:
+    """The nodes of the declared documentation tree, root first, then by path.
+
+    A directory is a node when it holds a listed (so existing and not excluded) file
+    and matches a pattern of exactly one kind; one that matches both kinds is a
+    ConfigError. Every node's parent is the nearest node above it, else the root.
+    """
+    declaration = config.get("tree", {})
+    if files is None:
+        files = list_files(root, config)[0]
+    kinds: dict[str, str] = {}
+    for directory in sorted(directories_of(files)):
+        matched = [key for key in TREE_KINDS if any(segment_match(directory, p) for p in declaration.get(key, []))]
+        if len(matched) > 1:
+            raise ConfigError(f"invalid {CONFIG_NAME}: {directory} matches both tree.products and tree.features")
+        if matched:
+            kinds[directory] = TREE_KINDS[matched[0]]
+    nodes = [TreeNode("", ROOT_KIND, None)]
+    for directory, kind in kinds.items():
+        above = [d for d in kinds if directory.startswith(d + "/")]
+        nodes.append(TreeNode(directory, kind, max(above, key=len) if above else ""))
+    return nodes

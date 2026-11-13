@@ -2,14 +2,17 @@
 #
 # Copy to .github/workflows/living-documentation.yml in the target project.
 # Assumes the Skill is installed in the repository at
-# .claude/skills/maintaining-living-documentation (project installation);
+# .claude/skills/sync-docs (project installation);
 # adjust SKILL_DIR otherwise. Pin actions to full commit SHAs if your
 # security policy requires it.
 #
 # The audit step is advisory (it never fails the job). The link check fails
 # only on broken local links in changed files or links to changed/deleted
 # targets; add --strict to also fail on unresolved anchors and root links,
-# and --site-root <dir> if documentation uses site-absolute links.
+# and --site-root <dir> if documentation uses site-absolute links. The tree
+# check fails when the project declares a documentation tree ("tree" in
+# .living-documentation.json) and a node lacks its README or a parent-child
+# link; without a declaration it only prints candidate patterns.
 
 name: living-documentation
 
@@ -23,7 +26,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     env:
-      SKILL_DIR: .claude/skills/maintaining-living-documentation
+      SKILL_DIR: .claude/skills/sync-docs
       BASE_REF: origin/${{ github.base_ref }}
     steps:
       - uses: actions/checkout@v7
@@ -39,3 +42,6 @@ jobs:
 
       - name: Link check (changed scope)
         run: python3 "$SKILL_DIR/scripts/check_links.py" --root . --changed --base "$BASE_REF"
+
+      - name: Documentation tree
+        run: python3 "$SKILL_DIR/scripts/check_tree.py" --root .

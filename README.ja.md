@@ -119,7 +119,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     `sync-docs`（変更に合わせて、コード・仕様・決定・研究の成果物とドキュメントの整合を保ち、
     ドキュメントのずれを監査する。同梱の読み取り専用の標準ライブラリのスクリプトが、プロジェクトを調べ、
     変更された成果物の種類と、変更したファイルの近くにある文書を挙げ、リンクを検査する。更新は同じ変更に入れ、
-    報告は `Documentation impact` のブロックを持つ。`.living-documentation.json` はスクリプトの分類を補正する）、
+    報告は `Documentation impact` のブロックを持つ。`.living-documentation.json` はスクリプトの分類を補正し、
+    プロダクトと機能フォルダの文書の木を宣言できる。宣言した木の README が親子で互いにリンクしていることを
+    `check_tree.py` が検査する。頼まれれば、節の種類ごとの README のひな形からその木を作り、確かめた事実だけを書き、
+    残りに `TODO(unfilled)` を付ける）、
     `manage-git`（履歴をレビューできる形に保ち、頼まれた範囲を超えて公開しないための、ブランチ・
     Conventional Commits・プッシュ・プルリクエストの運用。コミット・プッシュ・プルリクエストは、それぞれ
     別の依頼を要する）、
@@ -321,9 +324,9 @@ my-claude-code/
         ├── sync-docs/              # 変更とドキュメントの整合(作業)
         │   ├── SKILL.md            #   プレイブック
         │   ├── references/         #   実務、規格とその優先順位、規範の根拠、文献表
-        │   ├── scripts/            #   inspect_project.py、audit.py、find_related.py、check_links.py(標準ライブラリのみ)
+        │   ├── scripts/            #   inspect_project.py、audit.py、find_related.py、check_links.py、check_tree.py(標準ライブラリのみ)
         │   ├── schemas/            #   .living-documentation.json の config.schema.json
-        │   ├── templates/          #   ADR、アーキテクチャ記述、来歴、CI ワークフロー
+        │   ├── templates/          #   ADR、アーキテクチャ記述、来歴、文書の木の節の種類ごとの README、CI ワークフロー
         │   └── tests/              #   単体テスト
         ├── manage-git/SKILL.md     # ブランチ/コミット/プッシュ/PR 運用(作業。リモートのホストが要る)
         ├── research-aws/SKILL.md   # AWS 公式ドキュメントの最新調査(作業)

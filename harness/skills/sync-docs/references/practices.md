@@ -92,6 +92,8 @@ Where each kind of knowledge goes, for a project that has no convention of its o
 | Layer | Reader's question | Placement | Form | Basis |
 |---|---|---|---|---|
 | Project entry (README) | What is this, and where do I start? | `README.md` at the repository root; localized copies as `README.<lang>.md` | Purpose, prerequisites, shortest path to a result; links onward and holds no detail | Sourced [GoogleSWE2020]: a landing page states its purpose and mainly links. The repository-root placement is a design decision |
+| Product entry (README) | What is this product, and where are its parts? | `README.md` in each product folder of a declared documentation tree | Purpose, how to run and test it, its boundaries; links to its feature READMEs and back to the repository README | Design decision: the documentation tree (see Documentation tree); the landing-page form follows [GoogleSWE2020] |
+| Feature README | What does this feature do, and what must I not break? | `README.md` in each feature folder of a declared documentation tree | Purpose, out of scope, design rationale, invariants with the check that enforces each, files to read first, the commit last compared with the code | Design decision: the documentation tree (see Documentation tree) |
 | How-to and tutorial | How do I reach goal X? | `docs/`, one document per goal | Numbered steps with stated prerequisites; a tutorial assumes no prior knowledge | Sourced [GoogleSWE2020; Diataxis] |
 | Reference | What exactly is the value, signature, or constraint? | Beside the authoritative source (schema, types, code comments); a human-readable copy is generated, not hand-copied | Complete and consistent, so a reader can scan it | Sourced [GoogleSWE2020; Diataxis] |
 | Architecture | How do the parts fit together? | `docs/`, one architecture description | Zoom levels that answer a reader's question: system, container, component | Sourced [BrownC4; Arc42] for the levels. Keeping only the levels that add durable value is a design decision (see Minimality) |
@@ -125,7 +127,7 @@ Proximity measures how close a document is to what it describes. It is this skil
 | Level | Where the document sits | Typical example |
 |---|---|---|
 | P0 | In the same file as what it describes | Code comments, docstrings, schema descriptions |
-| P1 | In the same directory | A per-directory README or neighboring Markdown |
+| P1 | In the same directory, or the nearest node of a declared documentation tree | A per-directory README, neighboring Markdown, or the README of the feature folder that contains the file |
 | P2 | In the project's documentation area | `docs/`, `specs/`, the decision-record directory |
 | P3 | At the repository root | The root README and change history |
 | P4 | Outside the repository | An external wiki or portal; avoid, and when unavoidable record which side is authoritative |
@@ -133,6 +135,17 @@ Proximity measures how close a document is to what it describes. It is this skil
 The **per-directory README (P1) is also a design decision**. The nearest sourced practice is a documentation directory beside each API [GoogleSWE2020], which does not mention a README.
 
 No source reviewed presents a single hierarchy from the project README down to code comments. The sources describe different axes: C4 gives four levels of architectural abstraction (software system, container, component, code) [BrownC4]; the arc42 building block view descends through levels 1 to 3 [Arc42]; Diátaxis classifies documentation by four user needs [Diataxis]. The proximity scale combines placement with how often a document changes together with its subject, and should be read as a working default rather than an established model.
+
+## Documentation tree
+
+The documentation tree is this skill's **design decision**, not a finding of any source. It extends the per-directory README (P1) into a tree that a reader, a person or an agent, can descend from the repository root one level at a time. A project opts in by declaring it.
+
+- **Nodes.** The repository root is always the root node, of kind repository. A project declares the other nodes in `.living-documentation.json` under `"tree"`: `products` lists the patterns of product folders (units built or deployed separately inside the repository) and `features` those of feature folders. Patterns match per path segment: `*` stays inside one segment and `**` spans any number. A folder is a node when it exists, is not excluded, and matches the patterns of exactly one kind. Each node's parent is the nearest node above it.
+- **One README per node.** Every node has a `README.md` that states what its scope is for, links to the README of each child node, and, below the root, links back to its parent. It does not repeat what a lower README says. This applies the landing-page practice of stating the purpose and mainly linking [GoogleSWE2020] at every level.
+- **Templates by kind.** A new README starts from `templates/readme-repository.md`, `templates/readme-product.md`, or `templates/readme-feature.md`. Every `{{...}}` text and every `replace:` link target is replaced; a `replace:` target left in place is a missing link.
+- **Unfilled facts.** A fact that was not confirmed in a file of the project is written as `TODO(unfilled): <what is missing and who or what can settle it>`, never guessed from a name. The marker is kept as written in every language, so that `check_tree.py` can list each README that still holds one, on every run, as a warning.
+- **What the scripts check.** `check_tree.py` fails on a node without a README, a missing link to a child, and a missing link to the parent, one error for each; it does not judge whether the text agrees with the code. `find_related.py` lists the README of the nearest node that contains a changed file. Without a declaration, `check_tree.py` checks nothing and proposes patterns from `package.json` workspaces, `pyproject.toml` `[tool.uv.workspace]` members, and folders named `features`.
+- **Levels in the sources.** C4 [BrownC4] and the arc42 building block view [Arc42] descend through levels of abstraction of a system, and say nothing about where READMEs live. The three kinds here are levels of the repository's folder layout; they may or may not coincide with those architectural levels.
 
 ## Stack conventions
 

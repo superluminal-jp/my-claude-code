@@ -182,7 +182,11 @@ redesign that produced this layout is recorded in
     changed artifact classes and the documents next to the changed files, and
     check links; the update goes in the same change and the report carries a
     `Documentation impact` block; `.living-documentation.json` corrects the
-    scripts' classification),
+    scripts' classification and can declare a documentation tree of product
+    and feature folders, whose READMEs `check_tree.py` requires to link parent
+    to child and back; on request the skill builds that tree from per-kind
+    README templates, writing only verified facts and marking the rest
+    `TODO(unfilled)`),
     `manage-git` (branches, Conventional Commits, pushes, and pull requests so
     that history stays reviewable and nothing is published beyond what was
     asked; each of commit, push, and pull request needs its own request),
@@ -407,9 +411,9 @@ my-claude-code/
         ├── sync-docs/              # Docs kept consistent with changes (worker)
         │   ├── SKILL.md            #   playbook
         │   ├── references/         #   practices, standards and their precedence, normative basis, bibliography
-        │   ├── scripts/            #   inspect_project.py, audit.py, find_related.py, check_links.py (standard library only)
+        │   ├── scripts/            #   inspect_project.py, audit.py, find_related.py, check_links.py, check_tree.py (standard library only)
         │   ├── schemas/            #   config.schema.json for .living-documentation.json
-        │   ├── templates/          #   ADR, architecture description, provenance, CI workflow
+        │   ├── templates/          #   ADR, architecture description, provenance, README per tree node kind, CI workflow
         │   └── tests/              #   unit tests
         ├── manage-git/SKILL.md     # Branch/commit/push/PR conventions (worker; needs the remote host)
         ├── research-aws/SKILL.md   # Current AWS doc lookup (worker)
