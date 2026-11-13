@@ -1,0 +1,598 @@
+commit: b10343c48f1092d450bc9345d9ea54c2dae4f103
+$ python3 -B specs/071-hierarchical-docs-tree/evidence/dryrun.py --skill harness/skills/sync-docs --work $TMPDIR/dryrun-<commit> --snapshot specs/071-hierarchical-docs-tree/evidence/b10343c/dryrun-fixture
+
+## fixture: two products with two feature folders each, and no README
+$ git add -A
+
+exit=0
+$ git commit -qm fixture without READMEs
+
+exit=0
+$ git rev-parse --short HEAD
+e1c0c9f
+exit=0
+$ git ls-files
+package.json
+products/admin/package.json
+products/admin/src/features/audit-log/audit.ts
+products/admin/src/features/users/users.ts
+products/shop/package.json
+products/shop/src/features/cart/cart.test.ts
+products/shop/src/features/cart/cart.ts
+products/shop/src/features/checkout/checkout.ts
+exit=0
+
+## procedure step 1, Declare: candidates without a declaration
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103
+no tree declared in .living-documentation.json; nothing was checked.
+candidate declaration (confirm it, then add it to .living-documentation.json):
+{
+  "tree": {
+    "products": [
+      "products/*"
+    ],
+    "features": [
+      "products/*/src/features/*"
+    ]
+  }
+}
+exit=0
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103 --json
+{
+  "declared": false,
+  "nodes": [],
+  "errors": [],
+  "warnings": [],
+  "candidates": {
+    "products": [
+      "products/*"
+    ],
+    "features": [
+      "products/*/src/features/*"
+    ]
+  },
+  "notes": []
+}
+exit=0
+ok: the candidates are products/* and products/*/src/features/* (got {'products': ['products/*'], 'features': ['products/*/src/features/*']})
+confirmation: the person who runs this script stands in for the person; a fixture has nobody to confirm it
+$ cat .living-documentation.json
+{
+  "tree": {
+    "products": [
+      "products/*"
+    ],
+    "features": [
+      "products/*/src/features/*"
+    ]
+  }
+}
+exit=0
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103 --json
+{
+  "declared": true,
+  "nodes": [
+    {
+      "path": "",
+      "kind": "repository",
+      "parent": null
+    },
+    {
+      "path": "products/admin",
+      "kind": "product",
+      "parent": ""
+    },
+    {
+      "path": "products/admin/src/features/audit-log",
+      "kind": "feature",
+      "parent": "products/admin"
+    },
+    {
+      "path": "products/admin/src/features/users",
+      "kind": "feature",
+      "parent": "products/admin"
+    },
+    {
+      "path": "products/shop",
+      "kind": "product",
+      "parent": ""
+    },
+    {
+      "path": "products/shop/src/features/cart",
+      "kind": "feature",
+      "parent": "products/shop"
+    },
+    {
+      "path": "products/shop/src/features/checkout",
+      "kind": "feature",
+      "parent": "products/shop"
+    }
+  ],
+  "errors": [
+    {
+      "node": "",
+      "kind": "missing-readme",
+      "readme": "README.md",
+      "target": null,
+      "message": ".: no README.md in this repository folder"
+    },
+    {
+      "node": "products/admin",
+      "kind": "missing-readme",
+      "readme": "products/admin/README.md",
+      "target": null,
+      "message": "products/admin: no README.md in this product folder"
+    },
+    {
+      "node": "products/admin/src/features/audit-log",
+      "kind": "missing-readme",
+      "readme": "products/admin/src/features/audit-log/README.md",
+      "target": null,
+      "message": "products/admin/src/features/audit-log: no README.md in this feature folder"
+    },
+    {
+      "node": "products/admin/src/features/users",
+      "kind": "missing-readme",
+      "readme": "products/admin/src/features/users/README.md",
+      "target": null,
+      "message": "products/admin/src/features/users: no README.md in this feature folder"
+    },
+    {
+      "node": "products/shop",
+      "kind": "missing-readme",
+      "readme": "products/shop/README.md",
+      "target": null,
+      "message": "products/shop: no README.md in this product folder"
+    },
+    {
+      "node": "products/shop/src/features/cart",
+      "kind": "missing-readme",
+      "readme": "products/shop/src/features/cart/README.md",
+      "target": null,
+      "message": "products/shop/src/features/cart: no README.md in this feature folder"
+    },
+    {
+      "node": "products/shop/src/features/checkout",
+      "kind": "missing-readme",
+      "readme": "products/shop/src/features/checkout/README.md",
+      "target": null,
+      "message": "products/shop/src/features/checkout: no README.md in this feature folder"
+    }
+  ],
+  "warnings": []
+}
+exit=1
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103
+error: .: no README.md in this repository folder
+error: products/admin: no README.md in this product folder
+error: products/admin/src/features/audit-log: no README.md in this feature folder
+error: products/admin/src/features/users: no README.md in this feature folder
+error: products/shop: no README.md in this product folder
+error: products/shop/src/features/cart: no README.md in this feature folder
+error: products/shop/src/features/checkout: no README.md in this feature folder
+tree: 7 node(s), 7 error(s), 0 warning(s)
+exit=1
+ok: seven missing-readme errors
+
+## procedure steps 2 and 3, Create and Fill: READMEs from the templates, verified facts only
+facts written, with their sources (a file and line of the fixture, or a command and its output above):
+- README.md: the title acme-platform <- package.json:2
+- README.md: the root test script runs vitest run <- package.json:6
+- README.md: @acme/shop: Customer-facing web shop. <- products/shop/package.json:2-3
+- README.md: @acme/admin: Internal console for staff. <- products/admin/package.json:2-3
+- products/shop/README.md: the title @acme/shop and its purpose Customer-facing web shop. <- products/shop/package.json:2-3
+- products/shop/README.md: build with vite build, test with vitest run <- products/shop/package.json:5-6
+- products/shop/README.md: cart: Keeps the items a customer intends to buy, in the browser session only. <- products/shop/src/features/cart/cart.ts:1
+- products/shop/README.md: checkout: Turns a cart into an order. <- products/shop/src/features/checkout/checkout.ts:1
+- products/shop/README.md: coupon: Applies a discount code to an order total. (the later change) <- products/shop/src/features/coupon/coupon.ts:1
+- products/admin/README.md: the title @acme/admin and its purpose Internal console for staff. <- products/admin/package.json:2-3
+- products/admin/README.md: build with vite build, test with vitest run <- products/admin/package.json:5-6
+- products/admin/README.md: audit-log: Records staff actions for later review. <- products/admin/src/features/audit-log/audit.ts:1
+- cart/README.md: purpose <- cart.ts:1
+- cart/README.md: invariant: adding an item keeps the items already in the cart, checked by a test <- cart.test.ts:2-3
+- cart/README.md: start with cart.ts; last compared at <base> <- git ls-files and git rev-parse --short HEAD above
+- checkout/README.md: purpose <- checkout.ts:1
+- checkout/README.md: out of scope: payment, handled by an external provider <- checkout.ts:1
+- checkout/README.md: invariant: an empty cart is never turned into an order; no test <- checkout.ts:3; git ls-files above lists no test in the folder
+- checkout/README.md: start with checkout.ts; last compared at <base> <- git ls-files and git rev-parse --short HEAD above
+- users/README.md: start with users.ts; last compared at <base> <- git ls-files and git rev-parse --short HEAD above
+- audit-log/README.md: purpose <- audit.ts:1
+- audit-log/README.md: invariant: entries are never edited after they are written; no test <- audit.ts:1; git ls-files above lists no test in the folder
+- audit-log/README.md: start with audit.ts; last compared at <base> <- git ls-files and git rev-parse --short HEAD above
+- coupon/README.md: purpose <- coupon.ts:1
+- coupon/README.md: invariant: a code can be used once per order; no test, and applyCoupon does not enforce it <- coupon.ts:1-3; git status --short below lists no test in the folder
+- coupon/README.md: start with coupon.ts; last compared at the second git rev-parse plus the uncommitted change <- git rev-parse --short HEAD and git status --short below
+$ cat README.md
+# acme-platform
+
+## Purpose
+
+TODO(unfilled): what this repository is for and who uses it, in one to three sentences.
+
+## Start here
+
+The root `test` script runs `vitest run`. TODO(unfilled): the prerequisites (runtime and package manager versions).
+
+## Contents
+
+Each product or feature folder below has its own README. Read the one for the part you need; it links on to the parts inside it.
+
+- [@acme/shop](products/shop/README.md): Customer-facing web shop.
+- [@acme/admin](products/admin/README.md): Internal console for staff.
+
+## Other documentation
+
+TODO(unfilled): links to the architecture description, the decision records, and the change history, where the project keeps them.
+exit=0
+$ cat products/admin/README.md
+# @acme/admin
+
+Part of [acme-platform](../../README.md).
+
+## Purpose
+
+Internal console for staff.
+
+## Run and test
+
+Build with `vite build` and test with `vitest run` (the `build` and `test` scripts). TODO(unfilled): how to run it locally.
+
+## Boundaries
+
+TODO(unfilled): what this product may depend on and what it must not depend on. Checked by: TODO(unfilled): the rule or test that enforces each boundary, or "not checked".
+
+## Features
+
+- [users](src/features/users/README.md): TODO(unfilled): one line on what it is for.
+- [audit-log](src/features/audit-log/README.md): Records staff actions for later review.
+exit=0
+$ cat products/admin/src/features/audit-log/README.md
+# audit-log
+
+Part of [@acme/admin](../../../README.md).
+
+## Purpose
+
+Records staff actions for later review.
+
+## Out of scope
+
+TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.
+
+## Design rationale
+
+TODO(unfilled): why it is built this way. Link the decision record of a significant choice.
+
+## Invariants
+
+- Entries are never edited after they are written. Checked by: not checked (no test covers it).
+
+## Start here
+
+[audit.ts](audit.ts)
+
+
+## Last verified against the code
+
+e1c0c9f
+exit=0
+$ cat products/admin/src/features/users/README.md
+# users
+
+Part of [@acme/admin](../../../README.md).
+
+## Purpose
+
+TODO(unfilled): what this feature does for its users, in one to three sentences.
+
+## Out of scope
+
+TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.
+
+## Design rationale
+
+TODO(unfilled): why it is built this way. Link the decision record of a significant choice.
+
+## Invariants
+
+- TODO(unfilled): a rule this feature must keep. Checked by: TODO(unfilled): the test or lint rule that enforces it, or "not checked".
+
+## Start here
+
+[users.ts](users.ts)
+
+
+## Last verified against the code
+
+e1c0c9f
+exit=0
+$ cat products/shop/README.md
+# @acme/shop
+
+Part of [acme-platform](../../README.md).
+
+## Purpose
+
+Customer-facing web shop.
+
+## Run and test
+
+Build with `vite build` and test with `vitest run` (the `build` and `test` scripts). TODO(unfilled): how to run it locally.
+
+## Boundaries
+
+TODO(unfilled): what this product may depend on and what it must not depend on. Checked by: TODO(unfilled): the rule or test that enforces each boundary, or "not checked".
+
+## Features
+
+- [cart](src/features/cart/README.md): Keeps the items a customer intends to buy, in the browser session only.
+- [checkout](src/features/checkout/README.md): Turns a cart into an order.
+exit=0
+$ cat products/shop/src/features/cart/README.md
+# cart
+
+Part of [@acme/shop](../../../README.md).
+
+## Purpose
+
+Keeps the items a customer intends to buy, in the browser session only.
+
+## Out of scope
+
+TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.
+
+## Design rationale
+
+TODO(unfilled): why it is built this way. Link the decision record of a significant choice.
+
+## Invariants
+
+- Adding an item keeps the items already in the cart. Checked by: the test "adding an item keeps earlier items" in [cart.test.ts](cart.test.ts).
+
+## Start here
+
+[cart.ts](cart.ts)
+
+
+## Last verified against the code
+
+e1c0c9f
+exit=0
+$ cat products/shop/src/features/checkout/README.md
+# checkout
+
+Part of [@acme/shop](../../../README.md).
+
+## Purpose
+
+Turns a cart into an order.
+
+## Out of scope
+
+Payment, which an external provider handles. TODO(unfilled): which provider, and where the integration lives.
+
+## Design rationale
+
+TODO(unfilled): why it is built this way. Link the decision record of a significant choice.
+
+## Invariants
+
+- An empty cart is never turned into an order. Checked by: not checked (no test covers it).
+
+## Start here
+
+[checkout.ts](checkout.ts)
+
+
+## Last verified against the code
+
+e1c0c9f
+exit=0
+
+## procedure step 4, Check
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103
+warning: README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/README.md: 4 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/audit-log/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/users/README.md: 5 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/cart/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/checkout/README.md: 2 unfilled item(s) marked TODO(unfilled)
+tree: 7 node(s), 0 error(s), 7 warning(s)
+exit=0
+$ python3 -B check_links.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103
+Link check (all files): 7 Markdown files, 0 errors, 0 warnings.
+exit=0
+$ grep -rn -e {{ -e replace: --include=README.md .
+
+exit=1
+ok: no {{ and no replace: is left in any README
+reached by downward links (independent walk): ['', 'products/admin', 'products/admin/src/features/audit-log', 'products/admin/src/features/users', 'products/shop', 'products/shop/src/features/cart', 'products/shop/src/features/checkout']
+ok: every feature folder README is reached from the root README by downward links
+$ git add -A
+
+exit=0
+$ git commit -qm build the documentation tree
+
+exit=0
+$ git log --oneline
+21c2a06 build the documentation tree
+e1c0c9f fixture without READMEs
+exit=0
+
+## a later change: one feature folder added, then the Check step of the procedure for every change
+$ python3 -B find_related.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103
+changed files: 1
+no related documents found.
+comments to keep in step (advisory): products/shop/src/features/coupon/coupon.ts
+exit=0
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103 --json
+{
+  "declared": true,
+  "nodes": [
+    {
+      "path": "",
+      "kind": "repository",
+      "parent": null
+    },
+    {
+      "path": "products/admin",
+      "kind": "product",
+      "parent": ""
+    },
+    {
+      "path": "products/admin/src/features/audit-log",
+      "kind": "feature",
+      "parent": "products/admin"
+    },
+    {
+      "path": "products/admin/src/features/users",
+      "kind": "feature",
+      "parent": "products/admin"
+    },
+    {
+      "path": "products/shop",
+      "kind": "product",
+      "parent": ""
+    },
+    {
+      "path": "products/shop/src/features/cart",
+      "kind": "feature",
+      "parent": "products/shop"
+    },
+    {
+      "path": "products/shop/src/features/checkout",
+      "kind": "feature",
+      "parent": "products/shop"
+    },
+    {
+      "path": "products/shop/src/features/coupon",
+      "kind": "feature",
+      "parent": "products/shop"
+    }
+  ],
+  "errors": [
+    {
+      "node": "products/shop",
+      "kind": "missing-child-link",
+      "readme": "products/shop/README.md",
+      "target": "products/shop/src/features/coupon",
+      "message": "products/shop/README.md: no link to the child node products/shop/src/features/coupon"
+    },
+    {
+      "node": "products/shop/src/features/coupon",
+      "kind": "missing-readme",
+      "readme": "products/shop/src/features/coupon/README.md",
+      "target": null,
+      "message": "products/shop/src/features/coupon: no README.md in this feature folder"
+    }
+  ],
+  "warnings": [
+    {
+      "readme": "README.md",
+      "count": 3,
+      "message": "README.md: 3 unfilled item(s) marked TODO(unfilled)"
+    },
+    {
+      "readme": "products/admin/README.md",
+      "count": 4,
+      "message": "products/admin/README.md: 4 unfilled item(s) marked TODO(unfilled)"
+    },
+    {
+      "readme": "products/admin/src/features/audit-log/README.md",
+      "count": 2,
+      "message": "products/admin/src/features/audit-log/README.md: 2 unfilled item(s) marked TODO(unfilled)"
+    },
+    {
+      "readme": "products/admin/src/features/users/README.md",
+      "count": 5,
+      "message": "products/admin/src/features/users/README.md: 5 unfilled item(s) marked TODO(unfilled)"
+    },
+    {
+      "readme": "products/shop/README.md",
+      "count": 3,
+      "message": "products/shop/README.md: 3 unfilled item(s) marked TODO(unfilled)"
+    },
+    {
+      "readme": "products/shop/src/features/cart/README.md",
+      "count": 2,
+      "message": "products/shop/src/features/cart/README.md: 2 unfilled item(s) marked TODO(unfilled)"
+    },
+    {
+      "readme": "products/shop/src/features/checkout/README.md",
+      "count": 2,
+      "message": "products/shop/src/features/checkout/README.md: 2 unfilled item(s) marked TODO(unfilled)"
+    }
+  ]
+}
+exit=1
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103
+error: products/shop/README.md: no link to the child node products/shop/src/features/coupon
+error: products/shop/src/features/coupon: no README.md in this feature folder
+warning: README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/README.md: 4 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/audit-log/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/users/README.md: 5 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/cart/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/checkout/README.md: 2 unfilled item(s) marked TODO(unfilled)
+tree: 8 node(s), 2 error(s), 7 warning(s)
+exit=1
+ok: the tree check names the missing README and the missing link from the parent
+$ git rev-parse --short HEAD
+21c2a06
+exit=0
+$ python3 -B check_tree.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103
+warning: README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/README.md: 4 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/audit-log/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/users/README.md: 5 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/cart/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/checkout/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/coupon/README.md: 2 unfilled item(s) marked TODO(unfilled)
+tree: 8 node(s), 0 error(s), 8 warning(s)
+exit=0
+$ python3 -B check_links.py --root /private/tmp/claude-501/dryrun-b10343c48f1092d450bc9345d9ea54c2dae4f103 --changed
+Link check (changed scope): 8 Markdown files, 0 errors, 0 warnings.
+exit=0
+$ git status --short --untracked-files=all
+ M products/shop/README.md
+?? products/shop/src/features/coupon/README.md
+?? products/shop/src/features/coupon/coupon.ts
+exit=0
+$ cat products/shop/src/features/coupon/README.md
+# coupon
+
+Part of [@acme/shop](../../../README.md).
+
+## Purpose
+
+Applies a discount code to an order total.
+
+## Out of scope
+
+TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.
+
+## Design rationale
+
+TODO(unfilled): why it is built this way. Link the decision record of a significant choice.
+
+## Invariants
+
+- A code can be used once per order. Checked by: not checked (no test covers it, and `applyCoupon` does not enforce it).
+
+## Start here
+
+[coupon.ts](coupon.ts)
+
+
+## Last verified against the code
+
+21c2a06 plus the uncommitted coupon change
+exit=0
+
+snapshot of the fixture: 18 files
+
+RESULT: every expectation held
+exit=0

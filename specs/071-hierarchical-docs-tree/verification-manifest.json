@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-071",
     "problem_id": "PRB-071",
-    "reviewed_commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a",
+    "reviewed_commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -16,8 +16,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/dryrun-build-report.md",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/dryrun-transcript.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -25,8 +25,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/harness-skills.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/harness-skills.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -34,8 +34,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/docs-impact.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/docs-impact.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -43,8 +43,8 @@
         "status": "passed",
         "evidence": {
           "kind": "ai_review",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/dryrun-review.json",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/dryrun-review.json",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -52,8 +52,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -61,8 +61,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -70,8 +70,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -79,8 +79,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -88,8 +88,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -97,8 +97,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -106,8 +106,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -115,8 +115,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -124,8 +124,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -133,8 +133,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -142,8 +142,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -151,8 +151,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -160,8 +160,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -169,8 +169,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -178,8 +178,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -187,8 +187,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -196,8 +196,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -205,8 +205,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -214,8 +214,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -223,8 +223,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -232,8 +232,17 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
+        }
+      },
+      {
+        "check_id": "AC-BUILD-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -241,8 +250,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -250,8 +259,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -259,8 +268,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -268,8 +277,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -277,8 +286,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/acceptance-tests.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/acceptance-tests.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       },
       {
@@ -286,8 +295,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/compat.txt",
-          "commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a"
+          "ref": "specs/071-hierarchical-docs-tree/evidence/b10343c/compat.txt",
+          "commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103"
         }
       }
     ],

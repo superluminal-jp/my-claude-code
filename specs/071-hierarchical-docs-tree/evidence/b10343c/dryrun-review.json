@@ -1,0 +1,29 @@
+{
+  "purpose": "AC-ROOT-4: b10343c の skill から dryrun.py で作り直したフィクスチャの README の記述を、会話を渡さない読み取り専用のレビュー役が、dryrun-transcript.txt の事実の一覧と出典、フィクスチャのファイルと照らし合わせた結果",
+  "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId af048c1c595839bfc、2026-11-14",
+  "context_given": [
+    "dryrun-transcript.txt",
+    "dryrun-fixture/ のすべてのファイル",
+    "README の記述を supported / marked / unsupported に分ける指示文（会話と実装の説明は渡していない）"
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "on": "4bfd347 の skill で作った写し（コミットしていない。b10343c の直しの前）",
+      "files_read": 19,
+      "statements_checked": 50,
+      "unsupported_count": 1,
+      "unsupported": "coupon の README の『no test covers it』に、事実の一覧が出典を挙げていなかった（git status の出力にはテストのファイルがないことが表れていた）",
+      "response": "dryrun.py の事実の一覧の coupon の項に『git status --short below lists no test in the folder』を加えた（コミット b10343c）"
+    },
+    {
+      "round": 2,
+      "on": "b10343c の skill で作った写し（このフォルダ）",
+      "files_read": 19,
+      "statements_checked": 50,
+      "unsupported_count": 0,
+      "unsupported": []
+    }
+  ],
+  "note": "AI のレビューなので、verify-change の決まり（A-02）では受け入れ基準を通す証拠にならない。人による確認（human_review）が要る。"
+}
