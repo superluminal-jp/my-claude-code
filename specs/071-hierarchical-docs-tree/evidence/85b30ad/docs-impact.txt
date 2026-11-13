@@ -1,0 +1,40 @@
+commit: 85b30adb3b2397f0a7058401bc092b148fcba674
+$ python3 -B harness/skills/sync-docs/scripts/find_related.py --root . --base main
+changed files: 13
+no related documents found.
+comments to keep in step (advisory): harness/skills/sync-docs/scripts/check_tree.py, harness/skills/sync-docs/scripts/common.py, harness/skills/sync-docs/scripts/find_related.py, harness/skills/sync-docs/templates/ci/github-actions.yml
+exit=0
+$ python3 -B harness/skills/sync-docs/scripts/check_links.py --root . --changed --base main
+Link check (changed scope): 283 Markdown files, 0 errors, 0 warnings.
+exit=0
+$ python3 -B harness/skills/sync-docs/scripts/check_tree.py --root .
+no tree declared in .living-documentation.json; nothing was checked.
+no candidates found: declare tree.products and tree.features by hand if the project has them.
+exit=0
+Comparison of the documentation with the diff (SKILL.md step 5, a new public contract)
+A read-only-reviewer subagent with no conversation (agentId ad58fb6d3f9bac6dc, 2026-11-14) read the change.diff of the
+first review bundle (5a2daa6..bebdb5e) and the documents, and reported eight gaps. Each is fixed in commit 4bfd347,
+which this reviewed commit contains:
+- DG-01 (medium) practices.md and config.schema.json said a node is an "existing" folder that matches "exactly one kind";
+  the code needs a listed file and stops with exit 2 on a folder matching both kinds, in check_tree.py and find_related.py.
+  Fixed: both documents now say so, and find_related.py's docstring names the exit 2.
+- DG-02 (low) practices.md did not say that find_related.py leaves out the root node. Fixed: "other than the root".
+- DG-03 (low) practices.md said a leftover replace: target "is a missing link"; one in a list the node does not need is
+  reported by no script, nor is a leftover {{...}}. Fixed in practices.md; SKILL.md build step 4 now has the search.
+- DG-04 (low) SKILL.md build step 5 said check_tree.py lists the unfilled items; it warns their count per README.
+  Fixed in SKILL.md and practices.md.
+- DG-05 (low) the docstring and practices.md did not say that a marker in code or a comment is not counted. Fixed in both.
+- DG-06 (low) the docstring did not say that site-absolute, fragment-only, external, and escaping links do not count.
+  Fixed in the docstring, practices.md, and the CI template's comment (the tree check takes no --site-root).
+- DG-07 (low) practices.md did not say that pyproject.toml is read only on Python 3.11 or later. Fixed there and in the docstring.
+- DG-08 (low) practices.md's layer table said a product README links back to the repository README; its parent is the
+  nearest node above it. Fixed: "links to the READMEs of its child nodes and back to its parent's README".
+
+Documentation impact
+- Updated: README.md - the sync-docs entry names the tree declaration, check_tree.py, and the build on request; the layout lists check_tree.py and the README templates; agrees with harness/skills/sync-docs/SKILL.md and scripts/ at this commit
+- Updated: README.ja.md - the same three places in Japanese; agrees with the same sources and with README.md
+- Updated: harness/skills/sync-docs/SKILL.md (description, steps, build procedure), references/practices.md, schemas/config.schema.json, the docstrings of scripts/check_tree.py and scripts/find_related.py, templates/ci/github-actions.yml - part of the change; agree with the scripts after the eight fixes above, which the tests in sync-docs-tests.txt check where a test can
+- No change needed: docs/harness-zero-base.md - its "sync-docs 75 tests" (line 518) records the zero-base redesign at that time; accepted history is not rewritten
+- No change needed: docs/harness/capability-map.md - names the skill (H-docs), not its scripts; the capability is unchanged
+- No change needed: change history - the project keeps none of its own (the changelog files audit.py names are inside the vendored dads-docs of apply-dads-frontend)
+- Checks: find_related.py, check_links.py, and check_tree.py above; sync-docs-tests.txt, python39-tests.txt, harness-skills.txt

@@ -1,0 +1,31 @@
+{
+  "purpose": "AC-ROOT-4: 85b30ad の skill から dryrun.py で作ったフィクスチャの README の記述を、会話を渡さない読み取り専用のレビュー役が、dryrun-transcript.txt の事実の一覧と出典、フィクスチャのファイルと照らし合わせた結果",
+  "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId af048c1c595839bfc、2026-11-14。同じレビュー役が、b10343c の写し（1件 unsupported、のち0件）に続いて読んだ",
+  "instructions": "README の記述を supported / marked / unsupported に分け、unsupported だけを理由つきで返す（会話と実装の説明は渡していない）",
+  "answer_verbatim": {
+    "read": [
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-transcript.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/.living-documentation.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/package.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/package.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/audit-log/audit.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/audit-log/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/users/users.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/users/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/package.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/cart/cart.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/cart/cart.test.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/cart/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/checkout/checkout.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/checkout/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/coupon/coupon.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/coupon/README.md"
+    ],
+    "statements_checked": 50,
+    "unsupported": []
+  },
+  "note": "AI のレビューなので、verify-change の決まり（A-02）では受け入れ基準を通す証拠にならない。人による確認（human_review）が要る。答えは unsupported の一覧だけで、記述ごとの判定は含まない。"
+}

@@ -1,0 +1,159 @@
+commit: 85b30adb3b2397f0a7058401bc092b148fcba674
+Acceptance criterion -> the tests that check it, with each test's line from sync-docs-tests.txt (Python 3.14) and python39-tests.txt (Python 3.9, no tomllib), both run at this commit.
+
+AC-DECL-1:
+  [3.14] test_nodes_get_their_kind_and_the_nearest_node_above_as_parent (test_scripts.TreeDeclarationTests.test_nodes_get_their_kind_and_the_nearest_node_above_as_parent) ... ok
+  [3.9 ] test_nodes_get_their_kind_and_the_nearest_node_above_as_parent (test_scripts.TreeDeclarationTests) ... ok
+  [3.14] test_a_feature_with_no_product_above_has_the_root_as_parent (test_scripts.TreeDeclarationTests.test_a_feature_with_no_product_above_has_the_root_as_parent) ... ok
+  [3.9 ] test_a_feature_with_no_product_above_has_the_root_as_parent (test_scripts.TreeDeclarationTests) ... ok
+  [3.14] test_star_stays_inside_one_path_segment (test_scripts.TreeDeclarationTests.test_star_stays_inside_one_path_segment) ... ok
+  [3.9 ] test_star_stays_inside_one_path_segment (test_scripts.TreeDeclarationTests) ... ok
+
+AC-DECL-2:
+  [3.14] test_invalid_declarations_are_configuration_errors (test_scripts.TreeDeclarationTests.test_invalid_declarations_are_configuration_errors) ... ok
+  [3.9 ] test_invalid_declarations_are_configuration_errors (test_scripts.TreeDeclarationTests) ... ok
+  [3.14] test_a_folder_matching_both_kinds_is_a_configuration_error (test_scripts.FindRelatedNodeTests.test_a_folder_matching_both_kinds_is_a_configuration_error) ... ok
+  [3.9 ] test_a_folder_matching_both_kinds_is_a_configuration_error (test_scripts.FindRelatedNodeTests) ... ok
+  [3.14] test_the_declaration_is_checked_whatever_the_change (test_scripts.FindRelatedNodeTests.test_the_declaration_is_checked_whatever_the_change) ... ok
+  [3.9 ] test_the_declaration_is_checked_whatever_the_change (test_scripts.FindRelatedNodeTests) ... ok
+
+AC-DECL-3:
+  [3.14] test_excluded_missing_and_file_matches_are_not_nodes (test_scripts.TreeDeclarationTests.test_excluded_missing_and_file_matches_are_not_nodes) ... ok
+  [3.9 ] test_excluded_missing_and_file_matches_are_not_nodes (test_scripts.TreeDeclarationTests) ... ok
+
+AC-DECL-4:
+  [3.14] test_schema_defines_the_tree_declaration (test_scripts.ConfigTests.test_schema_defines_the_tree_declaration) ... ok
+  [3.9 ] test_schema_defines_the_tree_declaration (test_scripts.ConfigTests) ... ok
+  [3.14] test_tree_declaration_is_accepted_by_the_loader (test_scripts.ConfigTests.test_tree_declaration_is_accepted_by_the_loader) ... ok
+  [3.9 ] test_tree_declaration_is_accepted_by_the_loader (test_scripts.ConfigTests) ... ok
+
+AC-SHARED-1:
+  [3.14] test_both_scripts_find_the_same_nodes (test_scripts.SharedTreeNodesTests.test_both_scripts_find_the_same_nodes) ... ok
+  [3.9 ] test_both_scripts_find_the_same_nodes (test_scripts.SharedTreeNodesTests) ... ok
+
+AC-CHECK-1:
+  [3.14] test_a_correct_tree_passes (test_scripts.CheckTreeTests.test_a_correct_tree_passes) ... ok
+  [3.9 ] test_a_correct_tree_passes (test_scripts.CheckTreeTests) ... ok
+  [3.14] test_each_single_break_is_one_error_naming_the_node (test_scripts.CheckTreeTests.test_each_single_break_is_one_error_naming_the_node) ... ok
+  [3.9 ] test_each_single_break_is_one_error_naming_the_node (test_scripts.CheckTreeTests) ... ok
+
+AC-CHECK-2:
+  [3.14] test_the_scripts_import_no_network_and_no_third_party_module (test_scripts.CheckTreeTests.test_the_scripts_import_no_network_and_no_third_party_module) ... ok
+  [3.9 ] test_the_scripts_import_no_network_and_no_third_party_module (test_scripts.CheckTreeTests) ... ok
+  [3.14] test_the_check_writes_nothing (test_scripts.CheckTreeTests.test_the_check_writes_nothing) ... ok
+  [3.9 ] test_the_check_writes_nothing (test_scripts.CheckTreeTests) ... ok
+  PASS HS-01: every skill meets the contract (skill-contract: 16 skills, 0 failures)
+  PASS HS-02: sync-docs script tests pass (Ran 121 tests in 17.740s)
+  [3.9 ] Ran 121 tests in 17.843s
+  [3.9 ] OK (skipped=1)
+  (on Python 3.9 the standard-library half of test_the_scripts_import_no_network_and_no_third_party_module does not run: 3.9 has no sys.stdlib_module_names; the 3.14 run covers it)
+
+AC-CHECK-3:
+  [3.14] test_breaks_at_several_levels_are_each_reported_once (test_scripts.CheckTreeTests.test_breaks_at_several_levels_are_each_reported_once) ... ok
+  [3.9 ] test_breaks_at_several_levels_are_each_reported_once (test_scripts.CheckTreeTests) ... ok
+
+AC-README-1:
+  [3.14] test_a_missing_root_readme_is_an_error (test_scripts.CheckTreeTests.test_a_missing_root_readme_is_an_error) ... ok
+  [3.9 ] test_a_missing_root_readme_is_an_error (test_scripts.CheckTreeTests) ... ok
+  [3.14] test_the_text_output_names_the_folder_without_a_readme (test_scripts.CheckTreeTests.test_the_text_output_names_the_folder_without_a_readme) ... ok
+  [3.9 ] test_the_text_output_names_the_folder_without_a_readme (test_scripts.CheckTreeTests) ... ok
+
+AC-DOWN-1:
+  [3.14] test_a_child_may_be_linked_as_its_readme_or_its_folder (test_scripts.CheckTreeTests.test_a_child_may_be_linked_as_its_readme_or_its_folder) ... ok
+  [3.9 ] test_a_child_may_be_linked_as_its_readme_or_its_folder (test_scripts.CheckTreeTests) ... ok
+
+AC-DOWN-2:
+  [3.14] test_links_in_code_and_comments_do_not_count (test_scripts.CheckTreeTests.test_links_in_code_and_comments_do_not_count) ... ok
+  [3.9 ] test_links_in_code_and_comments_do_not_count (test_scripts.CheckTreeTests) ... ok
+
+AC-UP-1:
+  [3.14] test_a_parent_may_be_linked_as_its_readme_or_its_folder (test_scripts.CheckTreeTests.test_a_parent_may_be_linked_as_its_readme_or_its_folder) ... ok
+  [3.9 ] test_a_parent_may_be_linked_as_its_readme_or_its_folder (test_scripts.CheckTreeTests) ... ok
+
+AC-UNF-1:
+  [3.14] test_unfilled_markers_are_warnings_that_keep_the_exit_code (test_scripts.CheckTreeTests.test_unfilled_markers_are_warnings_that_keep_the_exit_code) ... ok
+  [3.9 ] test_unfilled_markers_are_warnings_that_keep_the_exit_code (test_scripts.CheckTreeTests) ... ok
+
+AC-PROP-1:
+  [3.14] test_workspaces_become_products_and_feature_folders_become_features (test_scripts.ProposeTreeTests.test_workspaces_become_products_and_feature_folders_become_features) ... ok
+  [3.9 ] test_workspaces_become_products_and_feature_folders_become_features (test_scripts.ProposeTreeTests) ... ok
+  [3.14] test_feature_folders_inside_products_use_the_product_pattern (test_scripts.ProposeTreeTests.test_feature_folders_inside_products_use_the_product_pattern) ... ok
+  [3.9 ] test_feature_folders_inside_products_use_the_product_pattern (test_scripts.ProposeTreeTests) ... ok
+
+AC-PROP-2:
+  [3.14] test_uv_workspace_members_become_products (test_scripts.ProposeTreeTests.test_uv_workspace_members_become_products) ... ok
+  [3.9 ] test_uv_workspace_members_become_products (test_scripts.ProposeTreeTests) ... skipped 'tomllib needs Python 3.11'
+  [3.14] test_without_tomllib_the_pyproject_is_reported_as_unread (test_scripts.ProposeTreeTests.test_without_tomllib_the_pyproject_is_reported_as_unread) ... ok
+  [3.9 ] test_without_tomllib_the_pyproject_is_reported_as_unread (test_scripts.ProposeTreeTests) ... ok
+  [3.14] test_without_tomllib_the_script_notes_the_pyproject_and_exits_0 (test_scripts.ProposeTreeTests.test_without_tomllib_the_script_notes_the_pyproject_and_exits_0) ... ok
+  [3.9 ] test_without_tomllib_the_script_notes_the_pyproject_and_exits_0 (test_scripts.ProposeTreeTests) ... ok
+
+AC-PROP-3:
+  [3.14] test_no_source_means_no_candidates (test_scripts.ProposeTreeTests.test_no_source_means_no_candidates) ... ok
+  [3.9 ] test_no_source_means_no_candidates (test_scripts.ProposeTreeTests) ... ok
+
+AC-REL-1:
+  [3.14] test_a_change_deep_in_a_feature_lists_the_feature_readme (test_scripts.FindRelatedNodeTests.test_a_change_deep_in_a_feature_lists_the_feature_readme) ... ok
+  [3.9 ] test_a_change_deep_in_a_feature_lists_the_feature_readme (test_scripts.FindRelatedNodeTests) ... ok
+
+AC-REL-2:
+  [3.14] test_a_feature_readme_changed_in_the_same_change_is_not_listed (test_scripts.FindRelatedNodeTests.test_a_feature_readme_changed_in_the_same_change_is_not_listed) ... ok
+  [3.9 ] test_a_feature_readme_changed_in_the_same_change_is_not_listed (test_scripts.FindRelatedNodeTests) ... ok
+  [3.14] test_without_a_declaration_no_node_candidate_is_listed (test_scripts.FindRelatedNodeTests.test_without_a_declaration_no_node_candidate_is_listed) ... ok
+  [3.9 ] test_without_a_declaration_no_node_candidate_is_listed (test_scripts.FindRelatedNodeTests) ... ok
+  [3.14] test_a_change_outside_every_node_does_not_list_the_root_readme (test_scripts.FindRelatedNodeTests.test_a_change_outside_every_node_does_not_list_the_root_readme) ... ok
+  [3.9 ] test_a_change_outside_every_node_does_not_list_the_root_readme (test_scripts.FindRelatedNodeTests) ... ok
+
+AC-TPL-1:
+  [3.14] test_each_kind_has_its_sections_and_the_unfilled_marker (test_scripts.ReadmeTemplateTests.test_each_kind_has_its_sections_and_the_unfilled_marker) ... ok
+  [3.9 ] test_each_kind_has_its_sections_and_the_unfilled_marker (test_scripts.ReadmeTemplateTests) ... ok
+  [3.14] test_family_links_are_markdown_links (test_scripts.ReadmeTemplateTests.test_family_links_are_markdown_links) ... ok
+  [3.9 ] test_family_links_are_markdown_links (test_scripts.ReadmeTemplateTests) ... ok
+  [3.14] test_feature_invariants_name_their_check (test_scripts.ReadmeTemplateTests.test_feature_invariants_name_their_check) ... ok
+  [3.9 ] test_feature_invariants_name_their_check (test_scripts.ReadmeTemplateTests) ... ok
+
+AC-TPL-2:
+  [3.14] test_a_tree_filled_from_the_templates_passes_the_check (test_scripts.ReadmeTemplateTests.test_a_tree_filled_from_the_templates_passes_the_check) ... ok
+  [3.9 ] test_a_tree_filled_from_the_templates_passes_the_check (test_scripts.ReadmeTemplateTests) ... ok
+
+AC-BUILD-1:
+  [3.14] test_the_build_procedure_has_every_element (test_scripts.SkillTreeProcedureTests.test_the_build_procedure_has_every_element) ... ok
+  [3.9 ] test_the_build_procedure_has_every_element (test_scripts.SkillTreeProcedureTests) ... ok
+  [3.14] test_only_the_build_procedure_lifts_the_file_limit (test_scripts.SkillTreeProcedureTests.test_only_the_build_procedure_lifts_the_file_limit) ... ok
+  [3.9 ] test_only_the_build_procedure_lifts_the_file_limit (test_scripts.SkillTreeProcedureTests) ... ok
+
+AC-BUILD-2:
+  [3.14] test_the_description_names_the_documentation_tree (test_scripts.SkillTreeProcedureTests.test_the_description_names_the_documentation_tree) ... ok
+  [3.9 ] test_the_description_names_the_documentation_tree (test_scripts.SkillTreeProcedureTests) ... ok
+  PASS HS-01: every skill meets the contract (skill-contract: 16 skills, 0 failures)   (C-02: description 1..1024 characters)
+
+AC-MAINT-1:
+  [3.14] test_every_change_runs_the_tree_check (test_scripts.SkillTreeProcedureTests.test_every_change_runs_the_tree_check) ... ok
+  [3.9 ] test_every_change_runs_the_tree_check (test_scripts.SkillTreeProcedureTests) ... ok
+  [3.14] test_done_when_requires_a_passing_tree_check (test_scripts.SkillTreeProcedureTests.test_done_when_requires_a_passing_tree_check) ... ok
+  [3.9 ] test_done_when_requires_a_passing_tree_check (test_scripts.SkillTreeProcedureTests) ... ok
+  [3.14] test_a_readme_the_tree_requires_does_not_count_toward_the_limit (test_scripts.SkillTreeProcedureTests.test_a_readme_the_tree_requires_does_not_count_toward_the_limit) ... ok
+  [3.9 ] test_a_readme_the_tree_requires_does_not_count_toward_the_limit (test_scripts.SkillTreeProcedureTests) ... ok
+
+AC-CI-1:
+  [3.14] test_the_tree_step_fails_on_a_broken_tree_and_passes_otherwise (test_scripts.CITemplateTests.test_the_tree_step_fails_on_a_broken_tree_and_passes_otherwise) ... ok
+  [3.9 ] test_the_tree_step_fails_on_a_broken_tree_and_passes_otherwise (test_scripts.CITemplateTests) ... ok
+
+AC-CI-2:
+  [3.14] test_the_skill_location_is_the_current_skill_name (test_scripts.CITemplateTests.test_the_skill_location_is_the_current_skill_name) ... ok
+  [3.9 ] test_the_skill_location_is_the_current_skill_name (test_scripts.CITemplateTests) ... ok
+
+AC-PRAC-1:
+  [3.14] test_layer_table_has_every_layer_with_a_basis (test_scripts.PracticesDocumentTests.test_layer_table_has_every_layer_with_a_basis) ... ok
+  [3.9 ] test_layer_table_has_every_layer_with_a_basis (test_scripts.PracticesDocumentTests) ... ok
+
+AC-PRAC-2:
+  [3.14] test_the_tree_is_labelled_as_a_design_decision (test_scripts.DocumentationTreePracticeTests.test_the_tree_is_labelled_as_a_design_decision) ... ok
+  [3.9 ] test_the_tree_is_labelled_as_a_design_decision (test_scripts.DocumentationTreePracticeTests) ... ok
+  [3.14] test_the_section_covers_kinds_links_declaration_and_the_marker (test_scripts.DocumentationTreePracticeTests.test_the_section_covers_kinds_links_declaration_and_the_marker) ... ok
+  [3.9 ] test_the_section_covers_kinds_links_declaration_and_the_marker (test_scripts.DocumentationTreePracticeTests) ... ok
+  [3.14] test_cited_keys_exist (test_scripts.DocumentationTreePracticeTests.test_cited_keys_exist) ... ok
+  [3.9 ] test_cited_keys_exist (test_scripts.DocumentationTreePracticeTests) ... ok
+
+AC-COMPAT-1:
+  see compat.txt (test definitions at 5a2daa6 against this commit) and the full runs in sync-docs-tests.txt and python39-tests.txt
