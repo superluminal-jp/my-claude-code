@@ -1,6 +1,6 @@
 # 一括構築の試しの記録（AC-ROOT-1、AC-ROOT-4 の資料）
 
-2026-11-14 に、`$TMPDIR/tree-dryrun` に作った Git リポジトリで、`harness/skills/sync-docs/SKILL.md` の「Build a documentation tree」の手順を、作業ツリーの版の skill で当てた記録。フィクスチャのファイルの写しは [dryrun-fixture/](dryrun-fixture/) にある（`.git` を除く。coupon は2つめの変更で足したもの）。フィクスチャの `git log` と `git status` の出力は [dryrun-git.txt](dryrun-git.txt) にある（2つめの変更の README を書いた後に取った）。試しの後、AC-ROOT-4 の照合の指摘を受けて、SKILL.md の手順3の1文を「出典は、ファイルと行、またはコマンドとその出力」と直した。試しで使った skill との差はこの1文だけである。
+2026-11-14 に、`$TMPDIR/tree-dryrun` に作った Git リポジトリで、`harness/skills/sync-docs/SKILL.md` の「Build a documentation tree」の手順を、作業ツリーの版の skill で当てた記録。フィクスチャのファイルの写しは [dryrun-fixture/](dryrun-fixture/) にある（`.git` を除く。coupon は2つめの変更で足したもの）。記録のフォルダにはデータのファイルだけを置くので、写しの `.ts` のファイルは名前の後に `.txt` を付けて保存した（`cart.ts` は `cart.ts.txt`）。以下の出典の `cart.ts:1` などは、フィクスチャの中の元の名前で書いている。フィクスチャの `git log` と `git status` の出力は [dryrun-git.txt](dryrun-git.txt) にある（2つめの変更の README を書いた後に取った）。試しの後、AC-ROOT-4 の照合の指摘を受けて、SKILL.md の手順3の1文を「出典は、ファイルと行、またはコマンドとその出力」と直した。試しで使った skill との差はこの1文だけである。
 
 ## 手順と結果
 
