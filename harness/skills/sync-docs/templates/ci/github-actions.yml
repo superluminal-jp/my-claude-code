@@ -12,7 +12,8 @@
 # and --site-root <dir> if documentation uses site-absolute links. The tree
 # check fails when the project declares a documentation tree ("tree" in
 # .living-documentation.json) and a node lacks its README or a parent-child
-# link; without a declaration it only prints candidate patterns.
+# link; without a declaration it only prints candidate patterns. It counts
+# relative links only and takes no --site-root.
 
 name: living-documentation
 

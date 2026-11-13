@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-071",
+    "reviewed_commit": "bebdb5e2fa170a562978fba410b76e4f6af6ae4a",
+    "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId aaa20209c8ef89474、2026-11-14、29 ファイルを読んだ",
+    "context_given": [
+      "review_prep.py bundle の出力 $TMPDIR/ar-071-round1（範囲 5a2daa6..bebdb5e、scope whole、the first round）: change.diff、graph.diff、requirements-graph.json、manifest.json、evidence/ の6ファイル、excluded.txt、scope.json",
+      "references/assurance-review.md の1回目の指示文を、change id（CHG-071）、bundle のパス、記録の言語（日本語）のほかは変えずに渡した"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "evidence_mismatch",
+        "target": "AC-ROOT-4",
+        "severity": "high",
+        "statement": "manifest.json は AC-ROOT-4 を evidence.kind が ai_review の1件だけで passed にしており、approvals は空で human_review もない。verify-change の A-02（assure.py の 545-547 行と references/manifest.md）は、ai_review だけで passed になる検査を block する。evidence の dryrun-review.json 自身の note も「verify-change の決まり（A-02）では受け入れ基準を通す証拠にならない。人による確認（human_review）が要る」と書いている。AC-ROOT-4 は REQ-ROOT の反例『一括構築が、確かめていない内容を README に事実として書き、木の形の検査は通ってしまう』を防ぐ唯一の検査である。そのため、この反例を防ぐ検査が実際には通っていない。また、レビュー役を起動したのは実装した側で、1回目に5件の unsupported が出た後、実装した側が報告と SKILL.md を直して2回目に0件にしている。",
+        "disposition": "accepted",
+        "resolution": "指摘のとおり、AC-ROOT-4 は AI のレビューだけで、A-02 がそれを止める。証拠の種類も状態も変えて通すことはしない。人による確認（human_review）を、変更を引き渡すときに Taiki Ogihara に依頼する。確認の対象は、2回目の reviewed_commit の skill から evidence/dryrun.py で作り直したフィクスチャの写しと、その出力（事実ごとの出典を含む）にする。確認が済むまで、gate は AC-ROOT-4 で blocked のままとする。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "other",
+        "target": "REQ-BUILD",
+        "severity": "low",
+        "statement": "AC-ROOT-4 の1回目の指摘を受けて、SKILL.md の一括構築の手順3は「出典は、ファイルと行」から「the path and line, or the command and its output」に広げられた（change.diff の SKILL.md の 89 行付近）。REQ-BUILD の statement と AC-ROOT-4 はどちらも出典を『ファイルと行』と定めており、要求のグラフ（graph.diff では新規ファイル）は直されていないので、手順と要求が食い違う。AC-BUILD-1 のテストは『source of each fact』の語の有無しか見ないので、この食い違いを検出しない。dryrun-review.json の2回目は、直した後の手順に合わせた報告を見ている。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。REQ-TEMPLATES は機能フォルダの README に『最後にコードと照らし合わせたコミット』の欄を求める。その値は git の出力から得るもので、ファイルの行ではない。そのため、REQ-BUILD の『ファイルと行』だけの出典は REQ-TEMPLATES と食い違っていた。REQ-BUILD の statement と AC-ROOT-4 の description を『ファイルと行、またはコマンドとその出力』に直した（requirements-graph.json）。これは問題文の利用者の決定『中身は確かめられる事実だけにし』（problem.md の『まとめて作る機能を含める。』の項）の範囲内である。check_graph.py の gate は ready のままである。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "evidence_mismatch",
+        "target": "AC-ROOT-1",
+        "severity": "medium",
+        "statement": "AC-ROOT-1 の evidence である dryrun-build-report.md は、実装した側が書いた経過の文章である。手順2、3、5、6 の木の検査の出力（候補、missing-readme が7件、終了コード）の生の出力は記録に残っていない。manifest が引かない dryrun-checks.txt には、2つめの変更の後の最終状態の出力しかない。報告が引く dryrun-fixture/、dryrun-git.txt、コミット 4db85ed と afe92d4 は、manifest が引かず、bundle の evidence/ にもない（リポジトリの記録フォルダで読んだ）。しかも afe92d4 は $TMPDIR のリポジトリにあり、確かめられない。『ルートから下向きのリンクだけでたどって全機能フォルダに着く』は、検査対象の check_tree.linked_directories 自身で確かめている。宣言の確認も人でなく実行した Claude が代わりに行った（報告自身が『人の確認の代わりにはならない』と書く）。試しは、最後の SKILL.md の1文を直す前の作業ツリーの版で行っており、evidence の commit bebdb5e のスクリプトと skill そのものではない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。試しを evidence/dryrun.py（記録のフォルダに置き、変更と同じコミットに入れたので、変更と一緒にレビューされる）で再現できるようにした。2回目の reviewed_commit の skill からフィクスチャを作り、各段のコマンド、生の出力、終了コードを出し、期待が成り立つかを最後に RESULT として示す。その出力を証拠にする。下向きのリンクでたどれることは、check_tree.py を使わない、正規表現だけの別のコード（dryrun.py の walk_down）で確かめる。フィクスチャの写しも、このスクリプトが同じ実行で書き出す。宣言の候補を人が確かめる段は、試し用のフィクスチャには確かめる人がいないため、実行した者が代わる。このことはスクリプトの docstring と AC-ROOT-1 の description に書いた。人がこの段を行うことは、この試しでは確かめていない（残るリスク）。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "AC-CHECK-2",
+        "severity": "medium",
+        "statement": "AC-CHECK-2 は『ネットワークに接続せず、Python 3.9 以降の標準ライブラリだけで動く』を求める。acceptance-tests.txt が挙げる証拠は、test_the_check_writes_nothing（プロジェクトのファイル一覧の前後比較だけ）と HS-01/HS-02 の PASS 行だけである。compat.txt によれば実行は Python 3.14.3 だけで、3.9 での実行や構文の確認はない。tests/assert_skill_contract.py の C-07 は、シェルの行にあるネットワークのコマンドを探すだけで、check_tree.py の import や 3.9 との互換は見ない。tomllib の側のテストも 3.11 未満ではスキップされる。『3.9 以降』と『ネットワークを使わない』は示されていない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。sync-docs のスクリプトが import するモジュールを ast で調べるテスト test_the_scripts_import_no_network_and_no_third_party_module を加えた。ネットワークのモジュールがないこと、Python 3.10 以降では標準ライブラリと skill 自身のモジュールだけであることを確かめる。わざと check_tree.py に import socket を足すと、このテストが失敗することを確かめてから戻した。sync-docs のテストを、tomllib のない Python 3.9.6（/usr/bin/python3）でも走らせ、その出力を証拠に加えた。AC-CHECK-2 の description に、この2つを書いた。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "evidence_mismatch",
+        "target": "AC-PROP-2",
+        "severity": "low",
+        "statement": "AC-PROP-2 は、tomllib を使えない Python では『pyproject.toml を読めなかったことを出力に書き、終了コード 0 を返す』ことを求める。test_without_tomllib_the_pyproject_is_reported_as_unread は、check_tree.tomllib = None にして propose() を直接呼び、notes のリストを見るだけで、main() の出力（render_text の note 行）も終了コードも確かめない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。test_without_tomllib_the_script_notes_the_pyproject_and_exits_0 を加えた。tomllib の import を失敗させて check_tree.py の main を実行し、終了コード 0 と、出力の『note: pyproject.toml was not read』の行を確かめる。わざと note の行を出さないようにすると、このテストが失敗することを確かめてから戻した。Python 3.9 の実行でも、本物の tomllib のない環境で同じ道を通る。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "uncovered_path",
+        "target": "REQ-BUILD",
+        "severity": "medium",
+        "statement": "SKILL.md の frontmatter の description は、change.diff で変わっていない。そこには『実装やレビューの変更のときと、文書のずれの監査を頼まれたとき』に使うとあり、『文書の木を作るよう頼まれたとき』は入っていない。一括構築の手順は『人がはっきり頼んだときだけ』使う設計なので、その依頼が skill の起動に届くかが、REQ-ROOT の『頼まれたときに…作り』の前提になる。この経路はどの受け入れ基準も確かめない。AC-ROOT-1 の試しは、実装した側が SKILL.md を直接読んで行ったもので、skill の選択を通っていない。tests/harness-eval/scenarios.json にもこの依頼の場面は加わっていない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。SKILL.md の description に『when asked to declare, check, or build the documentation tree of a repository...』を加えた（820 字。C-02 の上限は 1024 字）。REQ-BUILD に AC-BUILD-2 を加え、テスト test_the_description_names_the_documentation_tree で確かめる。ただし、モデルがこの description で実際にこの skill を選ぶかは、harness-eval の場面を足して評価を走らせないと分からない。評価は実行の費用がかかるので、この変更では足さない（残るリスク）。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "uncovered_path",
+        "target": "REQ-SHARED",
+        "severity": "low",
+        "statement": "find_related.py の main() が変わり、find_candidates() の呼び出しが try の中に移った（change.diff の find_related.py の 195-205 行付近）。宣言が1つのフォルダで両方の段に一致すると、find_related.py は終了コード 2 を返すはずだが、AC-DECL-2 の確認は木の検査だけを対象にしており、find_related.py 側のテストはない。また、宣言のないプロジェクトで find_candidates() 中に GitError が出たときの振る舞いは、以前の『捕捉されない』から変わる。AC-COMPAT-1 はテスト名の一覧の差だけを見るので、この変化は確かめない。",
+        "disposition": "accepted",
+        "resolution": "前半を受け入れた。find_related.py が、両方の段に一致する宣言で終了コード 2 と設定エラーを出すことを確かめる test_a_folder_matching_both_kinds_is_a_configuration_error を加え、AC-DECL-2 の description にも書いた。find_candidates の呼び出しを try の外に戻すとこのテストが失敗することを、わざと戻して確かめた。後半の GitError の振る舞いの変化は起きない。GitError を投げるのは common.py の comparison_rev と changed_files（255、277、278、287 行）だけである。find_candidates が呼ぶ list_files（common.py:190-228）、tree_nodes、classify、read_document は GitError を投げない。そのため、try の中に移しても、捕まえる例外が増えるのは ConfigError（tree_nodes の、両方の段に一致する場合）だけである。"
+      },
+      {
+        "id": "AR-08",
+        "kind": "evidence_mismatch",
+        "target": "AC-ROOT-3",
+        "severity": "low",
+        "statement": "AC-ROOT-3 は sync-docs の手順をこの変更に当てることを求める。SKILL.md の手順5は、新しい公開の契約（tree のキー、check_tree.py）がある変更では、会話を渡さない subagent に文書と diff を比べさせるよう定める。docs-impact.txt にはその比較の記録がなく、あるのは find_related.py（--base main）、check_links.py、check_tree.py の出力と、Documentation impact の報告だけである。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。SKILL.md の手順5が求める文書と差分の照合は、1回目の assurance review と同じ bundle の change.diff を、会話を渡さない別の read-only-reviewer に読ませて行い、8件のずれ（DG-01〜DG-08）が見つかっていた。その記録が docs-impact.txt になかった。2回目の reviewed_commit の docs-impact.txt に、8件と、それぞれの直し（practices.md、config.schema.json、check_tree.py と find_related.py の docstring、SKILL.md の一括構築の手順4と5、CI のひな形の注記）を書く。"
+      }
+    ]
+  }
+}

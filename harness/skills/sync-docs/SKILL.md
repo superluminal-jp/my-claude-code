@@ -1,6 +1,6 @@
 ---
 name: sync-docs
-description: Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. Use when implementing or reviewing a change that affects behavior, interfaces or API schemas, configuration, deployment, architecture or decision records, a README or user or operational guide, a change log or release notes, or research provenance, and when asked for a documentation drift audit. Not for a change with no observable or documented effect, and not for structuring the prose of a single document.
+description: Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. Use when implementing or reviewing a change that affects behavior, interfaces or API schemas, configuration, deployment, architecture or decision records, a README or user or operational guide, a change log or release notes, or research provenance; when asked for a documentation drift audit; and when asked to declare, check, or build the documentation tree of a repository, a README for the repository, each product, and each feature folder, linked parent to child. Not for a change with no observable or documented effect, and not for structuring the prose of a single document.
 compatibility: Python 3.9 or later. Git is optional and enables change audits and ignore-aware scanning.
 metadata:
   kind: worker
@@ -58,8 +58,8 @@ Use this procedure only when the person explicitly asks to build the documentati
 1. **Declare.** Run `check_tree.py` in a project without a declaration to list candidate patterns per kind. Show them to the person, and write `tree` into `.living-documentation.json` only after the person has confirmed or corrected them.
 2. **Create.** Give every node that lacks a `README.md` one from the template of its kind: `templates/readme-repository.md`, `templates/readme-product.md`, or `templates/readme-feature.md`. Replace every `{{...}}` text and every `replace:` link target, repeat the child line once per child node, and drop a list of children that would stay empty. In this procedure only, the limit of three new files does not apply.
 3. **Fill only what you verified.** Write a fact only when a file of the project, or the output of a command such as `git log`, states it, and keep that source for the report: the path and line, or the command and its output. Never infer a purpose, a boundary, or a rationale from a name or a guess: leave it as `TODO(unfilled): <what is missing and who or what can settle it>`.
-4. **Check.** Run `check_tree.py` and `check_links.py`, and fix every error they report.
-5. **Report** the README files created, the source of each fact written in them, and every remaining unfilled item, which `check_tree.py` keeps listing as warnings.
+4. **Check.** Run `check_tree.py` and `check_links.py`, fix every error they report, and confirm that no `{{` and no `replace:` remains in the new READMEs: neither script reports one left in a list that needs no link.
+5. **Report** the README files created, the source of each fact written in them, and every remaining unfilled item, read from the READMEs: `check_tree.py` keeps warning, on every run, how many each README still holds.
 
 ## Report format
 

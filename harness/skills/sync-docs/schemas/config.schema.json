@@ -129,10 +129,10 @@
             "type": "string"
           },
           "default": [],
-          "description": "Directories that are feature folders, matched like products. A directory may match only one of the two."
+          "description": "Directories that are feature folders, matched like products. A directory that matches both products and features is a configuration error."
         }
       },
-      "description": "Declares the documentation tree: the repository root is always its root node, every existing, non-excluded directory that matches a pattern is a node of that kind, and each node's parent is the nearest node above it. With this key, check_tree.py requires a README.md in every node that links to each child node and back to its parent; without it, check_tree.py only proposes patterns."
+      "description": "Declares the documentation tree: the repository root is always its root node, every directory that holds a listed file (tracked or untracked, not ignored by Git, not excluded) and matches a pattern is a node of that kind, and each node's parent is the nearest node above it. With this key, check_tree.py requires a README.md in every node that links to each child node and back to its parent; without it, check_tree.py only proposes patterns."
     }
   }
 }

@@ -10,11 +10,16 @@ node and, below the root, back to the README of its parent. Each break is one er
   missing-child-link   the node's README does not link to a child node
   missing-parent-link  the node's README does not link to its parent node
 A link counts by its target path, written as the README or as its folder; whether the target
-file exists is check_links.py's concern. Links in code blocks, inline code, and HTML comments
-do not count. A README that still holds the unfilled marker TODO(unfilled) gets a warning,
+file exists is check_links.py's concern. Only relative links count: links in code blocks,
+inline code, and HTML comments, site-absolute links (/path), fragment-only links, external
+links, and links that leave the repository do not. A README that still holds the unfilled
+marker TODO(unfilled) outside code and comments gets a warning with the number of markers,
 which leaves the exit code unchanged.
 
-Without a declaration nothing is checked: candidate patterns are listed instead.
+Without a declaration nothing is checked: candidate patterns are listed instead, from
+package.json workspaces, pyproject.toml [tool.uv.workspace] members (Python 3.11 or later,
+which has tomllib; earlier versions note that the file was not read), and folders named
+"features".
 
 Exit codes: 0 no error, 1 one or more errors, 2 invalid configuration or arguments.
 """

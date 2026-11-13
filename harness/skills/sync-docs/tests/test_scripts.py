@@ -1036,6 +1036,26 @@ class CheckTreeTests(TreeFixture):
         self.assertEqual(sorted((w["readme"], w["count"]) for w in data.get("warnings", [])),
                          [("products/a/README.md", 2), ("products/b/src/features/x/README.md", 1)])
 
+    def test_the_scripts_import_no_network_and_no_third_party_module(self):  # AC-CHECK-2
+        import ast
+        own = {p.stem for p in SCRIPTS.glob("*.py")}
+        network = {"socket", "ssl", "http", "ftplib", "smtplib", "poplib", "imaplib", "telnetlib", "xmlrpc",
+                   "asyncio", "urllib.request", "urllib.response"}
+        stdlib = getattr(sys, "stdlib_module_names", None)
+        for script in sorted(SCRIPTS.glob("*.py")):
+            with self.subTest(script=script.name):
+                names = set()
+                for node in ast.walk(ast.parse(script.read_text(encoding="utf-8"))):
+                    if isinstance(node, ast.Import):
+                        names |= {alias.name for alias in node.names}
+                    elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+                        names.add(node.module)
+                self.assertFalse({n for n in names if n in network or n.split(".")[0] in network - {"urllib"}},
+                                 sorted(names))
+                if stdlib is not None:  # Python 3.10 and later list the standard library
+                    self.assertFalse({n for n in names if n.split(".")[0] not in stdlib | own | {"__future__"}},
+                                     sorted(names))
+
     def test_the_check_writes_nothing(self):  # AC-CHECK-2 (kept with the checks it guards)
         init_repo(self.root)
         commit_all(self.root, "tree")
@@ -1096,6 +1116,17 @@ class ProposeTreeTests(TempDirTestCase):
         self.assertEqual(candidates, {"products": [], "features": []})
         self.assertTrue(any("pyproject.toml" in note for note in notes), notes)
 
+    def test_without_tomllib_the_script_notes_the_pyproject_and_exits_0(self):  # AC-PROP-2
+        write(self.root, "pyproject.toml", '[tool.uv.workspace]\nmembers = ["services/*"]\n')
+        write(self.root, "services/a/main.py", "\n")
+        runner = ("import runpy, sys; sys.modules['tomllib'] = None; sys.argv = ['check_tree.py', '--root', sys.argv[1]]; "
+                  f"sys.path.insert(0, {str(SCRIPTS)!r}); runpy.run_path({str(SCRIPTS / 'check_tree.py')!r}, run_name='__main__')")
+        proc = subprocess.run([sys.executable, "-B", "-c", runner, str(self.root)], text=True,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("note: pyproject.toml was not read", proc.stdout)
+        self.assertIn("no candidates found", proc.stdout)
+
     def test_no_source_means_no_candidates(self):  # AC-PROP-3
         write(self.root, "src/app.py", "\n")
         _, data, text = self.propose()
@@ -1138,6 +1169,14 @@ class FindRelatedNodeTests(TempDirTestCase):
         commit_all(self.root, "no declaration")
         write(self.root, "src/features/foo/api/handler.ts", "export const v = 2;\n")
         self.assertEqual(self.node_candidates(), [])
+
+    def test_a_folder_matching_both_kinds_is_a_configuration_error(self):  # AC-DECL-2
+        write(self.root, ".living-documentation.json",
+              json.dumps({"tree": {"products": ["src/features/*"], "features": ["src/features/*"]}}))
+        write(self.root, "src/features/foo/api/handler.ts", "export const v = 2;\n")
+        proc = run_script("find_related.py", "--root", str(self.root), "--json")
+        self.assertEqual(proc.returncode, 2, proc.stdout)
+        self.assertIn("matches both tree.products and tree.features", proc.stderr)
 
     def test_a_change_outside_every_node_does_not_list_the_root_readme(self):  # AC-REL-2
         write(self.root, "src/lib/util.ts", "export const u = 2;\n")
@@ -1307,6 +1346,12 @@ class SkillTreeProcedureTests(unittest.TestCase):
         for name, phrase in elements.items():
             with self.subTest(name):
                 self.assertIn(phrase, section)
+
+    def test_the_description_names_the_documentation_tree(self):  # AC-BUILD-2
+        description = self.text.split("description:", 1)[1].split("\n", 1)[0].strip()
+        self.assertRegex(description, r"documentation tree")
+        self.assertRegex(description, r"(?i)declare.*check.*build|build.*documentation tree")
+        self.assertLessEqual(len(description), 1024)
 
     def test_only_the_build_procedure_lifts_the_file_limit(self):  # AC-BUILD-1 (c)
         section = self.between(self.BUILD, "\n## ")

@@ -12,7 +12,8 @@ Candidates, closest first (contract C1; documents that changed too are never can
                 root) that contains a changed file deeper inside it
   P2 mention    a document that names a changed file by path, or by name when the name is long enough
   P3 changelog  the project's change history, when a user-visible change left it untouched
-related.max_candidates keeps the closest documents and counts the rest in "truncated";
+An invalid configuration, including a folder that matches both tree.products and tree.features,
+exits 2. related.max_candidates keeps the closest documents and counts the rest in "truncated";
 related.min_name_length sets the shortest file name that counts as a mention.
 
 The JSON output is {"changed": [...], "candidates": [{"source", "path", "kind", "proximity",
