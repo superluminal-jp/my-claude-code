@@ -1,0 +1,22 @@
+commit: bebdb5e2fa170a562978fba410b76e4f6af6ae4a
+$ python3 -B harness/skills/sync-docs/scripts/find_related.py --root . --base main
+changed files: 13
+no related documents found.
+comments to keep in step (advisory): harness/skills/sync-docs/scripts/check_tree.py, harness/skills/sync-docs/scripts/common.py, harness/skills/sync-docs/scripts/find_related.py, harness/skills/sync-docs/templates/ci/github-actions.yml
+exit=0
+$ python3 -B harness/skills/sync-docs/scripts/check_links.py --root . --changed --base main
+Link check (changed scope): 283 Markdown files, 0 errors, 0 warnings.
+exit=0
+$ python3 -B harness/skills/sync-docs/scripts/check_tree.py --root .
+no tree declared in .living-documentation.json; nothing was checked.
+no candidates found: declare tree.products and tree.features by hand if the project has them.
+exit=0
+
+Documentation impact
+- Updated: README.md - the sync-docs entry now names the tree declaration, check_tree.py, and the build on request; the layout lists check_tree.py and the README templates; agrees with harness/skills/sync-docs/SKILL.md and scripts/ at this commit
+- Updated: README.ja.md - the same three places in Japanese; agrees with the same sources
+- Updated: harness/skills/sync-docs/SKILL.md, references/practices.md, schemas/config.schema.json, templates/ci/github-actions.yml - part of the change itself; the tests in sync-docs-tests.txt check each against the scripts
+- No change needed: docs/harness-zero-base.md - its "sync-docs 75 tests" (line 518) records the state of the zero-base redesign at that time, not the current count; accepted history is not rewritten
+- No change needed: docs/harness/capability-map.md - names the skill (H-docs), not its scripts; the capability is unchanged
+- No change needed: change history - the project keeps none of its own (the changelog files the audit names are inside the vendored dads-docs of apply-dads-frontend)
+- Checks: find_related.py, check_links.py, check_tree.py above; sync-docs-tests.txt and harness-skills.txt

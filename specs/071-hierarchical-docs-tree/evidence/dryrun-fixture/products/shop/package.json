@@ -1,0 +1,8 @@
+{
+  "name": "@acme/shop",
+  "description": "Customer-facing web shop.",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run"
+  }
+}

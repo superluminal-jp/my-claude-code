@@ -1,0 +1,19 @@
+commit: bebdb5e2fa170a562978fba410b76e4f6af6ae4a (scripts of this commit, run on the dry-run fixture in $TMPDIR/tree-dryrun after the second change)
+$ python3 -B scripts/check_tree.py --root <fixture>
+warning: README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/README.md: 4 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/audit-log/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/admin/src/features/users/README.md: 5 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/README.md: 3 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/cart/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/checkout/README.md: 2 unfilled item(s) marked TODO(unfilled)
+warning: products/shop/src/features/coupon/README.md: 2 unfilled item(s) marked TODO(unfilled)
+tree: 8 node(s), 0 error(s), 8 warning(s)
+exit=0
+$ python3 -B scripts/check_links.py --root <fixture>
+Link check (all files): 8 Markdown files, 0 errors, 0 warnings.
+exit=0
+$ python3 -B scripts/check_tree.py --root <fixture with products/shop/src/features/coupon/README.md removed> (restored afterwards)
+error: products/shop/src/features/coupon: no README.md in this feature folder
+tree: 8 node(s), 1 error(s), 7 warning(s)
+exit=1

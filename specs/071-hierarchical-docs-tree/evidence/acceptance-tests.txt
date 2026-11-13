@@ -1,0 +1,101 @@
+commit: bebdb5e2fa170a562978fba410b76e4f6af6ae4a
+Acceptance criterion -> the tests that check it, and each test's line from sync-docs-tests.txt (the verbose run at this commit).
+
+AC-DECL-1:
+  test_nodes_get_their_kind_and_the_nearest_node_above_as_parent (test_scripts.TreeDeclarationTests.test_nodes_get_their_kind_and_the_nearest_node_above_as_parent) ... ok
+  test_a_feature_with_no_product_above_has_the_root_as_parent (test_scripts.TreeDeclarationTests.test_a_feature_with_no_product_above_has_the_root_as_parent) ... ok
+  test_star_stays_inside_one_path_segment (test_scripts.TreeDeclarationTests.test_star_stays_inside_one_path_segment) ... ok
+
+AC-DECL-2:
+  test_invalid_declarations_are_configuration_errors (test_scripts.TreeDeclarationTests.test_invalid_declarations_are_configuration_errors) ... ok
+
+AC-DECL-3:
+  test_excluded_missing_and_file_matches_are_not_nodes (test_scripts.TreeDeclarationTests.test_excluded_missing_and_file_matches_are_not_nodes) ... ok
+
+AC-DECL-4:
+  test_schema_defines_the_tree_declaration (test_scripts.ConfigTests.test_schema_defines_the_tree_declaration) ... ok
+  test_tree_declaration_is_accepted_by_the_loader (test_scripts.ConfigTests.test_tree_declaration_is_accepted_by_the_loader) ... ok
+
+AC-SHARED-1:
+  test_both_scripts_find_the_same_nodes (test_scripts.SharedTreeNodesTests.test_both_scripts_find_the_same_nodes) ... ok
+
+AC-CHECK-1:
+  test_a_correct_tree_passes (test_scripts.CheckTreeTests.test_a_correct_tree_passes) ... ok
+  test_each_single_break_is_one_error_naming_the_node (test_scripts.CheckTreeTests.test_each_single_break_is_one_error_naming_the_node) ... ok
+
+AC-CHECK-2:
+  test_the_check_writes_nothing (test_scripts.CheckTreeTests.test_the_check_writes_nothing) ... ok
+  PASS HS-01: every skill meets the contract (skill-contract: 16 skills, 0 failures)
+  PASS HS-02: sync-docs script tests pass (Ran 116 tests in 17.023s)
+
+AC-CHECK-3:
+  test_breaks_at_several_levels_are_each_reported_once (test_scripts.CheckTreeTests.test_breaks_at_several_levels_are_each_reported_once) ... ok
+
+AC-README-1:
+  test_a_missing_root_readme_is_an_error (test_scripts.CheckTreeTests.test_a_missing_root_readme_is_an_error) ... ok
+  test_the_text_output_names_the_folder_without_a_readme (test_scripts.CheckTreeTests.test_the_text_output_names_the_folder_without_a_readme) ... ok
+
+AC-DOWN-1:
+  test_a_child_may_be_linked_as_its_readme_or_its_folder (test_scripts.CheckTreeTests.test_a_child_may_be_linked_as_its_readme_or_its_folder) ... ok
+
+AC-DOWN-2:
+  test_links_in_code_and_comments_do_not_count (test_scripts.CheckTreeTests.test_links_in_code_and_comments_do_not_count) ... ok
+
+AC-UP-1:
+  test_a_parent_may_be_linked_as_its_readme_or_its_folder (test_scripts.CheckTreeTests.test_a_parent_may_be_linked_as_its_readme_or_its_folder) ... ok
+
+AC-UNF-1:
+  test_unfilled_markers_are_warnings_that_keep_the_exit_code (test_scripts.CheckTreeTests.test_unfilled_markers_are_warnings_that_keep_the_exit_code) ... ok
+
+AC-PROP-1:
+  test_workspaces_become_products_and_feature_folders_become_features (test_scripts.ProposeTreeTests.test_workspaces_become_products_and_feature_folders_become_features) ... ok
+  test_feature_folders_inside_products_use_the_product_pattern (test_scripts.ProposeTreeTests.test_feature_folders_inside_products_use_the_product_pattern) ... ok
+
+AC-PROP-2:
+  test_uv_workspace_members_become_products (test_scripts.ProposeTreeTests.test_uv_workspace_members_become_products) ... ok
+  test_without_tomllib_the_pyproject_is_reported_as_unread (test_scripts.ProposeTreeTests.test_without_tomllib_the_pyproject_is_reported_as_unread) ... ok
+
+AC-PROP-3:
+  test_no_source_means_no_candidates (test_scripts.ProposeTreeTests.test_no_source_means_no_candidates) ... ok
+
+AC-REL-1:
+  test_a_change_deep_in_a_feature_lists_the_feature_readme (test_scripts.FindRelatedNodeTests.test_a_change_deep_in_a_feature_lists_the_feature_readme) ... ok
+
+AC-REL-2:
+  test_a_feature_readme_changed_in_the_same_change_is_not_listed (test_scripts.FindRelatedNodeTests.test_a_feature_readme_changed_in_the_same_change_is_not_listed) ... ok
+  test_without_a_declaration_no_node_candidate_is_listed (test_scripts.FindRelatedNodeTests.test_without_a_declaration_no_node_candidate_is_listed) ... ok
+  test_a_change_outside_every_node_does_not_list_the_root_readme (test_scripts.FindRelatedNodeTests.test_a_change_outside_every_node_does_not_list_the_root_readme) ... ok
+
+AC-TPL-1:
+  test_each_kind_has_its_sections_and_the_unfilled_marker (test_scripts.ReadmeTemplateTests.test_each_kind_has_its_sections_and_the_unfilled_marker) ... ok
+  test_family_links_are_markdown_links (test_scripts.ReadmeTemplateTests.test_family_links_are_markdown_links) ... ok
+  test_feature_invariants_name_their_check (test_scripts.ReadmeTemplateTests.test_feature_invariants_name_their_check) ... ok
+
+AC-TPL-2:
+  test_a_tree_filled_from_the_templates_passes_the_check (test_scripts.ReadmeTemplateTests.test_a_tree_filled_from_the_templates_passes_the_check) ... ok
+
+AC-BUILD-1:
+  test_the_build_procedure_has_every_element (test_scripts.SkillTreeProcedureTests.test_the_build_procedure_has_every_element) ... ok
+  test_only_the_build_procedure_lifts_the_file_limit (test_scripts.SkillTreeProcedureTests.test_only_the_build_procedure_lifts_the_file_limit) ... ok
+
+AC-MAINT-1:
+  test_every_change_runs_the_tree_check (test_scripts.SkillTreeProcedureTests.test_every_change_runs_the_tree_check) ... ok
+  test_done_when_requires_a_passing_tree_check (test_scripts.SkillTreeProcedureTests.test_done_when_requires_a_passing_tree_check) ... ok
+  test_a_readme_the_tree_requires_does_not_count_toward_the_limit (test_scripts.SkillTreeProcedureTests.test_a_readme_the_tree_requires_does_not_count_toward_the_limit) ... ok
+
+AC-CI-1:
+  test_the_tree_step_fails_on_a_broken_tree_and_passes_otherwise (test_scripts.CITemplateTests.test_the_tree_step_fails_on_a_broken_tree_and_passes_otherwise) ... ok
+
+AC-CI-2:
+  test_the_skill_location_is_the_current_skill_name (test_scripts.CITemplateTests.test_the_skill_location_is_the_current_skill_name) ... ok
+
+AC-PRAC-1:
+  test_layer_table_has_every_layer_with_a_basis (test_scripts.PracticesDocumentTests.test_layer_table_has_every_layer_with_a_basis) ... ok
+
+AC-PRAC-2:
+  test_the_tree_is_labelled_as_a_design_decision (test_scripts.DocumentationTreePracticeTests.test_the_tree_is_labelled_as_a_design_decision) ... ok
+  test_the_section_covers_kinds_links_declaration_and_the_marker (test_scripts.DocumentationTreePracticeTests.test_the_section_covers_kinds_links_declaration_and_the_marker) ... ok
+  test_cited_keys_exist (test_scripts.DocumentationTreePracticeTests.test_cited_keys_exist) ... ok
+
+AC-COMPAT-1:
+  see compat.txt (test definitions at 5a2daa6 against this commit) and the full run in sync-docs-tests.txt

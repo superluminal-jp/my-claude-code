@@ -1,0 +1,27 @@
+{
+  "purpose": "AC-ROOT-4: 一括構築の試しで作った README の記述を、会話を渡さない読み取り専用のレビュー役がフィクスチャのファイルと照らし合わせた結果",
+  "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId af3a9318586eaa95e、2026-11-14",
+  "context_given": [
+    "dryrun-build-report.md",
+    "dryrun-fixture/ のすべてのファイル",
+    "README の記述を supported / marked / unsupported に分ける指示文（会話と実装の説明は渡していない）"
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "files_read": 19,
+      "statements_checked": 50,
+      "unsupported_count": 5,
+      "unsupported": "5件とも『Last verified against the code』の行。出典が git log で、レビュー役には読めなかった。誤りとは判断せず、確認できなかったとした。ほかの記述はすべて出典と一致するか、TODO(unfilled) が付いていた",
+      "response": "フィクスチャの git log と git status の出力を dryrun-git.txt に保存し、報告の出典をその行に直した。SKILL.md の手順3の出典の書き方を『ファイルと行、またはコマンドとその出力』に直した"
+    },
+    {
+      "round": 2,
+      "files_read": 21,
+      "statements_checked": 50,
+      "unsupported_count": 0,
+      "unsupported": []
+    }
+  ],
+  "note": "AI のレビューなので、verify-change の決まり（A-02）では受け入れ基準を通す証拠にならない。人による確認（human_review）が要る。"
+}

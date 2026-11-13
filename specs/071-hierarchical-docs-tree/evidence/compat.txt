@@ -1,0 +1,14 @@
+commit: bebdb5e2fa170a562978fba410b76e4f6af6ae4a
+base: 5a2daa6 (main)
+$ test definitions (def test_*) in harness/skills/sync-docs/tests/test_scripts.py
+at base: 77, at commit: 118, at base but not at commit: 0
+$ git diff 5a2daa6 bebdb5e2fa170a562978fba410b76e4f6af6ae4a -- harness/skills/sync-docs/tests/test_scripts.py | grep '^-' (every removed line)
+-    LAYERS = ("Project entry", "How-to", "Reference", "Architecture", "Decision records", "Change history",
+-              "Feature specification", "Code comments", "Research provenance")
+(the removed LAYERS tuple is replaced by one that also lists "Product entry" and "Feature README": the test checks more rows, not fewer)
+$ added lines that skip a test
++    @unittest.skipIf(sys.version_info < (3, 11), "tomllib needs Python 3.11")
++@unittest.skipUnless(HAS_GIT, "git is required")
++@unittest.skipUnless(HAS_GIT, "git is required")
+(all three decorate new tests of spec 071: test_uv_workspace_members_become_products, FindRelatedNodeTests, SharedTreeNodesTests; in this run Python is 3.14.3 and git is installed, so none was skipped)
+(the full run at this commit is in sync-docs-tests.txt: 116 tests, OK)

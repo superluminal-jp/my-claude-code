@@ -1,0 +1,8 @@
+{
+  "name": "@acme/admin",
+  "description": "Internal console for staff.",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run"
+  }
+}

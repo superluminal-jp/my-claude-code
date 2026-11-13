@@ -1,0 +1,8 @@
+{
+  "name": "acme-platform",
+  "private": true,
+  "workspaces": ["products/*"],
+  "scripts": {
+    "test": "vitest run"
+  }
+}
