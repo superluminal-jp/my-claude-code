@@ -40,12 +40,13 @@
       },
       {
         "check_id": "AC-ROOT-4",
-        "status": "passed",
+        "status": "not_run",
         "evidence": {
           "kind": "ai_review",
-          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-review-raw.json",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-review-fresh.json",
           "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
-        }
+        },
+        "reason": "人による確認（human_review）を待つ。会話を渡さない新しいレビュー役の AI による照合（dryrun-review-fresh.json）では、54 件の記述のうち出典も未記入の印もないものは0件だったが、AI のレビューは受け入れ基準を通す証拠にならない（A-02）。"
       },
       {
         "check_id": "AC-DECL-1",
