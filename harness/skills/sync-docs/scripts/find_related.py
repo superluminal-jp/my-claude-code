@@ -92,8 +92,12 @@ def find_candidates(root: Path, config: dict, changes: list[Change]) -> dict:
             records[(path, source)] = {"source": source, "path": path, "kind": kind,
                                        "proximity": proximity, "reason": reason}
 
+    declared = "tree" in config
+    files = list_files(root, config)[0] if sources or declared else []
+    # The declaration is checked on every run, so an invalid one fails even when no source changed.
+    nodes = sorted((n for n in tree_nodes(root, config, files) if n.path), key=lambda n: -len(n.path)) if declared else []
+
     if sources:
-        files, _ = list_files(root, config)
         documents = [f for f in files if f not in changed and is_candidate_document(f, config)]
 
         documents_by_dir: dict[str, list[str]] = defaultdict(list)
@@ -104,9 +108,8 @@ def find_candidates(root: Path, config: dict, changes: list[Change]) -> dict:
                 add(source, document, "sibling", "P1",
                     f"document in the same directory as the changed file {source}; it was not changed")
 
-        if "tree" in config:
+        if declared:
             listed = set(files)
-            nodes = sorted((n for n in tree_nodes(root, config, files) if n.path), key=lambda n: -len(n.path))
             for source in sources:
                 node = next((n for n in nodes if source.startswith(n.path + "/")), None)
                 readme = f"{node.path}/{README_NAME}" if node else None

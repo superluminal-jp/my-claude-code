@@ -54,6 +54,7 @@ COUPON = ("products/shop/src/features/coupon/coupon.ts",
           "export function applyCoupon(total: number, percent: number): number {\n"
           "  return total * (1 - percent / 100);\n}\n")
 
+FIXED_DATE = "2026-11-14T00:00:00+09:00"
 failures: list[str] = []
 
 
@@ -62,8 +63,10 @@ def show(title: str) -> None:
 
 
 def run(cmd: list[str], cwd: Path, expect: int | None = None) -> subprocess.CompletedProcess:
+    # Fixed commit dates make the fixture's commits, and so the READMEs that name them, the same on every run.
     proc = subprocess.run(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                          env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
+                          env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1", GIT_AUTHOR_DATE=FIXED_DATE,
+                                   GIT_COMMITTER_DATE=FIXED_DATE))
     shown = [Path(c).name if c == sys.executable or "/" in c and c.endswith(".py") else c for c in cmd]
     print("$ " + " ".join(shown))
     print(proc.stdout.rstrip("\n"))

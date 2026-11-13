@@ -1050,9 +1050,11 @@ class CheckTreeTests(TreeFixture):
                         names |= {alias.name for alias in node.names}
                     elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
                         names.add(node.module)
+                        names |= {f"{node.module}.{alias.name}" for alias in node.names}
                 self.assertFalse({n for n in names if n in network or n.split(".")[0] in network - {"urllib"}},
                                  sorted(names))
-                if stdlib is not None:  # Python 3.10 and later list the standard library
+                # Python 3.9 has no list of the standard library, so this half runs on 3.10 and later only
+                if stdlib is not None:
                     self.assertFalse({n for n in names if n.split(".")[0] not in stdlib | own | {"__future__"}},
                                      sorted(names))
 
@@ -1060,10 +1062,12 @@ class CheckTreeTests(TreeFixture):
         init_repo(self.root)
         commit_all(self.root, "tree")
         (self.root / "products/a/README.md").unlink()
-        before = sorted(p.relative_to(self.root).as_posix() for p in self.root.rglob("*") if ".git" not in p.parts)
+        def state() -> dict[str, bytes]:
+            return {p.relative_to(self.root).as_posix(): p.read_bytes() if p.is_file() else b""
+                    for p in self.root.rglob("*") if ".git" not in p.parts}
+        before = state()
         self.check()
-        after = sorted(p.relative_to(self.root).as_posix() for p in self.root.rglob("*") if ".git" not in p.parts)
-        self.assertEqual(before, after)
+        self.assertEqual(state(), before)
 
 
 
@@ -1177,6 +1181,18 @@ class FindRelatedNodeTests(TempDirTestCase):
         proc = run_script("find_related.py", "--root", str(self.root), "--json")
         self.assertEqual(proc.returncode, 2, proc.stdout)
         self.assertIn("matches both tree.products and tree.features", proc.stderr)
+
+    def test_the_declaration_is_checked_whatever_the_change(self):  # AC-DECL-2
+        write(self.root, ".living-documentation.json",
+              json.dumps({"tree": {"products": ["src/features/*"], "features": ["src/features/*"]}}))
+        commit_all(self.root, "invalid declaration")
+        for name, change in (("no change", None), ("a documentation-only change", "src/features/foo/README.md")):
+            with self.subTest(name):
+                if change:
+                    write(self.root, change, "# foo, updated\n")
+                proc = run_script("find_related.py", "--root", str(self.root), "--json")
+                self.assertEqual(proc.returncode, 2, proc.stdout)
+                self.assertIn("matches both tree.products and tree.features", proc.stderr)
 
     def test_a_change_outside_every_node_does_not_list_the_root_readme(self):  # AC-REL-2
         write(self.root, "src/lib/util.ts", "export const u = 2;\n")
@@ -1354,9 +1370,15 @@ class SkillTreeProcedureTests(unittest.TestCase):
         self.assertLessEqual(len(description), 1024)
 
     def test_only_the_build_procedure_lifts_the_file_limit(self):  # AC-BUILD-1 (c)
+        import re
         section = self.between(self.BUILD, "\n## ")
         self.assertIn("limit of three new files does not apply", section)
-        self.assertEqual(self.text.count("does not apply"), 1)
+        outside = self.text.replace(section, "")
+        lifting = [line for line in outside.splitlines()
+                   if re.search(r"(?i)\b(limit|three new files)\b", line) and re.search(r"(?i)not (apply|count)", line)]
+        self.assertEqual(len(lifting), 1, lifting)
+        self.assertRegex(lifting[0] if lifting else "",
+                         r"A README that the declared documentation tree requires for a new node .* does not count toward that limit")
 
 
 # ---------------------------------------------------------------------------
