@@ -295,7 +295,7 @@ FACTS = [
     ("audit-log/README.md", "invariant: entries are never edited after they are written; no test", "audit.ts:1; git ls-files above lists no test in the folder"),
     ("audit-log/README.md", "start with audit.ts; last compared at <base>", "git ls-files and git rev-parse --short HEAD above"),
     ("coupon/README.md", "purpose", "coupon.ts:1"),
-    ("coupon/README.md", "invariant: a code can be used once per order; no test, and applyCoupon does not enforce it", "coupon.ts:1-3"),
+    ("coupon/README.md", "invariant: a code can be used once per order; no test, and applyCoupon does not enforce it", "coupon.ts:1-3; git status --short below lists no test in the folder"),
     ("coupon/README.md", "start with coupon.ts; last compared at the second git rev-parse plus the uncommitted change", "git rev-parse --short HEAD and git status --short below"),
 ]
 
