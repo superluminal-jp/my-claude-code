@@ -34,6 +34,9 @@ jobs:
       - name: Run sandbox settings contract tests
         run: bash tests/run-sandbox-settings.sh
 
+      - name: Run documentation tree commit hook tests
+        run: bash tests/run-commit-tree-hook.sh
+
       - name: Run package-safety bundle contract tests
         run: bash tests/run-package-safety-bundle.sh
 

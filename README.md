@@ -47,7 +47,9 @@ redesign that produced this layout is recorded in
   for `claude-opus-5-5`, again under `modelSettings` (the reason is recorded in
   [`docs/harness-zero-base.md`](docs/harness-zero-base.md)); the credential
   deny list; the OS sandbox turned on for every Bash command with only the
-  openings everyday work needs; three `SessionStart` hooks; and the two MCP
+  openings everyday work needs; three `SessionStart` hooks; a `PreToolUse`
+  hook that passes Claude the errors of a declared documentation tree before
+  it runs `git commit`; and the two MCP
   servers it allows, with the ones it stops outright (see [Sandbox and session hooks](#sandbox-and-session-hooks)
   and [MCP Servers](#mcp-servers))
 - **`harness/rules/`** — Always-on universal rules, each kept to what changes
@@ -184,7 +186,8 @@ redesign that produced this layout is recorded in
     `Documentation impact` block; `.living-documentation.json` corrects the
     scripts' classification and can declare a documentation tree of product
     and feature folders, whose READMEs `check_tree.py` requires to link parent
-    to child and back; on request the skill builds that tree from per-kind
+    to child and back, and a hook in `settings.json` passes its errors to
+    Claude before each `git commit`; on request the skill builds that tree from per-kind
     README templates, writing only verified facts and marking the rest
     `TODO(unfilled)`),
     `manage-git` (branches, Conventional Commits, pushes, and pull requests so
@@ -328,7 +331,7 @@ Re-running is safe: it re-syncs managed paths and re-checks the plugins.
   the CLI added — is left untouched. Under `enabledPlugins` the repo declares
   only `github@claude-plugins-official: false`; your other entries stay. An
   array the repo declares (`permissions.deny`, the `sandbox` path lists,
-  `hooks.SessionStart`, `deniedMcpServers`) replaces yours rather than being
+  `hooks.SessionStart`, `hooks.PreToolUse`, `deniedMcpServers`) replaces yours rather than being
   combined with it, so put your own additions to those in project or local
   settings, which Claude Code combines with the user scope.
 - Files removed from this repository are also removed from `~/.claude` under
@@ -376,7 +379,7 @@ my-claude-code/
 │   └── rulesets/main-required-checks.json # Source of truth for main's required-status-check ruleset
 └── harness/                        # Source for installer-managed Claude paths (installed to ~/.claude/)
     ├── CLAUDE.md                   # Governing proposition: define → execute → hand off; rationale → docs/
-    ├── settings.json               # User-level settings: deny list, sandbox, SessionStart hooks, MCP allowlist and stops
+    ├── settings.json               # User-level settings: deny list, sandbox, SessionStart and PreToolUse hooks, MCP allowlist and stops
     ├── rules/                      # Always-on: loaded every session, 4 independent concerns
     │   ├── clarifier.md            # Requirements certainty: when to ask vs proceed
     │   ├── thinking-lenses.md      # Reasoning completeness: four self-checks applied every task
@@ -467,6 +470,7 @@ bash tests/run-mcp-startup.sh # requires network access and a writable uv cache
 bash tests/run-install.sh
 bash tests/run-removed-guardrails.sh
 bash tests/run-sandbox-settings.sh
+bash tests/run-commit-tree-hook.sh
 ```
 
 After changing anything under `harness/skills/` or `harness/agents/`, or after
@@ -657,6 +661,18 @@ hook under `sh`, `bash`, and `zsh` with a scratch home and stub commands.
 Whether Claude Code honours these keys is checked by hand in a new session
 after `install.sh`.
 
+`run-commit-tree-hook.sh` checks the `PreToolUse` hook that runs the
+documentation tree check before `git commit`
+([ADR-0024](docs/adr/0024-warn-claude-of-docs-tree-errors-before-commit.md)).
+Under `sh`, `bash`, and `zsh` (when installed), with a scratch home, it checks the following:
+
+- There is exactly one such hook. Its `if` filter covers `git commit`, also
+  with git's global options such as `-C <path>`.
+- A tree error reaches Claude as context, with no permission decision.
+- `git status` adds nothing.
+- The hook does nothing without sync-docs or `python3`.
+- The hook exits 0 even when the checker itself exits 2, which would block the commit.
+
 `run-install.sh` uses an isolated home and stubbed external commands. All suites
 except `run-mcp-startup.sh` are local checks; the startup suite exercises the
 configured MCP server commands and therefore requires network access.
@@ -747,6 +763,26 @@ Three `SessionStart` hooks, each a short command written into
   Chromium needs `--single-process` inside the sandbox. When the `aws` CLI is
   installed, it is told to run `aws` as one command and to name the profile
   with `--profile`.
+
+One `PreToolUse` hook, also a short command in `settings.json`, runs outside
+the sandbox before Claude runs `git commit`. Its filter, `"if": "Bash(git *)"`,
+starts it for every git command (about 0.16 s each), and `check_tree.py --hook`
+from the installed `sync-docs` skill decides which commands are commits.
+
+For a commit, it takes the directory the commit runs in, after any `cd` or
+`-C`, and uses the nearest `.living-documentation.json` up to the root of that
+Git worktree. When that file declares a documentation tree, the hook passes
+Claude the errors it finds as context, such as a missing README or a missing
+link between a parent and a child. Each error is cut to one line of 200
+characters.
+
+- **It never blocks the commit.** It always exits 0, so Claude fixes the
+  errors in a later commit.
+- **It does nothing elsewhere:** in other repositories, or when `sync-docs`
+  or `python3` is missing.
+- **It is not a Stop hook,** which runs whenever Claude finishes a response.
+  [ADR-0024](docs/adr/0024-warn-claude-of-docs-tree-errors-before-commit.md)
+  records why.
 
 Risks accepted with this design, and known limits, measured on macOS with
 Claude Code 2.1.319:

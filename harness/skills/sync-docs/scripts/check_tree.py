@@ -21,6 +21,17 @@ package.json workspaces, pyproject.toml [tool.uv.workspace] members (Python 3.11
 which has tomllib; earlier versions note that the file was not read), and folders named
 "features".
 
+With --hook it runs as a Claude Code PreToolUse hook and reads the hook input from stdin.
+For a Bash command that runs `git commit`, it finds the project: the nearest folder holding
+.living-documentation.json, from the directory the commit runs in (the input's "cwd", moved
+by a `cd` before the commit or by git's -C) up to its Git worktree root. When that
+configuration declares a tree, it prints the tree errors (at most 20, and the count of the
+rest), or the configuration error, as additionalContext for Claude, each cut to one line of
+at most 200 characters. It never returns a permission decision, so the commit is neither
+approved nor blocked. Anything else prints nothing: unreadable input, a directory that does
+not exist as written (one given by a variable or a substitution is not expanded), and a
+configuration without a "tree" key, even an invalid one. It always exits 0.
+
 Exit codes: 0 no error, 1 one or more errors, 2 invalid configuration or arguments.
 """
 from __future__ import annotations
@@ -32,16 +43,22 @@ sys.dont_write_bytecode = True  # never leave __pycache__ in the Skill or projec
 import argparse
 import json
 import posixpath
+import re
+import shlex
 from pathlib import Path
 from urllib.parse import unquote
 
 from check_links import HTML_ATTR_RE, INLINE_LINK_RE, REF_DEF_RE, is_external, masked_text, normalize_target
 from common import (
-    CONFIG_NAME, README_NAME, ConfigError, TreeNode, directories_of, list_files, load_config, segment_match,
-    tree_nodes,
+    CONFIG_NAME, README_NAME, ConfigError, TreeNode, directories_of, git_toplevel, list_files, load_config,
+    segment_match, tree_nodes,
 )
 
 UNFILLED_MARKER = "TODO(unfilled)"
+HOOK_LIMIT = 20  # errors listed in the hook's context; the rest are counted
+HOOK_LINE_LIMIT = 200  # characters of repository text in one line of the hook's context
+ASSIGNMENT_RE = re.compile(r"^[A-Za-z_]\w*=")
+SHELL_OPERATOR_CHARS = set(";&|()")
 
 try:
     import tomllib
@@ -184,11 +201,146 @@ def render_text(report: dict) -> str:
     return "\n".join(lines)
 
 
+def simple_commands(command: str) -> list[list[str]] | None:
+    """The words of each simple command in a shell command line, or None when it cannot be split.
+
+    Quotes are respected, so a commit message holding `;` or `(` stays one word. A here-document
+    body is dropped: the command that reads it comes before `<<`.
+    """
+    lexer = shlex.shlex(command.split("<<", 1)[0].replace("\n", " ; "), posix=True, punctuation_chars=True)
+    lexer.whitespace_split = True
+    try:
+        tokens = list(lexer)
+    except ValueError:
+        return None
+    commands: list[list[str]] = [[]]
+    for token in tokens:
+        if set(token) <= SHELL_OPERATOR_CHARS:
+            commands.append([])
+        else:
+            commands[-1].append(token)
+    return [words for words in commands if words]
+
+
+def moved(directory: Path | None, target: str) -> Path | None:
+    """The directory after `cd target` or `git -C target`, taken as written.
+
+    A path given by a variable or a substitution is not expanded; it names no existing
+    folder, so no configuration is found there and the hook stays silent.
+    """
+    return None if directory is None else (directory / Path(target).expanduser()).resolve()
+
+
+def commit_directory(command: str, cwd: Path) -> tuple[bool, Path | None]:
+    """Whether the command runs `git commit`, and the directory it runs in (None if unknown).
+
+    A `cd` before the commit and git's `-C` options move the directory; `-c` and other
+    global options are skipped.
+    """
+    commands = simple_commands(command)
+    if commands is None:
+        return False, None
+    directory: Path | None = cwd
+    for words in commands:
+        while words and ASSIGNMENT_RE.match(words[0]):
+            words = words[1:]
+        if not words:
+            continue
+        if words[0] == "cd":
+            directory = moved(directory, words[1] if len(words) > 1 else "~")
+            continue
+        if words[0] != "git":
+            continue
+        place, index = directory, 1
+        while index < len(words) and words[index].startswith("-"):
+            if words[index] in ("-C", "-c") and index + 1 < len(words):
+                if words[index] == "-C":
+                    place = moved(place, words[index + 1])
+                index += 2
+            else:
+                index += 1
+        if index < len(words) and words[index] == "commit":
+            return True, place
+    return False, None
+
+
+def configured_root(directory: Path) -> Path | None:
+    """The nearest folder holding .living-documentation.json, from directory up to its Git worktree root."""
+    top = git_toplevel(directory) if directory.is_dir() else None
+    for folder in (directory, *directory.parents):
+        if (folder / CONFIG_NAME).is_file():
+            return folder
+        if top is None or folder == top:
+            return None
+    return None
+
+
+def plain(text: str) -> str:
+    """Repository text as one line of at most HOOK_LINE_LIMIT characters."""
+    flat = "".join(c if c.isprintable() else " " for c in text)
+    return flat if len(flat) <= HOOK_LINE_LIMIT else flat[:HOOK_LINE_LIMIT - 3] + "..."
+
+
+def hook(raw: str) -> str:
+    """The PreToolUse hook output for a Bash `git commit`, or "" when there is nothing to say.
+
+    It only adds context for Claude: it never returns a permission decision, so the
+    commit goes through the normal permission flow whatever the tree holds.
+    """
+    try:
+        payload = json.loads(raw)
+        command = payload["tool_input"]["command"]
+        cwd = payload.get("cwd") or ""
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return ""
+    if payload.get("tool_name") != "Bash" or not isinstance(command, str) or not isinstance(cwd, str):
+        return ""
+    found, directory = commit_directory(command, Path(cwd).resolve())
+    root = configured_root(directory) if found and directory else None
+    if root is None:
+        return ""
+    # Only a declared tree is this hook's concern: any other content, valid or not, stays silent.
+    try:
+        declared = json.loads((root / CONFIG_NAME).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError):
+        return ""
+    if not isinstance(declared, dict) or "tree" not in declared:
+        return ""
+    where = plain(str(root))
+    try:
+        config = load_config(root)
+        errors = check(root, tree_nodes(root, config, list_files(root, config)[0]))[0]
+    except ConfigError as exc:
+        text = (f"sync-docs could not check the documentation tree of {where} before this commit: "
+                f"{plain(str(exc))}. This hook does not block the commit.")
+    else:
+        if not errors:
+            return ""
+        lines = [f"- {plain(error['message'])}" for error in errors[:HOOK_LIMIT]]
+        if len(errors) > HOOK_LIMIT:
+            lines.append(f"(and {len(errors) - HOOK_LIMIT} more; run check_tree.py for the full list)")
+        text = "\n".join([f"sync-docs: the documentation tree of {where} has {len(errors)} error(s) (check_tree.py). "
+                          "This hook does not block the commit, which may already be made. If this change caused "
+                          "an error, fix it in a follow-up commit; otherwise tell the person it was already there:",
+                          *lines])
+    return json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": text}})
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--root", default="", help="Project root (default: current directory)")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
+    parser.add_argument("--hook", action="store_true", help="Run as a Claude Code PreToolUse hook (input on stdin)")
     args = parser.parse_args()
+    if args.hook:
+        # A hook must never stop the commit or the session: any failure means no output and exit 0.
+        try:
+            output = hook(sys.stdin.read())
+        except Exception:  # noqa: BLE001
+            output = ""
+        if output:
+            print(output)
+        return 0
 
     root = Path(args.root or ".").resolve()
     if not root.is_dir():
