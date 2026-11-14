@@ -275,6 +275,7 @@ my-claude-code/
 ├── tests/                          # オフラインの契約テスト(run-*.sh)、assert_*.py の補助、fixture。「検証」参照
 ├── specs/                          # このリポジトリ自身の変更の Spec Kit 機能仕様
 ├── .specify/                       # Spec Kit のプロジェクトファイル。チェックアウトごとのローカル(gitignore、ADR-0022)
+├── scrum/                          # このリポジトリ自身の Scrum の作成物。manage-scrum-artifacts で置いたもの(同期対象外, ADR-0023)
 ├── archive/                        # 参照用に残した退役スキル(同期対象外)
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/

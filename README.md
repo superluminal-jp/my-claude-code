@@ -366,6 +366,7 @@ my-claude-code/
 ├── tests/                          # Offline contract suites (run-*.sh), assert_*.py helpers + fixtures; see Verification
 ├── specs/                          # Spec Kit feature specifications for this repository's own changes
 ├── .specify/                       # Spec Kit project files, local to each checkout (gitignored; ADR-0022)
+├── scrum/                          # This repository's own Scrum artifacts, placed by manage-scrum-artifacts (not synced; ADR-0023)
 ├── archive/                        # Retired skills kept for reference (not synced)
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
