@@ -663,7 +663,7 @@ after `install.sh`.
 
 `run-commit-tree-hook.sh` checks the `PreToolUse` hook that runs the
 documentation tree check before `git commit`
-([ADR-0023](docs/adr/0023-warn-claude-of-docs-tree-errors-before-commit.md)).
+([ADR-0024](docs/adr/0024-warn-claude-of-docs-tree-errors-before-commit.md)).
 Under `sh`, `bash`, and `zsh` (when installed), with a scratch home, it checks the following:
 
 - There is exactly one such hook. Its `if` filter covers `git commit`, also
@@ -781,7 +781,7 @@ characters.
 - **It does nothing elsewhere:** in other repositories, or when `sync-docs`
   or `python3` is missing.
 - **It is not a Stop hook,** which runs whenever Claude finishes a response.
-  [ADR-0023](docs/adr/0023-warn-claude-of-docs-tree-errors-before-commit.md)
+  [ADR-0024](docs/adr/0024-warn-claude-of-docs-tree-errors-before-commit.md)
   records why.
 
 Risks accepted with this design, and known limits, measured on macOS with

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Contract for the PreToolUse hook in harness/settings.json that runs the
-# sync-docs tree check before Claude runs `git commit` (ADR-0023).
+# sync-docs tree check before Claude runs `git commit` (ADR-0024).
 #
 # Offline and side-effect free: it reads the settings file, and runs the hook
 # command under sh, bash, and (when installed) zsh with a scratch HOME, the

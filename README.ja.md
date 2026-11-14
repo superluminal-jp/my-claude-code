@@ -544,7 +544,7 @@ Claude Code がこれらのキーに従うかは、`install.sh` の後の新し�
 手作業で確かめます。
 
 `run-commit-tree-hook.sh` は、`git commit` の前に文書の木を検査する `PreToolUse` フックを確かめます
-（[ADR-0023](docs/adr/0023-warn-claude-of-docs-tree-errors-before-commit.md)）。
+（[ADR-0024](docs/adr/0024-warn-claude-of-docs-tree-errors-before-commit.md)）。
 一時的な HOME を使い、`sh`・`bash`・`zsh`（入っていれば）のもとで、次のことを確かめます。
 
 - そのフックが1つだけあり、その `if` の絞り込みが、`-C <path>` などの git の大域オプションを挟む
@@ -650,7 +650,7 @@ git のコマンドのたびに起動します（1回あたり約 0.16 秒）。
 - **コミットは止めません。** 終了コードは常に 0 なので、Claude は次のコミットで直します。
 - **それ以外では何もしません。** ほかのリポジトリでも、`sync-docs` や `python3` がないときも同じです。
 - **Stop フックにはしていません。** Stop フックは、Claude が応答を終えるたびに動くフックです。
-  理由は [ADR-0023](docs/adr/0023-warn-claude-of-docs-tree-errors-before-commit.md) にあります。
+  理由は [ADR-0024](docs/adr/0024-warn-claude-of-docs-tree-errors-before-commit.md) にあります。
 
 この設計で受け入れたリスクと、既知の制限（macOS、Claude Code 2.1.319 で確認）:
 

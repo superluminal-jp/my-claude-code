@@ -4,7 +4,7 @@ date: 2026-11-14
 deciders: Taiki Ogihara
 ---
 
-# 0023. git commit の前に文書の木を検査し、見つけた誤りを Claude に伝えるフックを足す
+# 0024. git commit の前に文書の木を検査し、見つけた誤りを Claude に伝えるフックを足す
 
 ## コンテキストと問題
 

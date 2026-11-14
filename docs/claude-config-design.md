@@ -16,7 +16,7 @@ Claude Code は `CLAUDE.md` と `rules/` を **advisory（助言）** として�
 
 例外として、`settings.json` の `SessionStart` フックが、条件に当たるセッションにだけ短い注意を文脈に足す(Bash ツールが zsh のとき、macOS のとき、aws CLI があるとき)。中身は §2 の問い「これが無いと Claude は間違えるか」を、会話記録とこのマシンでの観察で通したものに限る(zsh の3種類の誤り、サンドボックスの中の Chromium、サンドボックスの外に出る aws の書き方)。条件に当たらない環境では何も足さないので、ルールとして全セッションに課金しない。経緯は ADR-0020。
 
-同じく文脈に足すだけの例として、`PreToolUse` フックが1つある。`.living-documentation.json` に文書の木を宣言したリポジトリで、Claude が `git commit` を実行する前にだけ、`check_tree.py` が見つけた誤り（README がない、親子のリンクがない）を伝える。コミットは止めない。経緯は [ADR-0023](adr/0023-warn-claude-of-docs-tree-errors-before-commit.md)。
+同じく文脈に足すだけの例として、`PreToolUse` フックが1つある。`.living-documentation.json` に文書の木を宣言したリポジトリで、Claude が `git commit` を実行する前にだけ、`check_tree.py` が見つけた誤り（README がない、親子のリンクがない）を伝える。コミットは止めない。経緯は [ADR-0024](adr/0024-warn-claude-of-docs-tree-errors-before-commit.md)。
 
 ## 2. 常時ロードに残す判断基準
 
