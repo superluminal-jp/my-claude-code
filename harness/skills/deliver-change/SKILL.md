@@ -1,8 +1,10 @@
 ---
 name: deliver-change
-description: Carry a change from an agreed problem to an acceptance decision that a person can make from its evidence, by applying four skills in a fixed order - problem, requirements, implementation, verification. Use for a nontrivial, security-relevant, or multi-part change to a work or production system when the person wants to accept it without rereading every diff. Do not use for a trivial local edit, for a review that decides nothing, or when only one of the four steps is asked for.
+description: Carry a change from an agreed problem to an acceptance decision that a person can make from its evidence, by applying four skills in a fixed order - problem, requirements, implementation, verification. Use for a nontrivial, security-relevant, or multi-part change to a work or production system when the person wants to accept it without rereading every diff. Do not use for a trivial local edit, for a review that decides nothing, or when only one of the four steps is asked for. [Developers / handoff]
 metadata:
   kind: orchestrator
+  role: developers
+  branch: handoff
   permission: workspace_write
   sandbox: inside
   produces: a change with the gate's decision (pass, fail, or blocked) and its review card

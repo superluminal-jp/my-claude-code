@@ -1,8 +1,10 @@
 ---
 name: define-product-strategy
-description: Formulate product or business strategy before development begins - vision, target users, problem and value proposition, success metrics, prioritized scope, constraints - for a new product or for a new initiative, extension, or pivot of an existing one, as one strategy brief. Use when the person wants to think through product vision, target users, value proposition, success metrics, or scope priorities before starting development work. Do not use for confirming the scope or acceptance criteria of an already-agreed feature, for Scrum events or team facilitation, for a document with no development destination, or for architecture, technology-stack, or build-versus-buy decisions.
+description: Formulate product or business strategy before development begins - vision, target users, problem and value proposition, success metrics, prioritized scope, constraints - for a new product or for a new initiative, extension, or pivot of an existing one, as one strategy brief. Use when the person wants to think through product vision, target users, value proposition, success metrics, or scope priorities before starting development work. Do not use for confirming the scope or acceptance criteria of an already-agreed feature, for Scrum events or team facilitation, for a document with no development destination, or for architecture, technology-stack, or build-versus-buy decisions. [Product Owner / define]
 metadata:
   kind: worker
+  role: product-owner
+  branch: define
   permission: workspace_write
   sandbox: inside
   produces: a product strategy brief with six sections

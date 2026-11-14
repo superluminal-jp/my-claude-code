@@ -2,7 +2,9 @@
 """spec 070 R1a and R1b: the read-only reviewer the two review procedures start.
 
 R1a: `harness/agents/read-only-reviewer.md` declares exactly the fields
-name, description, tools, model, effort, and omitClaudeMd, with tools exactly
+name, description, tools, model, effort, omitClaudeMd, and metadata (the
+map of its place in the role tree, whose entries tests/assert_role_tree.py
+checks; spec 073), with tools exactly
 Read, Grep, and Glob, model sonnet, effort xhigh, and omitClaudeMd true, and
 its body tells the reviewer to answer `NOT REVIEWED: <path>: <reason>` when a
 file it was given cannot be read.
@@ -59,7 +61,7 @@ OLD_PHRASES = (
     "a new subagent that can only read and search",
     "a new subagent whose tools can only read and search",
 )
-FIELDS = {"name", "description", "tools", "model", "effort", "omitClaudeMd"}
+FIELDS = {"name", "description", "tools", "model", "effort", "omitClaudeMd", "metadata"}
 EXPECTED = {"name": "read-only-reviewer", "model": "sonnet", "effort": "xhigh", "omitClaudeMd": "true"}
 TOOLS = {"Read", "Grep", "Glob"}
 NOT_REVIEWED = "NOT REVIEWED: <path>: <reason>"
@@ -82,7 +84,14 @@ def agent_violations(text: str) -> List[str]:
         return ["the definition has no frontmatter between '---' lines"]
     fields: Dict[str, str] = {}
     out = []
+    in_metadata = False
     for line in head:
+        if in_metadata and line.startswith("  "):
+            # An entry of the metadata map: one indented 'key: value' line.
+            nested_key, nested_sep, nested_value = line[2:].partition(":")
+            if not nested_sep or not nested_key or nested_key != nested_key.strip() or not nested_value.strip():
+                out.append(f"metadata entry is not '  key: value': {line!r}")
+            continue
         key, sep, value = line.partition(":")
         if not sep or not key.strip() or key != key.strip():
             out.append(f"frontmatter line is not 'key: value': {line!r}")
@@ -90,6 +99,7 @@ def agent_violations(text: str) -> List[str]:
         if key in fields:
             out.append(f"field {key} is given twice")
         fields[key] = value.strip()
+        in_metadata = key == "metadata" and not value.strip()
     if set(fields) != FIELDS:
         out.append(f"fields must be exactly {sorted(FIELDS)}, not {sorted(fields)}")
     for key, want in EXPECTED.items():
@@ -170,6 +180,7 @@ def changed_agents(text: str) -> List[Tuple[str, str]]:
         ("CLAUDE.md loaded", swap("omitClaudeMd: true", "omitClaudeMd: false")),
         ("a missing field", swap("effort: xhigh\n", "")),
         ("an extra field", swap("omitClaudeMd: true\n", "omitClaudeMd: true\npermissionMode: plan\n")),
+        ("a metadata entry outside the map", swap("metadata:\n", "")),
         ("no NOT REVIEWED answer", swap(NOT_REVIEWED, "a short note")),
     ]
 

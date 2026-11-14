@@ -1,8 +1,10 @@
 ---
 name: verify-change
-description: Record, for every acceptance criterion of a change, which check ran on which commit with what result, have the evidence read by an independent read-only reviewer when the risk calls for it, and run the bundled gate, which answers pass, fail, or blocked and never builds a parent's pass out of its children's. Use when a change with a requirements graph must be accepted by its evidence rather than by rereading every diff, and when asked to check a verification manifest or to turn JUnit or Jest results into one. Do not use for a trivial local edit, for a code review that decides nothing, or for operating CI itself.
+description: Record, for every acceptance criterion of a change, which check ran on which commit with what result, have the evidence read by an independent read-only reviewer when the risk calls for it, and run the bundled gate, which answers pass, fail, or blocked and never builds a parent's pass out of its children's. Use when a change with a requirements graph must be accepted by its evidence rather than by rereading every diff, and when asked to check a verification manifest or to turn JUnit or Jest results into one. Do not use for a trivial local edit, for a code review that decides nothing, or for operating CI itself. [Developers / handoff]
 metadata:
   kind: worker
+  role: developers
+  branch: handoff
   permission: workspace_write
   sandbox: inside
   consumes: a problem card, a version 2 requirements graph, and the committed change

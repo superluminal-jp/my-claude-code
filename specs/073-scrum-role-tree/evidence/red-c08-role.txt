@@ -1,0 +1,5 @@
+# python3 -B -m unittest tests/test_skill_contract.py (2026-11-15, before C-08 skips the metadata.role value)
+FAIL: test_c08_role_value_is_not_a_skill_name (tests.test_skill_contract.ContractTests.test_c08_role_value_is_not_a_skill_name)
+AssertionError: 1 != 0 : FAIL C-08 do-thing: SKILL.md: names the retired skill 'scrum-master'
+Ran 29 tests in 1.072s
+FAILED (failures=1)

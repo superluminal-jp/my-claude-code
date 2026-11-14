@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "challenge_report": {
+    "problem_id": "PRB-073",
+    "reviewer": "read-only-reviewer subagent, agentId a9ddcb43fd7ce2ebb, 2026-11-15, read 2 files",
+    "context_given": [
+      "specs/073-scrum-role-tree/problem-card.challenger.json（problem-card.json から proposed_solutions を除いた写し）",
+      "specs/073-scrum-role-tree/requirements-graph.json",
+      "references/challenge.md の指示文（記録の言語は日本語）"
+    ],
+    "findings": [
+      {
+        "id": "CH-01",
+        "kind": "other",
+        "target": "REQ-DECLARE",
+        "severity": "medium",
+        "statement": "origin.ref が、22件それぞれの配置を利用者が指示した場所を特定していない。ref の記述は「配置表の例を示し、訂正はなかった」であり、誰が例を示したのかが読み取れず、訂正がなかったことは指示ではない。カードの evidence から確認できる利用者の指示は、分類の軸を Scrum の役割にすること、3つの枝、方式 A の選択、置き換えと改名を許可することまでである。たとえば structure-document を developers/handoff に置く判断は、AI が作った案を利用者が黙認しただけの可能性がある。また by の「利用者」は役割の呼称で、人名ではない。配置表全体を所与の制約として扱ってよいかが確かめられていない。",
+        "disposition": "accepted",
+        "resolution": "配置表について利用者 Taiki Ogihara に尋ね、2026-11-15 に「Criterion above, artifacts under SM (Recommended)」の回答を得た。これを問題カードの evidence に足した。REQ-DECLARE の origin は、by をこの人の名前にし、ref をその回答にした。配置表は、その選択肢が示した木である。"
+      },
+      {
+        "id": "CH-02",
+        "kind": "other",
+        "target": "REQ-DECLARE",
+        "severity": "medium",
+        "statement": "REQ-DECLARE は22件の名前と種類（スキル17件、エージェント5件）を固定している。AC-DECLARE-1 と AC-ROOT-1 の expected-tree.txt も「実装の前に配置表から作っておく」とされている。一方 REQ-FORM は、基準に従って要素の置き換えや改名を行うことを認めている。置き換えや改名が1件でも起きると、配置表、期待ファイル、REQ-ROOT の「17件と5件」が古くなり、AC-DECLARE-1 と AC-ROOT-1 は実装が正しくても失敗する。形と名前の判定を配置表の確定より先に行う順序は、どの要件にも書かれていない。2つの要件は互いに矛盾しうる。",
+        "disposition": "accepted",
+        "resolution": "REQ-ROOT の文を「harness/skills/ と harness/agents/ のすべての要素（2026-11-15 時点でスキル17件、エージェント5件）」に変えた。REQ-FORM を子の先頭に置き、assumptions に「REQ-FORM の判定を先に確定し、配置表、期待のファイル、README の表は、その後の要素の集合から作る」を足した。AC-DECLARE-1 は、期待のファイルを REQ-FORM の確定後に作るとした。REQ-DECLARE には、要素を変えたときは変えた後の名前で同じ置き場所に置くことを足した。REQ-ROOT の counterexamples にもこの場合を足した。"
+      },
+      {
+        "id": "CH-03",
+        "kind": "or_overlap",
+        "target": "REQ-TREE-CHECK",
+        "severity": "medium",
+        "statement": "枝の規則は「その要素が担い手になっている段階の枝の1つ」と定めており、複数の枝が同時に成り立ちうるのに、どれを選ぶかの基準がない。カードは capability-map.json の branch の件数を define 11、execute 12、handoff 6（合計29）としており、22要素より多い。要素が複数の段階に現れる可能性がある。たとえば deliver-change は define、execute、handoff の子を従える親だが handoff に置かれている。検査は「capability-map に載っている枝のどれか」しか確かめないので、execute に置いても通る。「置き場所が1つだけ」はあっても、それが一意に決まるとは言えない。",
+        "disposition": "accepted",
+        "resolution": "枝の決め方を定めた。段階の枝が1つならその枝、2つ以上なら metadata.stage に主な段階を宣言し、枝はその段階の枝にする（REQ-ROOT の assumptions と REQ-TREE-CHECK）。evidence/capability-map-coverage.txt で、またがる要素が implement-change と read-only-reviewer の2件だけであることを確かめ、問題カードの evidence に足した。deliver-change の段階は H-verify だけである。AC-TREE-CHECK-1 に (7) stage を除く写し、(8) stage と branch を食い違わせる写しを足した。"
+      },
+      {
+        "id": "CH-04",
+        "kind": "counterexample",
+        "target": "REQ-ROOT",
+        "severity": "medium",
+        "statement": "significance は、利用者が「だれのアカウンタビリティの作業にどの要素が使われるか」を一覧から読み取れることを価値としている。ところが assumptions の役割の定義は、要素の主な成果物がだれの責務に属するかであり、使われる場面ではない。すべての子要件が成り立っても、複数の役割の作業で使われる要素（draw-system-diagrams、structure-document、research-aws など）が developers の下に1度だけ現れる。Product Owner の作業で使われることは木から読めず、親が目指す監修の手がかりにならない。この食い違いに対する検証はない。",
+        "disposition": "accepted",
+        "resolution": "問題カードの significance を「どの要素の成果物がだれのアカウンタビリティに属するか」に直し、要素を使う役割のすべてではないことを明記した。REQ-ROOT の assumptions に「木が示すのは成果物の属する役割で、どの役割の作業でどの要素が使われるかは構成図の動的図が示す」を足した。"
+      },
+      {
+        "id": "CH-05",
+        "kind": "other",
+        "target": "REQ-DECLARE",
+        "severity": "medium",
+        "statement": "REQ-ROOT の assumptions は、product-owner を「Product Owner の判断の材料を作るか、判断を記録する」ことと定義する。配置表はこの定義と整合しない。define-problem は product-owner だが、同じく判断の材料を作る specify-requirements は developers である。manage-scrum-artifacts は product-owner だが、Scrum の成果物には Developers の責務である Sprint Backlog も含まれる。基準から配置を導けず、配置が基準に従っているかを確かめる受け入れ基準もない。AC-DECLARE-1 は、同じ配置表から作った期待ファイルとの一致を見るだけで、配置の妥当性は検証しない。",
+        "disposition": "accepted",
+        "resolution": "役割の基準を、要素の主な成果物が何を決めるかに書き直した。product-owner は何をなぜ作るか、developers はどう作りどう確かめるか、scrum-master は Scrum が成り立っているか。この基準と配置を利用者に尋ね、2026-11-15 に選ばれた木（manage-scrum-artifacts は scrum-master）に配置表を変えた。配置が基準に合うかの判断は、利用者の選択を根拠にする（問題カードの evidence、REQ-DECLARE の origin）。"
+      },
+      {
+        "id": "CH-06",
+        "kind": "counterexample",
+        "target": "REQ-COMPAT",
+        "severity": "medium",
+        "statement": "REQ-COMPAT は「手順の振る舞いを変えない」を、前付けより後の本文が同じであることと既存の CI が通ることで確かめる。しかし description を書き換えるので、モデルがスキルを選ぶ振る舞いは変わりうる。カードの evidence は、モデルの文脈に入るのは description だけだとしている。significance も、スキルの選び方が良くなるかは検証していないと認めている。標識を先頭に足したことで、使う場面を述べる語が後ろに押されて誤った呼び出しが増える場合でも、AC-COMPAT-1、AC-COMPAT-2、AC-TAG-2（1024文字の上限）はすべて通る。description の変更が選ばれ方を悪くしないことを確かめる基準がない。",
+        "disposition": "rejected",
+        "resolution": "人の決定による。利用者 Taiki Ogihara に、標識を足すと選ばれ方が変わりうることへの対処を尋ねた。2026-11-15 に「Tag at end, accept risk (Recommended)」を選んだ（選択肢の文は「Put the tag at the end of the description so the phrases about when to use the skill stay first. Don't run the paid eval, and record the effect on selection as an unverified risk you accept.」）。この回答を問題カードの evidence と out_of_scope に足した。REQ-TAG は標識を末尾に置くように変え、origin を付けた。REQ-COMPAT には、利用者が受け入れた未検証のリスクとして明記した。選ばれ方を確かめる受け入れ基準は足さない。"
+      },
+      {
+        "id": "CH-07",
+        "kind": "missing_evidence",
+        "target": "REQ-AGENT-META",
+        "severity": "medium",
+        "statement": "サブエージェント定義の前付けに metadata を足しても Claude Code が読み込めることの根拠がない。カードが読んだ公式文書は skills のページで、metadata が自由なマップだとするのはスキルについてである。サブエージェントの前付けの欄は別に定まっていて、未知の欄を無視するのか、警告するのか、拒むのかは記録がない。AC-AGENT-META-1 はリポジトリ内の assert_reviewer_agent.py しか動かさない。harness/ は ~/.claude/ に入れられて全プロジェクトで使われるので、5件のエージェントが実環境で読み込めなくなっても、受け入れ基準は通る。",
+        "disposition": "accepted",
+        "resolution": "問題カードの evidence に https://code.claude.com/docs/en/sub-agents.md の Frontmatter reference を足した。引用は「Claude Code ignores a field it doesn't recognize without reporting an error.」である。REQ-AGENT-META の assumptions にも同じ根拠を書いた。"
+      },
+      {
+        "id": "CH-08",
+        "kind": "missing_child",
+        "target": "REQ-TREE-CHECK",
+        "severity": "medium",
+        "statement": "REQ-TREE-CHECK は「22件の要素について」確かめるとしているが、harness/skills/ と harness/agents/ の全件を走査して未宣言の要素を拒むかが定まっていない。significance が防ごうとしているのは、追加や改名で置き場所が崩れることである。--self-test の5種にも、新しい23件目の要素や、capability-map にあって harness にない要素は含まれない。要素数を固定した検査でも全5種は通るが、新しいエージェントを metadata なしで足すと検査をすり抜ける（スキルは C-04 が拒むが、エージェント側にはその仕組みの記載がない）。",
+        "disposition": "accepted",
+        "resolution": "REQ-TREE-CHECK を、harness/skills/*/SKILL.md と harness/agents/*.md のすべてを走査するものにした。AC-TREE-CHECK-1 に (6) metadata のない23件目のエージェント定義を足す写しを加えた。"
+      },
+      {
+        "id": "CH-09",
+        "kind": "missing_child",
+        "target": "REQ-TREE-CHECK",
+        "severity": "medium",
+        "statement": "REQ-TREE-CHECK は、22件すべてが capability-map.json に載っていることを前提とする。しかし、載っていない要素（ADR-0025 で足された scrum-master-agent など）や、REQ-FORM の改名で古い名前になる要素があった場合に capability-map.json を直す要件はない。カードの記録は branch の件数（29）と段階の担い手があることだけで、22件が揃っているという証拠はない。この要件の中で capability-map.json を直すか、検査の側を緩めるかが決まっていない。REQ-ROOT の counterexamples 3 も、この食い違いの解消をどの子にも割り当てていない。",
+        "disposition": "accepted",
+        "resolution": "evidence/capability_map_coverage.py の出力（evidence/capability-map-coverage.txt）で、22件すべてが capability-map.json の components にあること（missing=0）を確かめ、問題カードの evidence に足した。AC-FORM-2 に、改名したときは capability-map.json と tests/harness-eval/scenarios.json も新しい名前を指すことを足した。REQ-TREE-CHECK は、components にその要素があることを確かめる。"
+      },
+      {
+        "id": "CH-10",
+        "kind": "missing_child",
+        "target": "REQ-DIAGRAM",
+        "severity": "low",
+        "statement": "ideal の「『属する』以外の関係は木とは分けて示される」に対応するのは REQ-DIAGRAM の「別の図に分ける」だが、受け入れ基準はどちらも木の図だけを見ている。AC-DIAGRAM-1 は木の図、AC-DIAGRAM-2 はディレクトリ全体の check_diagrams である。従える、重ねる、起動させる関係の図がなくても、その図に「属する」辺が混ざっていても、基準は通る。「新しい読む順を載せる」にも検証がない。",
+        "disposition": "accepted",
+        "resolution": "AC-DIAGRAM-3 を足した。木の外の関係のページに7本の辺があること、そのページに役割や枝の節がないこと、一覧のページが5枚を新しい順で載せることを、evidence/check_skill_map.py で確かめる。"
+      },
+      {
+        "id": "CH-11",
+        "kind": "missing_child",
+        "target": "REQ-README",
+        "severity": "low",
+        "statement": "ideal は、一覧（name と description、人が見る README の目次）を読めば役割と目的が分かるとする。REQ-ROOT はこれを「description から」に狭めており、README の木は名前の配置を文字で載せるだけで、各要素の目的は求められていない。README の目次側で目的が分かることを確かめる要件がない。",
+        "disposition": "accepted",
+        "resolution": "REQ-README を、役割、枝、名前、種類、目的の列を持つ表に変えた。目的は description の最初の文から標識を除いたものである。REQ-ROOT の文も「一覧（description と README の目次）から役割と目的が読み取れる」にした。"
+      },
+      {
+        "id": "CH-12",
+        "kind": "missing_evidence",
+        "target": "PRB-073",
+        "severity": "medium",
+        "statement": "current のうち形と名前の部分には証拠がない。根拠は「記録は、このセッションでは見つかっていない」という不在だけで、evidence 欄に対応する項目もない。docs/claude-config-design.md:133 など既存の文書に基準があるかは、調べた範囲が示されていない。現在の形と名前が基準に反している例もなく、差は「確かめた記録がない」ことだけである。この部分では、問題が実在するかが示されていない。それなのに REQ-FORM は新しい形の基準と改名の基準を持ち込んでいる。",
+        "disposition": "accepted",
+        "resolution": "形と名前が基準に反しているという主張は証拠がないので、問題カードの ideal、current、gap から外した。status_rationale にその理由を書いた。REQ-FORM は、問題から導いた要件ではなく、利用者の指示（置き換えと調整の許可）による要件として origin を付けた。"
+      },
+      {
+        "id": "CH-13",
+        "kind": "other",
+        "target": "REQ-FORM",
+        "severity": "low",
+        "statement": "AC-FORM-1 は、22行の表があることと要素名の集合が一致することしか確かめない。(a)、(b)、形の判定、名前の判定、理由の中身が基準に沿っているかは確かめない。たとえば (a) と (b) の判定に反して形が書かれていても通る。この形の基準の導出（形はエージェント、(a) かつ (b)）は機械的に確かめられるのに、基準に当てた判定が正しいことを示す受け入れ基準はない。",
+        "disposition": "accepted",
+        "resolution": "AC-FORM-1 を、evidence/check_form_review.py が表の規則を機械的に確かめるものに変えた。確かめる規則は次の3つ。要素名の集合が harness の要素の集合と等しいこと。(a) と (b) がどちらも「はい」の行に限って形の判定がエージェントであること。形の判定が現在の形と違う行に限って「変える」と書かれていること。"
+      },
+      {
+        "id": "CH-14",
+        "kind": "missing_evidence",
+        "target": "PRB-073",
+        "severity": "low",
+        "statement": "current の「役割の語を含むのは3件だけ」と gap の「役割を述べる要素は3件」は、ファイル全体への grep の件数で、役割を宣言している要素の数ではない。パターンの Developers? は本文中の一般的な言及にも当たる。また evidence の最後の項目は apply-scrum-guide の description が Developers の語を含むと述べており、「どの description も役割を述べていない」「一覧が役割を述べていない」と食い違っている。この件数は現状の指標として使えない。",
+        "disposition": "accepted",
+        "resolution": "問題カードの current と gap を「役割や枝を宣言している要素は0件」に直した。grep の3件は「Scrum の役割の語に触れる件数で、宣言している件数ではない」と evidence に明記した。description の項目は、役割の語を含むのが apply-scrum-guide の1件だけで、それも木の中の置き場所としてではなくスキルの前提として述べている、と直した。"
+      }
+    ]
+  }
+}

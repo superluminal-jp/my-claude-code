@@ -1,0 +1,6 @@
+# python3 -B tests/assert_reviewer_agent.py . (2026-11-15, after metadata was added to the agent definitions, before the parser accepts it)
+FAIL repository: frontmatter line is not 'key: value': '  role: developers'
+FAIL repository: frontmatter line is not 'key: value': '  branch: handoff'
+FAIL repository: frontmatter line is not 'key: value': '  stage: H-verify'
+FAIL repository: fields must be exactly ['description', 'effort', 'model', 'name', 'omitClaudeMd', 'tools'], not ['description', 'effort', 'metadata', 'model', 'name', 'omitClaudeMd', 'tools']
+exit=1

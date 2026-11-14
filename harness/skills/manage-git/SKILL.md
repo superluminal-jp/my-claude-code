@@ -1,8 +1,10 @@
 ---
 name: manage-git
-description: Create branches, commits, pushes, and pull requests so that history stays reviewable and nothing is published beyond what was asked. Use when the person explicitly asks for one of those operations, or when a requested implementation needs its feature branch created before the first edit. Do not use for read-only repository inspection, and do not take a request to implement as authorization to commit, push, or open a pull request.
+description: Create branches, commits, pushes, and pull requests so that history stays reviewable and nothing is published beyond what was asked. Use when the person explicitly asks for one of those operations, or when a requested implementation needs its feature branch created before the first edit. Do not use for read-only repository inspection, and do not take a request to implement as authorization to commit, push, or open a pull request. [Developers / execute]
 metadata:
   kind: worker
+  role: developers
+  branch: execute
   permission: external_effect
   sandbox: network
   network-hosts: the repository's remote host, for push and pull-request operations only

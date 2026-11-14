@@ -1,8 +1,10 @@
 ---
 name: build-dads-slides
-description: Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. Use for slide decks, briefing material, and presentation documents that must follow DADS and are delivered as HTML or printed from it. Do not use for web pages, application interfaces, or dashboards that are not slides, and do not use to create or edit PowerPoint files.
+description: Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. Use for slide decks, briefing material, and presentation documents that must follow DADS and are delivered as HTML or printed from it. Do not use for web pages, application interfaces, or dashboards that are not slides, and do not use to create or edit PowerPoint files. [Developers / execute]
 metadata:
   kind: worker
+  role: developers
+  branch: execute
   permission: workspace_write
   sandbox: network
   network-hosts: github.com, pypi.org, files.pythonhosted.org, the Playwright browser download host, fonts.googleapis.com, fonts.gstatic.com
