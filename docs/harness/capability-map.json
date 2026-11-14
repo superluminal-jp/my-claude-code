@@ -654,7 +654,7 @@
     },
     "hooks": {
       "in_eval": false,
-      "reason": "PreToolUse の1つは speckit-specify が呼ばれたときだけ specify-cli の更新を確かめるもので、speckit-* は harness に含まれないため動く機会がない。SessionStart の3つ（Bash から Bedrock の AWS の変数を外す、gpg-agent を外で起動する、Bash が zsh のとき・macOS のとき・aws CLI があるときに注意を文脈に足す）は、組み立てるプラグインのフックを常時ロードの注入に限るため含めない。そのため注意が振る舞いに与える効果は測らない"
+      "reason": "PreToolUse の1つは speckit-specify が呼ばれたときだけ specify-cli の更新を確かめるもので、speckit-* は harness に含まれないため動く機会がない。もう1つの PreToolUse（文書の木を宣言したリポジトリで、Bash の git commit の前に check_tree.py の誤りを文脈に足す。ADR-0023）と SessionStart の3つ（Bash から Bedrock の AWS の変数を外す、gpg-agent を外で起動する、Bash が zsh のとき・macOS のとき・aws CLI があるときに注意を文脈に足す）は、組み立てるプラグインのフックを常時ロードの注入に限るため含めない。そのため注意と警告が振る舞いに与える効果は測らない"
     },
     "sandbox": {
       "in_eval": false,

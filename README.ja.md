@@ -37,7 +37,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   その推論の effort（`claude-opus-5-5` については `modelSettings` にも同じ段階を置く。理由は
   [`docs/harness-zero-base.md`](docs/harness-zero-base.md) に記録）、資格情報の読み取りの拒否、Bash の
   すべてのコマンドにかける OS のサンドボックス（日常作業に要る出口だけを開ける）、3つの
-  `SessionStart` フック、許可する2つの MCP サーバーと、直接止めるサーバーを持つ（後述「サンドボックスとセッション開始のフック」
+  `SessionStart` フック、Claude が `git commit` を実行する前に宣言された文書の木の誤りを伝える
+  `PreToolUse` フック、許可する2つの MCP サーバーと、直接止めるサーバーを持つ（後述「サンドボックスとセッション開始のフック」
   「MCP サーバー」参照）
 - **`harness/rules/`**: 常時読み込まれる共通ルール。Claude の判断を変える内容だけを置き、
   各ファイルが apex の3分岐のうち正確に1つだけを支える（要件確実性の確認トリガー、
@@ -121,7 +122,8 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     変更された成果物の種類と、変更したファイルの近くにある文書を挙げ、リンクを検査する。更新は同じ変更に入れ、
     報告は `Documentation impact` のブロックを持つ。`.living-documentation.json` はスクリプトの分類を補正し、
     プロダクトと機能フォルダの文書の木を宣言できる。宣言した木の README が親子で互いにリンクしていることを
-    `check_tree.py` が検査する。頼まれれば、節の種類ごとの README のひな形からその木を作り、確かめた事実だけを書き、
+    `check_tree.py` が検査し、`settings.json` のフックが `git commit` の前にその誤りを Claude に伝える。
+    頼まれれば、節の種類ごとの README のひな形からその木を作り、確かめた事実だけを書き、
     残りに `TODO(unfilled)` を付ける）、
     `manage-git`（履歴をレビューできる形に保ち、頼まれた範囲を超えて公開しないための、ブランチ・
     Conventional Commits・プッシュ・プルリクエストの運用。コミット・プッシュ・プルリクエストは、それぞれ
@@ -232,7 +234,7 @@ bash path/to/my-claude-code/install.sh
   CLI自身が追加したキー——はそのまま保持されます。`enabledPlugins` について
   このリポジトリが宣言するのは `github@claude-plugins-official: false` だけで、
   ほかの項目は残ります。このリポジトリが宣言する配列（`permissions.deny`、
-  `sandbox` のパスの一覧、`hooks.SessionStart`、`deniedMcpServers`）は、ユーザーの
+  `sandbox` のパスの一覧、`hooks.SessionStart`、`hooks.PreToolUse`、`deniedMcpServers`）は、ユーザーの
   配列と合わさらず置き換わります。それらへの自分の追加は、Claude Code がユーザー
   スコープと合わせて読むプロジェクトかローカルの設定に置いてください。
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側の置換対象パスでも
@@ -279,7 +281,7 @@ my-claude-code/
 │   └── rulesets/main-required-checks.json # main の必須ステータスチェックruleset定義
 └── harness/                        # インストーラーが管理する Claude パスの正本(~/.claude/ にインストールされる)
     ├── CLAUDE.md                   # 達成目標: 定義 → 実行 → 引き渡し。設計根拠は docs/
-    ├── settings.json               # ユーザーレベル設定: deny、サンドボックス、SessionStart フック、MCP の許可リストと停止
+    ├── settings.json               # ユーザーレベル設定: deny、サンドボックス、SessionStart と PreToolUse のフック、MCP の許可リストと停止
     ├── rules/                      # 常時ロード: 毎セッション読み込む、独立した4つの関心事
     │   ├── clarifier.md            # 要件確実性: 確認するか進めるか
     │   ├── thinking-lenses.md      # 推論の完全性: 毎タスクに適用する4つのセルフチェック
@@ -364,6 +366,7 @@ bash tests/run-mcp-startup.sh # ネットワーク接続と書き込み可能な
 bash tests/run-install.sh
 bash tests/run-removed-guardrails.sh
 bash tests/run-sandbox-settings.sh
+bash tests/run-commit-tree-hook.sh
 ```
 
 `harness/skills/` か `harness/agents/` の下を変更したとき、スキルやサブエージェントを追加・削除・
@@ -529,6 +532,17 @@ MCP サーバーが AWS のドキュメントの2つだけで、`.mcp.json` も�
 Claude Code がこれらのキーに従うかは、`install.sh` の後の新しいセッションで
 手作業で確かめます。
 
+`run-commit-tree-hook.sh` は、`git commit` の前に文書の木を検査する `PreToolUse` フックを確かめます
+（[ADR-0023](docs/adr/0023-warn-claude-of-docs-tree-errors-before-commit.md)）。
+一時的な HOME を使い、`sh`・`bash`・`zsh`（入っていれば）のもとで、次のことを確かめます。
+
+- そのフックが1つだけあり、その `if` の絞り込みが、`-C <path>` などの git の大域オプションを挟む
+  `git commit` も覆うこと。
+- 木の誤りが、許可の判定を伴わない文脈として Claude に届くこと。
+- `git status` では何も足さないこと。
+- sync-docs や `python3` がなければ何もしないこと。
+- 検査のスクリプト自身が終了コード 2（コミットを止めるコード）で落ちても、フックは 0 で終わること。
+
 `run-install.sh` は隔離した HOME と外部コマンドの stub を使います。
 `run-mcp-startup.sh` だけは設定済み MCP サーバーの起動コマンドを実行するため
 ネットワーク接続が必要で、それ以外はローカル検証です。
@@ -611,6 +625,21 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
   macOS では、サンドボックスの中の Chromium に `--single-process` が要ることを
   伝えます。`aws` CLI があれば、`aws` を1つのコマンドで実行し、プロファイルを
   `--profile` で指定するよう伝えます。
+
+Claude が `git commit` を実行する前には、`PreToolUse` フックが1つ、サンドボックスの外で動きます。
+これも `settings.json` に直接書いた短いコマンドです。絞り込みの `"if": "Bash(git *)"` によって、
+git のコマンドのたびに起動します（1回あたり約 0.16 秒）。どれがコミットかは、インストールした
+`sync-docs` の `check_tree.py --hook` が判定します。
+
+コミットのときは、`cd` や `-C` で移した後の、コミットが走るディレクトリから、その Git の作業ツリーの
+根まで上り、最も近い `.living-documentation.json` を使います。その設定が文書の木を宣言していれば、
+見つけた誤りを文脈として Claude に伝えます。誤りとは、README がないことや、親子のあいだの
+リンクがないことです。誤りの1件は1行 200 字で切ります。
+
+- **コミットは止めません。** 終了コードは常に 0 なので、Claude は次のコミットで直します。
+- **それ以外では何もしません。** ほかのリポジトリでも、`sync-docs` や `python3` がないときも同じです。
+- **Stop フックにはしていません。** Stop フックは、Claude が応答を終えるたびに動くフックです。
+  理由は [ADR-0023](docs/adr/0023-warn-claude-of-docs-tree-errors-before-commit.md) にあります。
 
 この設計で受け入れたリスクと、既知の制限（macOS、Claude Code 2.1.319 で確認）:
 
