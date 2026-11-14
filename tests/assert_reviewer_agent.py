@@ -17,6 +17,10 @@ The other subagent definitions fix the model, effort, and tools of the work
 they are for, so that delegation does not depend on a model named at each
 call: `check-runner` and `file-searcher` run on haiku without CLAUDE.md, and
 `file-searcher` cannot run commands; `task-worker` runs on sonnet at xhigh.
+`scrum-master-agent`, which holds the Scrum Master accountability that
+apply-scrum-guide keeps apart from the Developer working in the main
+conversation, runs on sonnet at xhigh without CLAUDE.md and can only read and
+search, and that skill's SKILL.md names it.
 
 The script checks the repository's files, then checks that every one of a set
 of single changes to them (another tool, another model, a missing field, a
@@ -45,6 +49,11 @@ OTHER_AGENTS = {
     "check-runner": {"model": "haiku", "effort": "low", "tools": "Bash, Read, Grep, Glob", "omitClaudeMd": "true"},
     "file-searcher": {"model": "haiku", "effort": "medium", "tools": "Read, Grep, Glob", "omitClaudeMd": "true"},
     "task-worker": {"model": "sonnet", "effort": "xhigh"},
+    "scrum-master-agent": {"model": "sonnet", "effort": "xhigh", "tools": "Read, Grep, Glob", "omitClaudeMd": "true"},
+}
+# name -> the procedure files that start that subagent and so must name it.
+STARTED_BY = {
+    "scrum-master-agent": ("harness/skills/apply-scrum-guide/SKILL.md",),
 }
 OLD_PHRASES = (
     "a new subagent that can only read and search",
@@ -129,6 +138,14 @@ def other_agent_violations(root: Path) -> List[str]:
     return out
 
 
+def started_by_violations(texts: Dict[str, str], name: str) -> List[str]:
+    return [f"{rel} does not name the subagent {name} it starts" for rel, text in texts.items() if name not in text]
+
+
+def started_by_texts(root: Path) -> Dict[str, Dict[str, str]]:
+    return {name: {rel: (root / rel).read_text(encoding="utf-8") for rel in files} for name, files in STARTED_BY.items()}
+
+
 def agent_name(text: str) -> str:
     head, _ = split_frontmatter(text)
     for line in head:
@@ -161,8 +178,10 @@ def main(root: Path) -> int:
     agent_text = (root / AGENT).read_text(encoding="utf-8")
     texts = {rel: (root / rel).read_text(encoding="utf-8") for rel in PROCEDURES}
     name = agent_name(agent_text)
+    started = started_by_texts(root)
     failures = []
-    for v in agent_violations(agent_text) + procedure_violations(texts, name) + other_agent_violations(root):
+    started_violations = [v for other, files in started.items() for v in started_by_violations(files, other)]
+    for v in agent_violations(agent_text) + procedure_violations(texts, name) + other_agent_violations(root) + started_violations:
         failures.append(f"repository: {v}")
     if failures:
         # The changed copies are built from a passing definition; there is none.
@@ -179,11 +198,15 @@ def main(root: Path) -> int:
     old = dict(texts, **{first: texts[first] + "\n" + OLD_PHRASES[0] + "\n"})
     if not procedure_violations(old, name):
         failures.append(f"a {first} with the old description is not refused")
+    for other, files in started.items():
+        rel = next(iter(files))
+        if not started_by_violations(dict(files, **{rel: files[rel].replace(other, "a subagent")}), other):
+            failures.append(f"a {rel} that does not name {other} is not refused")
     for f in failures:
         print(f"FAIL {f}", file=sys.stderr)
     if failures:
         return 1
-    print(f"ok: {AGENT} and the {len(PROCEDURES)} procedure files hold, and {len(changed_agents(agent_text)) + 2} changed copies are refused")
+    print(f"ok: {AGENT} and the {len(PROCEDURES)} procedure files hold, and {len(changed_agents(agent_text)) + 2 + len(started)} changed copies are refused")
     return 0
 
 

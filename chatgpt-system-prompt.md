@@ -136,5 +136,5 @@ Read on 2026-10-05, not read again:
 |---|---|
 | Skills `verify-change` (accepting a change by its evidence), `deliver-change` (the order of the change steps), `sync-docs` (keeping documents in step with code), `manage-git` (Git operations) | They need a repository and Git. The owner uses ChatGPT for business writing, not code, so the code skill `implement-change` keeps only its one line. |
 | Skills `research-aws` (AWS answers from AWS documentation tools), `apply-secure-logging` (a logging checklist bundled in that skill), `apply-dads-frontend` (web interfaces on DADS, built in a code repository) | Each depends on a tool, a bundled file, or a repository; none fits a text field. |
-| Subagent delegation; the four subagent definitions under `harness/agents/`; the context-free read | ChatGPT has no subagents. |
+| Subagent delegation; the five subagent definitions under `harness/agents/`; the context-free read | ChatGPT has no subagents. |
 | `harness/settings.json`: the sandbox that limits Claude Code's shell commands, command permissions, and the allowed MCP servers (tool servers Claude Code connects to) | Claude Code settings with no ChatGPT counterpart. |

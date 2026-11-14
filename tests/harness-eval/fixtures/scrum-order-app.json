@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "description": "Scrum の作成物（Product Goal、Definition of Done、現在の Sprint の Sprint Backlog）を scrum/ に持つ、受注を扱う小さな Python のリポジトリ。依頼に Scrum という語がなくても、開発者として作成物を読むかを見る。",
+  "files": {
+    "README.md": "# 受注管理\n\n受注データを扱う小さな Python のモジュール。\n\n- コード: `orders.py`\n- テスト: `python3 -m unittest`\n- Scrum の作成物: [scrum/README.md](scrum/README.md)\n",
+    "orders.py": "\"\"\"受注の一覧を扱う。\"\"\"\n\nORDERS = [\n    {\"id\": 1, \"customer\": \"東都商事\", \"amount\": 12000},\n    {\"id\": 2, \"customer\": \"北浜物産\", \"amount\": 8500},\n]\n\n\ndef list_orders():\n    \"\"\"受注を id の順に返す。\"\"\"\n    return sorted(ORDERS, key=lambda order: order[\"id\"])\n",
+    "test_orders.py": "import unittest\n\nfrom orders import list_orders\n\n\nclass ListOrdersTest(unittest.TestCase):\n    def test_orders_are_returned_in_id_order(self):\n        self.assertEqual([o[\"id\"] for o in list_orders()], [1, 2])\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+    "scrum/README.md": "# Scrum の作成物\n\n規範は Scrum Guide（2020年版）だけである。\n\n- **Product Owner**：佐藤\n- **Scrum Master**：\n- **Developers**：田中、AI\n",
+    "scrum/product-backlog.md": "# Product Backlog\n\n- **Product Goal**：営業が受注の状況を自分で集計し、月次の締めを1日で終える\n\n| Order | Item | Estimate |\n| --- | --- | --- |\n| 1 | 受注一覧を CSV で出力する | 3 |\n| 2 | 受注を顧客で絞り込む | 2 |\n",
+    "scrum/definition-of-done.md": "# Definition of Done\n\n- **Definition of Done**：\n  - 変更した振る舞いに単体テストがあり、`python3 -m unittest` がすべて通る\n  - README の使い方が変更と一致している\n  - Product Owner が受け入れ条件を確認した\n",
+    "scrum/sprints/001-2026-11-16/sprint-backlog.md": "# Sprint Backlog\n\n- **Sprint Goal**：営業が受注一覧を表計算ソフトに取り込める\n\n| Item | Order |\n| --- | --- |\n| 受注一覧を CSV で出力する | 1 |\n\n## Increment を届ける計画\n\n- CSV の列は id、customer、amount の順\n"
+  },
+  "commit": true
+}

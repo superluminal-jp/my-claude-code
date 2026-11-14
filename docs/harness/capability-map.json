@@ -14,6 +14,10 @@
       "path": "harness/agents/read-only-reviewer.md"
     },
     {
+      "id": "agent:scrum-master-agent.md",
+      "path": "harness/agents/scrum-master-agent.md"
+    },
+    {
       "id": "agent:task-worker.md",
       "path": "harness/agents/task-worker.md"
     },
@@ -439,14 +443,23 @@
     {
       "id": "E-scrum",
       "branch": "execute",
-      "title": "Scrum のイベント・作成物・説明責任の診断と改善",
+      "title": "Scrum Team の Developers の一人として開発し、Scrum Master は独立したサブエージェントが担う。Scrum のイベント・作成物・アカウンタビリティの診断と改善",
       "owners": [
-        "skill:apply-scrum-guide"
+        "skill:apply-scrum-guide",
+        "agent:scrum-master-agent.md"
       ],
       "basis": [
         {
           "file": "harness/skills/apply-scrum-guide/SKILL.md",
           "quote": "Scrum Guide (2020) を唯一の規範として"
+        },
+        {
+          "file": "harness/skills/apply-scrum-guide/SKILL.md",
+          "quote": "依頼に Scrum という語がなくても"
+        },
+        {
+          "file": "harness/agents/scrum-master-agent.md",
+          "quote": "Holds the Scrum Master accountability of the Scrum Guide (2020)"
         },
         {
           "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
