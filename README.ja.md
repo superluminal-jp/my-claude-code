@@ -151,8 +151,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     同梱の読み取り専用のスクリプトで形を検査する。検査は、まだ書かれていない Product Goal・
     Sprint Goal・Definition of Done も警告する。既存のファイルは書き換えず、Scrum Team が決める値は埋めない）
   - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言しない（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `harness/agents/` に定義したサブエージェントも名前で名指せる。`specify-requirements` と `verify-change` のレビューの手順は `read-only-reviewer` を起動し、その型が無ければ止まる
-  - 以前の構成の17件のスキルは破棄し、新しい名前で、この16件に作り直した。新旧の対応は
-    [`docs/harness-zero-base.md`](docs/harness-zero-base.md) にある。Apple Notes と Apple Reminders の
+  - 以前の構成の17件のスキルは破棄し、新しい名前で、16件に作り直した。新旧の対応は
+    [`docs/harness-zero-base.md`](docs/harness-zero-base.md) にある。`manage-scrum-artifacts` は、
+    その作り直しの後に加えた（[ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)）。Apple Notes と Apple Reminders の
     連携は、代わりを置かずに除いた。以前のスキルの一部が持っていたスキル内の README、評価の資料、
     プラグインのマニフェストは引き継いでいない。取り込んでいた `minto-pyramid` プラグイン
     （`pyramid-structure` に置き換え、それは今の `structure-document`）、従来の Minto スイート

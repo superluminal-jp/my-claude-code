@@ -238,9 +238,11 @@ redesign that produced this layout is recorded in
     name, by name, a subagent defined in `harness/agents/`: the review
     procedures of `specify-requirements` and `verify-change` start
     `read-only-reviewer` and stop when it is missing
-  - The 17 skills of the earlier layout were discarded and rebuilt as these
-    16, under new names; the old-to-new mapping is in
-    [`docs/harness-zero-base.md`](docs/harness-zero-base.md). The Apple Notes
+  - The 17 skills of the earlier layout were discarded and rebuilt as 16,
+    under new names; the old-to-new mapping is in
+    [`docs/harness-zero-base.md`](docs/harness-zero-base.md).
+    `manage-scrum-artifacts` was added after that rebuild
+    ([ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)). The Apple Notes
     and Apple Reminders integrations were removed with no replacement, and the
     skill-level README files, evaluation suites, and plugin manifests that some
     earlier skills carried were not carried over. The vendored `minto-pyramid`
