@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "sync-docs/config.schema.json",
   "title": "Living documentation project classification configuration",
-  "description": "Optional .living-documentation.json at the project root. It affects classification, check scope, and Stop-hook enforcement; it never relocates project artifacts. This schema is the single source of truth for accepted keys: the bundled scripts read it at run time.",
+  "description": "Optional .living-documentation.json at the project root. It affects classification, check scope, related-document discovery, and the documentation tree; it never relocates project artifacts. This schema is the single source of truth for accepted keys: the bundled scripts read it at run time.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -17,8 +17,8 @@
         "warn",
         "off"
       ],
-      "default": "block",
-      "description": "How the Stop-hook gate treats this project: block (default) blocks unfinished documentation work a limited number of times, warn only shows a warning, off disables the gate and the session-start rule. The LIVING_DOCS_GATE environment variable overrides it."
+      "deprecated": true,
+      "description": "Retired; it has no effect, because no bundled script reads it. It set how the Stop-hook gate and the session-start rule of the earlier maintaining-living-documentation skill treated a project, and both were removed with that skill. The key is still accepted so that a configuration written for that skill keeps loading."
     },
     "exclude_globs": {
       "type": "array",
@@ -100,7 +100,7 @@
           "type": "integer",
           "minimum": 1,
           "default": 10,
-          "description": "Most related documents (distinct paths) find_related.py lists and the Stop-hook gate enforces; the closest are kept first and the rest are counted in 'truncated'. Advisory comment records are not counted."
+          "description": "Most related documents (distinct paths) find_related.py lists; the closest are kept first and the rest are counted in 'truncated'. Advisory comment records are not counted."
         },
         "min_name_length": {
           "type": "integer",
@@ -109,7 +109,7 @@
           "description": "Shortest file name that counts as a mention of a changed file in a document. Shorter names match only when the whole project-relative path appears."
         }
       },
-      "description": "Settings for related-document discovery (find_related.py and the Stop-hook gate)."
+      "description": "Settings for related-document discovery (find_related.py)."
     },
     "tree": {
       "type": "object",
