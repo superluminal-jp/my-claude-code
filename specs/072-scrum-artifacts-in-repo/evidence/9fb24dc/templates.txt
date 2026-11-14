@@ -1,0 +1,32 @@
+commit: 9fb24dced300c65cbd422d3a46b0b1f93ce599ff
+date: 2026-11-14T07:15Z
+
+$ find harness -name product-backlog.md
+harness/skills/manage-scrum-artifacts/templates/product-backlog.md
+exit: 0
+
+$ test -e harness/skills/apply-scrum-guide/references/templates
+exit: 1
+
+$ git -c core.quotepath=false diff -M --summary 2fab98d 9fb24dced300c65cbd422d3a46b0b1f93ce599ff -- harness/skills/apply-scrum-guide/references/templates harness/skills/manage-scrum-artifacts/templates
+ delete mode 100644 harness/skills/apply-scrum-guide/references/templates/README.md
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/definition-of-done.md (100%)
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/product-backlog.md (100%)
+ create mode 100644 harness/skills/manage-scrum-artifacts/templates/scrum-readme.md
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/sprint/daily-scrum.md (100%)
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/sprint/increment.md (100%)
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/sprint/sprint-backlog.md (100%)
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/sprint/sprint-planning.md (100%)
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/sprint/sprint-retrospective.md (100%)
+ rename harness/skills/{apply-scrum-guide/references => manage-scrum-artifacts}/templates/sprint/sprint-review.md (100%)
+exit: 0
+
+$ for each of the 8 templates: git show 2fab98d:harness/skills/apply-scrum-guide/references/templates/<name> | cmp -s - harness/skills/manage-scrum-artifacts/templates/<name>
+product-backlog.md cmp exit: 0
+definition-of-done.md cmp exit: 0
+sprint/daily-scrum.md cmp exit: 0
+sprint/increment.md cmp exit: 0
+sprint/sprint-backlog.md cmp exit: 0
+sprint/sprint-planning.md cmp exit: 0
+sprint/sprint-retrospective.md cmp exit: 0
+sprint/sprint-review.md cmp exit: 0

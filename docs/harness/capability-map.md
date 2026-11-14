@@ -26,6 +26,7 @@
 | `E-dads-frontend` | 実行 | DADS に沿った React と Tailwind CSS のフロントエンド | `skill:apply-dads-frontend` | `e-dads-frontend` |
 | `E-dads-slides` | 実行 | DADS に沿った 16:9 の HTML スライド | `skill:build-dads-slides` | `e-dads-slides` |
 | `E-scrum` | 実行 | Scrum のイベント・作成物・説明責任の診断と改善 | `skill:apply-scrum-guide` | `e-scrum-retro`, `e-scrum-not-pm` |
+| `E-scrum-artifacts` | 実行 | Scrum の作成物を、リポジトリの中のファイルとして置き、保つ | `skill:manage-scrum-artifacts` | `e-scrum-artifacts-setup` |
 | `E-logging` | 実行 | ログ出力の実装と確認を、セキュリティの要件に照らして行う | `skill:apply-secure-logging` | `e-match-logging` |
 | `E-diagrams` | 実行 | システム構成図を、1枚に1つの問い・1種類の読者・1つの抽象度で作る | `skill:draw-system-diagrams` | `e-system-diagrams`, `e-diagrams-vendor-icons` |
 | `H-verify` | 引き渡し | 完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする | `apex`, `skill:deliver-change`, `skill:verify-change`, `skill:implement-change`, `agent:read-only-reviewer.md` | `h-verify-evidence`, `e-proportion-typo` |
@@ -61,4 +62,4 @@
 
 ## シナリオの数
 
-期待 20 件、観測 6 件、到達確認 1 件。
+期待 21 件、観測 6 件、到達確認 1 件。

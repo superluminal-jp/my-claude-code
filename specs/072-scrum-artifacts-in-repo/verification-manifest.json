@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-072",
+    "problem_id": "PRB-072",
+    "reviewed_commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff",
+    "implementer": "claude",
+    "risk": {
+      "class": "medium",
+      "rationale": "新しいスキル（SKILL.md、2つのスクリプトと共有モジュール、雛形、参照文書）、apply-scrum-guide からの雛形の移動、両方の README、評価の対応表とシナリオ集、テストの実行スクリプトにまたがる。install.sh で ~/.claude/skills/ に入り、利用者のすべてのプロジェクトで使える。scaffold.py は利用者のリポジトリにファイルを書くが、プロダクトの scrum/ の下に新しいファイルを作るだけで、既存のファイルを書き換えず、ルートの外へ出るパスを拒む（AC-LAYOUT-2、AC-KEEP-1）。認証・認可・秘密・個人データ・データ移行・基盤の権限・公開には触れず、git revert と install.sh の再実行で戻せる。"
+    },
+    "approvals": [],
+    "checks": [
+      {
+        "check_id": "AC-ROOT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/dryrun-transcript.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-ROOT-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/harness-skills.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-LAYOUT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-LAYOUT-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-SPRINT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-SPRINT-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-KEEP-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-CHECK-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-CHECK-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-UNSET-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-TPL-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/templates.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-TPL-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/templates.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-SKILL-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/harness-skills.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-SKILL-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/suites.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-SKILL-3",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/acceptance-tests.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-DOCS-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/docs.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      },
+      {
+        "check_id": "AC-COMPAT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/072-scrum-artifacts-in-repo/evidence/9fb24dc/compat.txt",
+          "commit": "9fb24dced300c65cbd422d3a46b0b1f93ce599ff"
+        }
+      }
+    ],
+    "test_changes": [],
+    "infra_changes": []
+  }
+}

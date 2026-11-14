@@ -1,0 +1,45 @@
+commit: 9fb24dced300c65cbd422d3a46b0b1f93ce599ff
+date: 2026-11-14T07:14Z
+
+$ bash tests/run-readme-skill-index.sh   (lines that name the two Scrum skills, ROUTE-07/08, results, and any FAIL)
+PASS IDX: README.md names apply-scrum-guide
+PASS IDX: README.ja.md names apply-scrum-guide
+PASS IDX: README.md names manage-scrum-artifacts
+PASS IDX: README.ja.md names manage-scrum-artifacts
+Results: 44 passed, 0 failed
+exit: 0
+
+$ bash tests/run-config-pyramid.sh   (lines that name the two Scrum skills, ROUTE-07/08, results, and any FAIL)
+PASS ROUTE-07: Scrum applies to named Scrum events, artifacts, and accountabilities
+PASS ROUTE-08: generic project management and Gantt work is not Scrum
+Results: 52 passed, 0 failed
+exit: 0
+
+$ bash tests/run-harness-eval.sh   (lines that name the two Scrum skills, ROUTE-07/08, results, and any FAIL)
+Ran 165 tests in 5.613s
+OK
+Result: passed (0 violations)
+harness-eval: passed
+exit: 0
+
+$ bash tests/run-install.sh   (lines that name the two Scrum skills, ROUTE-07/08, results, and any FAIL)
+exit: 0
+
+$ python3 tests/harness-eval/harness_eval.py check
+Result: passed (0 violations)
+exit: 0
+
+$ grep -n manage-scrum-artifacts tests/harness-eval/scenarios.json docs/harness/capability-map.json
+tests/harness-eval/scenarios.json:661:          "id": "not-manage-scrum-artifacts",
+tests/harness-eval/scenarios.json:663:          "skill": "manage-scrum-artifacts",
+tests/harness-eval/scenarios.json:666:            "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+tests/harness-eval/scenarios.json:703:          "id": "uses-manage-scrum-artifacts",
+tests/harness-eval/scenarios.json:705:          "skill": "manage-scrum-artifacts",
+tests/harness-eval/scenarios.json:708:            "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+docs/harness/capability-map.json:91:      "id": "skill:manage-scrum-artifacts",
+docs/harness/capability-map.json:92:      "path": "harness/skills/manage-scrum-artifacts/SKILL.md"
+docs/harness/capability-map.json:452:          "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+docs/harness/capability-map.json:462:        "skill:manage-scrum-artifacts"
+docs/harness/capability-map.json:466:          "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+exit: 0
+

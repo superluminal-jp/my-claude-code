@@ -60,7 +60,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `task-worker`（`sonnet`、`xhigh`）— 判断を要する、閉じた1つの作業。互いに独立な作業を並行して
     行うときに使う。定義は道具を制限せず、作業が割り当てたファイルだけを書き、全体の作業が
     完了したとは宣言しない
-- **`harness/skills/`**: 必要時に読み込まれるプレイブック。全部で16件あり、中央ルーティング表なしに
+- **`harness/skills/`**: 必要時に読み込まれるプレイブック。全部で17件あり、中央ルーティング表なしに
   自己記述だけで選択できる。各 `SKILL.md` は `description`（いつ使い、いつ使わないか）と、
   `metadata` に `kind`（`worker`・`overlay`・`orchestrator`）、`permission`（`read_only`・
   `workspace_write`・`external_effect`）、`sandbox` の宣言を持つ。`sandbox` は `inside`（同梱の
@@ -146,11 +146,16 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     CI のログの実装と検査。各項目は pass・fail・N/A・未検証のいずれか1つの状態と証拠を持ち、保管・転送・
     保持期間・アラートに関する項目は、アプリケーションのコードから pass にしない）、
     `apply-scrum-guide`（Scrum Guide 2020 だけを規範に、Scrum のイベント・作成物・アカウンタビリティ・
-    逸脱を診断・改善する。読み取り専用で、Guide の日本語版と US 版の PDF と、8つの Markdown
-    テンプレートを同梱する。スキルの本文は日本語）
+    逸脱を診断・改善する。読み取り専用で、Guide の日本語版と US 版の PDF を同梱する。
+    スキルの本文は日本語）、`manage-scrum-artifacts`（プロダクトごとの Scrum の作成物を、リポジトリの中の
+    ファイルとして保つ。同梱した9つの Scrum Guide の雛形から、Product Backlog、Definition of Done、
+    Sprint ごとの記録をプロダクトのフォルダの `scrum/` に置き、Sprint のフォルダを1つずつ足し、
+    同梱の読み取り専用のスクリプトで形を検査する。検査は、まだ書かれていない Product Goal・
+    Sprint Goal・Definition of Done も警告する。既存のファイルは書き換えず、Scrum Team が決める値は埋めない）
   - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言しない（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `harness/agents/` に定義したサブエージェントも名前で名指せる。`specify-requirements` と `verify-change` のレビューの手順は `read-only-reviewer` を起動し、その型が無ければ止まる
-  - 以前の構成の17件のスキルは破棄し、新しい名前で、この16件に作り直した。新旧の対応は
-    [`docs/harness-zero-base.md`](docs/harness-zero-base.md) にある。Apple Notes と Apple Reminders の
+  - 以前の構成の17件のスキルは破棄し、新しい名前で、16件に作り直した。新旧の対応は
+    [`docs/harness-zero-base.md`](docs/harness-zero-base.md) にある。`manage-scrum-artifacts` は、
+    その作り直しの後に加えた（[ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)）。Apple Notes と Apple Reminders の
     連携は、代わりを置かずに除いた。以前のスキルの一部が持っていたスキル内の README、評価の資料、
     プラグインのマニフェストは引き継いでいない。取り込んでいた `minto-pyramid` プラグイン
     （`pyramid-structure` に置き換え、それは今の `structure-document`）、従来の Minto スイート
@@ -292,7 +297,7 @@ my-claude-code/
     │   ├── check-runner.md         # 出力の長い確認: 各コマンド・終了コード・失敗の原文を報告
     │   ├── file-searcher.md        # 読み取り専用の検索: パス:行 の位置を返す
     │   └── task-worker.md          # 判断を要する閉じた1つの作業。ほかの作業と並行して行う
-    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型。16件
+    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型。17件
         ├── clarify-intent/         # 意図の共通認識の形成(作業)
         │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
@@ -350,10 +355,15 @@ my-claude-code/
         ├── apply-secure-logging/   # OWASP + 各スタックのログ作法のチェックリスト(オーバーレイ)
         │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   出典付きチェックリスト(ASVS V16、CWE、OWASP、各スタックの公式文書)
-        └── apply-scrum-guide/      # Scrum Guide (2020) だけを規範に、イベント・作成物・アカウンタビリティを診断(オーバーレイ)
+        ├── apply-scrum-guide/      # Scrum Guide (2020) だけを規範に、イベント・作成物・アカウンタビリティを診断(オーバーレイ)
+        │   ├── SKILL.md            #   プレイブック
+        │   └── references/         #   必要時に読む参考文書3件 + Scrum Guide の PDF
+        └── manage-scrum-artifacts/ # Scrum の作成物を、各プロダクトの scrum/ の下のファイルとして保つ(作業)
             ├── SKILL.md            #   プレイブック
-            └── references/         #   必要時に読む参考文書3件 + Scrum Guide の PDF
-                └── templates/      #   すぐ使える Markdown テンプレート8件(作成物 + イベント)
+            ├── references/         #   配置の決まりと検査の規則、イベントの準備
+            ├── scripts/            #   scaffold.py(新しいファイルだけを置く)、check_artifacts.py(読み取り専用)
+            ├── templates/          #   リポジトリに写す Scrum Guide の雛形9件
+            └── tests/              #   スクリプトと手順の文面の単体テスト
 ```
 
 ## 検証
@@ -393,7 +403,7 @@ C-11（スクリプトの docstring に一覧がある）を課す: 名前がデ
 ほかのスキルを名指さないこと、インストール先に依存するパスや、このリポジトリの `specs/`・`archive/` への
 参照がないこと、パッケージ内の相対リンクが解決すること、取りまとめ役のスキルが実在する
 子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。続けて、
-`specify-requirements`・`verify-change`・`draw-system-diagrams`・`structure-document`・`sync-docs` に
+`specify-requirements`・`verify-change`・`draw-system-diagrams`・`structure-document`・`sync-docs`・`manage-scrum-artifacts` に
 同梱した検査スクリプトの単体テストを実行する。1つのスキルの単体テストだけを実行するには:
 
 ```sh
