@@ -53,3 +53,5 @@ Scrum Masterは2つのことに責任を持つ。
 ## 誰がScrum Masterになれるか
 
 Guideはこのアカウンタビリティを誰が持つかを制限していない——Scrum MasterはDevelopersがこの役割を兼任することもできるが、実務上は利益相反（例：Daily Scrumで自分自身の作業を評価するScrum Master）を避けるため、多くの組織が専任者を置く。どちらか一方を必須と断定せず、判断とトレードオフの開示を行う。
+
+本スキルでは、AIがDevelopersの一人として開発する主の会話とは別に、独立したサブエージェントがScrum Masterの役を担う。自分の作業を自分で検査する利益相反を避けるための運用上の決まりであり、Guideが兼任を禁じているからではない（GuideはScrum MasterがSprint Backlogの項目に取り組むときはDevelopersとして参加すると述べる [SG20, p.9]）。チームの記録が人をScrum Masterとして挙げているときは、サブエージェントの所見をその人への材料とし、Scrum Masterを2人にしない（Scrum TeamのScrum Masterは1人である [SG20, p.5]）。

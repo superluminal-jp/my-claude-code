@@ -24,7 +24,11 @@ https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf
 - Scrum Teamは階層やサブチームを持たず、自己管理し、通常10人以下（p.5）。
 - Scrum MasterはScrumの確立とScrum Teamの有効性に責任を持つ（p.6）。
 - Product Ownerは価値最大化とProduct Backlog管理、DevelopersはSprint Backlog、品質、日々の適応に責任を持つ（pp.5–6）。
+- Developersは、Sprint Backlogの作成、Definition of Doneを守ることによる品質の作り込み、Sprint Goalに向けた毎日の計画の適応、専門家として互いに責任を持つことに責任を持つ（p.5）。
 - Scrumイベントの目的と最大タイムボックス（pp.7–10）。
+- Sprintでは、Sprint Goalを危うくする変更をせず、品質を下げず、範囲はProduct Ownerと再交渉しうる（p.7）。選んだ項目をどう Increment に変えるかはDevelopersだけの裁量（p.8）。
+- Sprint BacklogはDevelopersによるDevelopersのための計画で、作業が予想と異なれば、Sprint Goalに影響しないようProduct Ownerと交渉して範囲を調整する（p.11）。
+- Definition of Doneを満たさない作業はIncrementの一部ではなく、リリースもSprint Reviewでの提示もできない（p.12）。
 - Product Goal、Sprint Goal、Definition of Doneは各作成物へのコミットメント（pp.10–12）。
 - Scrumを部分的に実施することは可能だが、その結果はScrumではない（p.13）。
 

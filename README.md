@@ -70,7 +70,7 @@ redesign that produced this layout is recorded in
   another rule, a skill, or a config path. What each file deliberately
   omits, and where that content went, is recorded in
   [`docs/claude-config-design.md`](docs/claude-config-design.md)
-- **`harness/agents/`** — Four subagent definitions, one per kind of delegated
+- **`harness/agents/`** — Five subagent definitions, one per kind of delegated
   work. Each definition fixes the model, reasoning effort, and tools, which is
   what the delegation policy of `harness/CLAUDE.md` relies on:
   - `read-only-reviewer` (`sonnet`, `xhigh`) — the independent reviewer that
@@ -92,6 +92,12 @@ redesign that produced this layout is recorded in
     judgment, for independent tasks that run in parallel. Its definition sets
     no tool restriction; it writes only the files its task assigns it and does
     not declare the larger work complete
+  - `scrum-master-agent` (`sonnet`, `xhigh`) — holds the Scrum Master
+    accountability that `apply-scrum-guide` keeps apart from the Developer
+    working in the main conversation: it reads the team's Scrum artifacts and
+    the facts of the work and returns findings on impediments, transparency
+    gaps, and deviations from the Sprint Goal or the Definition of Done. Its
+    tools are Read, Grep, and Glob; it starts without CLAUDE.md
 - **`harness/skills/`** — On-demand playbooks loaded by relevance, 17 in all,
   self-describing so that no central router is needed. Each `SKILL.md` holds
   a `description` (when to use the skill and when not to) and, under
@@ -222,10 +228,18 @@ redesign that produced this layout is recorded in
     that the official documentation of each stack describes; every item gets
     one status — pass, fail, N/A, or unverified — with evidence, and an item
     about storage, transport, retention, or alerting is never passed from
-    application code), and `apply-scrum-guide` (diagnose and improve Scrum
-    events, artifacts, accountabilities, and deviations against the 2020 Scrum
-    Guide alone; read-only, with the Guide's Japanese and US PDFs bundled;
-    the skill's text is Japanese), and `manage-scrum-artifacts` (keep each
+    application code), and `apply-scrum-guide` (the 2020 Scrum Guide alone as
+    the norm, with the AI working as one of the Scrum Team's Developers in a
+    repository: before work it reads the Product Goal, the Sprint Backlog, and
+    the Definition of Done, ties the work to the Sprint Goal, and calls an item
+    done only with evidence for each Definition of Done item; the Scrum Master
+    accountability, including the diagnosis and improvement of events,
+    artifacts, and deviations, is held by the independent subagent
+    `scrum-master-agent`. It applies to every piece of development in a
+    repository that holds Scrum artifacts, even when the request does not say
+    Scrum; read-only, with the Guide's Japanese and US PDFs bundled; the
+    skill's text is Japanese;
+    [ADR-0025](docs/adr/0025-ai-as-developer-scrum-master-as-subagent.md)), and `manage-scrum-artifacts` (keep each
     product's Scrum artifacts as files in its repository: place the Product
     Backlog, the Definition of Done, and per-Sprint records under the product
     folder's `scrum/` from nine bundled Scrum Guide templates, add one Sprint
@@ -240,7 +254,9 @@ redesign that produced this layout is recorded in
     ([spec 058](specs/058-parent-skill-references/spec.md)). A skill may also
     name, by name, a subagent defined in `harness/agents/`: the review
     procedures of `specify-requirements` and `verify-change` start
-    `read-only-reviewer` and stop when it is missing
+    `read-only-reviewer` and stop when it is missing, and `apply-scrum-guide`
+    starts `scrum-master-agent` and, when it cannot, labels its own check a
+    self-check rather than an independent Scrum Master's findings
   - The 17 skills of the earlier layout were discarded and rebuilt as 16,
     under new names; the old-to-new mapping is in
     [`docs/harness-zero-base.md`](docs/harness-zero-base.md).
@@ -336,8 +352,8 @@ Re-running is safe: it re-syncs managed paths and re-checks the plugins.
   settings, which Claude Code combines with the user scope.
 - Files removed from this repository are also removed from `~/.claude` under
   the replaced managed paths.
-- `agents/` holds the four subagent definitions (`read-only-reviewer`,
-  `check-runner`, `file-searcher`, and `task-worker`). Like the other managed
+- `agents/` holds the five subagent definitions (`read-only-reviewer`,
+  `check-runner`, `file-searcher`, `task-worker`, and `scrum-master-agent`). Like the other managed
   paths it replaces `~/.claude/agents/`, so an agent file of your own there is
   removed; keep your own agents in a project's `.claude/agents/`.
 - `commands/` has no source in this repository; it stays managed only to
@@ -389,7 +405,8 @@ my-claude-code/
     │   ├── read-only-reviewer.md   # Challenger and assurance review: Read/Grep/Glob only, starts without CLAUDE.md
     │   ├── check-runner.md         # Long-output checks: reports each command, exit code, and failure verbatim
     │   ├── file-searcher.md        # Read-only search: returns path:line locations
-    │   └── task-worker.md          # One self-contained task that needs judgment, run in parallel with others
+    │   ├── task-worker.md          # One self-contained task that needs judgment, run in parallel with others
+    │   └── scrum-master-agent.md   # Scrum Master apart from the Developer in the main conversation: Read/Grep/Glob only
     └── skills/                     # On-demand: body loaded when relevant, self-describing; 17 skills
         ├── clarify-intent/         # Shared understanding of intent (worker)
         │   ├── SKILL.md            #   playbook
@@ -448,9 +465,9 @@ my-claude-code/
         ├── apply-secure-logging/   # OWASP + stack-practice logging checklist (overlay)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   source-backed checklist (ASVS V16, CWE, OWASP, official stack docs)
-        ├── apply-scrum-guide/      # Scrum Guide (2020)-only diagnosis of events, artifacts, accountabilities (overlay)
+        ├── apply-scrum-guide/      # Scrum Guide (2020)-only: AI as a Developer, Scrum Master as a subagent (overlay)
         │   ├── SKILL.md            #   playbook
-        │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+        │   └── references/         #   5 on-demand reference documents + the Scrum Guide PDFs
         └── manage-scrum-artifacts/ # Scrum artifacts kept as files under each product's scrum/ (worker)
             ├── SKILL.md            #   playbook
             ├── references/         #   layout conventions and check rules, event preparation
@@ -566,7 +583,8 @@ person directed, Jest results, the decision before deploy, and both decisions
 on the card) and through two assurance review rounds with `review_prep.py` in a
 temporary Git repository (`tests/assert_review_prep_flow.py`). It also checks
 that the `read-only-reviewer` definition allows only Read, Grep, and Glob and
-that both review procedures name it (`tests/assert_reviewer_agent.py`).
+that both review procedures name it, and that `scrum-master-agent` is likewise
+read-only and named by `apply-scrum-guide` (`tests/assert_reviewer_agent.py`).
 
 After changing [`harness/skills/draw-system-diagrams/`](harness/skills/draw-system-diagrams/):
 

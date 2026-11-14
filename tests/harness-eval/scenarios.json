@@ -691,6 +691,38 @@
       ]
     },
     {
+      "id": "e-scrum-developer-work",
+      "kind": "expectation",
+      "stages": [
+        "E-scrum"
+      ],
+      "description": "Scrum の作成物があるリポジトリでの、Scrum という語を含まない開発の依頼。Developers の一人として Scrum の領域が使われるか。",
+      "fixture": "scrum-order-app",
+      "prompt": "受注一覧を CSV で出力する機能を orders.py に足してください。",
+      "graders": [
+        {
+          "id": "uses-apply-scrum-guide",
+          "type": "skill",
+          "skill": "apply-scrum-guide",
+          "expect": "used",
+          "basis": {
+            "file": "harness/skills/apply-scrum-guide/SKILL.md",
+            "quote": "依頼に Scrum という語がなくても"
+          }
+        },
+        {
+          "id": "not-manage-scrum-artifacts",
+          "type": "skill",
+          "skill": "manage-scrum-artifacts",
+          "expect": "unused",
+          "basis": {
+            "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+            "quote": "Use when asked to set up, add a Sprint to, check, or draft from Scrum artifacts kept in a repository"
+          }
+        }
+      ]
+    },
+    {
       "id": "e-scrum-artifacts-setup",
       "kind": "expectation",
       "stages": [

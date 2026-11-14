@@ -45,7 +45,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   推論の完全性（4つの推論セルフチェック: 依存と並行・条件と分岐・反復・推論）、権限と安全性
   （強制される deny は `settings.json`）、および読み手本位の構造（Pyramid Principle セルフチェック、結論先行で並べる論文の構成（要旨・前提・方法・結果・考察・結論）、番号付きの主張の見出しと太字の論点による構造の可視化、初学者向けの前提と平易な定義（ユーザー自身の発言が示す場合を除き、読み手はその主題に不慣れだと想定する）、会話・コード・文書を見ていない読み手を想定し、多義語や指示語が何を指すかを明示すること、用語はその分野で使われる形で書き訳語を作らないこと、比喩・類推による説明の禁止））。他のルール・スキル・設定パスへの言及は持たない。
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
-- **`harness/agents/`**: 委任する作業の種類ごとに1つ、計4つのサブエージェントの定義。各定義が
+- **`harness/agents/`**: 委任する作業の種類ごとに1つ、計5つのサブエージェントの定義。各定義が
   モデル・推論の effort・使える道具を固定し、`harness/CLAUDE.md` の委任の方針はそれを前提にする:
   - `read-only-reviewer`（`sonnet`、`xhigh`）— `specify-requirements` の反証役と `verify-change` の
     保証レビューが起動する、独立した読み手。道具は Read・Grep・Glob だけで、CLAUDE.md を読み込まずに
@@ -60,6 +60,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   - `task-worker`（`sonnet`、`xhigh`）— 判断を要する、閉じた1つの作業。互いに独立な作業を並行して
     行うときに使う。定義は道具を制限せず、作業が割り当てたファイルだけを書き、全体の作業が
     完了したとは宣言しない
+  - `scrum-master-agent`（`sonnet`、`xhigh`）— `apply-scrum-guide` が、主の会話で働く Developer から
+    切り離す Scrum Master のアカウンタビリティを担う。チームの Scrum の作成物と作業の事実を読み、
+    阻害要因、透明性の欠け、Sprint Goal や Definition of Done からの逸脱についての所見を返す。
+    道具は Read・Grep・Glob だけで、CLAUDE.md を読み込まずに始まる
 - **`harness/skills/`**: 必要時に読み込まれるプレイブック。全部で17件あり、中央ルーティング表なしに
   自己記述だけで選択できる。各 `SKILL.md` は `description`（いつ使い、いつ使わないか）と、
   `metadata` に `kind`（`worker`・`overlay`・`orchestrator`）、`permission`（`read_only`・
@@ -145,14 +149,18 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     各スタックの公式ドキュメントにあるログの作法を載せた同梱のチェックリストに基づく、アプリケーションと
     CI のログの実装と検査。各項目は pass・fail・N/A・未検証のいずれか1つの状態と証拠を持ち、保管・転送・
     保持期間・アラートに関する項目は、アプリケーションのコードから pass にしない）、
-    `apply-scrum-guide`（Scrum Guide 2020 だけを規範に、Scrum のイベント・作成物・アカウンタビリティ・
-    逸脱を診断・改善する。読み取り専用で、Guide の日本語版と US 版の PDF を同梱する。
-    スキルの本文は日本語）、`manage-scrum-artifacts`（プロダクトごとの Scrum の作成物を、リポジトリの中の
+    `apply-scrum-guide`（Scrum Guide 2020 だけを規範に、AI が Scrum Team の Developers の一人として
+    リポジトリで開発する。作業の前に Product Goal・Sprint Backlog・Definition of Done を読み、作業を
+    Sprint Goal に結び付け、Definition of Done の項目ごとの証拠がそろうまで完了としない。Scrum Master の
+    アカウンタビリティは、イベント・作成物・逸脱の診断と改善を含め、独立したサブエージェント
+    `scrum-master-agent` が担う。Scrum の作成物があるリポジトリでは、依頼に Scrum という語がなくても
+    開発のたびに使う。読み取り専用で、Guide の日本語版と US 版の PDF を同梱する。スキルの本文は日本語。
+    [ADR-0025](docs/adr/0025-ai-as-developer-scrum-master-as-subagent.md)）、`manage-scrum-artifacts`（プロダクトごとの Scrum の作成物を、リポジトリの中の
     ファイルとして保つ。同梱した9つの Scrum Guide の雛形から、Product Backlog、Definition of Done、
     Sprint ごとの記録をプロダクトのフォルダの `scrum/` に置き、Sprint のフォルダを1つずつ足し、
     同梱の読み取り専用のスクリプトで形を検査する。検査は、まだ書かれていない Product Goal・
     Sprint Goal・Definition of Done も警告する。既存のファイルは書き換えず、Scrum Team が決める値は埋めない）
-  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言しない（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `harness/agents/` に定義したサブエージェントも名前で名指せる。`specify-requirements` と `verify-change` のレビューの手順は `read-only-reviewer` を起動し、その型が無ければ止まる
+  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言しない（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `harness/agents/` に定義したサブエージェントも名前で名指せる。`specify-requirements` と `verify-change` のレビューの手順は `read-only-reviewer` を起動し、その型が無ければ止まる。`apply-scrum-guide` は `scrum-master-agent` を起動し、起動できないときは、自分の検査を独立した Scrum Master の所見ではない自己点検と明記する
   - 以前の構成の17件のスキルは破棄し、新しい名前で、16件に作り直した。新旧の対応は
     [`docs/harness-zero-base.md`](docs/harness-zero-base.md) にある。`manage-scrum-artifacts` は、
     その作り直しの後に加えた（[ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)）。Apple Notes と Apple Reminders の
@@ -244,8 +252,8 @@ bash path/to/my-claude-code/install.sh
   スコープと合わせて読むプロジェクトかローカルの設定に置いてください。
 - このリポジトリ側で削除されたファイルは、`~/.claude` 側の置換対象パスでも
   削除されます。
-- `agents/` には、4つのサブエージェントの定義（`read-only-reviewer`、
-  `check-runner`、`file-searcher`、`task-worker`）があります。ほかの管理対象と同じく
+- `agents/` には、5つのサブエージェントの定義（`read-only-reviewer`、
+  `check-runner`、`file-searcher`、`task-worker`、`scrum-master-agent`）があります。ほかの管理対象と同じく
   `~/.claude/agents/` を置き換えるので、そこに自分で置いたエージェントのファイルは
   削除されます。自分のエージェントはプロジェクトの `.claude/agents/` に置いてください。
 - `commands/` はこのリポジトリに元ファイルがなく、以前のバージョンが入れたものを
@@ -297,7 +305,8 @@ my-claude-code/
     │   ├── read-only-reviewer.md   # 反証役と保証レビュー: Read/Grep/Glob だけ、CLAUDE.md なしで始まる
     │   ├── check-runner.md         # 出力の長い確認: 各コマンド・終了コード・失敗の原文を報告
     │   ├── file-searcher.md        # 読み取り専用の検索: パス:行 の位置を返す
-    │   └── task-worker.md          # 判断を要する閉じた1つの作業。ほかの作業と並行して行う
+    │   ├── task-worker.md          # 判断を要する閉じた1つの作業。ほかの作業と並行して行う
+    │   └── scrum-master-agent.md   # 主の会話の Developer から独立した Scrum Master: Read/Grep/Glob だけ
     └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型。17件
         ├── clarify-intent/         # 意図の共通認識の形成(作業)
         │   ├── SKILL.md            #   プレイブック
@@ -356,9 +365,9 @@ my-claude-code/
         ├── apply-secure-logging/   # OWASP + 各スタックのログ作法のチェックリスト(オーバーレイ)
         │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   出典付きチェックリスト(ASVS V16、CWE、OWASP、各スタックの公式文書)
-        ├── apply-scrum-guide/      # Scrum Guide (2020) だけを規範に、イベント・作成物・アカウンタビリティを診断(オーバーレイ)
+        ├── apply-scrum-guide/      # Scrum Guide (2020) だけを規範に、AI は Developer、Scrum Master はサブエージェント(オーバーレイ)
         │   ├── SKILL.md            #   プレイブック
-        │   └── references/         #   必要時に読む参考文書3件 + Scrum Guide の PDF
+        │   └── references/         #   必要時に読む参考文書5件 + Scrum Guide の PDF
         └── manage-scrum-artifacts/ # Scrum の作成物を、各プロダクトの scrum/ の下のファイルとして保つ(作業)
             ├── SKILL.md            #   プレイブック
             ├── references/         #   配置の決まりと検査の規則、イベントの準備
@@ -460,7 +469,8 @@ bash tests/run-harness-skills.sh
 (`tests/assert_delivery_flow.py`。人の指示による要件、Jest の結果、deploy の前の判定、カードの2つの判定)、
 一時的な Git リポジトリで、`review_prep.py` を使った2回の保証レビューを通すこと
 (`tests/assert_review_prep_flow.py`)も確かめる。さらに、`read-only-reviewer` の定義が Read・Grep・Glob
-だけを許し、2つのレビューの手順がそれを名指していること(`tests/assert_reviewer_agent.py`)を確かめる。
+だけを許し、2つのレビューの手順がそれを名指していること、`scrum-master-agent` も同じく読み取り専用で
+`apply-scrum-guide` がそれを名指していること(`tests/assert_reviewer_agent.py`)を確かめる。
 
 [`harness/skills/draw-system-diagrams/`](harness/skills/draw-system-diagrams/) を変更したら:
 
