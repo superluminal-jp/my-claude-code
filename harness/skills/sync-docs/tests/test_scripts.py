@@ -187,6 +187,15 @@ class ConfigTests(TempDirTestCase):
         for member in tree.get("properties", {}).values():
             self.assertEqual((member.get("type"), member.get("items")), ("array", {"type": "string"}))
 
+    def test_retired_enforcement_key_is_still_accepted(self):
+        # A configuration written for the removed Stop-hook gate must keep loading.
+        write(self.root, ".living-documentation.json", json.dumps({"enforcement": "off"}))
+        self.assertEqual(common.load_config(self.root)["enforcement"], "off")
+
+    def test_schema_marks_enforcement_as_deprecated_without_a_default(self):
+        enforcement = json.loads(common.SCHEMA_PATH.read_text(encoding="utf-8"))["properties"]["enforcement"]
+        self.assertEqual((enforcement.get("deprecated"), "default" in enforcement), (True, False))
+
     def test_tree_declaration_is_accepted_by_the_loader(self):  # AC-DECL-4
         declaration = {"products": ["products/*"], "features": ["src/features/*"]}
         write(self.root, ".living-documentation.json", json.dumps({"tree": declaration}))
