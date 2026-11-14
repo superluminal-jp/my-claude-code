@@ -1,0 +1,207 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-072",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "harness のスキル manage-scrum-artifacts を使うと、リポジトリの中のプロダクトのフォルダごとに、Scrum Guide（2020年版）の作成物とコミットメントとイベントの記録を、同梱の雛形から scrum/ に置き、Sprint を足し、その形を検査できる。既存のファイルは書き換えず、Scrum Team が決める値は埋めない。",
+      "decomposition": "AND",
+      "children": [
+        "REQ-LAYOUT",
+        "REQ-SPRINT",
+        "REQ-KEEP",
+        "REQ-CHECK",
+        "REQ-UNSET",
+        "REQ-TEMPLATES",
+        "REQ-SKILL",
+        "REQ-DOCS",
+        "REQ-COMPAT"
+      ],
+      "assumptions": [
+        "対象は Git を使う利用者だけで、Notion などの外部の道具との同期は行わない（問題カードの out_of_scope）。",
+        "フォルダの構造とファイルの名前は Scrum Guide が定めないので、このスキルの運用上の決まりである。",
+        "Daily Scrum の記録は、頼まれたときだけ置く。"
+      ],
+      "counterexamples": [
+        "各スクリプトの単体テストは通るが、scaffold.py が置いた直後の構成を check_artifacts.py がエラーにする（置く側と検査する側の決まりが食い違う）。",
+        "スクリプトは正しいが、SKILL.md の手順が実在しないコマンドや引数を書いている。",
+        "新しいスキルは契約を満たすが、README の索引や評価の対応表に載っておらず、既存の検査が落ちる。"
+      ],
+      "acceptance": [
+        {
+          "id": "AC-ROOT-1",
+          "description": "記録のフォルダに置いたスクリプト（evidence/dryrun.sh）が、$TMPDIR に作った Git リポジトリで、SKILL.md に書かれたとおりのコマンドだけを使って次を行い、すべての期待が合うと終了コード 0 を返す: (1) ルートと products/a の2つのプロダクトに init を行う。(2) products/a に Sprint を2つ足す。(3) 検査が両方のプロダクトで終了コード 0 を返す。(4) products/a の Sprint のフォルダに product-backlog.md の写しを置くと、検査が終了コード 1 を返す。",
+          "level": "L3"
+        },
+        {
+          "id": "AC-ROOT-2",
+          "description": "bash tests/run-harness-skills.sh が終了コード 0 を返し、その出力に、17スキルの契約の違反が0件であることと、manage-scrum-artifacts のスクリプトのテストが通ったことを示す行がある。bash tests/run-readme-skill-index.sh、bash tests/run-config-pyramid.sh、bash tests/run-harness-eval.sh、bash tests/run-install.sh もそれぞれ終了コード 0 を返す。",
+          "level": "L3"
+        }
+      ]
+    },
+    {
+      "id": "REQ-LAYOUT",
+      "statement": "scaffold.py init は、指定したプロダクトのフォルダ（指定がなければリポジトリのルート）の直下に scrum/ を作り、README.md、product-backlog.md、definition-of-done.md を置く。sprints/ は最初の Sprint を足すときに作る（Git は空のフォルダを保たないため）。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "利用者（このリポジトリの保守者）",
+        "ref": "specs/072-scrum-artifacts-in-repo/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『置き場所』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-LAYOUT-1",
+          "description": "一時フォルダをルートにして init を行うと、scrum/ の下にあるものがちょうど README.md、product-backlog.md、definition-of-done.md の3つのファイルであることをテストで確かめる。--product products/a を付けると、同じ3つが products/a/scrum/ の下にでき、ルート直下に scrum/ はできない。product-backlog.md と definition-of-done.md は同梱の雛形とバイト単位で同じで、README.md は同梱の scrum-readme.md とバイト単位で同じである。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-LAYOUT-2",
+          "description": "--product が、ルートの外を指すとき（../x、絶対パス、ルートの外へ出るシンボリックリンク）、存在しないフォルダを指すとき、プロダクトの scrum がルートの外へ出るシンボリックリンクであるとき、scaffold.py は終了コード 2 を返し、ファイルを1つも作らないことをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-SPRINT",
+      "statement": "scaffold.py sprint --start YYYY-MM-DD は、プロダクトの scrum/sprints/ に、次の番号の Sprint のフォルダ <3桁の番号>-<開始日> を作り、Sprint ごとの雛形を置く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-SPRINT-1",
+          "description": "init のあと --start 2026-11-16 で sprint を行うと sprints/001-2026-11-16/ ができ、その中のファイルがちょうど sprint-backlog.md、increment.md、sprint-planning.md、sprint-review.md、sprint-retrospective.md の5つであること、続けて --start 2026-11-30 --daily で行うと sprints/002-2026-11-30/ ができ、その中に上の5つと daily-scrum.md があることをテストで確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-SPRINT-2",
+          "description": "次のそれぞれで、scaffold.py sprint が終了コード 2 を返し、ファイルもフォルダも作らないことをテストで確かめる: 開始日が実在する日付の YYYY-MM-DD でない（2026-13-01、2026-2-3）。開始日が、すでにある最も新しい Sprint の開始日より後でない。プロダクトに scrum/ がない（init がまだ）。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-KEEP",
+      "statement": "scaffold.py は、すでに在るファイルを書き換えも消しもしない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-KEEP-1",
+          "description": "init のあと product-backlog.md と README.md の内容を書き換え、definition-of-done.md を消してから init をもう一度行うと、書き換えた2つのファイルはバイト単位で変わらず、definition-of-done.md だけが雛形から作り直され、出力が、作ったファイルと飛ばしたファイルをそれぞれ名前で挙げることをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-CHECK",
+      "statement": "check_artifacts.py は、プロダクトの scrum/ の形が決まりに合わないことを、エラーとして1件ずつ報告する。ファイルは読むだけで、書かない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-CHECK-1",
+          "description": "次のそれぞれを1つだけ含むフィクスチャで、check_artifacts.py が終了コード 1 を返し、その欠けの種類とパスを名指すエラーをちょうど1件出すことをテストで確かめる: product-backlog.md がない。definition-of-done.md がない。scrum/ の下に2つ目の product-backlog.md がある。scrum/ の下に2つ目の definition-of-done.md がある。sprints/ の直下に <3桁の番号>-<実在する YYYY-MM-DD> の形でない名前のフォルダがある。2つの Sprint のフォルダが同じ番号を持つ。Sprint のフォルダに sprint-backlog.md がない。番号の順と開始日の順が合わない。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-CHECK-2",
+          "description": "init と sprint を行った直後のフォルダで check_artifacts.py が終了コード 0 を返すこと、--format json の出力が product、errors、warnings を持つ1つのオブジェクトであること、scrum/ がないプロダクトを指すと終了コード 2 を返すこと、検査の前後でフォルダの中のすべてのファイルの内容と一覧が変わらないことをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-UNSET",
+      "statement": "Scrum Team が決めるコミットメント（Product Goal、Definition of Done、各 Sprint の Sprint Goal）がまだ書かれていないことを、check_artifacts.py が警告として知らせる。scaffold.py はそれらの値を書かない。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "利用者（このリポジトリの保守者）",
+        "ref": "specs/072-scrum-artifacts-in-repo/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『標準的なフレームワークを踏襲する』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-UNSET-1",
+          "description": "init と sprint を1回行った直後のフォルダで、check_artifacts.py が Product Goal、Definition of Done、Sprint Goal のそれぞれについて未設定の警告を1件ずつ、合わせてちょうど3件出し、終了コードは 0 であることをテストで確かめる。3つの欄に値を書くと（Definition of Done は欄の次の行からの字下げした箇条書きで書く）、警告が0件になる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-TEMPLATES",
+      "statement": "Scrum の作成物とイベントの雛形は manage-scrum-artifacts だけが同梱し、その内容は Scrum Guide（2020年版）が定める構造と出典の表示を保つ。scrum/README.md の雛形は、Scrum Guide が定めることと、このスキルの運用上の決まりを分けて書く。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "利用者（このリポジトリの保守者）",
+        "ref": "specs/072-scrum-artifacts-in-repo/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『標準的なフレームワークを踏襲する』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-TPL-1",
+          "description": "harness/ の下で product-backlog.md という名前のファイルがちょうど1つ（harness/skills/manage-scrum-artifacts/templates/product-backlog.md）であり、harness/skills/apply-scrum-guide/references/templates/ が存在しないことを、コマンドの出力で示す。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-TPL-2",
+          "description": "移した8つの雛形（product-backlog.md、definition-of-done.md、sprint/ の6つ）のそれぞれが、変更前のコミット 2fab98d の同じ名前の雛形と比べて、本文の行を1つも失っていないこと（git diff で削除された行が、ほかの雛形の名前を指す相対的な言い回しの行だけであること）を diff の出力で示す。README.md の雛形に『Scrum Guide が定めること』と『このリポジトリでの運用上の決まり』の2つの見出しがあることをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-SKILL",
+      "statement": "manage-scrum-artifacts の SKILL.md は、置き場所の決め方、置く・Sprint を足す・検査する手順、Scrum Team が決めることを AI が決めないという決まりを書き、スキルの契約（C-01〜C-11）を満たす。apply-scrum-guide とは、description の使う場面と使わない場面で分かれる。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "利用者（このリポジトリの保守者）",
+        "ref": "specs/072-scrum-artifacts-in-repo/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『スキルの分け方』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-SKILL-1",
+          "description": "python3 tests/assert_skill_contract.py harness/skills が manage-scrum-artifacts を含む17スキルで違反0件、終了コード 0 を返す。前付けは kind: worker、permission: workspace_write、sandbox: inside である。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-SKILL-2",
+          "description": "tests/harness-eval/scenarios.json に、リポジトリに Scrum の作成物を置く依頼で manage-scrum-artifacts が使われることを期待するシナリオと、Scrum のイベントの進め方を見直す依頼（既存の e-scrum-retro）で manage-scrum-artifacts が使われないことを期待する判定があり、docs/harness/capability-map.json がこのスキルを部品として持ち、python3 tests/harness-eval/harness_eval.py check が終了コード 0 を返す。モデルを呼ぶ評価（run）は、費用がかかるためこの基準に含めない。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-SKILL-3",
+          "description": "SKILL.md が次の文を持つことをテストで確かめる: Product Backlog の順序、Product Goal、Sprint Goal、Definition of Done、Sprint に選ぶ項目を AI が決めず書き込まないという決まり。置き場所が曖昧なときは人に尋ねるという決まり。SKILL.md のコマンドの例に出るサブコマンドと引数のすべてを、scaffold.py と check_artifacts.py の --help が受け付ける。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-DOCS",
+      "statement": "README.md と README.ja.md、docs/claude-config-design.md の現在のスキルの数、決定の記録（ADR 0023）が、この変更と合っている。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-DOCS-1",
+          "description": "bash tests/run-readme-skill-index.sh が manage-scrum-artifacts について両方の README で PASS を出す。両方の README の現在のスキルの数の記述が17で、apply-scrum-guide の説明が雛形の同梱を言わない。docs/adr/0023-*.md が、status、date、deciders の前付けと『# 0023. 』で始まる見出しを持つ。これらを grep の出力で示す。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-COMPAT",
+      "statement": "apply-scrum-guide は読み取り専用の診断のスキルのまま残り、その description は変わらない。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "利用者（このリポジトリの保守者）",
+        "ref": "specs/072-scrum-artifacts-in-repo/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『スキルの分け方』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-COMPAT-1",
+          "description": "git diff 2fab98d -- harness/skills/apply-scrum-guide/SKILL.md で、前付け（name、description、metadata）の行に変更がないことを示す。bash tests/run-config-pyramid.sh の ROUTE-07 と ROUTE-08 が PASS である。",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

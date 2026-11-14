@@ -34,6 +34,7 @@ Scrum Guide を唯一の規範的な基準として扱い、チームが経験�
 
 - 単発のアジェンダ、チェックリスト、短いテンプレートは、会話の中か軽量な文書で足りる。
 - 利用者が提示・共有する資料（レトロスペクティブの資料、Sprint Review の資料、チーム憲章）は、求められた形式を扱える能力を併用し、Scrum の判断と、その形式に固有の検証の両方を保つ。
+- 作成物やイベントの記録をリポジトリの中のファイルとして置き、保つ依頼は、それを扱う能力に委ねる。このスキルはファイルを書かない。
 - 「Scrum Guide が規定する事項」と「このチームが自分で決めること」を、常に区別する。
 
 ## 完了の確認
@@ -52,5 +53,4 @@ Scrum Guide を唯一の規範的な基準として扱い、チームが経験�
 | [scrum-framework.md](references/scrum-framework.md) | 定義、アカウンタビリティ、イベントの目的とタイムボックス、作成物、価値基準を確認するとき |
 | [scrum-master-role.md](references/scrum-master-role.md) | Scrum Master の責務と境界（何を代行しないか）を確認するとき |
 | [sources.md](references/sources.md) | 主張の出典を確認、引用するとき |
-| [references/templates/](references/templates/) | 作成物やイベントの記入用テンプレートを使うとき |
 | `references/2020-Scrum-Guide-Japanese.pdf`、`references/2020-Scrum-Guide-US.pdf` | Scrum Guide の原文を確かめるとき |

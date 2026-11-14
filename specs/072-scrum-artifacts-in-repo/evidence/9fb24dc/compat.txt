@@ -1,0 +1,49 @@
+commit: 9fb24dced300c65cbd422d3a46b0b1f93ce599ff
+date: 2026-11-14T07:15Z
+
+$ git diff 2fab98d 9fb24dced300c65cbd422d3a46b0b1f93ce599ff -- harness/skills/apply-scrum-guide/SKILL.md
+diff --git a/harness/skills/apply-scrum-guide/SKILL.md b/harness/skills/apply-scrum-guide/SKILL.md
+index add6f5d..0ae13d6 100644
+--- a/harness/skills/apply-scrum-guide/SKILL.md
++++ b/harness/skills/apply-scrum-guide/SKILL.md
+@@ -34,6 +34,7 @@ Scrum Guide を唯一の規範的な基準として扱い、チームが経験
+ 
+ - 単発のアジェンダ、チェックリスト、短いテンプレートは、会話の中か軽量な文書で足りる。
+ - 利用者が提示・共有する資料（レトロスペクティブの資料、Sprint Review の資料、チーム憲章）は、求められた形式を扱える能力を併用し、Scrum の判断と、その形式に固有の検証の両方を保つ。
++- 作成物やイベントの記録をリポジトリの中のファイルとして置き、保つ依頼は、それを扱う能力に委ねる。このスキルはファイルを書かない。
+ - 「Scrum Guide が規定する事項」と「このチームが自分で決めること」を、常に区別する。
+ 
+ ## 完了の確認
+@@ -52,5 +53,4 @@ Scrum Guide を唯一の規範的な基準として扱い、チームが経験
+ | [scrum-framework.md](references/scrum-framework.md) | 定義、アカウンタビリティ、イベントの目的とタイムボックス、作成物、価値基準を確認するとき |
+ | [scrum-master-role.md](references/scrum-master-role.md) | Scrum Master の責務と境界（何を代行しないか）を確認するとき |
+ | [sources.md](references/sources.md) | 主張の出典を確認、引用するとき |
+-| [references/templates/](references/templates/) | 作成物やイベントの記入用テンプレートを使うとき |
+ | `references/2020-Scrum-Guide-Japanese.pdf`、`references/2020-Scrum-Guide-US.pdf` | Scrum Guide の原文を確かめるとき |
+exit: 0
+
+$ sed -n 1,9p harness/skills/apply-scrum-guide/SKILL.md
+---
+name: apply-scrum-guide
+description: Scrum Guide (2020) を唯一の規範として、明示された Scrum のイベント、作成物、アカウンタビリティ、Sprint、Scrum の導入、または Scrum からの逸脱を診断し、改善を提案する。依頼が Scrum のイベントや作成物や役割に触れるときに使う。一般的なプロジェクト管理、ステータス報告、ガントチャート、予算やマイルストーンの管理、Scrum と特定できないチームの進行役には使わない。
+metadata:
+  kind: overlay
+  permission: read_only
+  sandbox: inside
+  produces: Scrum Guide に基づく診断と、検査日と成功判定のある提案
+---
+exit: 0
+
+$ sed -n 1,10p harness/skills/manage-scrum-artifacts/SKILL.md
+---
+name: manage-scrum-artifacts
+description: Keep a product's Scrum artifacts as files inside its repository - the Product Backlog with its Product Goal, the Definition of Done, and for each Sprint the Sprint Backlog with its Sprint Goal, the Increment, and the event records - placed from bundled Scrum Guide (2020) templates under the product folder's scrum/ directory, extended one Sprint at a time, and checked by bundled scripts. Use when asked to set up, add a Sprint to, check, or draft from Scrum artifacts kept in a repository. Do not use to diagnose or improve how a team practices Scrum, to facilitate an event, for Scrum artifacts kept in an external tool such as an issue tracker or a wiki, or for general project management.
+compatibility: Python 3.9 or later.
+metadata:
+  kind: worker
+  permission: workspace_write
+  sandbox: inside
+  produces: a product's scrum/ directory placed from templates, a new Sprint folder, or a shape report with its errors and unset commitments
+---
+exit: 0
+

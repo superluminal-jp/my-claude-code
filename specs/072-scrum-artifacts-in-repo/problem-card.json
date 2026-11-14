@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-072",
+    "ideal": "どのリポジトリでも、プロダクトごとに、Scrum Guide（2020年版）が定める3つの作成物（Product Backlog、Sprint Backlog、Increment）とそのコミットメント（Product Goal、Sprint Goal、Definition of Done）が、決まった場所のファイルとしてあり、コードと同じ場所で版管理される。Product Backlog と Definition of Done はプロダクトに1つずつで、Sprint ごとの記録は Sprint の順に並ぶ。この形が崩れたことは機械的な検査がエラーとして報告する。順序、Product Goal、Sprint Goal、Definition of Done、Sprint に選ぶ項目は Scrum Team が決め、決まっていないものは未設定と分かる形で残る。",
+    "current": "Scrum の作成物とイベントの Markdown の雛形は、読み取り専用の診断用スキル apply-scrum-guide の references/templates/ にあるだけである。そのスキルの手順は診断と提案だけで、雛形をリポジトリに置く手順を持たない。harness/skills/ のどのスクリプトも、置かれた作成物のファイルの有無、単一性、Sprint のフォルダの名前を検査しない。コミットメントの欄が空のままでも何も報告されない。雛形の README が勧める置き場所（scrum/projects/<project_name>/）は、sync-docs が .living-documentation.json の tree.products で宣言するプロダクトのフォルダとは別の木である。",
+    "gap": "理想では、どのリポジトリでもプロダクトごとに Scrum Guide の作成物とコミットメントが決まった場所のファイルとしてあり、その形が崩れれば検査がエラーにし、Scrum Team が決めるべきものは未設定と分かる形で残る。実際には、雛形は診断用の読み取り専用のスキルの中にあるだけで、リポジトリに置く手順も、置いたものの形を見る検査も、未設定を知らせる仕組みもなく、勧められている置き場所はプロダクトのフォルダの決まりと別になっている。",
+    "significance": "harness/skills/ は install.sh で ~/.claude/ に入り、利用者のすべてのプロジェクトで使われる。利用者は、プロダクトごとに Scrum の成果物をリポジトリの中に構成する harness を加えることを求め、提案した推奨を採用した（evidence の利用者の発言）。機械的に見つけられるようになるのは、ファイルの有無、単一性、Sprint のフォルダの名前と番号、欄が空かどうかという形だけで、Product Backlog の順序の妥当性や Increment が Definition of Done を満たすかではない（out_of_scope）。作成物がリポジトリにあると AI の Sprint の準備やレビューの質が上がるというのは、検証していない仮説である（hypotheses）。",
+    "status": "verified",
+    "evidence": [
+      {
+        "source": "harness/skills/apply-scrum-guide/SKILL.md の前付け（コミット 2fab98d）",
+        "observation": "metadata は kind: overlay、permission: read_only で、produces は『Scrum Guide に基づく診断と、検査日と成功判定のある提案』である。"
+      },
+      {
+        "source": "harness/skills/apply-scrum-guide/references/templates/README.md（コミット 2fab98d）",
+        "observation": "8つの雛形を挙げ、『使用時は本ディレクトリのテンプレートを目的の場所へコピーし、コピー先で記入する』と書き、置き場所として scrum/projects/<project_name>/sprints/<sprint_num>-<date>/ を勧める。コピーを行う手順やスクリプトはない。"
+      },
+      {
+        "source": "コマンド grep -rl \"product-backlog\" harness/skills --include=*.py（コミット 2fab98d、2026-11-14）",
+        "observation": "何も出力せず、終了コード 1 だった。Scrum の作成物のファイルを扱うスクリプトは harness/skills/ にない。"
+      },
+      {
+        "source": "harness/skills/sync-docs/references/practices.md の『Documentation tree』（コミット 2fab98d）",
+        "observation": "プロダクトのフォルダは .living-documentation.json の tree.products のパターンで宣言する、と書く。scrum/projects/ という木への言及はない。"
+      },
+      {
+        "source": "利用者の発言（このセッション、2026-11-14）",
+        "observation": "『プロダクトごとにこのようなスクラムの成果物をレポジトリ内に構成するようなハーネスを追加するのはどうか』と尋ね、4点の推奨を示した回答に『推奨を採用。標準的なフレームワークを踏襲すること。既存のハーネスを有効に活用して。』と答えた。"
+      }
+    ],
+    "hypotheses": [
+      "作成物がリポジトリにあると、AI がコードと同じ場所で Product Goal や Definition of Done を読めるので、Sprint の準備やレビューの質が上がる。"
+    ],
+    "proposed_solutions": [
+      "既存の雛形を各リポジトリのプロダクトのフォルダの scrum/ に置き、Sprint を足し、形を検査する、書き込み型のスキルを1つ加える。",
+      "雛形を新しいスキルへ移し、apply-scrum-guide は読み取り専用の診断のまま残す。"
+    ],
+    "out_of_scope": [
+      "Notion や Issue トラッカーとの同期。",
+      "Team Charter、原則、AI 運用の文書。",
+      "Product Backlog の順序の妥当性、Increment が Definition of Done を満たすかの判定。",
+      "Sprint の長さ（1か月以内、固定）の検査。",
+      "Product Backlog の項目を1項目1ファイルに分けること。"
+    ]
+  }
+}

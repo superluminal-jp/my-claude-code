@@ -1,0 +1,16 @@
+commit: 9fb24dced300c65cbd422d3a46b0b1f93ce599ff
+date: 2026-11-14T07:14Z
+
+$ bash tests/run-harness-skills.sh
+PASS HS-00: every rule of the contract is shown able to fail (Ran 24 tests in 0.880s)
+PASS HS-01: every skill meets the contract (skill-contract: 17 skills, 0 failures)
+PASS HS-02: specify-requirements script tests pass (Ran 83 tests in 7.298s)
+PASS HS-02: verify-change script tests pass (Ran 165 tests in 16.865s)
+PASS HS-02: draw-system-diagrams script tests pass (Ran 67 tests in 0.074s)
+PASS HS-02: structure-document script tests pass (Ran 55 tests in 0.008s)
+PASS HS-02: sync-docs script tests pass (Ran 123 tests in 10.019s)
+PASS HS-02: manage-scrum-artifacts script tests pass (Ran 35 tests in 2.592s)
+
+Results: 8 passed, 0 failed
+exit: 0
+

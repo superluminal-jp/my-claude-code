@@ -1,0 +1,37 @@
+commit: 9fb24dced300c65cbd422d3a46b0b1f93ce599ff
+date: 2026-11-14T07:15Z
+
+$ grep -n 17 in all\|17 skills\|PDFs bundled\|rebuilt as README.md
+93:- **`harness/skills/`** — On-demand playbooks loaded by relevance, 17 in all,
+224:    Guide alone; read-only, with the Guide's Japanese and US PDFs bundled;
+241:  - The 17 skills of the earlier layout were discarded and rebuilt as 16,
+288:| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | The redesign of the harness: why the source moved to `harness/` and the 17 skills were rebuilt as 16, the old-to-new skill mapping, the sandbox contract every skill meets, and the open work |
+389:    └── skills/                     # On-demand: body loaded when relevant, self-describing; 17 skills
+exit: 0
+
+$ grep -n 全部で17件\|。17件\|PDF を同梱する\|件に作り直した README.ja.md
+62:- **`harness/skills/`**: 必要時に読み込まれるプレイブック。全部で17件あり、中央ルーティング表なしに
+147:    逸脱を診断・改善する。読み取り専用で、Guide の日本語版と US 版の PDF を同梱する。
+154:  - 以前の構成の17件のスキルは破棄し、新しい名前で、16件に作り直した。新旧の対応は
+193:| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | harness の再設計。配布元を `harness/` に移し、17件のスキルを16件に作り直した理由、新旧のスキルの対応、すべてのスキルが満たすサンドボックスの契約、残りの作業 |
+298:    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型。17件
+exit: 0
+
+# the old counts and the old claim that templates are bundled with the diagnosis skill must be gone (exit 1 = no match)
+$ grep -n 16 in all\|16 skills\|全部で16件\|。16件\|these$\|この16件\|eight\|8つの Markdown\|テンプレート8件 README.md README.ja.md
+exit: 1
+
+$ grep -c SKILL.md`（17件） docs/claude-config-design.md
+1
+exit: 0
+
+$ head -7 docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md
+---
+status: Accepted
+date: 2026-11-14
+deciders: 利用者（このリポジトリの保守者）
+---
+
+# 0023. Scrum の作成物を、プロダクトのフォルダの `scrum/` に置くスキルを加え、雛形をそこへ移す
+exit: 0
+
