@@ -1,0 +1,343 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-071",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "階層を宣言したリポジトリでは、sync-docs が、頼まれたときに宣言した段すべての README を親子のリンクでつないで作り、その後の変更でもその木を保ち、木が崩れたときは検査がエラーにする。宣言のないリポジトリでは、今までどおりに動く。",
+      "decomposition": "AND",
+      "children": [
+        "REQ-DECLARE",
+        "REQ-SHARED",
+        "REQ-CHECK",
+        "REQ-UNFILLED",
+        "REQ-PROPOSE",
+        "REQ-RELATED",
+        "REQ-TEMPLATES",
+        "REQ-BUILD",
+        "REQ-MAINTAIN",
+        "REQ-CI",
+        "REQ-PRACTICES",
+        "REQ-COMPAT"
+      ],
+      "assumptions": [
+        "README の本文がコードと合っているかは機械で判定しない。中身のずれは今までどおり報告にとどめる（問題カードの out_of_scope）。",
+        "各節の README のファイル名は README.md とする。README.<lang>.md の翻訳は木の検査の対象にしない。",
+        "節の種類は、ルート（リポジトリ）、プロダクト、機能フォルダの3つである。ルートは宣言しなくても常に節になる。"
+      ],
+      "acceptance": [
+        {
+          "id": "AC-ROOT-1",
+          "description": "$TMPDIR に作った Git リポジトリ（2つのプロダクト、それぞれに2つの機能フォルダ、README はルートにも無い）で、SKILL.md の一括構築の手順に従って木を作ると、木の検査が終了コード 0 を返し、ルートの README から下向きのリンクだけをたどってすべての機能フォルダの README に着く。続けて機能フォルダを1つ足す変更に通常の変更の手順を当てると、その README と親からのリンクが同じ変更に入り、木の検査は再び 0 を返す。この試しは記録のフォルダに置いたスクリプトで reviewed_commit の skill から再現し、各段のコマンドとその生の出力と終了コードを evidence に残す。下向きのリンクでたどれることは、check_tree.py のリンクの読み取りを使わない別のコードで確かめる。宣言の候補を人が確かめる段は、試し用のフィクスチャでは確かめる人がいないため、実行した者が代わり、そのことを記録に書く。",
+          "level": "L3"
+        },
+        {
+          "id": "AC-ROOT-2",
+          "description": "変更後のコミットで、python3 -B harness/skills/sync-docs/tests/test_scripts.py と bash tests/run-harness-skills.sh がどちらも終了コード 0 で終わる。",
+          "level": "L3"
+        },
+        {
+          "id": "AC-ROOT-3",
+          "description": "sync-docs の手順をこの変更自身に当て、find_related.py が挙げた文書をすべて更新するか、更新しない理由を Documentation impact の報告に書く。",
+          "level": "L3"
+        },
+        {
+          "id": "AC-ROOT-4",
+          "description": "AC-ROOT-1 の一括構築で作った README と、その構築の報告を、会話を渡さない読み取り専用のレビュー役が、フィクスチャのファイルと照らし合わせる。README の記述のうち、報告に出典（ファイルと行、またはコマンドとその出力）が無く、未記入の印も付いていないものが0件であることを確かめ、その結果を evidence に残す。",
+          "level": "L3"
+        }
+      ],
+      "counterexamples": [
+        "スクリプトとひな形はそろっているが、SKILL.md の通常の変更の手順が木の検査を実行させないので、機能フォルダが増えても README が作られない。",
+        "ひな形が親子のリンクをインラインコードで書くので、ひな形から作った木が検査に通らない。",
+        "find_related.py と木の検査が宣言を別々に解釈するので、片方が認める節をもう片方が認めない。",
+        "一括構築が、確かめていない内容を README に事実として書き、木の形の検査は通ってしまう。",
+        "sync-docs を使わずに人が機能フォルダを足してコミットし、CI でも木の検査が動かないので、README の欠けが残る。"
+      ]
+    },
+    {
+      "id": "REQ-DECLARE",
+      "statement": ".living-documentation.json で、プロダクトの段と機能フォルダの段のフォルダを、段ごとに glob のパターンで宣言できる。宣言に一致し、存在し、除外されていないフォルダが、その段の種類の節になる。リポジトリのルートは常に木の根（リポジトリの節）になる。各節の親は、その節を含む最も近い上の節である。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "specs/071-hierarchical-docs-tree/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『階層は設定で宣言する。』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-DECL-1",
+          "description": "プロダクトの宣言が products/*、機能フォルダの宣言が products/*/src/features/* のとき、products/a がプロダクトの節で親がルート、products/a/src/features/x が機能フォルダの節で親が products/a になることをテストで確かめる。機能フォルダの宣言が src/features/* だけのとき、src/features/x は機能フォルダの節で親がルートになる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-DECL-2",
+          "description": "宣言の値が文字列の配列でないとき、宣言のオブジェクトが定義されていないメンバーを含むとき、1つのフォルダがプロダクトと機能フォルダの両方の宣言に一致するとき、木の検査が設定エラーとして終了コード 2 を返すことをテストで確かめる。1つのフォルダが両方の宣言に一致するときは、find_related.py も、変更の中身（変更なし、文書だけの変更を含む）によらず、設定エラーとして終了コード 2 を返す。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-DECL-3",
+          "description": "パターンに一致しても、除外されるフォルダ（例 node_modules の下）、存在しないパス、ファイルは節にならないことをテストで確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-DECL-4",
+          "description": "schemas/config.schema.json が宣言のキーを、2つのメンバー（どちらも文字列の配列）と additionalProperties: false で定義し、設定の読み込みがそのスキーマから宣言のキーを受け付けることを、既存の『読み込みとスキーマが一致する』テストを広げて確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-SHARED",
+      "statement": "木の検査と find_related.py は、同じ宣言から同じ節（パス、種類、親）を求める。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-SHARED-1",
+          "description": "除外されるフォルダ、ファイルに一致するパターン、入れ子の宣言（プロダクトの下の機能フォルダとルート直下の機能フォルダ）を含む1つのフィクスチャで、木の検査が JSON で出す節の一覧（ルートを除く）と、各節の中のファイルを1つずつ変えたときに find_related.py が挙げるこの種類の候補の README のフォルダの一覧が一致することをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-CHECK",
+      "statement": "宣言があるとき、木の検査は、宣言した木の構造の欠けを、1か所の欠けにつき1件のエラーとして、どの段の欠けも漏らさず報告し、欠けがなければ通す。リンクがあるかは、リンク先のパスで判断する（リンク先のファイルがあるかはリンク検査の役目とする）。README の無い節より下の節も、同じように検査する。",
+      "decomposition": "AND",
+      "children": [
+        "REQ-CHECK-README",
+        "REQ-CHECK-DOWN",
+        "REQ-CHECK-UP"
+      ],
+      "acceptance": [
+        {
+          "id": "AC-CHECK-1",
+          "description": "ルート、2つのプロダクト、各プロダクトに2つの機能フォルダを持つ正しい木のフィクスチャで、木の検査は終了コード 0 を返す。そこから1か所だけ壊す6通り（プロダクトの README を消す、機能フォルダの README を消す、ルートからプロダクトへのリンクを消す、プロダクトから機能フォルダへのリンクを消す、プロダクトからルートへのリンクを消す、機能フォルダからプロダクトへのリンクを消す）のそれぞれで、終了コード 1 と、壊した節と欠けの種類を名指すエラーがちょうど1件出ることをテストで確かめる。",
+          "level": "L2"
+        },
+        {
+          "id": "AC-CHECK-2",
+          "description": "木の検査のスクリプトは、ファイルを書かず、ネットワークに接続せず、Python 3.9 以降の標準ライブラリだけで動く。Python 3.9 の処理系（tomllib のない /usr/bin/python3）で sync-docs のテストが通ること、sync-docs のスクリプトが import するモジュールが標準ライブラリと skill 自身のモジュールだけで、ネットワークのモジュール（socket、http、urllib.request、ssl など）を含まないことをテストで確かめる。bash tests/run-harness-skills.sh の契約検査がこのスクリプトを含めて通る。",
+          "level": "L2"
+        },
+        {
+          "id": "AC-CHECK-3",
+          "description": "同じフィクスチャで、違う段の3か所を同時に壊す（あるプロダクトの README を消し、そのプロダクトの下の機能フォルダからの上向きのリンクを消し、別のプロダクトから機能フォルダへの下向きのリンクを消す）と、終了コード 1 で、3か所それぞれを名指すエラーがちょうど1件ずつ、計3件出ることをテストで確かめる。",
+          "level": "L2"
+        }
+      ],
+      "counterexamples": [
+        "README の有無と各リンクの検査はそれぞれ通るが、リンクを1つ壊すと README の欠けと下向きの欠けの両方が報告され、どこを直せばよいか分からない。",
+        "各節のリンクは検査されるが、2段目の節の README が無いと、その下の段の検査が止まり、3段目の欠けが報告されない。"
+      ]
+    },
+    {
+      "id": "REQ-CHECK-README",
+      "statement": "宣言した木の節のフォルダ（ルートを含む）に README.md がなければ、木の検査はその節を名指してエラーにする。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "specs/071-hierarchical-docs-tree/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『構造の欠けはエラーにする。』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-README-1",
+          "description": "宣言に一致する機能フォルダに README.md がないフィクスチャで、木の検査が終了コード 1 を返し、そのフォルダのパスと『README がない』ことを出力することをテストで確かめる。ルートに README.md がないときも同じくエラーになる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-CHECK-DOWN",
+      "statement": "各節の README が、子の節それぞれの README へのリンクを持たなければ、木の検査はエラーにする。フェンスのコードブロック、インラインコード、HTML コメントの中のリンクは数えない。リンク先は、子の README.md、または子のフォルダ（末尾の / の有無を問わない）を認める。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "specs/071-hierarchical-docs-tree/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『構造の欠けはエラーにする。』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-DOWN-1",
+          "description": "親の README が子の1つにリンクしないフィクスチャで終了コード 1 と、親と子のパスを名指すエラーが出る。子へのリンクを [x](x/README.md)、[x](x/)、[x](x) のどれで書いても欠けとして数えないことをテストで確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-DOWN-2",
+          "description": "子へのリンクがインラインコード、フェンスのコードブロック、HTML コメントの中だけにあるとき、欠けとして報告されることをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-CHECK-UP",
+      "statement": "ルート以外の各節の README が親の節の README へのリンクを持たなければ、木の検査はエラーにする。数えるリンクの扱いは REQ-CHECK-DOWN と同じである。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "specs/071-hierarchical-docs-tree/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『構造の欠けはエラーにする。』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-UP-1",
+          "description": "機能フォルダの README がプロダクトの README へのリンクを持たないフィクスチャで終了コード 1 と、子と親のパスを名指すエラーが出ることをテストで確かめる。[親](../../README.md) と [親](../..) のどちらの書き方でも欠けとして数えない。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-UNFILLED",
+      "statement": "木の検査は、実行のたびに、未記入の印が残る節の README とその数を警告として出す。この警告は終了コードを変えない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-UNF-1",
+          "description": "構造は正しく、2つの README に未記入の印が合わせて3つ残るフィクスチャで、木の検査が終了コード 0 を返し、その2つの README のパスと、それぞれの印の数を警告として出すことをテストで確かめる。コードブロックの中の印は数えない。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PROPOSE",
+      "statement": "宣言がないとき、木の検査は何も検査せずに終了コード 0 を返し、段ごとの宣言の候補を、そのまま設定に写せる形で示す。プロダクトの段の候補は package.json の workspaces と pyproject.toml の [tool.uv.workspace] の members から、機能フォルダの段の候補は features という名前のフォルダの子から作る。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "specs/071-hierarchical-docs-tree/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『階層は設定で宣言する。』の『宣言がないときは、package.json の workspaces や pyproject.toml などから候補を示すだけで、木の検査はしない。』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-PROP-1",
+          "description": "宣言がなく、package.json の workspaces に packages/* があり、src/features/ が子フォルダを持つフィクスチャで、木の検査が終了コード 0 を返し、プロダクトの段に packages/*、機能フォルダの段に src/features/* を入れた設定の断片を出力することをテストで確かめる。README が1つも無くてもエラーを出さない。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-PROP-2",
+          "description": "tomllib を使える Python では、pyproject.toml の [tool.uv.workspace] members = [\"services/*\"] から services/* がプロダクトの段の候補に出る。tomllib を使えない Python では、pyproject.toml を読めなかったことを出力に書き、終了コード 0 を返す。どちらもテストで確かめる（使えない側は tomllib の読み込みを失敗させて確かめる）。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-PROP-3",
+          "description": "候補の元が1つもないとき、候補がないことを書いて終了コード 0 を返すことをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-RELATED",
+      "statement": "宣言があるとき、find_related.py は、変更されたファイルを含む最も近いルート以外の節の README を、その README が同じ変更で変わっていなければ、更新候補に挙げる。宣言がないときは、その種類の候補を挙げない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-REL-1",
+          "description": "機能フォルダの宣言が src/features/* のとき、src/features/foo/api/handler.ts の変更で src/features/foo/README.md が近接度 P1 の候補に挙がることをテストで確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-REL-2",
+          "description": "同じフィクスチャで、src/features/foo/README.md も同じ変更で変わっているときは候補にならず、宣言がないときも候補にならず、どの節にも含まれないファイル（例 src/lib/util.ts）の変更ではルートの README がこの種類の候補にならないことをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-TEMPLATES",
+      "statement": "リポジトリ、プロダクト、機能フォルダの節の種類ごとに README のひな形が1つずつあり、節にはその種類のひな形を当てる。どのひな形も、その範囲の目的、子の README へのリンクの一覧、確かめられない事実に付ける決まった未記入の印を持ち、リポジトリ以外は親の README へのリンクを持つ。機能フォルダのひな形はさらに、扱わないこと、設計の理由、守るべき条件とそれを確かめる検査、最初に読むファイル、最後にコードと照らし合わせたコミットの欄を持つ。リンクはすべて Markdown のリンクの書式で書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-TPL-1",
+          "description": "3つのひな形それぞれに上の欄と未記入の印があり、親と子へのリンクの見本がインラインコードでなく Markdown のリンクであることをテストで確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-TPL-2",
+          "description": "節の種類ごとのひな形の置き換え用の印を埋めて作ったリポジトリ・プロダクト・機能フォルダの木のフィクスチャが、木の検査に終了コード 0 で通ることをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-BUILD",
+      "statement": "SKILL.md は、人がはっきり頼んだときだけ使う一括構築の手順を持つ。その手順は、宣言の候補を示して人が宣言を確かめるまで設定を書かず、宣言したすべての節の README をその節の種類のひな形から作り（この手順に限り新しいファイルの数の上限を当てはめない）、確かめた事実だけを書き、確かめられない事実に未記入の印を付け、木の検査とリンク検査を通し、作った README、書いた事実ごとの出典（ファイルと行、またはコマンドとその出力）、残った未記入の項目を報告する。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "specs/071-hierarchical-docs-tree/problem.md の『合意済みの決定（利用者の回答、2026-11-14）』の項『まとめて作る機能を含める。』"
+      },
+      "acceptance": [
+        {
+          "id": "AC-BUILD-1",
+          "description": "SKILL.md の一括構築の節が、(a) はっきり頼まれたときだけ使うこと、(b) 人が宣言を確かめる前に設定を書かないこと、(c) ファイル数の上限を丸ごと外すのはこの節だけで、ほかの場所では、宣言した木が新しい節に求める README を上限に数えない例外（REQ-MAINTAIN）だけがあること、(d) 節の種類のひな形を使うこと、(e) 確かめられない事実に未記入の印を付けること、(f) 木の検査とリンク検査の実行、(g) 作った README、書いた事実ごとの出典、未記入の項目の報告、をすべて含むことを、テストがその節の本文で確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-BUILD-2",
+          "level": "L1",
+          "description": "SKILL.md の frontmatter の description が、文書の木（リポジトリ・プロダクト・機能フォルダの README）の宣言・検査・構築を頼まれたときを、この skill を使う場面として挙げ、C-02 の上限（1024 字）に収まることを、テストと skill の契約検査で確かめる。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-MAINTAIN",
+      "statement": "宣言のあるプロジェクトでは、sync-docs の通常の変更の手順が木の検査を実行させ、エラーが残る間は完了としない。宣言された節が増えたときにその変更で作る README は、新しいファイルの数の上限に数えない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-MAINT-1",
+          "description": "SKILL.md の Steps の Check の段に木の検査のコマンドがあり、Done when に『宣言があるとき木の検査が通る』ことが入り、ファイル数の上限の文に木が求める README の例外があることを、テストが SKILL.md の本文で確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-CI",
+      "statement": "sync-docs の CI のひな形が、ほかの段と同じ skill の場所から木の検査を実行し、sync-docs を使わずに作られた変更でも、宣言した木が崩れていれば CI が失敗する。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-CI-1",
+          "description": "テストが templates/ci/github-actions.yml の各 run の行を取り出し、SKILL_DIR をこの skill のフォルダに置き換えて木の検査の行を実行する。宣言した木が崩れたフィクスチャでは終了コード 1、正しい木と宣言のないフィクスチャでは 0 になることを確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-CI-2",
+          "description": "ひな形の SKILL_DIR とその説明の行が、この skill の今のフォルダ名（sync-docs）を指し、廃止された名前を含まないことをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-PRACTICES",
+      "statement": "practices.md が文書の木を説明する。内容は、段の種類（リポジトリ、プロダクト、機能フォルダ）、親子のリンク、各段の README はその範囲の目的を書いて下へリンクし下の段の細部を繰り返さないこと、宣言の書き方、未記入の印である。出典のある部分と、この skill 独自の判断の部分を分けて書く。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-PRAC-1",
+          "description": "層の表に、プロダクトの入口の README と機能フォルダの README の行があり、それぞれ Basis の欄に Sourced か Design decision を持つことを、既存の層の表のテストを広げて確かめる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-PRAC-2",
+          "description": "文書の木を説明する節が、この skill 独自の判断であることを明記し、その節で引用した文献のキーがすべて bibliography.bib にあることをテストで確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-COMPAT",
+      "statement": "宣言のないプロジェクトでは、sync-docs の既存のスクリプトの振る舞いと出力が変わらない。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-COMPAT-1",
+          "description": "変更前のコミット（5a2daa6）の tests/test_scripts.py にあるテストを1つも削除・スキップ・弱めずに、変更後のコミットで全て通ることを、両コミットのテストの一覧の差と実行結果で確かめる。",
+          "level": "L1"
+        }
+      ]
+    }
+  ]
+}

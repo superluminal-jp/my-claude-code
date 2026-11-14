@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-071",
+    "problem_id": "PRB-071",
+    "reviewed_commit": "85b30adb3b2397f0a7058401bc092b148fcba674",
+    "implementer": "claude",
+    "risk": {
+      "class": "medium",
+      "rationale": "sync-docs のスクリプト（common.py、find_related.py、新しい check_tree.py）、設定のスキーマ（.living-documentation.json に tree を加える公開の契約）、SKILL.md の手順、practices.md、ひな形、CI のひな形、両方の README にまたがる。install.sh で ~/.claude/skills/ に入り、利用者のすべてのプロジェクトの sync-docs に効く。宣言（tree）のないプロジェクトでは既存のスクリプトの振る舞いを変えない（AC-COMPAT-1、AC-REL-2）。認証・認可・秘密・個人データ・データ移行・基盤の権限・公開には触れず、スクリプトは読み取りだけで、git revert と install.sh の再実行で戻せる。"
+    },
+    "approvals": [],
+    "checks": [
+      {
+        "check_id": "AC-ROOT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-transcript.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-ROOT-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/harness-skills.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-ROOT-3",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/docs-impact.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-ROOT-4",
+        "status": "not_run",
+        "evidence": {
+          "kind": "ai_review",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-review-fresh.json",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        },
+        "reason": "人による確認（human_review）を待つ。会話を渡さない新しいレビュー役の AI による照合（dryrun-review-fresh.json）では、54 件の記述のうち出典も未記入の印もないものは0件だったが、AI のレビューは受け入れ基準を通す証拠にならない（A-02）。"
+      },
+      {
+        "check_id": "AC-DECL-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-DECL-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-DECL-3",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-DECL-4",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-SHARED-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-CHECK-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-CHECK-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-CHECK-3",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-README-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-DOWN-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-DOWN-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-UP-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-UNF-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-PROP-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-PROP-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-PROP-3",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-REL-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-REL-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-TPL-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-TPL-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-BUILD-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-BUILD-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-MAINT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-CI-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-CI-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-PRAC-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-PRAC-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/acceptance-tests.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      },
+      {
+        "check_id": "AC-COMPAT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/071-hierarchical-docs-tree/evidence/85b30ad/compat.txt",
+          "commit": "85b30adb3b2397f0a7058401bc092b148fcba674"
+        }
+      }
+    ],
+    "test_changes": [],
+    "infra_changes": []
+  }
+}

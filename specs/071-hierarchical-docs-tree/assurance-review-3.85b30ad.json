@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-071",
+    "reviewed_commit": "85b30adb3b2397f0a7058401bc092b148fcba674",
+    "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId aba829a5253d09e9d、2026-11-14、23 ファイルを読んだ",
+    "context_given": [
+      "review_prep.py bundle の出力 $TMPDIR/ar-071-round3（範囲 b10343c..85b30ad、scope fixes）: previous-review.json（2回目の記録）、change.diff、graph.diff、requirements-graph.json、manifest.json、evidence/ の6ファイル、excluded.txt、scope.json",
+      "scope が fixes なので、references/assurance-review.md の2回目以降の指示文を、change id（CHG-071）、bundle のパス、記録の言語（日本語）のほかは変えずに渡した",
+      "最初の答えでは2件の target が前の回の指摘の ID（AR-01、AR-05）だった。記録の形式（target は要件・受け入れ基準・変更の ID）を伝えて同じレビュー役に答え直してもらい、target だけが AC-ROOT-4 と REQ-BUILD に変わった答えをそのまま写した。ほかの欄は最初の答えと同じである"
+    ],
+    "findings": [
+      {
+        "id": "AR-06",
+        "kind": "other",
+        "target": "AC-ROOT-4",
+        "severity": "high",
+        "statement": "前回 AR-01（accepted）の問題は直っていない。manifest.json の AC-ROOT-4 は、今も status が passed、evidence.kind が ai_review の1件だけで、approvals は空、human_review もない。verify-change の assure.py 545-547 行は、passed の check の証拠が ai_review だけなら A-02 で block する。evidence の dryrun-review-raw.json 自身の note も『受け入れ基準を通す証拠にならない。人による確認（human_review）が要る』と書いている。今回の修正で変わったのは、レビュー役の答えを dryrun-review-raw.json に残したことだけである。人による確認は依頼もされていない（引き渡し時に頼むという約束にとどまる）。記録が『passed』のままなので、証拠が集まっていない check を passed と書いており、references/manifest.md 60 行に従えば、人による確認が済むまでの正しい状態は blocked か not_run である。resolution の『gate はこれを blocked と数える』は、manifest 自身の status が事実を表していることの理由にならない。加えて、残した証拠にも2点の弱さがある。(1) dryrun-review-raw.json の reviewer 欄は『同じレビュー役が、b10343c の写し（1件 unsupported、のち0件）に続いて読んだ』と書く。AC-ROOT-4 が求める『会話を渡さない』レビュー役ではなく、前の指摘と FACTS の修正を知っているエージェントの続きである。(2) 『instructions』は実際に渡した指示文ではなく実装した側の要約で、answer_verbatim の『statements_checked: 50、unsupported: []』は50件の判定を示さないので、第三者が確かめられない。REQ-ROOT の反例『確かめていない内容を事実として書き、木の形の検査は通る』を防ぐ検査は、人による確認が済むまで通っていない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。AC-ROOT-4 の状態を passed から not_run に直し、理由に『人による確認を待つ』ことを書いた（verification-manifest.json）。references/manifest.md の状態の定義のとおり、人による確認がまだ行われていないので not_run とした。gate はこれを A-03 で blocked にする。(1) 前の回の経緯を知らない新しい read-only-reviewer を起動し、渡した指示文をそのまま evidence/85b30ad/dryrun-review-prompt.txt に保存した。(2) 指示文は記述ごとの判定と出典を返すよう求めた。その答えをそのまま evidence/85b30ad/dryrun-review-fresh.json に保存した（54 件。supported 34、marked 20、unsupported 0）。人による確認は、この記録を確かめた後、変更を引き渡すときに Taiki Ogihara に依頼する。確認が済むまで AC-ROOT-4 は not_run のままとする。"
+      },
+      {
+        "id": "AR-07",
+        "kind": "other",
+        "target": "REQ-BUILD",
+        "severity": "low",
+        "statement": "前回 AR-05（accepted）は、上限を外す場所が2つあり『REQ-MAINTAIN と REQ-BUILD の記述も食い違う』ことを問題にした。今回の修正は AC-BUILD-1 の (c) の文面と test_only_the_build_procedure_lifts_the_file_limit だけを直した。test は、一括構築の節の外で上限に触れる行がちょうど1行で、それが『A README that the declared documentation tree requires for a new node ... does not count toward that limit』の例外であることを確かめる（SKILL.md 23 行がその1行で、手順の 59 行は節の中）。これは (c) については有効である。しかし graph.diff に REQ-BUILD の statement の変更はなく、requirements-graph.json の REQ-BUILD は今も『（この手順に限り新しいファイルの数の上限を当てはめない）』と書く。REQ-MAINTAIN の『宣言された節が増えたときにその変更で作る README は、新しいファイルの数の上限に数えない』と、上限を外す場所が1つだけと読める点で食い違ったまま残っている。子の AC（丸ごと外すのはこの節だけで、ほかには例外だけがある）のほうが親の statement より正確になっており、親の文面が AC の検証する内容と合っていない。",
+        "disposition": "rejected",
+        "resolution": "退けた。2つの要件は食い違っていない。requirements-graph.json の 264 行の REQ-BUILD は『この手順に限り新しいファイルの数の上限を当てはめない』と書き、一括構築の手順では上限そのものを当てはめないことを定める。286 行の REQ-MAINTAIN は『その変更で作る README は、新しいファイルの数の上限に数えない』と書き、通常の変更では上限を当てはめたうえで、木が求める README だけを数えないことを定める。前者は上限を丸ごと外し、後者は上限を残して特定のファイルを数えない。そのため、『上限を当てはめない』のは一括構築の手順だけであり、両者は両立する。274 行の AC-BUILD-1 の (c) は、この2つを1つの文に並べて書いている。test_only_the_build_procedure_lifts_the_file_limit は、SKILL.md の上でもこの区別が保たれていることを確かめる。"
+      }
+    ]
+  }
+}

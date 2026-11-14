@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import posixpath
 import shutil
 import subprocess
 import sys
@@ -177,6 +178,19 @@ class ConfigTests(TempDirTestCase):
         schema = json.loads(common.SCHEMA_PATH.read_text(encoding="utf-8"))
         glob_keys = {k for k in schema["properties"] if k.endswith("_globs") and k != "exclude_globs"}
         self.assertEqual(glob_keys, {f"{c}_globs" for c in common.CATEGORIES})
+
+    def test_schema_defines_the_tree_declaration(self):  # AC-DECL-4
+        tree = json.loads(common.SCHEMA_PATH.read_text(encoding="utf-8"))["properties"].get("tree", {})
+        self.assertEqual(tree.get("type"), "object")
+        self.assertIs(tree.get("additionalProperties"), False)
+        self.assertEqual(set(tree.get("properties", {})), {"products", "features"})
+        for member in tree.get("properties", {}).values():
+            self.assertEqual((member.get("type"), member.get("items")), ("array", {"type": "string"}))
+
+    def test_tree_declaration_is_accepted_by_the_loader(self):  # AC-DECL-4
+        declaration = {"products": ["products/*"], "features": ["src/features/*"]}
+        write(self.root, ".living-documentation.json", json.dumps({"tree": declaration}))
+        self.assertEqual(common.load_config(self.root).get("tree"), declaration)
 
     def test_custom_classification_via_inspect(self):
         write(self.root, ".living-documentation.json", json.dumps({"decision_globs": ["records/*.txt"]}))
@@ -720,8 +734,8 @@ class FindRelatedTests(TempDirTestCase):
 class PracticesDocumentTests(unittest.TestCase):
     """references/practices.md: layers, placement, and proximity (slice S5, contract C4)."""
 
-    LAYERS = ("Project entry", "How-to", "Reference", "Architecture", "Decision records", "Change history",
-              "Feature specification", "Code comments", "Research provenance")
+    LAYERS = ("Project entry", "Product entry", "Feature README", "How-to", "Reference", "Architecture",
+              "Decision records", "Change history", "Feature specification", "Code comments", "Research provenance")
     NEW_KEYS = ("GoogleSWE2020", "PEP8", "LinuxKernelStyle", "Diataxis")
     HEADING = "## Layers, placement, and proximity"
 
@@ -770,6 +784,37 @@ class PracticesDocumentTests(unittest.TestCase):
         self.assertIn("No source reviewed presents a single hierarchy", section)
 
 
+class DocumentationTreePracticeTests(unittest.TestCase):
+    """REQ-PRACTICES: references/practices.md explains the documentation tree (AC-PRAC-2)."""
+
+    HEADING = "## Documentation tree"
+
+    def setUp(self) -> None:
+        self.text = (SKILL_ROOT / "references/practices.md").read_text(encoding="utf-8")
+        self.bib = (SKILL_ROOT / "references/bibliography.bib").read_text(encoding="utf-8")
+
+    def section(self) -> str:
+        self.assertIn(self.HEADING, self.text)
+        return self.text.split(self.HEADING, 1)[1].split("\n## ", 1)[0] if self.HEADING in self.text else ""
+
+    def test_the_tree_is_labelled_as_a_design_decision(self):
+        self.assertRegex(self.section(), r"(?i)design decision")
+
+    def test_the_section_covers_kinds_links_declaration_and_the_marker(self):
+        section = self.section()
+        for phrase in ("repository", "product", "feature", "parent", "child", '"tree"', UNFILLED):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, section)
+
+    def test_cited_keys_exist(self):
+        import re
+        defined = set(re.findall(r"^@\w+\{([^,\s]+),", self.bib, re.MULTILINE))
+        cited = {part.strip() for group in re.findall(r"\[([^\[\]]+)\](?!\()", self.section())
+                 for part in group.split(";") if re.fullmatch(r"[A-Z][A-Za-z0-9_]+", part.strip())}
+        self.assertTrue(cited, "the section cites no source")
+        self.assertFalse(cited - defined, sorted(cited - defined))
+
+
 class StackConventionsTests(unittest.TestCase):
     STACKS = ("Python", "TypeScript", "Terraform", "Bicep", "GitHub Actions")
     KEYS = ("PEP257", "TSDoc", "TFModuleStructure", "BicepParameters", "BicepLintDescription", "GHActionMetadata")
@@ -812,10 +857,528 @@ class StackConventionsTests(unittest.TestCase):
         self.assertIn("references/practices.md#stack-conventions", step)
 
 
+# ---------------------------------------------------------------------------
+# Documentation tree (spec 071): the "tree" declaration and check_tree.py
+# ---------------------------------------------------------------------------
+
+MONOREPO_TREE = {"products": ["products/*"], "features": ["products/*/src/features/*", "src/features/*"]}
+UNFILLED = "TODO(unfilled)"
+PARENT_LINK, CHILD_LINK = "replace:parent-readme", "replace:child-readme"
+
+
+def link_to(from_dir: str, to_dir: str) -> str:
+    """Relative link target from the README in ``from_dir`` to the README in ``to_dir``."""
+    return os.path.relpath(os.path.join(to_dir or ".", "README.md"), from_dir or ".").replace(os.sep, "/")
+
+
+class TreeFixture(TempDirTestCase):
+    """A three-level tree: the root, products a and b, and features x and y in each product."""
+
+    PRODUCTS = ("products/a", "products/b")
+    FEATURES = {"products/a": ("products/a/src/features/x", "products/a/src/features/y"),
+                "products/b": ("products/b/src/features/x", "products/b/src/features/y")}
+
+    def declare(self, tree: dict | None = None) -> None:
+        write(self.root, ".living-documentation.json", json.dumps({"tree": tree or MONOREPO_TREE}))
+
+    def readme(self, node: str, parent: str | None, children: tuple[str, ...] = (), extra: str = "") -> None:
+        lines = [f"# {node or 'repository'}", ""]
+        if parent is not None:
+            lines.append(f"Up: [parent]({link_to(node, parent)})")
+        lines += [f"- [{child}]({link_to(node, child)})" for child in children]
+        write(self.root, f"{node}/README.md" if node else "README.md", "\n".join(lines) + "\n" + extra)
+
+    def build(self) -> None:
+        """Write the declaration, one code file per node, and a correct README in every node."""
+        self.declare()
+        self.readme("", None, self.PRODUCTS)
+        for product in self.PRODUCTS:
+            write(self.root, f"{product}/package.json", "{}\n")
+            self.readme(product, "", self.FEATURES[product])
+            for feature in self.FEATURES[product]:
+                write(self.root, f"{feature}/index.ts", "export {};\n")
+                self.readme(feature, product)
+
+    def check(self, *args: str) -> tuple[int, dict]:
+        proc = run_script("check_tree.py", "--root", str(self.root), "--json", *args)
+        self.assertIn(proc.returncode, (0, 1), proc.stderr)
+        return proc.returncode, json.loads(proc.stdout)
+
+
+class TreeDeclarationTests(TreeFixture):
+    """REQ-DECLARE: which directories are nodes, of which kind, under which parent."""
+
+    def nodes(self) -> dict[str, tuple[str, str | None]]:
+        return {n.path: (n.kind, n.parent) for n in common.tree_nodes(self.root, common.load_config(self.root))}
+
+    def test_nodes_get_their_kind_and_the_nearest_node_above_as_parent(self):  # AC-DECL-1
+        self.build()
+        nodes = self.nodes()
+        self.assertEqual(nodes.get(""), ("repository", None))
+        self.assertEqual(nodes.get("products/a"), ("product", ""))
+        self.assertEqual(nodes.get("products/a/src/features/x"), ("feature", "products/a"))
+        self.assertEqual(len(nodes), 7)
+
+    def test_a_feature_with_no_product_above_has_the_root_as_parent(self):  # AC-DECL-1
+        self.declare({"features": ["src/features/*"]})
+        write(self.root, "src/features/x/index.ts", "export {};\n")
+        self.assertEqual(self.nodes(), {"": ("repository", None), "src/features/x": ("feature", "")})
+
+    def test_star_stays_inside_one_path_segment(self):  # AC-DECL-1
+        self.declare({"products": ["products/*"]})
+        write(self.root, "products/a/src/deep/index.ts", "export {};\n")
+        self.assertEqual(set(self.nodes()), {"", "products/a"})
+
+    def test_excluded_missing_and_file_matches_are_not_nodes(self):  # AC-DECL-3
+        self.declare({"features": ["src/features/*", "absent/*"]})
+        write(self.root, "src/features/x/index.ts", "export {};\n")
+        write(self.root, "src/features/node_modules/pkg/index.js", "\n")
+        write(self.root, "src/features/notes.md", "# notes\n")
+        self.assertEqual(set(self.nodes()), {"", "src/features/x"})
+
+    def test_invalid_declarations_are_configuration_errors(self):  # AC-DECL-2
+        write(self.root, "products/a/src/features/x/index.ts", "export {};\n")
+        cases = [{"products": "products/*"}, {"products": [1]}, {"modules": ["src/*"]},
+                 {"products": ["products/*"], "features": ["products/*"]}]
+        for tree in cases:
+            with self.subTest(tree=tree):
+                self.declare(tree)
+                proc = run_script("check_tree.py", "--root", str(self.root))
+                self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+                self.assertIn("tree", proc.stderr)
+
+
+class CheckTreeTests(TreeFixture):
+    """REQ-CHECK and its leaves: one error per break, at every level."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.build()
+
+    def errors(self) -> tuple[int, list[tuple[str, str, str | None]]]:
+        code, data = self.check()
+        return code, sorted((e["node"], e["kind"], e.get("target")) for e in data.get("errors", []))
+
+    def test_a_correct_tree_passes(self):  # AC-CHECK-1
+        self.assertEqual(self.errors(), (0, []))
+
+    def test_each_single_break_is_one_error_naming_the_node(self):  # AC-CHECK-1
+        breaks = {
+            "product README removed": (lambda: (self.root / "products/a/README.md").unlink(),
+                                       ("products/a", "missing-readme", None)),
+            "feature README removed": (lambda: (self.root / "products/a/src/features/x/README.md").unlink(),
+                                       ("products/a/src/features/x", "missing-readme", None)),
+            "root to product link removed": (lambda: self.readme("", None, ("products/b",)),
+                                             ("", "missing-child-link", "products/a")),
+            "product to feature link removed": (
+                lambda: self.readme("products/a", "", ("products/a/src/features/y",)),
+                ("products/a", "missing-child-link", "products/a/src/features/x")),
+            "product to root link removed": (
+                lambda: self.readme("products/a", None, self.FEATURES["products/a"]),
+                ("products/a", "missing-parent-link", "")),
+            "feature to product link removed": (lambda: self.readme("products/a/src/features/x", None),
+                                                ("products/a/src/features/x", "missing-parent-link", "products/a")),
+        }
+        for name, (damage, expected) in breaks.items():
+            with self.subTest(name):
+                self.build()
+                damage()
+                self.assertEqual(self.errors(), (1, [expected]))
+
+    def test_breaks_at_several_levels_are_each_reported_once(self):  # AC-CHECK-3
+        (self.root / "products/a/README.md").unlink()
+        self.readme("products/a/src/features/y", None)
+        self.readme("products/b", "", ("products/b/src/features/x",))
+        self.assertEqual(self.errors(), (1, sorted([
+            ("products/a", "missing-readme", None),
+            ("products/a/src/features/y", "missing-parent-link", "products/a"),
+            ("products/b", "missing-child-link", "products/b/src/features/y"),
+        ])))
+
+    def test_a_missing_root_readme_is_an_error(self):  # AC-README-1
+        (self.root / "README.md").unlink()
+        self.assertEqual(self.errors(), (1, [("", "missing-readme", None)]))
+
+    def test_the_text_output_names_the_folder_without_a_readme(self):  # AC-README-1
+        (self.root / "products/b/src/features/y/README.md").unlink()
+        proc = run_script("check_tree.py", "--root", str(self.root))
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("products/b/src/features/y", proc.stdout)
+        self.assertIn("no README.md", proc.stdout)
+
+    def test_a_child_may_be_linked_as_its_readme_or_its_folder(self):  # AC-DOWN-1
+        for target in ("products/a/README.md", "products/a/", "products/a", "./products/a"):
+            with self.subTest(target=target):
+                write(self.root, "README.md", f"# repository\n\n- [a]({target})\n- [b](products/b/README.md)\n")
+                self.assertEqual(self.errors(), (0, []))
+
+    def test_links_in_code_and_comments_do_not_count(self):  # AC-DOWN-2
+        hidden = {"inline code": "`[a](products/a/README.md)`",
+                  "fenced code": "```\n[a](products/a/README.md)\n```",
+                  "HTML comment": "<!-- [a](products/a/README.md) -->"}
+        for name, text in hidden.items():
+            with self.subTest(name):
+                write(self.root, "README.md", f"# repository\n\n{text}\n\n- [b](products/b/README.md)\n")
+                self.assertEqual(self.errors(), (1, [("", "missing-child-link", "products/a")]))
+
+    def test_a_parent_may_be_linked_as_its_readme_or_its_folder(self):  # AC-UP-1
+        for target in ("../../../README.md", "../../..", "../../../"):
+            with self.subTest(target=target):
+                write(self.root, "products/a/src/features/x/README.md", f"# x\n\nUp: [a]({target})\n")
+                self.assertEqual(self.errors(), (0, []))
+
+    def test_unfilled_markers_are_warnings_that_keep_the_exit_code(self):  # AC-UNF-1
+        self.readme("products/a", "", self.FEATURES["products/a"], extra=f"{UNFILLED}: purpose\n{UNFILLED}: owner\n")
+        self.readme("products/b/src/features/x", "products/b",
+                    extra=f"{UNFILLED}: rationale\n\n```\n{UNFILLED}: inside code\n```\n")
+        code, data = self.check()
+        self.assertEqual(code, 0)
+        self.assertEqual(sorted((w["readme"], w["count"]) for w in data.get("warnings", [])),
+                         [("products/a/README.md", 2), ("products/b/src/features/x/README.md", 1)])
+
+    def test_the_scripts_import_no_network_and_no_third_party_module(self):  # AC-CHECK-2
+        import ast
+        own = {p.stem for p in SCRIPTS.glob("*.py")}
+        network = {"socket", "ssl", "http", "ftplib", "smtplib", "poplib", "imaplib", "telnetlib", "xmlrpc",
+                   "asyncio", "urllib.request", "urllib.response"}
+        stdlib = getattr(sys, "stdlib_module_names", None)
+        for script in sorted(SCRIPTS.glob("*.py")):
+            with self.subTest(script=script.name):
+                names = set()
+                for node in ast.walk(ast.parse(script.read_text(encoding="utf-8"))):
+                    if isinstance(node, ast.Import):
+                        names |= {alias.name for alias in node.names}
+                    elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+                        names.add(node.module)
+                        names |= {f"{node.module}.{alias.name}" for alias in node.names}
+                self.assertFalse({n for n in names if n in network or n.split(".")[0] in network - {"urllib"}},
+                                 sorted(names))
+                # Python 3.9 has no list of the standard library, so this half runs on 3.10 and later only
+                if stdlib is not None:
+                    self.assertFalse({n for n in names if n.split(".")[0] not in stdlib | own | {"__future__"}},
+                                     sorted(names))
+
+    def test_the_check_writes_nothing(self):  # AC-CHECK-2 (kept with the checks it guards)
+        init_repo(self.root)
+        commit_all(self.root, "tree")
+        (self.root / "products/a/README.md").unlink()
+        def state() -> dict[str, bytes]:
+            return {p.relative_to(self.root).as_posix(): p.read_bytes() if p.is_file() else b""
+                    for p in self.root.rglob("*") if ".git" not in p.parts}
+        before = state()
+        self.check()
+        self.assertEqual(state(), before)
 
 
 
 
+
+
+
+
+class ProposeTreeTests(TempDirTestCase):
+    """REQ-PROPOSE: without a declaration, check nothing and propose patterns per kind."""
+
+    def propose(self) -> tuple[int, dict, str]:
+        proc = run_script("check_tree.py", "--root", str(self.root), "--json")
+        text = run_script("check_tree.py", "--root", str(self.root)).stdout
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.returncode, json.loads(proc.stdout), text
+
+    def test_workspaces_become_products_and_feature_folders_become_features(self):  # AC-PROP-1
+        write(self.root, "package.json", json.dumps({"workspaces": ["packages/*"]}))
+        write(self.root, "packages/a/index.ts", "export {};\n")
+        write(self.root, "src/features/x/index.ts", "export {};\n")
+        _, data, text = self.propose()
+        self.assertEqual(data.get("candidates"), {"products": ["packages/*"], "features": ["src/features/*"]})
+        self.assertEqual(data.get("errors"), [])
+        self.assertIn('"tree"', text)
+
+    def test_feature_folders_inside_products_use_the_product_pattern(self):  # AC-PROP-1
+        write(self.root, "package.json", json.dumps({"workspaces": {"packages": ["apps/*"]}}))
+        write(self.root, "apps/a/src/features/x/index.ts", "export {};\n")
+        write(self.root, "apps/b/src/features/y/index.ts", "export {};\n")
+        _, data, _ = self.propose()
+        self.assertEqual(data.get("candidates"), {"products": ["apps/*"], "features": ["apps/*/src/features/*"]})
+
+    @unittest.skipIf(sys.version_info < (3, 11), "tomllib needs Python 3.11")
+    def test_uv_workspace_members_become_products(self):  # AC-PROP-2
+        write(self.root, "pyproject.toml", '[tool.uv.workspace]\nmembers = ["services/*"]\n')
+        write(self.root, "services/a/main.py", "\n")
+        _, data, _ = self.propose()
+        self.assertEqual(data.get("candidates"), {"products": ["services/*"], "features": []})
+
+    def test_without_tomllib_the_pyproject_is_reported_as_unread(self):  # AC-PROP-2
+        import check_tree
+        write(self.root, "pyproject.toml", '[tool.uv.workspace]\nmembers = ["services/*"]\n')
+        saved = check_tree.tomllib
+        check_tree.tomllib = None
+        try:
+            candidates, notes = check_tree.propose(self.root, ["pyproject.toml"])
+        finally:
+            check_tree.tomllib = saved
+        self.assertEqual(candidates, {"products": [], "features": []})
+        self.assertTrue(any("pyproject.toml" in note for note in notes), notes)
+
+    def test_without_tomllib_the_script_notes_the_pyproject_and_exits_0(self):  # AC-PROP-2
+        write(self.root, "pyproject.toml", '[tool.uv.workspace]\nmembers = ["services/*"]\n')
+        write(self.root, "services/a/main.py", "\n")
+        runner = ("import runpy, sys; sys.modules['tomllib'] = None; sys.argv = ['check_tree.py', '--root', sys.argv[1]]; "
+                  f"sys.path.insert(0, {str(SCRIPTS)!r}); runpy.run_path({str(SCRIPTS / 'check_tree.py')!r}, run_name='__main__')")
+        proc = subprocess.run([sys.executable, "-B", "-c", runner, str(self.root)], text=True,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("note: pyproject.toml was not read", proc.stdout)
+        self.assertIn("no candidates found", proc.stdout)
+
+    def test_no_source_means_no_candidates(self):  # AC-PROP-3
+        write(self.root, "src/app.py", "\n")
+        _, data, text = self.propose()
+        self.assertEqual(data.get("candidates"), {"products": [], "features": []})
+        self.assertIn("no candidates", text)
+
+
+@unittest.skipUnless(HAS_GIT, "git is required")
+class FindRelatedNodeTests(TempDirTestCase):
+    """REQ-RELATED: the README of the nearest enclosing node is a P1 candidate."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        init_repo(self.root)
+        write(self.root, ".living-documentation.json", json.dumps({"tree": {"features": ["src/features/*"]}}))
+        write(self.root, "README.md", "# Project\n")
+        write(self.root, "src/features/foo/README.md", "# foo\n")
+        write(self.root, "src/features/foo/api/handler.ts", "export const v = 1;\n")
+        write(self.root, "src/lib/util.ts", "export const u = 1;\n")
+        commit_all(self.root, "initial")
+
+    def node_candidates(self) -> list[tuple[str, str, str]]:
+        proc = run_script("find_related.py", "--root", str(self.root), "--json")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return [(c["source"], c["path"], c["proximity"]) for c in json.loads(proc.stdout)["candidates"]
+                if c["kind"] == "node"]
+
+    def test_a_change_deep_in_a_feature_lists_the_feature_readme(self):  # AC-REL-1
+        write(self.root, "src/features/foo/api/handler.ts", "export const v = 2;\n")
+        self.assertEqual(self.node_candidates(),
+                         [("src/features/foo/api/handler.ts", "src/features/foo/README.md", "P1")])
+
+    def test_a_feature_readme_changed_in_the_same_change_is_not_listed(self):  # AC-REL-2
+        write(self.root, "src/features/foo/api/handler.ts", "export const v = 2;\n")
+        write(self.root, "src/features/foo/README.md", "# foo, updated\n")
+        self.assertEqual(self.node_candidates(), [])
+
+    def test_without_a_declaration_no_node_candidate_is_listed(self):  # AC-REL-2
+        (self.root / ".living-documentation.json").unlink()
+        commit_all(self.root, "no declaration")
+        write(self.root, "src/features/foo/api/handler.ts", "export const v = 2;\n")
+        self.assertEqual(self.node_candidates(), [])
+
+    def test_a_folder_matching_both_kinds_is_a_configuration_error(self):  # AC-DECL-2
+        write(self.root, ".living-documentation.json",
+              json.dumps({"tree": {"products": ["src/features/*"], "features": ["src/features/*"]}}))
+        write(self.root, "src/features/foo/api/handler.ts", "export const v = 2;\n")
+        proc = run_script("find_related.py", "--root", str(self.root), "--json")
+        self.assertEqual(proc.returncode, 2, proc.stdout)
+        self.assertIn("matches both tree.products and tree.features", proc.stderr)
+
+    def test_the_declaration_is_checked_whatever_the_change(self):  # AC-DECL-2
+        write(self.root, ".living-documentation.json",
+              json.dumps({"tree": {"products": ["src/features/*"], "features": ["src/features/*"]}}))
+        commit_all(self.root, "invalid declaration")
+        for name, change in (("no change", None), ("a documentation-only change", "src/features/foo/README.md")):
+            with self.subTest(name):
+                if change:
+                    write(self.root, change, "# foo, updated\n")
+                proc = run_script("find_related.py", "--root", str(self.root), "--json")
+                self.assertEqual(proc.returncode, 2, proc.stdout)
+                self.assertIn("matches both tree.products and tree.features", proc.stderr)
+
+    def test_a_change_outside_every_node_does_not_list_the_root_readme(self):  # AC-REL-2
+        write(self.root, "src/lib/util.ts", "export const u = 2;\n")
+        self.assertEqual(self.node_candidates(), [])
+
+
+@unittest.skipUnless(HAS_GIT, "git is required")
+class SharedTreeNodesTests(TreeFixture):
+    """REQ-SHARED: check_tree.py and find_related.py find the same nodes."""
+
+    def test_both_scripts_find_the_same_nodes(self):  # AC-SHARED-1
+        self.build()
+        write(self.root, "src/features/z/index.ts", "export {};\n")
+        self.readme("src/features/z", "")
+        write(self.root, "README.md", (self.root / "README.md").read_text() + "- [z](src/features/z/README.md)\n")
+        write(self.root, "src/features/node_modules/pkg/index.js", "\n")
+        write(self.root, "src/features/notes.md", "# notes\n")
+        init_repo(self.root)
+        commit_all(self.root, "tree")
+        code, data = self.check()
+        self.assertEqual(code, 0, data)
+        checked = {n["path"] for n in data["nodes"] if n["path"]}
+        for node in checked:
+            write(self.root, f"{node}/sub/changed.txt", "x\n")
+        proc = run_script("find_related.py", "--root", str(self.root), "--json")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        related = {posixpath.dirname(c["path"]) for c in json.loads(proc.stdout)["candidates"] if c["kind"] == "node"}
+        self.assertEqual(related, checked)
+        self.assertEqual(len(checked), 7)
+
+
+class ReadmeTemplateTests(TreeFixture):
+    """REQ-TEMPLATES: one README template per node kind."""
+
+    KINDS = ("repository", "product", "feature")
+    SECTIONS = {"repository": ("## Purpose", "## Contents"),
+                "product": ("## Purpose", "## Features"),
+                "feature": ("## Purpose", "## Out of scope", "## Design rationale", "## Invariants", "## Start here",
+                            "## Last verified against the code")}
+
+    def template(self, kind: str) -> str:
+        path = SKILL_ROOT / "templates" / f"readme-{kind}.md"
+        self.assertTrue(path.is_file(), f"missing template {path.name}")
+        return path.read_text(encoding="utf-8")
+
+    @staticmethod
+    def link_targets(text: str) -> list[str]:
+        import check_links
+        masked, _, _ = check_links.masked_text(text)
+        return [m.group(1) for m in check_links.INLINE_LINK_RE.finditer(masked)]
+
+    def test_each_kind_has_its_sections_and_the_unfilled_marker(self):  # AC-TPL-1
+        for kind in self.KINDS:
+            with self.subTest(kind=kind):
+                text = self.template(kind)
+                for heading in self.SECTIONS[kind]:
+                    self.assertIn(f"\n{heading}\n", text)
+                import check_links
+                self.assertIn(UNFILLED, check_links.masked_text(text)[0])
+
+    def test_family_links_are_markdown_links(self):  # AC-TPL-1
+        for kind in self.KINDS:
+            with self.subTest(kind=kind):
+                targets = self.link_targets(self.template(kind))
+                self.assertIn(CHILD_LINK, targets)
+                self.assertEqual(PARENT_LINK in targets, kind != "repository")
+
+    def test_feature_invariants_name_their_check(self):  # AC-TPL-1
+        section = self.template("feature").split("## Invariants", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("Checked by:", section)
+
+    def fill(self, kind: str, node: str, parent: str | None, children: tuple[str, ...]) -> None:
+        lines = []
+        for line in self.template(kind).splitlines():
+            if CHILD_LINK in line:
+                lines += [line.replace("{{child_title}}", child).replace(CHILD_LINK, link_to(node, child))
+                          for child in children]
+                continue
+            line = line.replace("{{title}}", node or "repository")
+            if parent is not None:
+                line = line.replace("{{parent_title}}", parent or "repository")
+                line = line.replace(PARENT_LINK, link_to(node, parent))
+            lines.append(line)
+        write(self.root, f"{node}/README.md" if node else "README.md", "\n".join(lines) + "\n")
+
+    def test_a_tree_filled_from_the_templates_passes_the_check(self):  # AC-TPL-2
+        self.build()
+        self.fill("repository", "", None, self.PRODUCTS)
+        for product in self.PRODUCTS:
+            self.fill("product", product, "", self.FEATURES[product])
+            for feature in self.FEATURES[product]:
+                self.fill("feature", feature, product, ())
+        code, data = self.check()
+        self.assertEqual((code, data["errors"]), (0, []))
+        self.assertEqual(len(data["warnings"]), 7)
+        filled = "".join(p.read_text() for p in self.root.rglob("README.md"))
+        for token in ("{{", "replace:"):
+            self.assertNotIn(token, filled)
+
+
+class CITemplateTests(TreeFixture):
+    """REQ-CI: the CI template runs the tree check from the same skill location as its other steps."""
+
+    TEMPLATE = SKILL_ROOT / "templates" / "ci" / "github-actions.yml"
+
+    def tree_step(self) -> str:
+        runs = [line.split("run:", 1)[1].strip() for line in self.TEMPLATE.read_text(encoding="utf-8").splitlines()
+                if line.strip().startswith("run:")]
+        steps = [run for run in runs if "check_tree.py" in run]
+        self.assertEqual(len(steps), 1, runs)
+        return steps[0] if steps else ""
+
+    def run_step(self) -> int:
+        env = dict(os.environ, SKILL_DIR=str(SKILL_ROOT), PYTHONDONTWRITEBYTECODE="1")
+        return subprocess.run(["bash", "-c", self.tree_step()], cwd=self.root, env=env, text=True,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
+
+    def test_the_tree_step_fails_on_a_broken_tree_and_passes_otherwise(self):  # AC-CI-1
+        self.build()
+        self.assertEqual(self.run_step(), 0)
+        (self.root / "products/b/src/features/y/README.md").unlink()
+        self.assertEqual(self.run_step(), 1)
+        (self.root / ".living-documentation.json").unlink()
+        self.assertEqual(self.run_step(), 0)
+
+    def test_the_skill_location_is_the_current_skill_name(self):  # AC-CI-2
+        text = self.TEMPLATE.read_text(encoding="utf-8")
+        self.assertIn("SKILL_DIR: .claude/skills/sync-docs\n", text)
+        self.assertNotIn("maintaining-living-documentation", text)
+
+
+class SkillTreeProcedureTests(unittest.TestCase):
+    """REQ-MAINTAIN and REQ-BUILD: the procedure in SKILL.md."""
+
+    BUILD = "## Build a documentation tree"
+
+    def setUp(self) -> None:
+        self.text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+
+    def between(self, start: str, end: str) -> str:
+        self.assertIn(start, self.text)
+        return self.text.split(start, 1)[1].split(end, 1)[0] if start in self.text else ""
+
+    def test_every_change_runs_the_tree_check(self):  # AC-MAINT-1
+        self.assertIn("scripts/check_tree.py", self.between("5. **Check.**", "6. **Report.**"))
+
+    def test_done_when_requires_a_passing_tree_check(self):  # AC-MAINT-1
+        self.assertIn("check_tree.py", self.between("## Done when", "\n## "))
+
+    def test_a_readme_the_tree_requires_does_not_count_toward_the_limit(self):  # AC-MAINT-1
+        rule = [line for line in self.text.splitlines() if "at most three new files" in line]
+        self.assertEqual(len(rule), 1)
+        self.assertRegex(rule[0] if rule else "", r"README.*documentation tree.*not count")
+
+    def test_the_build_procedure_has_every_element(self):  # AC-BUILD-1
+        section = self.between(self.BUILD, "\n## ")
+        elements = {
+            "a: only on an explicit request": "explicitly asks",
+            "b: no declaration before the person confirms it": "only after the person has confirmed",
+            "d: the template of the node's kind": "templates/readme-feature.md",
+            "e: the unfilled marker": UNFILLED,
+            "f: the tree check": "check_tree.py",
+            "f: the link check": "check_links.py",
+            "g: the source of each fact": "source of each fact",
+            "g: the remaining unfilled items": "remaining unfilled",
+        }
+        for name, phrase in elements.items():
+            with self.subTest(name):
+                self.assertIn(phrase, section)
+
+    def test_the_description_names_the_documentation_tree(self):  # AC-BUILD-2
+        description = self.text.split("description:", 1)[1].split("\n", 1)[0].strip()
+        self.assertRegex(description, r"documentation tree")
+        self.assertRegex(description, r"(?i)declare.*check.*build|build.*documentation tree")
+        self.assertLessEqual(len(description), 1024)
+
+    def test_only_the_build_procedure_lifts_the_file_limit(self):  # AC-BUILD-1 (c)
+        import re
+        section = self.between(self.BUILD, "\n## ")
+        self.assertIn("limit of three new files does not apply", section)
+        outside = self.text.replace(section, "")
+        lifting = [line for line in outside.splitlines()
+                   if re.search(r"(?i)\b(limit|three new files)\b", line) and re.search(r"(?i)not (apply|count)", line)]
+        self.assertEqual(len(lifting), 1, lifting)
+        self.assertRegex(lifting[0] if lifting else "",
+                         r"A README that the declared documentation tree requires for a new node .* does not count toward that limit")
 
 
 # ---------------------------------------------------------------------------

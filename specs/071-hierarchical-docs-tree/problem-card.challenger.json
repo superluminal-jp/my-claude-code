@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-071",
+    "ideal": "宣言した階層（リポジトリのルート、1つのリポジトリの中の各プロダクト、各機能フォルダ）のすべてに README があり、各 README は1つ下の階層の README すべてと1つ上の README にリンクしている。人と AI はルートの README から1段ずつ下へたどって、目的の機能フォルダの README まで読み進められる。各 README はその範囲が何のためにあるかを書き、下の階層の細部を繰り返さない。既存のリポジトリにも頼まれればこの木を一度に作れ、その後はコードの変更に合わせて保たれる。README が欠けたこと、親子のリンクが欠けたことは、機械的な検査がエラーとして報告する。1リポジトリに1プロダクトの構成にも、1リポジトリに複数プロダクトの構成にも当てはまる。",
+    "current": "sync-docs には、階層を宣言する設定も、どの階層の README のひな形もない。practices.md は、リポジトリのルートの README と、出典のないフォルダごとの README（P1）を挙げるだけで、プロダクトや機能フォルダという中間の階層も、親子をリンクでつなぐ決まりも持たない。find_related.py は、変更されたファイルと同じフォルダの文書しか P1 候補にしないので、機能フォルダの直下にある README は、その下のフォルダのファイルが変わっても P1 候補にならない。check_links.py は、リンク先が存在するかしか検査せず、README があるか、親子がつながっているかは検査しない。SKILL.md は1回の変更で新しく作るファイルを3つまでとし、木をまとめて作る手順を持たない。",
+    "gap": "理想では、宣言した階層のすべてに README があって親子のリンクでつながり、既存のリポジトリにもまとめて作れ、欠けると検査がエラーにする。実際の sync-docs には、階層の宣言も、README のひな形も、上の階層の README を更新候補に挙げる仕組みも、木の形の検査も、まとめて作る手順もない。",
+    "significance": "harness/ の sync-docs は install.sh で ~/.claude/ に入り、利用者のすべてのプロジェクトで使われる。利用者は、1リポジトリに1プロダクトの構成と、1リポジトリに複数プロダクトの構成の両方を持つ。利用者の懸念は、文書が保守されなくなってコードと食い違い、AI がそれをもとに答えることである。親子のリンクが欠けた README や、どこからもリンクされない README は、機械的に見つけられる食い違いである。",
+    "status": "verified",
+    "evidence": [
+      {
+        "source": "harness/skills/sync-docs/templates/ の一覧（2026-11-14、ls）",
+        "observation": "ひな形は adr.md、architecture.md、provenance.md、ci/github-actions.yml だけで、README のひな形はない。"
+      },
+      {
+        "source": "harness/skills/sync-docs/references/practices.md:94, 133, 135",
+        "observation": "層の表は、リポジトリのルートの README（目的と最短の手順を書き、先へリンクし、細部を持たない）を挙げる。フォルダごとの README（P1）は、この skill 独自の判断で出典がないと明記されている。135行は『No source reviewed presents a single hierarchy from the project README down to code comments』と書く。プロダクトや機能フォルダという階層と、親子のリンクの決まりは、この文書のどこにもない。"
+      },
+      {
+        "source": "harness/skills/sync-docs/scripts/find_related.py:10, 98-101",
+        "observation": "P1 sibling は『a document in the same directory as a changed file』で、directory_of(source) と同じフォルダの文書だけを候補にする。src/features/foo/api/handler.ts の変更では、src/features/foo/README.md は P1 にならない。"
+      },
+      {
+        "source": "harness/skills/sync-docs/scripts/check_links.py:1-18（docstring）",
+        "observation": "検査するのは、ローカルのリンク先が存在するか、#fragment が見出しに対応するかだけで、『this is a link checker, not a full consistency validator』と書く。"
+      },
+      {
+        "source": "harness/skills/sync-docs/schemas/config.schema.json（2026-11-14、キーの一覧）",
+        "observation": "キーは $schema、enforcement、exclude_globs、implementation_globs、documentation_globs、specification_globs、decision_globs、evidence_globs、generated_globs、infrastructure_globs、configuration_globs、related だけで、階層を宣言するキーはない。"
+      },
+      {
+        "source": "harness/skills/sync-docs/SKILL.md:23",
+        "observation": "『Create at most three new files per change and propose the rest in the report.』木をまとめて作る手順は SKILL.md にない。"
+      },
+      {
+        "source": "利用者の回答（2026-11-14、この会話の AskUserQuestion）。specs/071-hierarchical-docs-tree/problem.md の『合意済みの決定』に記録",
+        "observation": "既存リポジトリへの一括構築を含める。階層は .living-documentation.json で宣言し、宣言がなければ候補を示すだけで検査しない。README の欠けと親子のリンクの欠けはエラーにする。複数リポジトリで1つのサービスを作る場合は含めない。"
+      }
+    ],
+    "hypotheses": [],
+    "out_of_scope": [
+      "複数のリポジトリで1つのサービスを作る場合の、リポジトリをまたぐ文書の木（利用者の決定、2026-11-14）。",
+      "AI が文書を手がかりとして扱い、答える前にコードで確かめるというルール（別の問題の候補）。",
+      "リポジトリをまたぐ事実を契約ファイルと契約テストに置き換えること（別の問題の候補）。",
+      "practices.md の技術別の表への CDK、Terraform（Google Cloud）、React、設定のスキーマの追加（別の問題の候補）。",
+      "README の本文の内容がコードと合っているかを機械で判定すること。中身のずれは今までどおり報告にとどめる。"
+    ]
+  }
+}

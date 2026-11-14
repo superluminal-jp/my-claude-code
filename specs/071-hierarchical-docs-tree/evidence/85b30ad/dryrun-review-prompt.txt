@@ -1,0 +1,19 @@
+You are a skeptical, read-only reviewer. Do not edit files or run anything.
+
+Read these files only:
+- The transcript of a scripted dry run: /Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-transcript.txt (every command with its raw output; under "facts written, with their sources" it lists each fact written into a README with its source).
+- Every file under /Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/ (a copy of the fixture repository at the end of the run; each .ts file is saved with .txt appended, so cart.ts is cart.ts.txt).
+
+The rule the READMEs had to follow: a README may state a fact about the project only when a file of the project states it, or the output of a command shown in the transcript states it, and the transcript's list of facts must give that source. Every fact that could not be confirmed must instead be marked with the literal text TODO(unfilled).
+
+For each of the eight README.md files, go through every statement that says something about the project. Ignore the title line, the "Part of [...]" line, the generic sentence under "## Contents" that tells the reader each folder has its own README, and the link lists to child READMEs except for the one-line description after each link (those descriptions are statements and must be checked). For each statement decide one of:
+- supported: the transcript's list of facts gives it a source, and that source (the file at that line, or the command output in the transcript) really says it;
+- marked: it is marked TODO(unfilled);
+- unsupported: neither, or the source does not say what the README says (including a README that says more than the source, for example by adding an interpretation).
+
+Answer with JSON only, with one entry per statement you checked:
+{"read": ["<every path you read>"],
+ "judgments": [
+   {"readme": "<path relative to dryrun-fixture>", "statement": "<the text>", "verdict": "supported | marked | unsupported", "source": "<the file and line, or the command, you compared it with; empty for marked>", "reason": "<for unsupported only, in Japanese>"}
+ ]}
+If a file cannot be read, answer only "NOT REVIEWED: <path>: <reason>".

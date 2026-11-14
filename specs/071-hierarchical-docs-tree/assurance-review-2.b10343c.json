@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-071",
+    "reviewed_commit": "b10343c48f1092d450bc9345d9ea54c2dae4f103",
+    "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId a50859c11cf998e87、2026-11-14、21 ファイルを読んだ",
+    "context_given": [
+      "review_prep.py bundle の出力 $TMPDIR/ar-071-round2（範囲 5a2daa6..b10343c、scope whole。理由は requirement REQ-BUILD changed beyond its text fields）: change.diff、graph.diff、requirements-graph.json、manifest.json、evidence/ の6ファイル、excluded.txt、previous-review.json（1回目の記録）、scope.json",
+      "scope が whole なので、references/assurance-review.md の1回目の指示文を、change id（CHG-071）、bundle のパス、記録の言語（日本語）のほかは変えずに渡した"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "evidence_mismatch",
+        "target": "AC-ROOT-4",
+        "severity": "high",
+        "statement": "manifest.json は AC-ROOT-4 を evidence.kind が ai_review の1件だけで status passed にしており、approvals は空で human_review もない。verify-change の references/manifest.md 36 行と SKILL.md 28 行は『ai_review は検査を通さない』と定め、assure.py 545-547 行の A-02 はこれを block する。evidence の dryrun-review.json 自身の note も『A-02 では受け入れ基準を通す証拠にならない。人による確認（human_review）が要る』と書いている。1回目の AR-01（accepted）は『人による確認を引き渡し時に依頼し、済むまで AC-ROOT-4 で blocked のままとする』と解決したが、manifest は passed のままで、2回目でも状態は変わっていない。加えて dryrun-review.json は審査役の生の出力ではなく実装した側の要約で、『statements_checked 50、unsupported 0』の数だけがあり、50件ごとの判定は証拠にない。審査役に渡した事実の一覧と出典は実装した側が書いたもので、1回目の unsupported 1件には dryrun.py の FACTS に出典を足して2回目に0件にしている。AC-ROOT-4 は REQ-ROOT の反例『確かめていない内容を事実として書き、木の形の検査は通る』を防ぐ唯一の検査なので、この反例を防ぐ検査は通っていない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。1回目の AR-01 と同じく、AC-ROOT-4 を通すには人による確認（human_review）が要る。manifest の記録は、verify-change の references/manifest.md 36 行の『an AI review as ai_review, which never passes a check』に従った書き方で、gate はこれを blocked と数える。gate を通すために状態や種類を変えることはしない。変更を引き渡すとき、Taiki Ogihara に確認を依頼する。次の reviewed_commit の証拠には、照合したレビュー役の生の出力をそのまま dryrun-review-raw.json として残す。照合の指示文は、記述ごとの判定ではなく unsupported の一覧だけを返すよう求めているので、50 件ごとの判定は AI の出力にない。記述ごとの確認は、人による確認で行う。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "evidence_mismatch",
+        "target": "AC-ROOT-1",
+        "severity": "medium",
+        "statement": "AC-ROOT-1 は『SKILL.md の一括構築の手順に従って木を作る』L3 の試しだが、dryrun.py（change.diff の 1306-1576 行付近）では、README の本文、どの事実を書くか（render の fills と features の辞書）、出典の一覧（FACTS）、宣言の確認、節の選択が、フィクスチャを知るスクリプトに固定されている。手順2・3の『確かめた事実だけを書く』という判断と、人の確認はスクリプトが代わっており、エージェントが SKILL.md に従って作る道は動いていない。dryrun-transcript.txt の『facts written』の一覧もスクリプトが自分で出した文である。このため証拠が示すのは check_tree.py、ひな形、リンク検査の機械的なつながりまでで、REQ-ROOT の反例『一括構築が、確かめていない内容を README に事実として書く』や『頼まれたときに作る』は示さない。AC の文面はスクリプトでの再現を認めているが、この反例に当たる有効な検査は AR-01 のとおり通っておらず、残るリスクとして記録にも出ていない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。dryrun.py が示すのは、check_tree.py、ひな形、リンク検査、find_related.py が手順どおりにつながることまでである。どの事実を書くかというエージェントの判断と、人による宣言の確認は、スクリプトが固定している。この2つと、description によって skill が選ばれるかは、この変更の証拠では確かめていない。記録のフォルダの residual-risks.md に、残るリスクとして書いた。作られた README の中身が確かめた事実だけかは、AC-ROOT-4 の人による確認が受け持つ。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "uncovered_path",
+        "target": "AC-DECL-2",
+        "severity": "low",
+        "statement": "find_related.py の find_candidates() は、tree_nodes() を『if sources:』の中（find_related.py 95-109 行）でしか呼ばない。そのため、1つのフォルダが products と features の両方に一致する宣言でも、変更が文書だけ、または変更がないときは設定エラーにならず終了コード 0 になる。find_related.py の docstring（『An invalid configuration, including a folder that matches both … exits 2』）、practices.md、AC-DECL-2 は、この場合に常に終了コード 2 になるように読める。test_a_folder_matching_both_kinds_is_a_configuration_error は、実装ファイルを変えた場合だけを試す。変更に実装ファイルがないときの経路は、どの受け入れ基準も確かめていない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。find_related.py の find_candidates は、宣言があれば、変更の中身によらず毎回 tree_nodes で宣言を確かめるようにした。宣言がなく変更もないときは、前と同じくファイルの一覧を作らない。test_the_declaration_is_checked_whatever_the_change（変更なしと文書だけの変更）は直す前に失敗し、直した後に通る。AC-DECL-2 の description に『変更の中身（変更なし、文書だけの変更を含む）によらず』と書いた。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "evidence_mismatch",
+        "target": "AC-CHECK-2",
+        "severity": "low",
+        "statement": "AC-CHECK-2 の2つのテストは、主張より弱い。test_the_check_writes_nothing は実行の前後でファイル名の一覧（.git を除く）を比べるだけで、既存ファイルの内容を書き換えても検出しない。test_the_scripts_import_no_network_and_no_third_party_module は ast の Import と ImportFrom の module 名だけを見るので、『from urllib import request』は module が urllib になり network の集合（urllib.request など）に入らず、見逃す。Python 3.9 では stdlib_module_names がないため、標準ライブラリだけかを調べる半分は3.9では動かない（python39-tests.txt の実行では ok だが空の検査になる）。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。test_the_check_writes_nothing は、ファイル名に加えて中身を前後で比べるようにした。check_tree.py にわざとルートの README を書き換えさせると失敗することを確かめてから戻した。import のテストは、from A import B の形を A.B としても調べるようにした。check_tree.py にわざと from urllib import request を足すと失敗することを確かめてから戻した。標準ライブラリだけかを調べる後半は、標準ライブラリの一覧がない Python 3.9 では動かない。これはテストの注記と residual-risks.md に書いた。Python 3.14 の実行ではこの後半も動く。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "evidence_mismatch",
+        "target": "AC-BUILD-1",
+        "severity": "low",
+        "statement": "AC-BUILD-1 の (c)『ファイル数の上限を外すのはこの節だけ』を確かめる test_only_the_build_procedure_lifts_the_file_limit は、SKILL.md 全体で文字列『does not apply』がちょうど1回であることを数えるだけである。同じ変更が SKILL.md の通常の手順の上限の文（change.diff の 74-75 行）にも『A README that the declared documentation tree requires for a new node … does not count toward that limit』という例外を足しており、上限を外す場所は実際には2つある（REQ-MAINTAIN と REQ-BUILD の記述も食い違う）。テストは言い回しが違うので通るだけで、(c) の内容を確かめていない。",
+        "disposition": "accepted",
+        "resolution": "受け入れた。test_only_the_build_procedure_lifts_the_file_limit は、一括構築の節の外で上限に触れる行がちょうど1行であり、その行が『A README that the declared documentation tree requires for a new node ... does not count toward that limit』の例外であることを確かめるようにした。SKILL.md の別の場所に上限を外す文をわざと足すと失敗することを確かめてから戻した。AC-BUILD-1 の (c) を『上限を丸ごと外すのはこの節だけで、ほかの場所では、宣言した木が新しい節に求める README を上限に数えない例外（REQ-MAINTAIN）だけがある』と直し、REQ-MAINTAIN との食い違いをなくした。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+$ git log --oneline
+afe92d4 build the documentation tree
+4db85ed fixture without READMEs
+$ git show --stat --format=%h:%s 4db85ed
+4db85ed: fixture without READMEs
+
+ package.json                                    | 8 ++++++++
+ products/admin/package.json                     | 8 ++++++++
+ products/admin/src/features/audit-log/audit.ts  | 4 ++++
+ products/admin/src/features/users/users.ts      | 3 +++
+ products/shop/package.json                      | 8 ++++++++
+ products/shop/src/features/cart/cart.test.ts    | 4 ++++
+ products/shop/src/features/cart/cart.ts         | 4 ++++
+ products/shop/src/features/checkout/checkout.ts | 5 +++++
+ 8 files changed, 44 insertions(+)
+$ git status --short --untracked-files=all
+ M products/shop/README.md
+?? products/shop/src/features/coupon/README.md
+?? products/shop/src/features/coupon/coupon.ts

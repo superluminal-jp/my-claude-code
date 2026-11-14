@@ -8,9 +8,12 @@ untracked files) with HEAD. With --base REF, compares the worktree with merge-ba
 Candidates, closest first (contract C1; documents that changed too are never candidates):
   P0 comment    the changed implementation file itself (advisory: keep its comments in step)
   P1 sibling    a document in the same directory as a changed file
+  P1 node       with a "tree" declaration, the README.md of the nearest node (other than the
+                root) that contains a changed file deeper inside it
   P2 mention    a document that names a changed file by path, or by name when the name is long enough
   P3 changelog  the project's change history, when a user-visible change left it untouched
-related.max_candidates keeps the closest documents and counts the rest in "truncated";
+An invalid configuration, including a folder that matches both tree.products and tree.features,
+exits 2. related.max_candidates keeps the closest documents and counts the rest in "truncated";
 related.min_name_length sets the shortest file name that counts as a mention.
 
 The JSON output is {"changed": [...], "candidates": [{"source", "path", "kind", "proximity",
@@ -29,8 +32,8 @@ from collections import defaultdict
 from pathlib import Path, PurePosixPath
 
 from common import (
-    CHANGELOG_DIRS, CHANGELOG_STEMS, DOC_SUFFIXES, Change, ConfigError, GitError, changed_files, classify, excluded,
-    is_changelog, list_files, load_config,
+    CHANGELOG_DIRS, CHANGELOG_STEMS, DOC_SUFFIXES, README_NAME, Change, ConfigError, GitError, changed_files, classify,
+    excluded, is_changelog, list_files, load_config, tree_nodes,
 )
 
 DEFAULT_MAX_CANDIDATES = 10
@@ -89,8 +92,12 @@ def find_candidates(root: Path, config: dict, changes: list[Change]) -> dict:
             records[(path, source)] = {"source": source, "path": path, "kind": kind,
                                        "proximity": proximity, "reason": reason}
 
+    declared = "tree" in config
+    files = list_files(root, config)[0] if sources or declared else []
+    # The declaration is checked on every run, so an invalid one fails even when no source changed.
+    nodes = sorted((n for n in tree_nodes(root, config, files) if n.path), key=lambda n: -len(n.path)) if declared else []
+
     if sources:
-        files, _ = list_files(root, config)
         documents = [f for f in files if f not in changed and is_candidate_document(f, config)]
 
         documents_by_dir: dict[str, list[str]] = defaultdict(list)
@@ -100,6 +107,16 @@ def find_candidates(root: Path, config: dict, changes: list[Change]) -> dict:
             for document in documents_by_dir.get(directory_of(source), []):
                 add(source, document, "sibling", "P1",
                     f"document in the same directory as the changed file {source}; it was not changed")
+
+        if declared:
+            listed = set(files)
+            for source in sources:
+                node = next((n for n in nodes if source.startswith(n.path + "/")), None)
+                readme = f"{node.path}/{README_NAME}" if node else None
+                if readme in listed and readme not in changed:
+                    add(source, readme, "node", "P1",
+                        f"README of the {node.kind} node {node.path}, which contains the changed file {source}; "
+                        f"it was not changed")
 
         patterns = {source: mention_patterns(source, min_name_length) for source in sources}
         for document in documents:
@@ -182,6 +199,7 @@ def main() -> int:
     try:
         config = load_config(root)
         changes = changed_files(root, args.base)
+        report = find_candidates(root, config, changes)
     except ConfigError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -191,7 +209,6 @@ def main() -> int:
               file=sys.stderr)
         return 2
 
-    report = find_candidates(root, config, changes)
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:

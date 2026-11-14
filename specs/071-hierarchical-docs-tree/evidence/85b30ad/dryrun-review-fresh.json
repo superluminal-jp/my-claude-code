@@ -1,0 +1,413 @@
+{
+  "purpose": "AC-ROOT-4: 85b30ad の skill から dryrun.py で作ったフィクスチャの README の記述を、会話も前の回の経緯も渡さない、新しい読み取り専用のレビュー役が、記述ごとに判定した結果",
+  "reviewer": "read-only-reviewer（Read、Grep、Glob だけ）、agentId afabdde90b0f78a43、2026-11-14。新しく起動し、前の回の照合とその直しは渡していない",
+  "prompt_file": "dryrun-review-prompt.txt（渡した指示文そのもの）",
+  "counts": {
+    "marked": 20,
+    "supported": 34
+  },
+  "answer_verbatim": {
+    "read": [
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-transcript.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/.living-documentation.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/package.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/package.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/audit-log/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/audit-log/audit.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/users/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/admin/src/features/users/users.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/package.json",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/cart/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/cart/cart.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/cart/cart.test.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/checkout/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/checkout/checkout.ts.txt",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/coupon/README.md",
+      "/Users/taikiogihara/work/my-claude-code/specs/071-hierarchical-docs-tree/evidence/85b30ad/dryrun-fixture/products/shop/src/features/coupon/coupon.ts.txt"
+    ],
+    "judgments": [
+      {
+        "readme": "README.md",
+        "statement": "Purpose: TODO(unfilled): what this repository is for and who uses it, in one to three sentences.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "README.md",
+        "statement": "The root `test` script runs `vitest run`.",
+        "verdict": "supported",
+        "source": "package.json:6 (\"test\": \"vitest run\" under scripts); transcript fact list \"README.md: the root test script runs vitest run <- package.json:6\"",
+        "reason": ""
+      },
+      {
+        "readme": "README.md",
+        "statement": "TODO(unfilled): the prerequisites (runtime and package manager versions).",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "README.md",
+        "statement": "@acme/shop: Customer-facing web shop.",
+        "verdict": "supported",
+        "source": "products/shop/package.json:3 (\"description\": \"Customer-facing web shop.\"); fact list \"@acme/shop: Customer-facing web shop. <- products/shop/package.json:2-3\"",
+        "reason": ""
+      },
+      {
+        "readme": "README.md",
+        "statement": "@acme/admin: Internal console for staff.",
+        "verdict": "supported",
+        "source": "products/admin/package.json:3 (\"description\": \"Internal console for staff.\"); fact list \"@acme/admin: Internal console for staff. <- products/admin/package.json:2-3\"",
+        "reason": ""
+      },
+      {
+        "readme": "README.md",
+        "statement": "Other documentation: TODO(unfilled): links to the architecture description, the decision records, and the change history, where the project keeps them.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/README.md",
+        "statement": "Purpose: Internal console for staff.",
+        "verdict": "supported",
+        "source": "products/admin/package.json:3; fact list \"products/admin/README.md: the title @acme/admin and its purpose ... <- products/admin/package.json:2-3\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/README.md",
+        "statement": "Build with `vite build` and test with `vitest run` (the `build` and `test` scripts).",
+        "verdict": "supported",
+        "source": "products/admin/package.json:5-6 (build: vite build, test: vitest run); fact list \"build with vite build, test with vitest run <- products/admin/package.json:5-6\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/README.md",
+        "statement": "TODO(unfilled): how to run it locally.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/README.md",
+        "statement": "Boundaries: TODO(unfilled): what this product may depend on and what it must not depend on. Checked by: TODO(unfilled): the rule or test that enforces each boundary, or \"not checked\".",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/README.md",
+        "statement": "users: TODO(unfilled): one line on what it is for.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/README.md",
+        "statement": "audit-log: Records staff actions for later review.",
+        "verdict": "supported",
+        "source": "products/admin/src/features/audit-log/audit.ts:1 (comment \"Records staff actions for later review.\"); fact list \"audit-log: Records staff actions for later review. <- audit.ts:1\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/audit-log/README.md",
+        "statement": "Purpose: Records staff actions for later review.",
+        "verdict": "supported",
+        "source": "audit.ts:1; fact list \"audit-log/README.md: purpose <- audit.ts:1\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/audit-log/README.md",
+        "statement": "Out of scope: TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/audit-log/README.md",
+        "statement": "Design rationale: TODO(unfilled): why it is built this way. Link the decision record of a significant choice.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/audit-log/README.md",
+        "statement": "Entries are never edited after they are written.",
+        "verdict": "supported",
+        "source": "audit.ts:1 (\"Entries are never edited after they are written.\"); fact list \"audit-log/README.md: invariant ... <- audit.ts:1\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/audit-log/README.md",
+        "statement": "Checked by: not checked (no test covers it).",
+        "verdict": "supported",
+        "source": "transcript git ls-files (lines 14-22): the only test file in the repo is products/shop/src/features/cart/cart.test.ts, none in audit-log; fact list cites git ls-files",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/audit-log/README.md",
+        "statement": "Start here: audit.ts",
+        "verdict": "supported",
+        "source": "transcript git ls-files line 17 lists products/admin/src/features/audit-log/audit.ts; the file exists in the fixture",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/audit-log/README.md",
+        "statement": "Last verified against the code: 97920c9",
+        "verdict": "supported",
+        "source": "transcript `git rev-parse --short HEAD` output 97920c9 (line 12)",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/users/README.md",
+        "statement": "Purpose: TODO(unfilled): what this feature does for its users, in one to three sentences.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/users/README.md",
+        "statement": "Out of scope: TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/users/README.md",
+        "statement": "Design rationale: TODO(unfilled): why it is built this way. Link the decision record of a significant choice.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/users/README.md",
+        "statement": "Invariants: TODO(unfilled): a rule this feature must keep. Checked by: TODO(unfilled): the test or lint rule that enforces it, or \"not checked\".",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/users/README.md",
+        "statement": "Start here: users.ts",
+        "verdict": "supported",
+        "source": "transcript git ls-files line 18 lists products/admin/src/features/users/users.ts",
+        "reason": ""
+      },
+      {
+        "readme": "products/admin/src/features/users/README.md",
+        "statement": "Last verified against the code: 97920c9",
+        "verdict": "supported",
+        "source": "transcript `git rev-parse --short HEAD` output 97920c9 (line 12)",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/README.md",
+        "statement": "Purpose: Customer-facing web shop.",
+        "verdict": "supported",
+        "source": "products/shop/package.json:3; fact list cites products/shop/package.json:2-3",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/README.md",
+        "statement": "Build with `vite build` and test with `vitest run` (the `build` and `test` scripts).",
+        "verdict": "supported",
+        "source": "products/shop/package.json:5-6; fact list cites products/shop/package.json:5-6",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/README.md",
+        "statement": "TODO(unfilled): how to run it locally.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/README.md",
+        "statement": "Boundaries: TODO(unfilled): what this product may depend on and what it must not depend on. Checked by: TODO(unfilled): the rule or test that enforces each boundary, or \"not checked\".",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/README.md",
+        "statement": "cart: Keeps the items a customer intends to buy, in the browser session only.",
+        "verdict": "supported",
+        "source": "products/shop/src/features/cart/cart.ts:1; fact list cites cart.ts:1",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/README.md",
+        "statement": "checkout: Turns a cart into an order.",
+        "verdict": "supported",
+        "source": "products/shop/src/features/checkout/checkout.ts:1; fact list cites checkout.ts:1",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/README.md",
+        "statement": "coupon: Applies a discount code to an order total.",
+        "verdict": "supported",
+        "source": "products/shop/src/features/coupon/coupon.ts:1; fact list \"coupon: ... (the later change) <- coupon.ts:1\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/cart/README.md",
+        "statement": "Purpose: Keeps the items a customer intends to buy, in the browser session only.",
+        "verdict": "supported",
+        "source": "cart.ts:1; fact list \"cart/README.md: purpose <- cart.ts:1\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/cart/README.md",
+        "statement": "Out of scope: TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/cart/README.md",
+        "statement": "Design rationale: TODO(unfilled): why it is built this way. Link the decision record of a significant choice.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/cart/README.md",
+        "statement": "Adding an item keeps the items already in the cart.",
+        "verdict": "supported",
+        "source": "cart.test.ts:2-3 (test \"adding an item keeps earlier items\": addItem([\"a\"],\"b\") equals [\"a\",\"b\"]); fact list cites cart.test.ts:2-3",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/cart/README.md",
+        "statement": "Checked by: the test \"adding an item keeps earlier items\" in cart.test.ts.",
+        "verdict": "supported",
+        "source": "cart.test.ts:2 (test name matches exactly); the file is listed by git ls-files line 20",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/cart/README.md",
+        "statement": "Start here: cart.ts",
+        "verdict": "supported",
+        "source": "transcript git ls-files line 21 lists products/shop/src/features/cart/cart.ts",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/cart/README.md",
+        "statement": "Last verified against the code: 97920c9",
+        "verdict": "supported",
+        "source": "transcript `git rev-parse --short HEAD` output 97920c9 (line 12)",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "Purpose: Turns a cart into an order.",
+        "verdict": "supported",
+        "source": "checkout.ts:1; fact list \"checkout/README.md: purpose <- checkout.ts:1\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "Payment, which an external provider handles.",
+        "verdict": "supported",
+        "source": "checkout.ts:1 (\"Payment is handled by an external provider.\"); fact list cites checkout.ts:1",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "TODO(unfilled): which provider, and where the integration lives.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "Design rationale: TODO(unfilled): why it is built this way. Link the decision record of a significant choice.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "An empty cart is never turned into an order.",
+        "verdict": "supported",
+        "source": "checkout.ts:3 (`if (cart.length === 0) throw new Error(\"empty cart\");` in placeOrder, the only function); fact list cites checkout.ts:3",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "Checked by: not checked (no test covers it).",
+        "verdict": "supported",
+        "source": "transcript git ls-files (lines 14-22): only cart.test.ts exists, none in checkout; fact list cites git ls-files",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "Start here: checkout.ts",
+        "verdict": "supported",
+        "source": "transcript git ls-files line 22 lists products/shop/src/features/checkout/checkout.ts",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/checkout/README.md",
+        "statement": "Last verified against the code: 97920c9",
+        "verdict": "supported",
+        "source": "transcript `git rev-parse --short HEAD` output 97920c9 (line 12)",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/coupon/README.md",
+        "statement": "Purpose: Applies a discount code to an order total.",
+        "verdict": "supported",
+        "source": "coupon.ts:1; fact list \"coupon/README.md: purpose <- coupon.ts:1\"",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/coupon/README.md",
+        "statement": "Out of scope: TODO(unfilled): what this feature deliberately does not handle, and where that is handled instead.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/coupon/README.md",
+        "statement": "Design rationale: TODO(unfilled): why it is built this way. Link the decision record of a significant choice.",
+        "verdict": "marked",
+        "source": "",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/coupon/README.md",
+        "statement": "A code can be used once per order.",
+        "verdict": "supported",
+        "source": "coupon.ts:1 (\"A code can be used once per order.\"); fact list cites coupon.ts:1-3",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/coupon/README.md",
+        "statement": "Checked by: not checked (no test covers it, and `applyCoupon` does not enforce it).",
+        "verdict": "supported",
+        "source": "No test: transcript `git status --short --untracked-files=all` (lines 560-562) lists only README.md and coupon.ts in the folder, and git ls-files (lines 14-22) lists no coupon test. Not enforced: coupon.ts:2-3, applyCoupon(total, percent) only returns total * (1 - percent / 100), with no per-order tracking of codes. Note: the source for the negative claim is a reading of the whole function body (two lines), not a stated sentence.",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/coupon/README.md",
+        "statement": "Start here: coupon.ts",
+        "verdict": "supported",
+        "source": "transcript git status --short --untracked-files=all line 562 lists products/shop/src/features/coupon/coupon.ts",
+        "reason": ""
+      },
+      {
+        "readme": "products/shop/src/features/coupon/README.md",
+        "statement": "Last verified against the code: c3d95e0 plus the uncommitted coupon change",
+        "verdict": "supported",
+        "source": "transcript `git rev-parse --short HEAD` output c3d95e0 (line 543) and `git status --short` (lines 560-562) showing the uncommitted coupon.ts and coupon README",
+        "reason": ""
+      }
+    ]
+  },
+  "note": "AI のレビューなので、verify-change の決まり（A-02）では受け入れ基準を通す証拠にならない。AC-ROOT-4 は人による確認（human_review）が済むまで not_run とする。"
+}

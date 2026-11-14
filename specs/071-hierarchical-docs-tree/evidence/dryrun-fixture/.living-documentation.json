@@ -1,0 +1,3 @@
+{
+  "tree": {"products": ["products/*"], "features": ["products/*/src/features/*"]}
+}
