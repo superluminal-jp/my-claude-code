@@ -54,6 +54,9 @@ check_contains_flat() {
 }
 
 # Checklist rows look like: | LOG-INJ-1 | requirement | basis |
+# Match rows with grep -q on a here-string, never on a pipe: grep -q exits at
+# the first match, and under pipefail a writer still writing then dies of
+# SIGPIPE and fails the check at random.
 rows() {
   grep -E '^\| LOG-[A-Z]+-[0-9]+ \|' "$CHECKLIST" 2>/dev/null
 }
@@ -90,12 +93,13 @@ run_skill_contract() {
 
   # The checklist is the single source of requirements: SKILL.md cites items
   # by ID instead of restating them, and every cited ID must exist.
-  local completion_ids cited_ids unknown_ids="" id
+  local completion_ids cited_ids item_rows unknown_ids="" id
   completion_ids="$(sed -n '/^## Done when/,/^## Bundled files/p' "$SKILL_FILE" 2>/dev/null | grep -oE 'LOG-[A-Z]+-[0-9]+' || true)"
   check "SL-08: the Done-when section cites checklist items by ID" "$([ -n "$completion_ids" ] && echo 1 || echo 0)"
   cited_ids="$(grep -oE 'LOG-[A-Z]+-[0-9]+' "$SKILL_FILE" 2>/dev/null | sort -u || true)"
+  item_rows="$(rows)"
   for id in $cited_ids; do
-    rows | grep -q "^| $id |" || unknown_ids="$unknown_ids $id"
+    grep -q "^| $id |" <<<"$item_rows" || unknown_ids="$unknown_ids $id"
   done
   check "SL-09: every item ID cited in SKILL.md exists in the checklist" "$([ -n "$cited_ids" ] && [ -z "$unknown_ids" ] && echo 1 || echo 0)"
 }
@@ -131,10 +135,10 @@ run_checklist_contract() {
   check_contains_flat "CL-09: NIST SP 800-53 is declared excluded" "$CHECKLIST" 'Deliberately excluded[^|]*800-53|800-53[^|]*(excluded|no primary text)'
 
   ops_pass="$(printf '%s\n' "$all_rows" | grep -E '^\| LOG-OPS-' | grep -Ei '\bpass(es|ed)?\b' || true)"
-  check "CL-10: group B items never read as passable from code" "$([ -z "$ops_pass" ] && printf '%s\n' "$all_rows" | grep -q '^| LOG-OPS-' && echo 1 || echo 0)"
+  check "CL-10: group B items never read as passable from code" "$([ -z "$ops_pass" ] && grep -q '^| LOG-OPS-' <<<"$all_rows" && echo 1 || echo 0)"
 
   for group in INV EVT ATT DATA INJ ERR CFG TST OPS PRC; do
-    check "CL-11: group $group has at least one item" "$(printf '%s\n' "$all_rows" | grep -q "^| LOG-$group-" && echo 1 || echo 0)"
+    check "CL-11: group $group has at least one item" "$(grep -q "^| LOG-$group-" <<<"$all_rows" && echo 1 || echo 0)"
   done
 
   # Practice items rest on a stack's official documentation: each names the
@@ -168,7 +172,7 @@ run_checklist_contract() {
     [ "$impact" = "none" ] && continue
     for id in $(printf '%s\n' "$impact" | tr ',' ' '); do
       case "$id" in LOG-PRC-*) bad_impact=$((bad_impact + 1)); continue ;; esac
-      printf '%s\n' "$all_rows" | grep -q "^| $id |" || bad_impact=$((bad_impact + 1))
+      grep -q "^| $id |" <<<"$all_rows" || bad_impact=$((bad_impact + 1))
     done
   done <<<"$prc_rows"
   check "CL-14: every practice item states its security impact as none or existing security items" "$([ -n "$prc_rows" ] && [ "$bad_impact" -eq 0 ] && echo 1 || echo 0)"
@@ -186,7 +190,7 @@ run_checklist_contract() {
       [ -z "$name" ] && continue
       case "$basis" in "$name "?*) cited=1 ;; esac
     done <<<"$names"
-    { printf '%s\n' "$all_rows" | grep -q "^| $id |" && [ "$cited" -eq 1 ]; } || bad_evidence=$((bad_evidence + 1))
+    { grep -q "^| $id |" <<<"$all_rows" && [ "$cited" -eq 1 ]; } || bad_evidence=$((bad_evidence + 1))
   done <<<"$evidence_rows"
   check "CL-13: infrastructure-code evidence maps existing group B items and cites listed sources" "$([ -n "$evidence_rows" ] && [ "$bad_evidence" -eq 0 ] && echo 1 || echo 0)"
 }
