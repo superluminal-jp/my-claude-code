@@ -1,0 +1,53 @@
+# AC-TAG-2: 標識を足した後も C-02 を含む契約がすべてのスキルで通る。C-08 の変更の前後
+# reviewed_commit: dcb14259969f0354be32736cc7b337b14891379e
+# この記録は、下に挙げたファイルをそのまま連結したものである。各部の先頭に元のファイルを書いた。
+
+## 契約の検査（dcb1425 で実行）（specs/073-scrum-role-tree/evidence/dcb1425/ac-contract.txt）
+
+# command: python3 -B tests/assert_skill_contract.py harness/skills
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:54:34Z
+
+apply-dads-frontend          kind=overlay      sandbox=network  description= 465 body=  892 words
+apply-scrum-guide            kind=overlay      sandbox=inside   description= 455 body=  472 words
+apply-secure-logging         kind=overlay      sandbox=inside   description= 874 body= 1119 words
+build-dads-slides            kind=worker       sandbox=network  description= 566 body= 1228 words
+clarify-intent               kind=worker       sandbox=inside   description= 789 body=  912 words
+define-problem               kind=worker       sandbox=inside   description= 618 body=  567 words
+define-product-strategy      kind=worker       sandbox=inside   description= 709 body=  553 words
+deliver-change               kind=orchestrator sandbox=inside   description= 503 body=  400 words
+draw-system-diagrams         kind=worker       sandbox=inside   description= 810 body= 1089 words
+implement-change             kind=worker       sandbox=inside   description= 367 body=  720 words
+manage-git                   kind=worker       sandbox=network  description= 456 body=  561 words
+manage-scrum-artifacts       kind=worker       sandbox=inside   description= 718 body=  814 words
+research-aws                 kind=worker       sandbox=inside   description= 549 body=  587 words
+specify-requirements         kind=worker       sandbox=inside   description= 742 body=  978 words
+structure-document           kind=worker       sandbox=inside   description= 543 body=  928 words
+sync-docs                    kind=worker       sandbox=inside   description= 843 body= 1399 words
+verify-change                kind=worker       sandbox=inside   description= 641 body= 1104 words
+skill-contract: 17 skills, 0 failures
+
+exit=0
+
+## C-08 が metadata.role の値を数えなくなる前の試験の失敗（実装の途中に記録）（specs/073-scrum-role-tree/evidence/red-c08-role.txt）
+
+# python3 -B -m unittest tests/test_skill_contract.py (2026-11-15, before C-08 skips the metadata.role value)
+FAIL: test_c08_role_value_is_not_a_skill_name (tests.test_skill_contract.ContractTests.test_c08_role_value_is_not_a_skill_name)
+AssertionError: 1 != 0 : FAIL C-08 do-thing: SKILL.md: names the retired skill 'scrum-master'
+Ran 29 tests in 1.072s
+FAILED (failures=1)
+
+## C-08 の試験を含む契約の単体試験（dcb1425 で実行）（specs/073-scrum-role-tree/evidence/dcb1425/ac-values-1.txt）
+
+# command: python3 -B -m unittest tests/test_skill_contract.py
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:54:33Z
+
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 1.029s
+
+OK
+
+exit=0
+

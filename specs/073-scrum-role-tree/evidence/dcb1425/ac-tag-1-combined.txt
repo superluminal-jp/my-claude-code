@@ -1,0 +1,126 @@
+# AC-TAG-1: 標識の違反が、変更前は22件、変更後は0件。自己検査は標識の写し2種を拒む
+# reviewed_commit: dcb14259969f0354be32736cc7b337b14891379e
+# この記録は、下に挙げたファイルをそのまま連結したものである。各部の先頭に元のファイルを書いた。
+
+## 変更前（宣言の前。実装の途中に記録）（specs/073-scrum-role-tree/evidence/red-role-tree.txt）
+
+# python3 -B tests/assert_role_tree.py (2026-11-15, before any declaration; exit code on the last line)
+FAIL DECL apply-dads-frontend: harness/skills/apply-dads-frontend/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL apply-dads-frontend: harness/skills/apply-dads-frontend/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH apply-dads-frontend: its stages ['E-dads-frontend'] are all on branch execute, not None
+FAIL TAG apply-dads-frontend: harness/skills/apply-dads-frontend/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL apply-scrum-guide: harness/skills/apply-scrum-guide/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL apply-scrum-guide: harness/skills/apply-scrum-guide/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH apply-scrum-guide: its stages ['E-scrum'] are all on branch execute, not None
+FAIL TAG apply-scrum-guide: harness/skills/apply-scrum-guide/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL apply-secure-logging: harness/skills/apply-secure-logging/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL apply-secure-logging: harness/skills/apply-secure-logging/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH apply-secure-logging: its stages ['E-logging'] are all on branch execute, not None
+FAIL TAG apply-secure-logging: harness/skills/apply-secure-logging/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL build-dads-slides: harness/skills/build-dads-slides/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL build-dads-slides: harness/skills/build-dads-slides/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH build-dads-slides: its stages ['E-dads-slides'] are all on branch execute, not None
+FAIL TAG build-dads-slides: harness/skills/build-dads-slides/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL check-runner: harness/agents/check-runner.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL check-runner: harness/agents/check-runner.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH check-runner: its stages ['E-delegate'] are all on branch execute, not None
+FAIL TAG check-runner: harness/agents/check-runner.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL clarify-intent: harness/skills/clarify-intent/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL clarify-intent: harness/skills/clarify-intent/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH clarify-intent: its stages ['D-intent'] are all on branch define, not None
+FAIL TAG clarify-intent: harness/skills/clarify-intent/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL define-problem: harness/skills/define-problem/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL define-problem: harness/skills/define-problem/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH define-problem: its stages ['D-problem'] are all on branch define, not None
+FAIL TAG define-problem: harness/skills/define-problem/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL define-product-strategy: harness/skills/define-product-strategy/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL define-product-strategy: harness/skills/define-product-strategy/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH define-product-strategy: its stages ['D-product'] are all on branch define, not None
+FAIL TAG define-product-strategy: harness/skills/define-product-strategy/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL deliver-change: harness/skills/deliver-change/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL deliver-change: harness/skills/deliver-change/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH deliver-change: its stages ['H-verify'] are all on branch handoff, not None
+FAIL TAG deliver-change: harness/skills/deliver-change/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL draw-system-diagrams: harness/skills/draw-system-diagrams/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL draw-system-diagrams: harness/skills/draw-system-diagrams/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH draw-system-diagrams: its stages ['E-diagrams'] are all on branch execute, not None
+FAIL TAG draw-system-diagrams: harness/skills/draw-system-diagrams/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL file-searcher: harness/agents/file-searcher.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL file-searcher: harness/agents/file-searcher.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH file-searcher: its stages ['E-delegate'] are all on branch execute, not None
+FAIL TAG file-searcher: harness/agents/file-searcher.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL implement-change: harness/skills/implement-change/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL implement-change: harness/skills/implement-change/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL STAGE implement-change: its stages ['E-implement', 'H-docs', 'H-verify'] span branches ['execute', 'handoff']; metadata.stage must name one
+FAIL TAG implement-change: harness/skills/implement-change/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL manage-git: harness/skills/manage-git/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL manage-git: harness/skills/manage-git/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH manage-git: its stages ['E-git'] are all on branch execute, not None
+FAIL TAG manage-git: harness/skills/manage-git/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL manage-scrum-artifacts: harness/skills/manage-scrum-artifacts/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL manage-scrum-artifacts: harness/skills/manage-scrum-artifacts/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH manage-scrum-artifacts: its stages ['E-scrum-artifacts'] are all on branch execute, not None
+FAIL TAG manage-scrum-artifacts: harness/skills/manage-scrum-artifacts/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL read-only-reviewer: harness/agents/read-only-reviewer.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL read-only-reviewer: harness/agents/read-only-reviewer.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL STAGE read-only-reviewer: its stages ['D-decompose', 'E-delegate', 'H-verify'] span branches ['define', 'execute', 'handoff']; metadata.stage must name one
+FAIL TAG read-only-reviewer: harness/agents/read-only-reviewer.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL research-aws: harness/skills/research-aws/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL research-aws: harness/skills/research-aws/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH research-aws: its stages ['D-evidence'] are all on branch define, not None
+FAIL TAG research-aws: harness/skills/research-aws/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL scrum-master-agent: harness/agents/scrum-master-agent.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL scrum-master-agent: harness/agents/scrum-master-agent.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH scrum-master-agent: its stages ['E-scrum'] are all on branch execute, not None
+FAIL TAG scrum-master-agent: harness/agents/scrum-master-agent.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL specify-requirements: harness/skills/specify-requirements/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL specify-requirements: harness/skills/specify-requirements/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH specify-requirements: its stages ['D-decompose'] are all on branch define, not None
+FAIL TAG specify-requirements: harness/skills/specify-requirements/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL structure-document: harness/skills/structure-document/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL structure-document: harness/skills/structure-document/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH structure-document: its stages ['H-document'] are all on branch handoff, not None
+FAIL TAG structure-document: harness/skills/structure-document/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL sync-docs: harness/skills/sync-docs/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL sync-docs: harness/skills/sync-docs/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH sync-docs: its stages ['H-docs'] are all on branch handoff, not None
+FAIL TAG sync-docs: harness/skills/sync-docs/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL task-worker: harness/agents/task-worker.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL task-worker: harness/agents/task-worker.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH task-worker: its stages ['E-delegate'] are all on branch execute, not None
+FAIL TAG task-worker: harness/agents/task-worker.md: the description does not end with '[<Role> / <branch>]'
+FAIL DECL verify-change: harness/skills/verify-change/SKILL.md: metadata.role None is not one of ['developers', 'product-owner', 'scrum-master']
+FAIL DECL verify-change: harness/skills/verify-change/SKILL.md: metadata.branch None is not one of ['define', 'execute', 'handoff']
+FAIL BRANCH verify-change: its stages ['H-verify'] are all on branch handoff, not None
+FAIL TAG verify-change: harness/skills/verify-change/SKILL.md: the description does not end with '[<Role> / <branch>]'
+FAIL README README.md: no <!-- role-tree:start --> ... <!-- role-tree:end --> block
+FAIL README README.ja.md: no <!-- role-tree:start --> ... <!-- role-tree:end --> block
+FAIL DIAGRAM docs/harness/skill-map/03-role-tree.md: no <!-- role-tree-diagram:start --> ... <!-- role-tree-diagram:end --> block
+role-tree: 22 elements, 91 violations
+exit=1
+
+# violations per rule
+   1 22
+  20 BRANCH
+  44 DECL
+   1 DIAGRAM
+   2 README
+   2 STAGE
+  22 TAG
+
+## 変更後（dcb1425 で実行）（specs/073-scrum-role-tree/evidence/dcb1425/ac-root-1.txt）
+
+# command: python3 -B tests/assert_role_tree.py
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:54:32Z
+
+role-tree: 22 elements, 0 violations
+
+exit=0
+
+## 自己検査の TAG の行（dcb1425 で実行）（specs/073-scrum-role-tree/evidence/dcb1425/ac-tree-check-1.txt）
+
+refused TAG      a description without its tag
+refused TAG      a tag naming another role
+role-tree self-test: 13 of 13 broken copies refused
+

@@ -1,0 +1,23 @@
+# AC-ROOT-1: 全規則の検査と、--print と期待のファイルの一致
+# reviewed_commit: dcb14259969f0354be32736cc7b337b14891379e
+# この記録は、下に挙げたファイルをそのまま連結したものである。各部の先頭に元のファイルを書いた。
+
+## 全規則の検査（dcb1425 で実行）（specs/073-scrum-role-tree/evidence/dcb1425/ac-root-1.txt）
+
+# command: python3 -B tests/assert_role_tree.py
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:54:32Z
+
+role-tree: 22 elements, 0 violations
+
+exit=0
+
+## --print と expected-tree.txt の diff（dcb1425 で実行。出力なしで exit=0 なら一致）（specs/073-scrum-role-tree/evidence/dcb1425/ac-declare-1.txt）
+
+# command: tree_diff
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:54:32Z
+
+
+exit=0
+

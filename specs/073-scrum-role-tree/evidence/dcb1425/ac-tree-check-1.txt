@@ -1,0 +1,20 @@
+# command: python3 -B tests/assert_role_tree.py --self-test
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:54:32Z
+
+refused DECL     an agent definition without metadata
+refused DECL     a skill whose role is not defined
+refused BRANCH   a single-branch element on another branch
+refused MAP      an element missing from the capability map
+refused DECL     role given twice
+refused DECL     a new agent definition without a place
+refused STAGE    a multi-branch element without stage
+refused STAGE    a stage on another branch than the declared one
+refused TAG      a description without its tag
+refused TAG      a tag naming another role
+refused README   a README table row edited by hand
+refused README   a README.ja table row edited by hand
+refused DIAGRAM  a tree diagram edited by hand
+role-tree self-test: 13 of 13 broken copies refused
+
+exit=0

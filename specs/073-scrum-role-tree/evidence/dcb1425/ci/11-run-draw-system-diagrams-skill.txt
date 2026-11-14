@@ -1,0 +1,12 @@
+# command: bash tests/run-draw-system-diagrams-skill.sh
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:57:22Z
+
+PASS DIAG-01: checker acceptance tests pass
+PASS DIAG-02: the bundled example set passes the checker
+PASS DIAG-03: the bundled templates pass the checker
+PASS DIAG-04: an unlabelled line and a missing legend fail the checker
+
+system-diagrams: 4 passed, 0 failed
+
+exit=0

@@ -1,0 +1,12 @@
+# command: sync2_check
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:55:13Z
+
+changed files: 38
+related documents (closest first):
+  docs/harness-zero-base.md  [P2 mention]  <- tests/assert_skill_contract.py, tests/run-harness-skills.sh, tests/test_skill_contract.py
+--- each related document named in documentation-impact.md
+CLAUDE.md: 2
+docs/harness-zero-base.md: 2
+
+exit=0

@@ -1,0 +1,14 @@
+# command: sync_check
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:55:13Z
+
+135:これとは別の軸として、どのスキルとサブエージェントの定義も、木の中の場所を1つ、前付けの `metadata` に宣言する（spec 073、[ADR-0026](adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md)）。`role` は、主な成果物がどの Scrum のアカウンタビリティに属するかを示す。値は `product-owner`（何をなぜ作るか）、`developers`（どう作りどう確かめるか）、`scrum-master`（Scrum が成り立っているか）の3つである。`branch` は、その要素が支える頂点の枝で、値は `define`、`execute`、`handoff` の3つである。段階が2つ以上の枝にまたがる要素だけは、`stage` で主な段階を選ぶ。`description` の末尾にも、同じ場所を `[Developers / execute]` のような標識で書く。宣言は名前による参照ではなく、木の節は抽象的な役割と枝である。そのため、上の層がスキルを名指さないという決まりは変わらない。`tests/assert_role_tree.py` が、宣言、対応表、README の表、木の図の一致を確かめる。
+README.md:312:`python3 tests/assert_role_tree.py --table en`, which also checks that it
+README.md:570:[`tests/assert_role_tree.py`](tests/assert_role_tree.py), which checks the
+README.ja.md:196:すべてのスキルとサブエージェントの定義は、3段の木の中の場所を1つ、自分の前付けに宣言します（`metadata.role`、`metadata.branch`、段階が2つ以上の枝にまたがるときは `metadata.stage`）。`description` の末尾にも、同じ場所を `[Developers / execute]` のような標識で書きます。役割は、主な成果物がどの Scrum のアカウンタビリティに属するかで決まります。Product Owner は何をなぜ作るか（Product Goal と Product Backlog の項目の中身）、Developers はどう作りどう確かめるか（Sprint の計画と、Definition of Done を満たす Increment）、Scrum Master は Scrum が成り立っているかです。枝は、その要素が支える `harness/CLAUDE.md` の節で、[`docs/harness/capability-map.json`](docs/harness/capability-map.json) と同じ語を使います。下の表は、宣言から `python3 tests/assert_role_tree.py --table ja` で生成したもので、同じスクリプトが宣言と一致するかも確かめます。目的の列は各 `description` の最初の文です。木の図は [`docs/harness/skill-map/03-role-tree.md`](docs/harness/skill-map/03-role-tree.md)、決定は [ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md) にあります。
+README.ja.md:447:子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。次に [`tests/assert_role_tree.py`](tests/assert_role_tree.py) を実行し、すべてのスキルとサブエージェントの定義の[役割の木](#役割の木)を確かめる: `metadata.role` と `metadata.branch` を定義された値で1回ずつ宣言していること、対応表がその要素を持ち、枝が担う段階と合うこと（段階が2つ以上の枝にまたがるときは `metadata.stage` で段階を選ぶ）、`description` の末尾が一致する標識であること、README の表と木の図が宣言から生成したものと一致すること。`--self-test` は、どれか1つの規則を壊した写しが拒まれることを示す。続けて、
+14:  C-04  metadata: kind, permission, sandbox, role, branch have defined values;
+15:        a skill that needs the network names its hosts. role and branch place
+Link check (all files): 302 Markdown files, 0 errors, 63 warnings.
+
+exit=0

@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "verification_manifest": {
+    "change_id": "CHG-073",
+    "problem_id": "PRB-073",
+    "reviewed_commit": "dcb14259969f0354be32736cc7b337b14891379e",
+    "implementer": "claude",
+    "risk": {
+      "class": "medium",
+      "rationale": "スキルの契約（tests/assert_skill_contract.py の C-04、C-08）と、エージェント定義の検査という、複数のモジュールにまたがるインターフェースを変える。22件のスキルとエージェントの description も変わる。認証、秘密、個人データ、データ移行、権限、外部への公開には触れず、git revert で戻せる。"
+    },
+    "approvals": [],
+    "checks": [
+      {
+        "check_id": "AC-ROOT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-root-1-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-ROOT-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ci/03-run-harness-skills.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-FORM-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-form-1.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-FORM-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-form-2.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-VALUES-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-values-1-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-AGENT-META-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-agent-meta-1-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-DECLARE-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-declare-1-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-TREE-CHECK-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-tree-check-1.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-TAG-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-tag-1-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-TAG-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-tag-2-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-README-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-readme-1-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-DIAGRAM-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-diagram-1-combined.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-DIAGRAM-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-diagram-2.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-DIAGRAM-3",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-diagram-3.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-ADR-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-adr-1.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-SYNC-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-sync-1.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-SYNC-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-sync-2.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-COMPAT-1",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ac-compat-1.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      },
+      {
+        "check_id": "AC-COMPAT-2",
+        "status": "passed",
+        "evidence": {
+          "kind": "local_run",
+          "ref": "specs/073-scrum-role-tree/evidence/dcb1425/ci-summary.txt",
+          "commit": "dcb14259969f0354be32736cc7b337b14891379e"
+        }
+      }
+    ],
+    "test_changes": [
+      {
+        "path": "tests/assert_skill_contract.py C-08（廃止したスキルの名前）",
+        "change": "weakened"
+      },
+      {
+        "path": "tests/assert_reviewer_agent.py R1a（read-only-reviewer の前付けの欄）",
+        "change": "weakened"
+      }
+    ],
+    "infra_changes": []
+  }
+}

@@ -1,0 +1,13 @@
+# command: bash tests/run-removed-guardrails.sh
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:56:27Z
+
+PASS ADR-0005: no hooks directory, in harness/ or in .claude/
+PASS SRC-01: this repository's own .claude/ holds no managed configuration
+PASS ADR-0007: scripts/ stays removed
+PASS ADR-0006/0014: settings.json permissions carries no allow/ask tier
+PASS ADR-0014: deny entries are Read rules with portable anchors
+
+Results: 5 passed, 0 failed
+
+exit=0
