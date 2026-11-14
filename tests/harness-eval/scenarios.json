@@ -656,6 +656,16 @@
             "file": "harness/skills/apply-scrum-guide/SKILL.md",
             "quote": "Scrum Guide (2020) を唯一の規範として"
           }
+        },
+        {
+          "id": "not-manage-scrum-artifacts",
+          "type": "skill",
+          "skill": "manage-scrum-artifacts",
+          "expect": "unused",
+          "basis": {
+            "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+            "quote": "Do not use to diagnose or improve how a team practices Scrum, to facilitate an event"
+          }
         }
       ]
     },
@@ -676,6 +686,27 @@
           "basis": {
             "file": "harness/skills/apply-scrum-guide/SKILL.md",
             "quote": "一般的なプロジェクト管理、ステータス報告、ガントチャート、予算やマイルストーンの管理"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e-scrum-artifacts-setup",
+      "kind": "expectation",
+      "stages": [
+        "E-scrum-artifacts"
+      ],
+      "description": "Scrum の作成物を、リポジトリの中のファイルとして用意する依頼。作成物を置く領域が使われるか。",
+      "prompt": "このリポジトリは受注管理という1つのプロダクトです。Scrum の Product Backlog と Definition of Done、それに 2026-11-16 に始まる最初の Sprint の記録を、リポジトリの中のファイルとして用意してください。",
+      "graders": [
+        {
+          "id": "uses-manage-scrum-artifacts",
+          "type": "skill",
+          "skill": "manage-scrum-artifacts",
+          "expect": "used",
+          "basis": {
+            "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+            "quote": "Use when asked to set up, add a Sprint to, check, or draft from Scrum artifacts kept in a repository"
           }
         }
       ]

@@ -88,6 +88,10 @@
       "path": "harness/skills/manage-git/SKILL.md"
     },
     {
+      "id": "skill:manage-scrum-artifacts",
+      "path": "harness/skills/manage-scrum-artifacts/SKILL.md"
+    },
+    {
       "id": "skill:research-aws",
       "path": "harness/skills/research-aws/SKILL.md"
     },
@@ -443,6 +447,24 @@
         {
           "file": "harness/skills/apply-scrum-guide/SKILL.md",
           "quote": "Scrum Guide (2020) を唯一の規範として"
+        },
+        {
+          "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+          "quote": "Do not use to diagnose or improve how a team practices Scrum, to facilitate an event"
+        }
+      ]
+    },
+    {
+      "id": "E-scrum-artifacts",
+      "branch": "execute",
+      "title": "Scrum の作成物を、リポジトリの中のファイルとして置き、保つ",
+      "owners": [
+        "skill:manage-scrum-artifacts"
+      ],
+      "basis": [
+        {
+          "file": "harness/skills/manage-scrum-artifacts/SKILL.md",
+          "quote": "Use when asked to set up, add a Sprint to, check, or draft from Scrum artifacts kept in a repository"
         }
       ]
     },

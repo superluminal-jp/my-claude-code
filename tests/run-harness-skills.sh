@@ -40,7 +40,7 @@ status=$?
 [ "$status" -ne 0 ] && printf '%s\n' "$out" | grep '^FAIL' | sed 's/^/    /' >&2
 check "HS-01: every skill meets the contract ($(printf '%s\n' "$out" | tail -n 1))" "$status"
 
-for skill in specify-requirements verify-change draw-system-diagrams structure-document sync-docs; do
+for skill in specify-requirements verify-change draw-system-diagrams structure-document sync-docs manage-scrum-artifacts; do
   out="$(python3 -B -m unittest discover -s "$SKILLS/$skill/tests" -t "$SKILLS/$skill/tests" 2>&1)"
   status=$?
   summary="$(printf '%s\n' "$out" | grep -E '^Ran [0-9]+ tests?' | tail -n 1)"

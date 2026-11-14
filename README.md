@@ -90,7 +90,7 @@ redesign that produced this layout is recorded in
     judgment, for independent tasks that run in parallel. Its definition sets
     no tool restriction; it writes only the files its task assigns it and does
     not declare the larger work complete
-- **`harness/skills/`** — On-demand playbooks loaded by relevance, 16 in all,
+- **`harness/skills/`** — On-demand playbooks loaded by relevance, 17 in all,
   self-describing so that no central router is needed. Each `SKILL.md` holds
   a `description` (when to use the skill and when not to) and, under
   `metadata`, its `kind` (`worker`, `overlay`, or `orchestrator`), its
@@ -221,8 +221,15 @@ redesign that produced this layout is recorded in
     about storage, transport, retention, or alerting is never passed from
     application code), and `apply-scrum-guide` (diagnose and improve Scrum
     events, artifacts, accountabilities, and deviations against the 2020 Scrum
-    Guide alone; read-only, with the Guide's Japanese and US PDFs and eight
-    Markdown templates bundled; the skill's text is Japanese)
+    Guide alone; read-only, with the Guide's Japanese and US PDFs bundled;
+    the skill's text is Japanese), and `manage-scrum-artifacts` (keep each
+    product's Scrum artifacts as files in its repository: place the Product
+    Backlog, the Definition of Done, and per-Sprint records under the product
+    folder's `scrum/` from nine bundled Scrum Guide templates, add one Sprint
+    folder at a time, and check the shape with a bundled read-only script
+    that also warns about a Product Goal, Sprint Goal, or Definition of Done
+    not yet written; it never overwrites a file and never fills in a value
+    the Scrum Team decides)
   - No skill names another, except that a parent skill — one that applies
     several skills in a set order — may name, by name and never by path, the
     child skills it declares in a `## Child skills` section of its `SKILL.md`;
@@ -377,7 +384,7 @@ my-claude-code/
     │   ├── check-runner.md         # Long-output checks: reports each command, exit code, and failure verbatim
     │   ├── file-searcher.md        # Read-only search: returns path:line locations
     │   └── task-worker.md          # One self-contained task that needs judgment, run in parallel with others
-    └── skills/                     # On-demand: body loaded when relevant, self-describing; 16 skills
+    └── skills/                     # On-demand: body loaded when relevant, self-describing; 17 skills
         ├── clarify-intent/         # Shared understanding of intent (worker)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   framework inventory (named to the user) + design basis (not named)
@@ -435,9 +442,15 @@ my-claude-code/
         ├── apply-secure-logging/   # OWASP + stack-practice logging checklist (overlay)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   source-backed checklist (ASVS V16, CWE, OWASP, official stack docs)
-        └── apply-scrum-guide/      # Scrum Guide (2020)-only diagnosis of events, artifacts, accountabilities (overlay)
+        ├── apply-scrum-guide/      # Scrum Guide (2020)-only diagnosis of events, artifacts, accountabilities (overlay)
+        │   ├── SKILL.md            #   playbook
+        │   └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+        └── manage-scrum-artifacts/ # Scrum artifacts kept as files under each product's scrum/ (worker)
             ├── SKILL.md            #   playbook
-            └── references/         #   3 on-demand reference documents + the Scrum Guide PDFs
+            ├── references/         #   layout conventions and check rules, event preparation
+            ├── scripts/            #   scaffold.py (places new files only), check_artifacts.py (read-only)
+            ├── templates/          #   9 Scrum Guide templates copied into a repository
+            └── tests/              #   unit tests of the scripts and of the procedure text
                 └── templates/      #   8 ready-to-use Markdown templates (artifacts + events)
 ```
 
@@ -483,7 +496,7 @@ depends on the install location and none points into this repository's
 declares at least two existing children, none of them an orchestrator, while no
 other kind declares any. It then runs the unit tests of the checker scripts
 bundled in `specify-requirements`, `verify-change`, `draw-system-diagrams`,
-`structure-document`, and `sync-docs`. To run one skill's unit tests alone:
+`structure-document`, `sync-docs`, and `manage-scrum-artifacts`. To run one skill's unit tests alone:
 
 ```sh
 python3 -B -m unittest discover -s harness/skills/sync-docs/tests -t harness/skills/sync-docs/tests -v

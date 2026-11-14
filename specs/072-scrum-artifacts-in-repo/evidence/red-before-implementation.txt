@@ -1,0 +1,65 @@
+$ python3 -B -m unittest discover -s harness/skills/manage-scrum-artifacts/tests -t harness/skills/manage-scrum-artifacts/tests   (scripts are stubs with the final command line that place and check nothing)
+ERROR: test_json_output_is_one_object_with_product_errors_and_warnings (test_check_artifacts.ACleanProductPasses.test_json_output_is_one_object_with_product_errors_and_warnings)
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+ERROR: test_a_missing_definition_of_done_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_missing_definition_of_done_is_an_error)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpuir8teks/repo/scrum/definition-of-done.md'
+ERROR: test_a_missing_product_backlog_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_missing_product_backlog_is_an_error)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmp8rxr5eyy/repo/scrum/product-backlog.md'
+ERROR: test_a_second_definition_of_done_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_second_definition_of_done_is_an_error)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpqt9y7rzu/repo/scrum/definition-of-done.md'
+ERROR: test_a_second_product_backlog_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_second_product_backlog_is_an_error)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpfwqmb3xg/repo/scrum/product-backlog.md'
+ERROR: test_a_sprint_folder_with_a_malformed_name_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_sprint_folder_with_a_malformed_name_is_an_error) (name='sprint-2')
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmp0y4tr52j/repo/scrum/sprints/001-2026-11-16'
+ERROR: test_a_sprint_folder_with_a_malformed_name_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_sprint_folder_with_a_malformed_name_is_an_error) (name='2-2026-11-30')
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmp0y4tr52j/repo/scrum/sprints/001-2026-11-16'
+ERROR: test_a_sprint_folder_with_a_malformed_name_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_sprint_folder_with_a_malformed_name_is_an_error) (name='002-2026-13-01')
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmp0y4tr52j/repo/scrum/sprints/001-2026-11-16'
+ERROR: test_a_sprint_without_its_sprint_backlog_is_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_a_sprint_without_its_sprint_backlog_is_an_error)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpt8kblqf7/repo/scrum/sprints/001-2026-11-16/sprint-backlog.md'
+ERROR: test_numbers_and_start_dates_in_different_orders_are_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_numbers_and_start_dates_in_different_orders_are_an_error)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmp7dqfvrs0/repo/scrum/sprints/001-2026-11-16'
+ERROR: test_two_sprint_folders_with_one_number_are_an_error (test_check_artifacts.ShapeErrorsAreReportedOneByOne.test_two_sprint_folders_with_one_number_are_an_error)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpdxo6danc/repo/scrum/sprints/001-2026-11-16'
+ERROR: test_a_fresh_product_warns_once_for_each_commitment (test_check_artifacts.UnsetCommitmentsAreWarned.test_a_fresh_product_warns_once_for_each_commitment)
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+ERROR: test_commitments_that_are_written_are_not_warned (test_check_artifacts.UnsetCommitmentsAreWarned.test_commitments_that_are_written_are_not_warned)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpqf92psmr/repo/scrum/product-backlog.md'
+ERROR: test_a_second_init_keeps_edited_files_and_restores_only_the_missing_one (test_scaffold.ExistingFilesAreKept.test_a_second_init_keeps_edited_files_and_restores_only_the_missing_one)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmphjarbslu/repo/scrum/product-backlog.md'
+ERROR: test_init_at_the_root_places_exactly_the_three_product_files (test_scaffold.InitPlacesTheProductArtifacts.test_init_at_the_root_places_exactly_the_three_product_files)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpj377kx67/repo/scrum'
+ERROR: test_init_in_a_product_folder_places_them_there_and_not_at_the_root (test_scaffold.InitPlacesTheProductArtifacts.test_init_in_a_product_folder_places_them_there_and_not_at_the_root)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpfjg2j0dm/repo/products/a/scrum'
+ERROR: test_placed_files_are_the_bundled_templates_byte_for_byte (test_scaffold.InitPlacesTheProductArtifacts.test_placed_files_are_the_bundled_templates_byte_for_byte) (placed='product-backlog.md')
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpu0aztfgq/repo/scrum/product-backlog.md'
+ERROR: test_placed_files_are_the_bundled_templates_byte_for_byte (test_scaffold.InitPlacesTheProductArtifacts.test_placed_files_are_the_bundled_templates_byte_for_byte) (placed='definition-of-done.md')
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpu0aztfgq/repo/scrum/definition-of-done.md'
+ERROR: test_placed_files_are_the_bundled_templates_byte_for_byte (test_scaffold.InitPlacesTheProductArtifacts.test_placed_files_are_the_bundled_templates_byte_for_byte) (placed='README.md')
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpu0aztfgq/repo/scrum/README.md'
+ERROR: test_the_first_sprint_is_001_with_the_five_sprint_files (test_scaffold.SprintAddsTheNextSprintFolder.test_the_first_sprint_is_001_with_the_five_sprint_files)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpful9kj7c/repo/scrum/sprints'
+ERROR: test_the_second_sprint_is_002_and_daily_adds_the_daily_scrum_file (test_scaffold.SprintAddsTheNextSprintFolder.test_the_second_sprint_is_002_and_daily_adds_the_daily_scrum_file)
+FileNotFoundError: [Errno 2] No such file or directory: '$TMPDIR/tmpzmkvlo53/repo/scrum/sprints'
+FAIL: test_a_product_without_scrum_cannot_be_checked (test_check_artifacts.ACleanProductPasses.test_a_product_without_scrum_cannot_be_checked)
+AssertionError: 0 != 2 : 
+FAIL: test_a_missing_folder_is_refused (test_scaffold.InitRefusesAProductOutsideTheRoot.test_a_missing_folder_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_a_parent_path_is_refused (test_scaffold.InitRefusesAProductOutsideTheRoot.test_a_parent_path_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_a_scrum_symlink_that_leaves_the_root_is_refused (test_scaffold.InitRefusesAProductOutsideTheRoot.test_a_scrum_symlink_that_leaves_the_root_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_a_symlink_that_leaves_the_root_is_refused (test_scaffold.InitRefusesAProductOutsideTheRoot.test_a_symlink_that_leaves_the_root_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_an_absolute_path_is_refused (test_scaffold.InitRefusesAProductOutsideTheRoot.test_an_absolute_path_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_a_date_without_zero_padding_is_refused (test_scaffold.SprintRefusesWhatItCannotPlace.test_a_date_without_zero_padding_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_a_month_that_does_not_exist_is_refused (test_scaffold.SprintRefusesWhatItCannotPlace.test_a_month_that_does_not_exist_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_a_product_without_scrum_is_refused (test_scaffold.SprintRefusesWhatItCannotPlace.test_a_product_without_scrum_is_refused)
+AssertionError: 0 != 2 : 
+FAIL: test_a_start_not_after_the_latest_sprint_is_refused (test_scaffold.SprintRefusesWhatItCannotPlace.test_a_start_not_after_the_latest_sprint_is_refused)
+AssertionError: 0 != 2 : 
+Ran 29 tests in 1.370s
+FAILED (failures=10, errors=21)
