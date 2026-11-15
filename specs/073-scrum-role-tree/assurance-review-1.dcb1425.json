@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-073",
+    "reviewed_commit": "dcb14259969f0354be32736cc7b337b14891379e",
+    "reviewer": "read-only-reviewer subagent, agentId aeb6c6e718e72416d, 2026-11-15, read 32 files",
+    "context_given": [
+      "review_prep.py bundle --base main の束（$TMPDIR/review-073-r1）。範囲 e4f2992..dcb1425、scope whole（the first round）",
+      "references/assurance-review.md の1回目の指示文（記録の言語は日本語）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "weakened_test",
+        "target": "CHG-073",
+        "severity": "high",
+        "statement": "manifest.json の test_changes は tests/assert_skill_contract.py C-08 と tests/assert_reviewer_agent.py R1a を weakened と申告しているが、どちらにも approved_by がなく、approvals も空である。verify-change の references/manifest.md の規則 A-06 は「すべての test change は実装者以外の者が approved_by で承認する」を求めるので、ゲートはこの変更を blocked にする。弱めた内容も承認の対象になる。C-08 は、SKILL.md のどの行でも `^  role: \\S+$` に当たる行を廃止名の走査から外す（前付けの外の本文のインデントした行も外れる。diff の assert_skill_contract.py の names_text）。R1a は、metadata の下の任意の `  key: value` 行を、キーや値を確かめずに受け入れる（diff の assert_reviewer_agent.py の in_metadata）。test_c08_role_value_is_not_a_skill_name と「a metadata entry outside the map」の写しが一部を補うが、承認の記録がない。",
+        "disposition": "accepted",
+        "resolution": "2つの緩めを狭め、コミット e3a3d2adb1934e695709490981a96b28e5c87fbd に入れた。C-08 の例外は前付けの metadata.role の行だけに限り、本文の同じ行は数える。tests/test_skill_contract.py に test_c08_role_line_in_the_body_is_still_a_name を足した。この試験は狭める前に失敗した（evidence/red-c08-body.txt）。assert_reviewer_agent.py は metadata のキーを role、branch、stage に限る（METADATA_KEYS）。「an unknown metadata key」の写しを足し、限る前はその写しを拒まなかった（evidence/red-r1a-key.txt）。2つの test_changes は weakened のまま manifest に載せ、実装者ではない利用者の承認（approved_by）を求める。承認が得られるまで、ゲートは A-06 で blocked のままにする。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "evidence_mismatch",
+        "target": "AC-README-1",
+        "severity": "medium",
+        "statement": "REQ-README は、目的の列を「description の最初の文から標識を除いたもの」と定め、README.ja.md も「目的の列は各 description の最初の文です」と書く。ところが diff の README.md と README.ja.md の apply-scrum-guide の行は、6文ある description 全体を目的に載せている。tests/assert_role_tree.py の purpose() は、`[.。]` の直後が空白か文末のときだけ文を切るが、日本語の description は「。」の直後に空白がなく、標識を除いた後は文末まで切れないからである。AC-README-1 の検査は、表を同じ生成関数の出力と比べるだけで、「最初の文」という要件を確かめない。そのため 0 violations でも要件に反した表が通っている。",
+        "disposition": "accepted",
+        "resolution": "コミット e3a3d2adb1934e695709490981a96b28e5c87fbd で、tests/assert_role_tree.py の purpose() が「。」か、後に空白か文末が続く「.」で最初の文を切るようにした。README の表の目的の欄が1文であることを確かめる PURPOSE の規則を足し、両方の README の表を作り直した。apply-scrum-guide の欄は最初の1文になった。規則は、作り直す前の表で apply-scrum-guide を違反として報告した（evidence/red-purpose.txt）。--self-test に、目的の欄を2文にした写しを足した。AC-README-1 の文に PURPOSE の規則を足した。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "uncovered_path",
+        "target": "AC-AGENT-META-1",
+        "severity": "medium",
+        "statement": "REQ-AGENT-META は「Claude Code はサブエージェント定義の前付けの未知の欄をエラーにせず無視する」という前提（公式文書の記述）に頼る。AC-AGENT-META-1 の証拠は、この変更で metadata を受け入れるように直したリポジトリ自身のパーサー（assert_reviewer_agent.py）が通ることだけで、同じ変更で書き換えた検査が、同じ変更で書き換えた定義を受け入れると示すにとどまる。5件のエージェント定義（read-only-reviewer を含む。レビューの手順はこれに依存する）を、metadata つきで Claude Code が読み込めることを確かめる受け入れ基準も証拠もない。ADR-0026 の「確認方法」にも未測定として挙がっていない。読み込めない場合の影響は、標識の選ばれ方より大きい。",
+        "disposition": "accepted",
+        "resolution": "コミット e3a3d2adb1934e695709490981a96b28e5c87fbd で、要件グラフの REQ-AGENT-META に AC-AGENT-META-2（stage は post_deploy、証拠は利用者の確認）を足した。install.sh で入れた後の新しいセッションで、/agents に5件が読み込みの誤りなしに並ぶことを確かめる。ADR-0026 の「確認方法」にも同じ確かめを足した。デプロイの前の判断は、ゲートの --stage pre_deploy で行う。"
+      },
+      {
+        "id": "AR-04",
+        "kind": "uncovered_path",
+        "target": "REQ-DIAGRAM",
+        "severity": "low",
+        "statement": "この diff が新しく置く docs/harness/skill-map/ の 01-system-context.md、02-containers.md、05-dynamic-deliver-change.md と、04-components-relations.md の本文は、どの要件の受け入れ基準にも事実の正しさを確かめられていない。AC-DIAGRAM-2 は構造の検査、AC-DIAGRAM-3 は7本の辺と一覧の順だけを見る。実際に、出典の行番号が古い。この同じ変更が各スキルの前付けを2行（implement-change は3行）増やしたため、02-containers.md は specify-requirements/SKILL.md:36、verify-change/SKILL.md:30、apply-scrum-guide/SKILL.md:53 と書くが、reviewed_commit では 38、32、55 行目（grep で確認）にある。04-components-relations.md の deliver-change/SKILL.md:15-20（Child skills は17行目から）や apply-scrum-guide/SKILL.md:13（15行目）、05 の deliver-change/SKILL.md:24 以降も同様に2行ずれている。",
+        "disposition": "accepted",
+        "resolution": "コミット e3a3d2adb1934e695709490981a96b28e5c87fbd で、ページ 01、02、04、05 の SKILL.md の行の引用を、dcb1425 の前付けの後の行に直した。直し方は、main の版の各行の文言を、今の版で探す方法である。evidence/check_skill_map.py に、63か所の引用が実在する行を指すことと、20か所の引用がページの主張する文言の行を指すことの確かめを足した。dcb1425 のページは、この確かめに15件で失敗した（evidence/red-skill-map-lines.txt）。AC-DIAGRAM-3 の文にも足した。"
+      },
+      {
+        "id": "AR-05",
+        "kind": "evidence_mismatch",
+        "target": "AC-DIAGRAM-1",
+        "severity": "low",
+        "statement": "AC-DIAGRAM-1 は「生成したブロックでは、ルート以外のすべての節が、辺の終点にちょうど1回現れる」ことを求めるが、assert_role_tree.py はこの性質を検査せず（生成した文字列との一致だけを見る）、提出された証拠（0 violations と DIAGRAM の自己検査の1行）にもこの性質を示すものがない。diff の 03-role-tree.md を数えると31節に辺30本で実際には成り立つが、成立は生成の作りによるもので、検査と証拠が示すものではない。",
+        "disposition": "accepted",
+        "resolution": "コミット e3a3d2adb1934e695709490981a96b28e5c87fbd で、assert_role_tree.py に TREE の規則を足した。この規則は木の図のページのブロックを図として読み、根が1つで、根以外の各節がちょうど1回だけ辺の終点になり、どの辺も宣言された節を結ぶことを確かめる。--self-test に、implement-change に2つ目の親を持たせた写しを足した。規則を足す前の自己検査は、この写しを見逃した（evidence/red-tree.txt）。AC-DIAGRAM-1 の文に TREE の規則を足した。"
+      },
+      {
+        "id": "AR-06",
+        "kind": "evidence_mismatch",
+        "target": "AC-DECLARE-1",
+        "severity": "low",
+        "statement": "ac-declare-1.txt（AC-ROOT-1 の後半にも連結）、ac-adr-1.txt、ac-sync-1.txt、ac-sync-2.txt の `# command:` 欄は、実際のコマンドではなくシェル関数の別名（tree_diff、adr_check、sync_check、sync2_check）である。AC-DECLARE-1 の証拠は「出力なしで exit=0」だけで、何を何と比べたのか、この記録からは分からない（同じ関数が変更前に差分を出す red-declare.txt が間接的に支えるにとどまる）。ac-form-2.txt の command 欄も説明の文で、コマンドそのものではない。加えて documentation-impact.md は、存在しない evidence/checks-after.md に check_links の結果を記録すると述べ、変更ファイル37件・find_related が CLAUDE.md も挙げたと書くが、dcb1425 の ac-sync-2.txt は38件で、挙がった文書は docs/harness-zero-base.md だけである。",
+        "disposition": "accepted",
+        "resolution": "e3a3d2adb1934e695709490981a96b28e5c87fbd の証拠は、シェル関数を使わず、実行したコマンドそのものを各ファイルの # command: に書く形で集め直す。documentation-impact.md は、存在しないファイルへの参照を除いた。find_related.py を2回実行したことと、各回の件数（37件で CLAUDE.md と docs/harness-zero-base.md、38件で docs/harness-zero-base.md）も書いた。"
+      }
+    ]
+  }
+}

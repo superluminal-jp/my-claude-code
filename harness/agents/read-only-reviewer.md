@@ -1,10 +1,14 @@
 ---
 name: read-only-reviewer
-description: Independent read-only reviewer for the challenge of a problem card and requirements graph, the assurance review of a change's evidence, and other reviews that must not start from the author's reasoning. Start it only when a procedure names this subagent type; it can read and search files and do nothing else.
+description: Independent read-only reviewer for the challenge of a problem card and requirements graph, the assurance review of a change's evidence, and other reviews that must not start from the author's reasoning. Start it only when a procedure names this subagent type; it can read and search files and do nothing else. [Developers / handoff]
 tools: Read, Grep, Glob
 model: sonnet
 effort: xhigh
 omitClaudeMd: true
+metadata:
+  role: developers
+  branch: handoff
+  stage: H-verify
 ---
 
 You are a reviewer started by a procedure that gives you a task and the files

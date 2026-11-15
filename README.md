@@ -295,6 +295,52 @@ redesign that produced this layout is recorded in
   Claude.ai unchanged, and how to package them. They are not synced by
   `install.sh`
 
+### Role tree
+
+Every skill and subagent definition declares one place in a three-level tree
+in its own frontmatter (`metadata.role`, `metadata.branch`, and
+`metadata.stage` when its stages span several branches), and its
+`description` ends with the same place as a tag such as
+`[Developers / execute]`. The role is the Scrum accountability its main
+output belongs to: Product Owner for what to build and why (the Product Goal
+and the content of Product Backlog items), Developers for how to build and
+check it (the Sprint plan and an Increment that meets the Definition of
+Done), and Scrum Master for whether Scrum is in place. The branch is the
+`harness/CLAUDE.md` branch it supports, in the words of
+[`docs/harness/capability-map.json`](docs/harness/capability-map.json). The
+table below is generated from those declarations by
+`python3 tests/assert_role_tree.py --table en`, which also checks that it
+still matches them; the tree as a diagram is
+[`docs/harness/skill-map/03-role-tree.md`](docs/harness/skill-map/03-role-tree.md),
+and the decision is [ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md).
+
+<!-- role-tree:start -->
+| Role | Branch | Name | Kind | Purpose |
+|---|---|---|---|---|
+| Product Owner | define | `clarify-intent` | skill | Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. |
+| Product Owner | define | `define-problem` | skill | Turn a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the ideal state - in any domain, business, technical, personal, or organizational, keeping the problem apart from any solution or unverified cause brought along with it. |
+| Product Owner | define | `define-product-strategy` | skill | Formulate product or business strategy before development begins - vision, target users, problem and value proposition, success metrics, prioritized scope, constraints - for a new product or for a new initiative, extension, or pivot of an existing one, as one strategy brief. |
+| Developers | define | `research-aws` | skill | Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. |
+| Developers | define | `specify-requirements` | skill | Turn an agreed problem into requirements that can be checked before implementation - a problem card that keeps evidence, hypotheses, and fixes apart, a requirements graph in which every requirement and every parent carries its own acceptance criterion, an independent read-only challenge for risky changes or weak evidence, and the bundled gate, which answers ready or blocked. |
+| Developers | execute | `apply-dads-frontend` | skill | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
+| Developers | execute | `apply-scrum-guide` | skill | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
+| Developers | execute | `apply-secure-logging` | skill | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
+| Developers | execute | `build-dads-slides` | skill | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. |
+| Developers | execute | `check-runner` | agent | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
+| Developers | execute | `draw-system-diagrams` | skill | Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. |
+| Developers | execute | `file-searcher` | agent | Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. |
+| Developers | execute | `implement-change` | skill | Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first, in the smallest coherent step, and verify it before reporting. |
+| Developers | execute | `manage-git` | skill | Create branches, commits, pushes, and pull requests so that history stays reviewable and nothing is published beyond what was asked. |
+| Developers | execute | `task-worker` | agent | Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. |
+| Developers | handoff | `deliver-change` | skill | Carry a change from an agreed problem to an acceptance decision that a person can make from its evidence, by applying four skills in a fixed order - problem, requirements, implementation, verification. |
+| Developers | handoff | `read-only-reviewer` | agent | Independent read-only reviewer for the challenge of a problem card and requirements graph, the assurance review of a change's evidence, and other reviews that must not start from the author's reasoning. |
+| Developers | handoff | `structure-document` | skill | Structure a document as one claim tree, so that a reader finds its one answer first and can check the support under it, and check the result with the bundled checker - a report, proposal, design document, specification, README, email, slide outline, or pull-request or issue body. |
+| Developers | handoff | `sync-docs` | skill | Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. |
+| Developers | handoff | `verify-change` | skill | Record, for every acceptance criterion of a change, which check ran on which commit with what result, have the evidence read by an independent read-only reviewer when the risk calls for it, and run the bundled gate, which answers pass, fail, or blocked and never builds a parent's pass out of its children's. |
+| Scrum Master | execute | `manage-scrum-artifacts` | skill | Keep a product's Scrum artifacts as files inside its repository - the Product Backlog with its Product Goal, the Definition of Done, and for each Sprint the Sprint Backlog with its Sprint Goal, the Increment, and the event records - placed from bundled Scrum Guide (2020) templates under the product folder's scrum/ directory, extended one Sprint at a time, and checked by bundled scripts. |
+| Scrum Master | execute | `scrum-master-agent` | agent | Holds the Scrum Master accountability of the Scrum Guide (2020) for a Scrum Team in which the agent that starts it works as one of the Developers. |
+<!-- role-tree:end -->
+
 ## Supplementary documentation
 
 `docs/` is written for the maintainer, not for Claude. It is **not** synced to
@@ -308,6 +354,7 @@ and skills carry their own sources inline instead.
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, which servers `settings.json` stops, and what to update when a server is added |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | The whole-harness behavior baseline: how to check the capability map and scenario suite, run the suite with `claude plugin eval` against two commits under a cost ceiling, and compare the results, and where the eval differs from a real session |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | Which component owns each stage of the work, which stages have no owner, which skills exclude one another, and which scenarios cover each stage (generated from `capability-map.json`) |
+| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | Five diagrams, in Japanese, of how the harness fits together: who uses it and what it depends on, its five layers, the role tree that places every skill and subagent under a Scrum role and a branch (generated from their declarations), which skill orchestrates, overlays, or starts a subagent for which, and the order in which skills and subagents are used to deliver one change |
 | [`docs/adr/`](docs/adr/) | Architecture decision records — immutable once Accepted, only superseded |
 
 ## Install as user configuration
@@ -508,17 +555,27 @@ report the rule that covers it. It then runs
 every skill to rules C-01 to C-11 (listed in its docstring): the name matches
 the directory; the `description` is one line of at most 1,024 characters and
 states what the skill is not for; only the allowed frontmatter keys appear and
-none switches the model; `metadata` carries a defined `kind`, `permission`, and
-`sandbox`, and a skill that needs the network names its hosts; the body stays
+none switches the model; `metadata` carries a defined `kind`, `permission`, `sandbox`,
+`role`, and `branch`, and a skill that needs the network names its hosts; the body stays
 within its size limits; a `Done when` section exists, and a `Bundled files`
 section gives every bundled reference its load condition; no command breaks the
 sandbox (a bare `mktemp`, a `/tmp` literal, a write outside the repository,
 `osascript` or a network command in a skill that does not declare it); no skill
-names another unless it is an orchestrator naming a declared child; no path
+names a retired skill (the value of `metadata.role` in the frontmatter is
+not a name) or
+another skill unless it is an orchestrator naming a declared child; no path
 depends on the install location and none points into this repository's
 `specs/` or `archive/`; package-relative links resolve; and an orchestrator
 declares at least two existing children, none of them an orchestrator, while no
-other kind declares any. It then runs the unit tests of the checker scripts
+other kind declares any. It then runs
+[`tests/assert_role_tree.py`](tests/assert_role_tree.py), which checks the
+[role tree](#role-tree) of every skill and subagent definition: each declares
+`metadata.role` and `metadata.branch` once with defined values, the
+capability map names it and its branch agrees with the stages it owns (a
+`metadata.stage` picks the stage when they span several branches), its
+`description` ends with the matching tag, and the README tables and the tree
+diagram equal what the declarations generate; `--self-test` then shows that a
+copy with any one of those rules broken is refused. It then runs the unit tests of the checker scripts
 bundled in `specify-requirements`, `verify-change`, `draw-system-diagrams`,
 `structure-document`, `sync-docs`, and `manage-scrum-artifacts`. To run one skill's unit tests alone:
 

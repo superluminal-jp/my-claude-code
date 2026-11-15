@@ -1,0 +1,56 @@
+# diff <(assert_role_tree.py --print) expected-tree.txt before any declaration (exit 1 = differs)
+2,24c2,31
+< └── (unplaced)
+<     ├── apply-dads-frontend (skill)
+<     ├── apply-scrum-guide (skill)
+<     ├── apply-secure-logging (skill)
+<     ├── build-dads-slides (skill)
+<     ├── check-runner (agent)
+<     ├── clarify-intent (skill)
+<     ├── define-problem (skill)
+<     ├── define-product-strategy (skill)
+<     ├── deliver-change (skill)
+<     ├── draw-system-diagrams (skill)
+<     ├── file-searcher (agent)
+<     ├── implement-change (skill)
+<     ├── manage-git (skill)
+<     ├── manage-scrum-artifacts (skill)
+<     ├── read-only-reviewer (agent)
+<     ├── research-aws (skill)
+<     ├── scrum-master-agent (agent)
+<     ├── specify-requirements (skill)
+<     ├── structure-document (skill)
+<     ├── sync-docs (skill)
+<     ├── task-worker (agent)
+<     └── verify-change (skill)
+---
+> ├── Product Owner
+> │   └── define
+> │       ├── clarify-intent (skill)
+> │       ├── define-problem (skill)
+> │       └── define-product-strategy (skill)
+> ├── Developers
+> │   ├── define
+> │   │   ├── research-aws (skill)
+> │   │   └── specify-requirements (skill)
+> │   ├── execute
+> │   │   ├── apply-dads-frontend (skill)
+> │   │   ├── apply-scrum-guide (skill)
+> │   │   ├── apply-secure-logging (skill)
+> │   │   ├── build-dads-slides (skill)
+> │   │   ├── check-runner (agent)
+> │   │   ├── draw-system-diagrams (skill)
+> │   │   ├── file-searcher (agent)
+> │   │   ├── implement-change (skill)
+> │   │   ├── manage-git (skill)
+> │   │   └── task-worker (agent)
+> │   └── handoff
+> │       ├── deliver-change (skill)
+> │       ├── read-only-reviewer (agent)
+> │       ├── structure-document (skill)
+> │       ├── sync-docs (skill)
+> │       └── verify-change (skill)
+> └── Scrum Master
+>     └── execute
+>         ├── manage-scrum-artifacts (skill)
+>         └── scrum-master-agent (agent)

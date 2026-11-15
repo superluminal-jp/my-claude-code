@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "problem_card": {
+    "id": "PRB-073",
+    "ideal": "harness/skills/ と harness/agents/ のすべての要素（2026-11-15 時点でスキル17件、サブエージェント定義5件）それぞれに、役割（Product Owner、Developers、Scrum Master）と枝（define、execute、handoff）による置き場所が1つだけあり、その要素のファイルに宣言され、宣言が欠けているか不正であれば機械的な検査が拒む。置き場所を親とする関係が木になり、「属する」以外の関係は木とは分けて示される。一覧（モデルが見る name と description、人が見る README の目次）を読めば、各要素の役割と目的が分かる。",
+    "current": "役割や枝を宣言している要素は0件で、それを検査するものもない。親子の宣言は deliver-change から子スキル4つへの1件だけで、6つの作業スキルはどの要素とも上下の関係を持たない。本文で Scrum の役割の語に触れる要素は3件で、description で触れるのは apply-scrum-guide の1件だけである。その1件も、自分がどの役割に属するかを示してはいない。枝は harness の外の docs/harness/capability-map.json にしかない。モデルが一覧で見る description は使う場面を述べるが、要素の役割も枝も示さない。",
+    "evidence": [
+      {
+        "source": "tests/assert_skill_contract.py:14 と 188-197（2026-11-15 に読んだ）",
+        "observation": "契約が値を定める metadata のキーは kind、permission、sandbox（と、network のときの network-hosts）だけで、役割や枝のキーはない"
+      },
+      {
+        "source": "tests/assert_reviewer_agent.py:62（2026-11-15 に読んだ）",
+        "observation": "read-only-reviewer の前付けは、欄が name、description、tools、model、effort、omitClaudeMd の6つに固定されている"
+      },
+      {
+        "source": "harness/skills/deliver-change/SKILL.md:15-20、python3 -I specs/073-scrum-role-tree/evidence/inventory.py harness（2026-11-15 の実行。スキルの前付けと本文の相互参照を数えた）",
+        "observation": "## Child skills を持つのは deliver-change だけで、子は define-problem、specify-requirements、implement-change、verify-change の4つ。clarify-intent、define-product-strategy、structure-document、draw-system-diagrams、build-dads-slides、research-aws は、どの要素も名指しせず、どの要素からも名指しされない"
+      },
+      {
+        "source": "grep -lE 'Product Owner|Scrum Master|Developers?\\b|Scrum Team' harness/skills/*/SKILL.md harness/agents/*.md（2026-11-15 の実行）",
+        "observation": "本文か前付けで Scrum の役割の語に触れるのは apply-scrum-guide/SKILL.md、manage-scrum-artifacts/SKILL.md、agents/scrum-master-agent.md の3件だけ。これは語に触れる件数で、役割を宣言している件数ではない（宣言の欄は1つもない）"
+      },
+      {
+        "source": "docs/harness/capability-map.json と、python3 -I specs/073-scrum-role-tree/evidence/capability_map_coverage.py の出力 specs/073-scrum-role-tree/evidence/capability-map-coverage.txt（2026-11-15 の実行）",
+        "observation": "22件すべてが components にある（missing=0）。段階の枝が2つ以上にまたがるのは skill:implement-change（execute、handoff）と agent:read-only-reviewer.md（define、execute、handoff）の2件だけで、ほかの20件は枝が1つに決まる"
+      },
+      {
+        "source": "このリポジトリの CLAUDE.md:3（install.sh の同期対象）",
+        "observation": "install.sh が ~/.claude/ に入れるのは rules、skills、agents、commands、CLAUDE.md、settings.json で、docs/ は含まれない。したがって capability-map.json の枝は、入れた先の harness からは読めない"
+      },
+      {
+        "source": "https://code.claude.com/docs/en/skills.md（2026-11-15 に claude-code-guide のサブエージェントで読んだ）",
+        "observation": "通常のセッションでモデルの文脈に読み込まれるのはスキルの description（と when_to_use）で、metadata は「Free-form YAML map for your own key-value data ... Claude Code doesn't act on its contents」である"
+      },
+      {
+        "source": "https://code.claude.com/docs/en/sub-agents.md の Frontmatter reference（2026-11-15 に claude-code-guide のサブエージェントで読んだ）",
+        "observation": "サブエージェント定義の前付けの未知の欄について「Claude Code ignores a field it doesn't recognize without reporting an error.」とある。metadata は文書化された欄に含まれないので、エラーにならずに無視される"
+      },
+      {
+        "source": "harness/skills/*/SKILL.md と harness/agents/*.md の description 行（2026-11-15 に読んだ）",
+        "observation": "どの description も使う場面と使わない場面を述べ、define、execute、handoff の枝を述べていない。役割の語を含むのは apply-scrum-guide の description（「AI が Scrum Team の Developers の一人として」）だけで、それも木の中の置き場所としてではなく、スキルの前提として述べている"
+      },
+      {
+        "source": "利用者 Taiki Ogihara の発言（2026-11-15、specs/073-scrum-role-tree/shared-understanding.md の「依頼」）",
+        "observation": "分類の軸を Scrum の役割とし、その下に「1 正しい作業を定める 2 統制の下で実行する 3 引き渡す」を置く木を求め、前付けで宣言する方式 A を選んだ。スキルとエージェントの相互の置き換え、名前と内容の調整は「してよい」と許可した"
+      },
+      {
+        "source": "利用者 Taiki Ogihara の回答（2026-11-15。反証 CH-01 と CH-05 を受けて「How should each skill or agent be assigned to a Scrum role?」と尋ねた）",
+        "observation": "「Criterion above, artifacts under SM (Recommended)」を選んだ。基準は、要素の主な成果物が決めるもので分ける。Product Owner は何をなぜ作るか、Developers はどう作りどう確かめるか、Scrum Master は Scrum が成り立っているか。選んだ木は Product Owner 3件（define に clarify-intent、define-product-strategy、define-problem）、Developers 17件、Scrum Master 2件（execute に manage-scrum-artifacts、scrum-master-agent）である"
+      },
+      {
+        "source": "利用者 Taiki Ogihara の回答（2026-11-15。反証 CH-06 を受けて、標識を description に足すとスキルの選ばれ方が変わりうることへの対処を尋ねた）",
+        "observation": "「Tag at end, accept risk (Recommended)」を選んだ。選択肢の文は「Put the tag at the end of the description so the phrases about when to use the skill stay first. Don't run the paid eval, and record the effect on selection as an unverified risk you accept.」である"
+      }
+    ],
+    "counter_evidence": [
+      {
+        "source": "docs/harness/capability-map.json と docs/claude-config-design.md:133",
+        "observation": "段階ごとの担い手と枝、スキルの種類（worker、overlay、orchestrator）の定義は、すでに文書としてはある。ただし harness のファイルの中にはなく、検査もされていない"
+      }
+    ],
+    "gap": "すべての要素について、役割と枝による1つの置き場所が要素のファイルの中にあって検査で保たれ、一覧から役割と目的が読み取れる、という状態と、置き場所を宣言している要素が0件で検査もなく、上下の関係は親スキル1つ分、枝は harness の外の文書にしかなく、一覧が役割を示していない、という状態の差。",
+    "significance": "harness/ は install.sh で ~/.claude/ に入り、利用者のすべてのプロジェクトで使われる。利用者は Product Owner の立場で AI の Developer の作業を監修する。どの要素の成果物がだれのアカウンタビリティに属するかを一覧から読み取れないと、監修の手がかりが減る（要素を使う役割のすべてではなく、成果物の属する役割を示す）。木と検査があれば、役割や枝の抜けと重なりが見え、追加や改名で置き場所が崩れることを防げる。役割を一覧に出すことでモデルのスキルの選び方が良くなるかどうかは検証していない。悪くならないかどうかも検証していない（利用者が未検証のリスクとして受け入れた）。",
+    "hypotheses": [
+      "役割と枝が宣言されていないのは、harness の分類が kind（worker、overlay、orchestrator）と段階ごとの担い手の表だけで設計され、Scrum の役割を前提にしていなかったためである"
+    ],
+    "proposed_solutions": [
+      "各 SKILL.md とエージェント定義の前付けに metadata.role と metadata.branch を足し、枝が2つ以上にまたがる要素には metadata.stage を足す。検査のスクリプトで、値と capability-map.json の枝との整合を確かめる",
+      "description の末尾に [<役割> / <枝>] の標識を付け、README と構成図に、宣言から生成した木を置く",
+      "利用者の指示に従い、形と改名の基準をすべての要素に当てた結果を記録し、基準が選んだ要素だけを変える",
+      "ADR-0026 を Proposed で書く"
+    ],
+    "out_of_scope": [
+      "各要素の手順が正しいかどうか",
+      "頂点の指示（harness/CLAUDE.md）とルールの構成",
+      "scrum/ の作成物の中身（Product Owner の決定）",
+      "Claude.ai 用の写しの作り直しと再アップロード",
+      "description の変更がスキルの選ばれ方に与える影響の測定（利用者が、有料の評価を回さないことを選んだ）"
+    ],
+    "status": "verified",
+    "status_rationale": "反証として挙げた文書は、役割の宣言も検査も harness の中にないことを否定しない。現在の状態の各項目は、2026-11-15 にファイルを読み、grep とスクリプトを実行して確かめた。形と名前が基準に反しているという主張は、証拠がないので現在の状態から外した（反証 CH-12）。形と名前を確かめることは、利用者の指示による要件として扱う。"
+  }
+}

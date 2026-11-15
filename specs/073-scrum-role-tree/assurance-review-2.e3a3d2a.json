@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-073",
+    "reviewed_commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd",
+    "reviewer": "read-only-reviewer subagent, agentId a1aedf132bcb285ee, 2026-11-15, read 41 files",
+    "context_given": [
+      "review_prep.py bundle --base main --previous dcb1425 --previous-review assurance-review-1.dcb1425.json の束（$TMPDIR/review-073-r2）。範囲 e4f2992..e3a3d2a、scope whole（REQ-AGENT-META と REQ-VALUES が文の欄より先まで変わった）",
+      "references/assurance-review.md の1回目の指示文（scope が whole なので。記録の言語は日本語）"
+    ],
+    "findings": [
+      {
+        "id": "AR-01",
+        "kind": "weakened_test",
+        "target": "CHG-073",
+        "severity": "high",
+        "statement": "manifest.json の test_changes は tests/assert_skill_contract.py の C-08 と tests/assert_reviewer_agent.py の R1a を weakened と申告しているが、どちらにも approved_by がなく、approvals も空のままである。前回の AR-01 で指摘され、2つの緩めを狭める修正は e3a3d2a に入ったが、承認の記録は manifest に足されていない。harness/skills/verify-change/scripts/assure.py の609〜610行目は、approved_by が実装者以外でない test_changes の項目ごとに A-06 で blocked にするので、この manifest のままではゲートは blocked になる。ADR-0026 の「契約の拡張」は、承認を求める項目として検証の記録に載せたと述べるが、manifest 側に承認を示す欄はない。C-08 は前付けの `  role: <値>` の行を走査から外し、R1a は metadata の下の `key: value` の行を role、branch、stage のキーに限って受け入れる。実装者ではない利用者の承認が得られるまで、この変更は pass にならない。",
+        "disposition": "accepted",
+        "resolution": "利用者 Taiki Ogihara に、緩めた2つの検査を承認するかを尋ねた。2026-11-15 に「Approve both (Recommended)」の回答を得た（specs/073-scrum-role-tree/decisions.md の D-9 に、回答の文言と承認の対象を記録した）。verification-manifest.json の test_changes の2項目に approved_by: Taiki Ogihara を足した。実装者は claude で、承認した者とは別である。C-08 と R1a の緩めを狭める修正は e3a3d2a に入っている。"
+      },
+      {
+        "id": "AR-02",
+        "kind": "evidence_mismatch",
+        "target": "AC-DIAGRAM-3",
+        "severity": "low",
+        "statement": "AC-DIAGRAM-3 と前回の AR-04 の答えは、ページ 01、02、04、05 の SKILL.md の行の引用を直したと述べる。しかし docs/harness/skill-map/04-components-relations.md の111行目は「(各 `SKILL.md` の 13 行目、14 行目)」のままである。apply-secure-logging の「adds its criteria」の行は15行目、apply-dads-frontend は16行目にある（grep で確認した）。同じページの表と check_skill_map.py の ANCHORS も 15 と 16 を指す。check_skill_map.py の CITE の正規表現は `skill/SKILL.md`:N の形しか拾わないので、この言い回しは検査の外にある。証拠の「63 line citations, 20 anchors, 0 failures」は、この古い引用がないことを示していない。前付けが2行伸びたことによる、AR-04 と同じ種類のずれが残っている。",
+        "disposition": "accepted",
+        "resolution": "コミット c90a58af546f66a26ecee909fa2962c2d1fb96f0 で、docs/harness/skill-map/04-components-relations.md の「（各 `SKILL.md` の 13 行目、14 行目）」を「（`skills/apply-secure-logging/SKILL.md`:15、`skills/apply-dads-frontend/SKILL.md`:16）」に直した。evidence/check_skill_map.py に、SKILL.md の行を文で引用する形（「SKILL.md` の N 行目」）を拒む確かめを足した。この確かめは直す前のページで失敗した（evidence/red-prose-citation.txt）。確かめる引用は 63 か所から 65 か所になった。AC-DIAGRAM-3 の文にも足した。"
+      },
+      {
+        "id": "AR-03",
+        "kind": "other",
+        "target": "AC-SYNC-1",
+        "severity": "low",
+        "statement": "README.md の357行目と README.ja.md の238行目の、この diff が足した docs/harness/skill-map/ の行は「4枚の図」（Four diagrams）と書き、役割の木の図（03-role-tree.md）を挙げていない。docs/harness/skill-map/README.md は5枚を載せ、3枚目が役割の木である。README.md の314行目は 03-role-tree.md へのリンクを持つので、同じ README の中で図の数と内容が食い違う。REQ-SYNC は変えた契約を述べる文書を同じ変更で直すことを求めるが、AC-SYNC-1 と AC-SYNC-2 の検査はこの食い違いを拾っていない。",
+        "disposition": "accepted",
+        "resolution": "コミット c90a58af546f66a26ecee909fa2962c2d1fb96f0 で、README.md と README.ja.md の docs/harness/skill-map/ の行を5枚の図に直し、役割の木を挙げた。evidence/check_skill_map.py に、その行が一覧と同じ図の数と役割の木を述べることの確かめを足した。この確かめは e3a3d2a の README で失敗した（evidence/red-readme-row.txt）。AC-DIAGRAM-3 の文にも足した。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+# AC-VALUES-1: 4つの試験が変更前に失敗し、変更後に通る
+# reviewed_commit: dcb14259969f0354be32736cc7b337b14891379e
+# この記録は、下に挙げたファイルをそのまま連結したものである。各部の先頭に元のファイルを書いた。
+
+## 変更前（C-04 が role と branch を確かめる前。実装の途中に記録）（specs/073-scrum-role-tree/evidence/red-values.txt）
+
+# python3 -B -m unittest tests/test_skill_contract.py (2026-11-15, before C-04 checks role and branch)
+FAIL: test_c04_missing_branch (tests.test_skill_contract.ContractTests.test_c04_missing_branch)
+AssertionError: 0 != 1 : 
+FAIL: test_c04_missing_role (tests.test_skill_contract.ContractTests.test_c04_missing_role)
+AssertionError: 0 != 1 : 
+FAIL: test_c04_undefined_branch (tests.test_skill_contract.ContractTests.test_c04_undefined_branch)
+AssertionError: 0 != 1 : 
+FAIL: test_c04_undefined_role (tests.test_skill_contract.ContractTests.test_c04_undefined_role)
+AssertionError: 0 != 1 : 
+Ran 28 tests in 0.992s
+FAILED (failures=4)
+
+## 変更後（dcb1425 で実行）（specs/073-scrum-role-tree/evidence/dcb1425/ac-values-1.txt）
+
+# command: python3 -B -m unittest tests/test_skill_contract.py
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:54:33Z
+
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 1.029s
+
+OK
+
+exit=0
+

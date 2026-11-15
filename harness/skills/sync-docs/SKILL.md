@@ -1,9 +1,11 @@
 ---
 name: sync-docs
-description: Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. Use when implementing or reviewing a change that affects behavior, interfaces or API schemas, configuration, deployment, architecture or decision records, a README or user or operational guide, a change log or release notes, or research provenance; when asked for a documentation drift audit; and when asked to declare, check, or build the documentation tree of a repository, a README for the repository, each product, and each feature folder, linked parent to child. Not for a change with no observable or documented effect, and not for structuring the prose of a single document.
+description: Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. Use when implementing or reviewing a change that affects behavior, interfaces or API schemas, configuration, deployment, architecture or decision records, a README or user or operational guide, a change log or release notes, or research provenance; when asked for a documentation drift audit; and when asked to declare, check, or build the documentation tree of a repository, a README for the repository, each product, and each feature folder, linked parent to child. Not for a change with no observable or documented effect, and not for structuring the prose of a single document. [Developers / handoff]
 compatibility: Python 3.9 or later. Git is optional and enables change audits and ignore-aware scanning.
 metadata:
   kind: worker
+  role: developers
+  branch: handoff
   permission: workspace_write
   sandbox: inside
   produces: updated documents and a documentation-impact report

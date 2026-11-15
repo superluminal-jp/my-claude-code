@@ -1,0 +1,31 @@
+# AC-TAG-2: 標識を足した後も、C-02 を含む契約がすべてのスキルで通る
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0
+# この記録は、下に挙げたファイルをそのまま連結したものである（行を選んだ部分は、そう書いた）。各部の見出しに元のファイルを書いた。
+
+## 契約の検査（specs/073-scrum-role-tree/evidence/c90a58a/ac-contract.txt）
+
+# command: python3 -B tests/assert_skill_contract.py harness/skills
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:22:47Z
+
+apply-dads-frontend          kind=overlay      sandbox=network  description= 465 body=  892 words
+apply-scrum-guide            kind=overlay      sandbox=inside   description= 455 body=  472 words
+apply-secure-logging         kind=overlay      sandbox=inside   description= 874 body= 1119 words
+build-dads-slides            kind=worker       sandbox=network  description= 566 body= 1228 words
+clarify-intent               kind=worker       sandbox=inside   description= 789 body=  912 words
+define-problem               kind=worker       sandbox=inside   description= 618 body=  567 words
+define-product-strategy      kind=worker       sandbox=inside   description= 709 body=  553 words
+deliver-change               kind=orchestrator sandbox=inside   description= 503 body=  400 words
+draw-system-diagrams         kind=worker       sandbox=inside   description= 810 body= 1089 words
+implement-change             kind=worker       sandbox=inside   description= 367 body=  720 words
+manage-git                   kind=worker       sandbox=network  description= 456 body=  561 words
+manage-scrum-artifacts       kind=worker       sandbox=inside   description= 718 body=  814 words
+research-aws                 kind=worker       sandbox=inside   description= 549 body=  587 words
+specify-requirements         kind=worker       sandbox=inside   description= 742 body=  978 words
+structure-document           kind=worker       sandbox=inside   description= 543 body=  928 words
+sync-docs                    kind=worker       sandbox=inside   description= 843 body= 1399 words
+verify-change                kind=worker       sandbox=inside   description= 641 body= 1104 words
+skill-contract: 17 skills, 0 failures
+
+exit=0
+

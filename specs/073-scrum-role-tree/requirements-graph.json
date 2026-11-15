@@ -1,0 +1,246 @@
+{
+  "schema_version": 2,
+  "problem_id": "PRB-073",
+  "requirements": [
+    {
+      "id": "REQ-ROOT",
+      "statement": "harness/skills/ と harness/agents/ のすべての要素（2026-11-15 時点でスキル17件、エージェント5件）が、役割と枝による置き場所を1つだけ自分の前付けに宣言し、その宣言が検査で保たれる。宣言から作った木が README と構成図に載り、一覧（description と README の目次）から役割と目的が読み取れる。形と名前は基準に照らして確かめられている。各要素の手順の本文は変えない。",
+      "decomposition": "AND",
+      "children": [
+        "REQ-FORM",
+        "REQ-VALUES",
+        "REQ-AGENT-META",
+        "REQ-DECLARE",
+        "REQ-TREE-CHECK",
+        "REQ-TAG",
+        "REQ-README",
+        "REQ-DIAGRAM",
+        "REQ-ADR",
+        "REQ-SYNC",
+        "REQ-COMPAT"
+      ],
+      "assumptions": [
+        "役割の値は product-owner、developers、scrum-master の3つ。要素の主な成果物が何を決めるかで分ける。product-owner は何をなぜ作るか（Product Goal と Product Backlog の項目の中身と、その理解）。developers はどう作り、どう確かめるか（Sprint の計画と、Definition of Done を満たす Increment）。scrum-master は Scrum が成り立っているか（作成物とイベントの確立と、チームの有効性）[SG20, pp.5-7]。この基準は利用者が 2026-11-15 に選んだ（問題カードの evidence）。",
+        "木が示すのは成果物の属する役割で、要素を使う役割のすべてではない。どの役割の作業でどの要素が使われるかは、構成図の動的図が示す。",
+        "枝の値は define、execute、handoff の3つで、docs/harness/capability-map.json の branch と同じ語を使う。要素の段階の枝が1つなら、その枝にする。2つ以上にまたがる要素は metadata.stage に主な段階を1つ宣言し、枝はその段階の枝にする。2026-11-15 時点でまたがる要素は implement-change と read-only-reviewer の2件である。",
+        "木の辺は「属する」関係だけである。親スキルが子スキルを従える関係、オーバーレイが判断基準を重ねる関係、スキルがサブエージェントを起動させる関係は、木の外の関係として別の図に描く。",
+        "頂点の指示（harness/CLAUDE.md）とルールは全役割に共通なので、木に入れない。",
+        "REQ-FORM の判定を先に確定する。REQ-DECLARE の配置表、期待のファイル、README の表は、その判定の後の要素の集合から作る。"
+      ],
+      "counterexamples": [
+        "子の検査はそれぞれ通るが、assert_role_tree.py がどの CI の実行スクリプトからも呼ばれていない。そのため、後の追加や改名で宣言が崩れても誰も気づかない。",
+        "宣言、標識、README の表、構成図の木がそれぞれ別々に作られ、どれかが古い宣言から作られていて、互いに食い違う。",
+        "宣言は検査に通るが、capability-map.json の段階の担い手から外れた枝を選んでいて、2つの正本が食い違う。",
+        "REQ-FORM で要素を置き換えたか改名したのに、配置表と期待のファイルが古い名前のままで、AC-DECLARE-1 が実装の誤りではない理由で失敗する。"
+      ],
+      "acceptance": [
+        {
+          "id": "AC-ROOT-1",
+          "description": "python3 tests/assert_role_tree.py をリポジトリのルートで1回実行すると、次のすべてを確かめて終了コード 0 を返す。harness/skills/ と harness/agents/ の全要素の宣言、description の標識、capability-map.json との整合、README.md と README.ja.md の表、docs/harness/skill-map の木の図。そのとき python3 tests/assert_role_tree.py --print の出力が specs/073-scrum-role-tree/evidence/expected-tree.txt と一致する（diff の終了コードが 0）。",
+          "level": "L2"
+        },
+        {
+          "id": "AC-ROOT-2",
+          "description": "bash tests/run-harness-skills.sh（.github/workflows/ci.yml が呼ぶ実行スクリプト）が tests/assert_role_tree.py を実行し、その結果の行を出力して、終了コード 0 を返す。",
+          "level": "L3"
+        }
+      ]
+    },
+    {
+      "id": "REQ-FORM",
+      "statement": "形の基準と改名の基準をすべての要素に当て、要素ごとの判定と理由を記録する。基準が変更を選んだ要素だけを、エージェントとスキルの間で置き換えるか、改名する。形の基準は、要素の主な用途で次の (a) と (b) が常に成り立つものをエージェントにし、それ以外をスキルにする。(a) 作者から独立した読み手が要る、出力が長く結果だけが要る、または独立に並べて進められる。(b) 人との対話も、完了の判定も要らない。改名の基準は、名前が要素の実際の目的と違うことを述べている場合か、一覧の読み手が役割を取り違える場合だけ改名する。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-15 の会話の「A. 現状スキルとして組まれているものも、エージェントとした方が適切なものがあれば変更してよい。エージェントをスキルに変えるのも許可。スキル・エージェントの名称や内容を一覧したときに役割や目的がわかりやすくなるよう適切に調整するのも良い。」（specs/073-scrum-role-tree/shared-understanding.md の「依頼」）"
+      },
+      "acceptance": [
+        {
+          "id": "AC-FORM-1",
+          "description": "specs/073-scrum-role-tree/form-and-name-review.md に、要素ごとに1行の表がある。列は、要素名、現在の形、(a)、(b)、形の判定、名前の判定、理由。python3 -I specs/073-scrum-role-tree/evidence/check_form_review.py が次を確かめて終了コード 0 を返す。表の要素名の集合が harness/skills/ と harness/agents/ の要素名の集合と等しいこと。(a) と (b) がどちらも「はい」の行に限って形の判定が「エージェント」であること。形の判定が現在の形と違う行に限って「変える」と書かれていること。表がないとき、または規則に反する行があるときは、終了コード 1 を返す。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-FORM-2",
+          "description": "表で形か名前を「変える」とした行の要素は、harness/ でその変更が行われている。エージェントになったものは harness/agents/ に、スキルになったものは harness/skills/ にある。改名したものは新しい名前になり、古い名前は tests/assert_skill_contract.py の RETIRED にあり、docs/harness/capability-map.json と tests/harness-eval/scenarios.json も新しい名前を指す。「変える」の行がなければ、harness/skills/ と harness/agents/ の名前の集合は main と同じである。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-VALUES",
+      "statement": "スキルの契約（tests/assert_skill_contract.py の C-04）が metadata.role と metadata.branch の値の集合を定め、どちらかが欠けたスキルと、集合にない値のスキルを拒む。C-08（廃止したスキルの名前）は、前付けの metadata.role の値だけを名前に数えない。値 scrum-master は廃止したスキルの名前と同じだからである。本文の同じ文字列は、これまでどおり数える。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-VALUES-1",
+          "description": "tests/test_skill_contract.py に4つの試験を足す。role がない、role が集合にない、branch がない、branch が集合にない、の4つで、どれも C-04 で失敗すると主張する。これらは変更前の assert_skill_contract.py に対して失敗し、変更後は python3 -B -m unittest tests/test_skill_contract.py が終了コード 0 を返す。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-VALUES-2",
+          "level": "L1",
+          "description": "tests/test_skill_contract.py の test_c08_role_value_is_not_a_skill_name（前付けの role: scrum-master が C-08 で失敗しない）と test_c08_role_line_in_the_body_is_still_a_name（本文の同じ行は C-08 で失敗する）が、python3 -B -m unittest tests/test_skill_contract.py で通る。前者は C-08 を変える前に、後者は C-08 の例外を前付けに限る前に失敗する。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-AGENT-META",
+      "statement": "サブエージェント定義の前付けは、metadata のマップで role と branch（と、必要なら stage）を宣言できる。キーはこの3つに限る。tests/assert_reviewer_agent.py はその欄を受け入れ、既存の単一の変更と、ほかのキーを持つ写しを拒む。Claude Code は、metadata を持つ5件の定義を読み込める。",
+      "decomposition": "LEAF",
+      "assumptions": [
+        "Claude Code はサブエージェント定義の前付けの未知の欄を、エラーにせずに無視する（問題カードの evidence、https://code.claude.com/docs/en/sub-agents.md）。"
+      ],
+      "acceptance": [
+        {
+          "id": "AC-AGENT-META-1",
+          "description": "5件のエージェント定義に metadata を足した状態で、bash tests/run-verify-change-skill.sh が終了コード 0 を返す。このスクリプトは、assert_reviewer_agent.py が変えた写しをすべて拒むことの確認を含む。写しには、metadata の外に置いた項目と、role、branch、stage 以外のキーを持つものがある。また、変更前の assert_reviewer_agent.py は metadata を持つ read-only-reviewer.md を拒む。キーを限る前の版は、ほかのキーを持つ写しを拒まない。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-AGENT-META-2",
+          "level": "L1",
+          "stage": "post_deploy",
+          "description": "install.sh でこの変更を ~/.claude/ に入れた後、新しく始めた Claude Code のセッションで、利用者が /agents を開く。そこに check-runner、file-searcher、read-only-reviewer、scrum-master-agent、task-worker の5件が、読み込みの誤りなしに並ぶ。証拠は利用者の確認（human_review）とする。インストールは ~/.claude/ を書き換えるので、デプロイの後にしか確かめられない。"
+        }
+      ]
+    },
+    {
+      "id": "REQ-DECLARE",
+      "statement": "すべての要素が、次の配置表どおりに metadata.role と metadata.branch を宣言する。product-owner は、define に clarify-intent、define-product-strategy、define-problem。developers は、define に specify-requirements、research-aws、execute に implement-change（stage は E-implement）、manage-git、apply-scrum-guide、apply-secure-logging、apply-dads-frontend、build-dads-slides、draw-system-diagrams、check-runner、file-searcher、task-worker、handoff に deliver-change、verify-change、structure-document、sync-docs、read-only-reviewer（stage は H-verify）。scrum-master は、execute に manage-scrum-artifacts、scrum-master-agent。REQ-FORM が要素を変えたときは、変えた後の名前で同じ置き場所に置く。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-15 の会話で、役割の置き方の問いに「Criterion above, artifacts under SM (Recommended)」を選んだ。その選択肢が示した木が、この配置表である（問題カードの evidence）。stage の2件は、選ばれた枝で決まる。implement-change の execute の段階は E-implement だけで、read-only-reviewer の handoff の段階は H-verify だけである。"
+      },
+      "acceptance": [
+        {
+          "id": "AC-DECLARE-1",
+          "description": "python3 tests/assert_role_tree.py --print の出力が specs/073-scrum-role-tree/evidence/expected-tree.txt と一致する。期待のファイルは、REQ-FORM の判定を確定した後、宣言を書く前に、この配置表から作る。宣言を書く前は一致しない。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-TREE-CHECK",
+      "statement": "tests/assert_role_tree.py は、harness/skills/*/SKILL.md と harness/agents/*.md のすべてを走査して、違反を1つずつ拒む。確かめることは次のとおり。各要素が role と branch をちょうど1回ずつ、定義された値で宣言していること。docs/harness/capability-map.json の components にその要素があること。branch の決め方（段階の枝が1つならその枝、2つ以上なら metadata.stage がその要素の段階の1つで、branch がその段階の枝）に従っていること。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-TREE-CHECK-1",
+          "description": "assert_role_tree.py を --self-test で実行すると、リポジトリのファイルを1か所ずつ変えた写しをすべて拒んで、終了コード 0 を返す。写しは次の8種で、どれか1つでも受け入れれば終了コード 1 を返す。(1) エージェント定義から metadata を除く。(2) スキルの role を集合にない値にする。(3) 段階の枝が1つの要素の branch を別の枝にする。(4) capability-map.json の components からその要素を除く。(5) 同じ要素の role を2回書く。(6) metadata のない23件目のエージェント定義を足す。(7) 段階の枝が2つ以上の要素から stage を除く。(8) stage の段階の枝と branch を食い違わせる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-TAG",
+      "statement": "すべての要素の description の末尾が、宣言に一致する標識「 [<役割の表示名> / <枝>]」である。役割の表示名は Product Owner、Developers、Scrum Master。検査は、標識がないものと、宣言と食い違うものを拒む。標識が description の選ばれ方に与える影響は測らない。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-15 の会話で、標識の扱いの問いに「Tag at end, accept risk (Recommended)」を選んだ（問題カードの evidence）"
+      },
+      "acceptance": [
+        {
+          "id": "AC-TAG-1",
+          "description": "変更前の description に対して、assert_role_tree.py の標識の規則はすべての要素（22件）の違反を報告する。変更後は0件である。--self-test は、標識を除いた写しと、役割を入れ替えた写しを拒む。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-TAG-2",
+          "description": "標識を足した後も、bash tests/run-harness-skills.sh の契約 C-02 がすべてのスキルで通る。C-02 は、description が1行で1024文字以内であること、除外の境界を述べること、XML のタグがないことを確かめる。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-README",
+      "statement": "README.md と README.ja.md はそれぞれ、目印のコメントで囲んだ箇所に、宣言から生成した表を載せる。列は役割、枝、名前、種類（スキルかエージェントか）、目的で、目的は description の最初の文から標識を除いたものである。検査は、その箇所が生成した表と食い違うことを拒む。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-README-1",
+          "description": "assert_role_tree.py が、両方の README の目印の間の文字列と生成した表が一致することを確かめて通る。同時に PURPOSE の規則も通る。この規則は、README の表の目的の欄がそれぞれ1文であること（「。」か、後に空白が続く「.」が欄の途中にないこと）を確かめる。--self-test は、README の表の1行の目的を書き換えた写しと、README.ja.md の目的の欄を2文にした写しを拒む。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-DIAGRAM",
+      "statement": "docs/harness/skill-map/ が、宣言から生成した木の図（各節の親が1つ）を1枚持ち、従える、重ねる、起動させる関係は、属する辺を含まない別の図に分ける。一覧のページは、新しい読む順を載せる。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-DIAGRAM-1",
+          "description": "assert_role_tree.py が、木の図のページにある Mermaid のブロックと、宣言から生成したブロックが一致することを確かめて通る。同時に TREE の規則も通る。この規則はそのページのブロックを図として読み、根が1つで、根以外のすべての節が辺の終点にちょうど1回現れ、どの辺も宣言された節を結ぶことを確かめる。--self-test は、1つの節に2つ目の親を持たせた写しを拒む。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-DIAGRAM-2",
+          "description": "python3 -B harness/skills/draw-system-diagrams/scripts/check_diagrams.py docs/harness/skill-map が終了コード 0 を返す。残る W は、木の図のページの要素数の警告（M6）だけで、そのページに理由が書いてある。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-DIAGRAM-3",
+          "description": "python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py が次を確かめて終了コード 0 を返す。木の外の関係のページの Mermaid に、次の7本の辺がある: deliver-change から define-problem、specify-requirements、implement-change、verify-change への4本、specify-requirements と verify-change から read-only-reviewer への2本、apply-scrum-guide から scrum-master-agent への1本。同じページに、役割や枝の節がない。一覧のページの表が、システムコンテキスト、コンテナ、役割の木、木の外の関係、動的図の順に5枚を載せる。さらに、ページ 01、02、04、05 の `…/SKILL.md`:N の行の引用は、どれも実在する行を指す。20か所の引用は、ページが主張する文言を含む行を指す。たとえば deliver-change の ## Child skills、read-only-reviewer と scrum-master-agent を名指す行、オーバーレイが判断基準を重ねると述べる行である。dcb1425 の時点のページは、この確かめに失敗する（前付けが伸びて行がずれた）。どのページも、SKILL.md の行を「`SKILL.md` の N 行目」のような文では引用しない（行の確かめが読めない形を拒む）。README.md と README.ja.md の docs/harness/skill-map/ の行は、一覧と同じ図の数（Five diagrams、5枚の図）と、役割の木（role tree、役割の木）を述べる。e3a3d2a の時点のページと README は、この確かめに失敗する。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-ADR",
+      "statement": "docs/adr/0026-*.md を Proposed で書き、次を記録する。役割と枝の木。役割（利用者が選んだもの）、枝、形、改名の各基準。標識を末尾に置き、選ばれ方への影響を未検証のリスクとして受け入れたこと。検討した選択肢（ディレクトリを入れ子にする方式と、役割ごとの親スキルを足す方式）。ADR-0025 の前提「サブエージェントは別のサブエージェントを起動できない」と現行の公式文書との食い違い。ADR-0025 は書き換えない。",
+      "decomposition": "LEAF",
+      "origin": {
+        "kind": "instruction",
+        "by": "Taiki Ogihara",
+        "ref": "2026-11-15 の会話で、ADR を書くかの問いに「書く (推奨)」と答えた（specs/073-scrum-role-tree/shared-understanding.md の「未決の点とリスク」）"
+      },
+      "acceptance": [
+        {
+          "id": "AC-ADR-1",
+          "description": "docs/adr/0026-<kebab-title>.md がある。前付けは status: Proposed、date: 2026-11-15、deciders を持ち、見出しは「# 0026. 」で始まり、本文は日本語である。本文は、上に挙げた記録の項目と、ADR-0025 への言及を含む。git diff main -- docs/adr/0025-ai-as-developer-scrum-master-as-subagent.md は空である。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-SYNC",
+      "statement": "変えた契約（スキルとエージェントの前付けの欄、description の標識、新しい検査）を述べる文書を、同じ変更で直す。sync-docs の find_related.py が挙げる文書のそれぞれについて、更新するか、変えない理由を述べる。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-SYNC-1",
+          "description": "docs/claude-config-design.md のスキルの種類の説明、README.md と README.ja.md の検証の節（新しい検査）、tests/assert_skill_contract.py の docstring の C-04 が、role と branch を述べている。python3 harness/skills/sync-docs/scripts/check_links.py --root . がエラー0で終わる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-SYNC-2",
+          "description": "sync-docs の find_related.py（--base main）が挙げた文書が、すべて Documentation impact の報告に、Updated か No change needed として名前と理由つきで載っている。報告は specs/073-scrum-role-tree/documentation-impact.md に記録する。",
+          "level": "L1"
+        }
+      ]
+    },
+    {
+      "id": "REQ-COMPAT",
+      "statement": "各要素の手順の本文を変えない。SKILL.md とエージェント定義の変更は前付けの中（description と metadata）だけに限り、既存の CI の実行スクリプトがすべて変更前と同じ結果になる。description の変更がスキルの選ばれ方に与える影響は、利用者が未検証のリスクとして受け入れた（問題カードの evidence）。",
+      "decomposition": "LEAF",
+      "acceptance": [
+        {
+          "id": "AC-COMPAT-1",
+          "description": "python3 -I specs/073-scrum-role-tree/evidence/frontmatter_only.py が、main と作業中のコミットの間で、すべての SKILL.md とエージェント定義の前付けより後の本文が同じであることを確かめて、終了コード 0 を返す。REQ-FORM で置き換えたか改名した要素があれば、その要素だけは新旧の本文を比べる。",
+          "level": "L1"
+        },
+        {
+          "id": "AC-COMPAT-2",
+          "description": ".github/workflows/ci.yml が呼ぶ16の実行スクリプトが、変更後にすべて終了コード 0 を返す。ただし、変更前の時点ですでに失敗していたもの（specs/073-scrum-role-tree/evidence/baseline-ci.md の tests/run-mcp-startup.sh。サンドボックスが uv のキャッシュへの読み書きを拒んだ）は、同じ理由で失敗すれば、その理由を添えて記録する。",
+          "level": "L3"
+        }
+      ]
+    }
+  ]
+}

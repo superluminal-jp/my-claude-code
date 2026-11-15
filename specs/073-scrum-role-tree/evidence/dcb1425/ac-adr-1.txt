@@ -1,0 +1,24 @@
+# command: adr_check
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:55:13Z
+
+---
+status: Proposed
+date: 2026-11-15
+deciders: Taiki Ogihara
+---
+
+--- items
+役割: 16
+枝: 9
+形の基準: 1
+改名の基準: 1
+標識: 6
+未検証のリスク: 1
+ディレクトリを入れ子にする: 1
+役割ごとの親スキルを足す: 1
+ADR-0025 の前提について: 1
+--- git diff main -- docs/adr/0025-ai-as-developer-scrum-master-as-subagent.md (empty when unchanged)
+       0
+
+exit=0

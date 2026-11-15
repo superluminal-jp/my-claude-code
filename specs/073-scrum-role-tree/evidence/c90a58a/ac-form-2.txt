@@ -1,0 +1,11 @@
+# command: git ls-tree --name-only main harness/skills/ harness/agents/ | sed 's#.*/##' | sort > "$TMPDIR/073-n-main.txt" && git ls-tree --name-only c90a58af546f66a26ecee909fa2962c2d1fb96f0 harness/skills/ harness/agents/ | sed 's#.*/##' | sort > "$TMPDIR/073-n-rev.txt" && wc -l "$TMPDIR/073-n-main.txt" "$TMPDIR/073-n-rev.txt" && diff "$TMPDIR/073-n-main.txt" "$TMPDIR/073-n-rev.txt" && echo 'the same names at main and the reviewed commit' && printf 'rows of form-and-name-review.md that say 変える: %s\n' "$(grep -c '（変える）\|変える:' specs/073-scrum-role-tree/form-and-name-review.md || true)"
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:26:13Z
+
+      22 /tmp/claude-501/073-n-main.txt
+      22 /tmp/claude-501/073-n-rev.txt
+      44 total
+the same names at main and the reviewed commit
+rows of form-and-name-review.md that say 変える: 0
+
+exit=0

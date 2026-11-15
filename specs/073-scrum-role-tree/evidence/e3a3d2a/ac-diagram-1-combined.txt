@@ -1,0 +1,30 @@
+# AC-DIAGRAM-1: 木の図が宣言から生成したものと一致し、親が1つで、書き換えた写しと2つ目の親の写しを拒む
+# reviewed_commit: e3a3d2adb1934e695709490981a96b28e5c87fbd
+# この記録は、下に挙げたファイルをそのまま連結したものである（行を選んだ部分は、そう書いた）。各部の見出しに元のファイルを書いた。
+
+## 全規則の検査（DIAGRAM と TREE の違反がないこと）（specs/073-scrum-role-tree/evidence/e3a3d2a/ac-root-1.txt）
+
+# command: python3 -B tests/assert_role_tree.py
+# reviewed_commit: e3a3d2adb1934e695709490981a96b28e5c87fbd (files outside specs/073-scrum-role-tree/ identical at HEAD 6758b86)
+# date: 2026-11-15T00:11:34Z
+
+role-tree: 22 elements, 0 violations
+
+exit=0
+
+## 変更前（TREE の規則を足す前の自己検査）（specs/073-scrum-role-tree/evidence/red-tree.txt）
+
+# python3 -B tests/assert_role_tree.py --self-test (2026-11-15, round-1 fix of AR-05: before the TREE rule exists)
+refused PURPOSE  a README.ja purpose cell of two sentences
+MISSED  TREE     a node with a second parent in the tree diagram
+refused DIAGRAM  a tree diagram edited by hand
+role-tree self-test: 14 of 15 broken copies refused
+exit=1
+
+## 自己検査の TREE と DIAGRAM の行（specs/073-scrum-role-tree/evidence/e3a3d2a/ac-tree-check-1.txt）
+
+# command: python3 -B tests/assert_role_tree.py --self-test
+refused TREE     a node with a second parent in the tree diagram
+refused DIAGRAM  a tree diagram edited by hand
+role-tree self-test: 15 of 15 broken copies refused
+

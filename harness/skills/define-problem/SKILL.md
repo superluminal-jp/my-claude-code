@@ -1,8 +1,10 @@
 ---
 name: define-problem
-description: Turn a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the ideal state - in any domain, business, technical, personal, or organizational, keeping the problem apart from any solution or unverified cause brought along with it. Use when the person wants to pin down what a problem actually is before analyzing its cause or proposing a fix. Do not use for root-cause analysis, for evaluating or proposing solutions, for an execution plan, for confirming the scope of an already-agreed feature, or for a product strategy or roadmap.
+description: Turn a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the ideal state - in any domain, business, technical, personal, or organizational, keeping the problem apart from any solution or unverified cause brought along with it. Use when the person wants to pin down what a problem actually is before analyzing its cause or proposing a fix. Do not use for root-cause analysis, for evaluating or proposing solutions, for an execution plan, for confirming the scope of an already-agreed feature, or for a product strategy or roadmap. [Product Owner / define]
 metadata:
   kind: worker
+  role: product-owner
+  branch: define
   permission: workspace_write
   sandbox: inside
   produces: a problem statement with current state, ideal state, gap, and significance

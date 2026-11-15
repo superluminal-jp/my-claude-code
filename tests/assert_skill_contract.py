@@ -11,8 +11,10 @@ inside the Claude Code Bash sandbox:
         specification), states an exclusion boundary, has no XML tags
   C-03  frontmatter keys: only the allowed ones; no when_to_use, no model
         (a model switch drops the prompt cache)
-  C-04  metadata: kind, permission, sandbox have defined values; a skill that
-        needs the network names its hosts
+  C-04  metadata: kind, permission, sandbox, role, branch have defined values;
+        a skill that needs the network names its hosts. role and branch place
+        the skill in the harness's tree (Scrum role, then the branch of
+        harness/CLAUDE.md); tests/assert_role_tree.py checks the tree itself
   C-05  body: <= 500 lines, <= 20000 characters, no prose block over 150
         words or 1200 characters
   C-06  sections: "Done when"; "Bundled files" when files are bundled; every
@@ -21,7 +23,8 @@ inside the Claude Code Bash sandbox:
         outside the repository unless it names $TMPDIR; osascript only in a
         skill declared to run outside the sandbox; network commands only in
         a skill declared to need it
-  C-08  names: no retired skill name; no other skill's name unless this
+  C-08  names: no retired skill name (the value of metadata.role in the
+        frontmatter is not a name); no other skill's name unless this
         skill is an orchestrator that declares it as a child
   C-09  paths: no install-root path, no placeholder such as <skill-dir>, no
         reference to this repository's specs/ or archive/
@@ -46,6 +49,11 @@ ALLOWED_KEYS = {
 KINDS = {"worker", "overlay", "integration", "orchestrator"}
 PERMISSIONS = {"read_only", "workspace_write", "external_effect"}
 SANDBOX = {"inside", "network", "outside"}
+# The Scrum role whose accountability the skill's main output belongs to, and
+# the branch of harness/CLAUDE.md it supports (the words of
+# docs/harness/capability-map.json). tests/assert_role_tree.py imports these.
+ROLES = {"product-owner", "developers", "scrum-master"}
+BRANCHES = {"define", "execute", "handoff"}
 RETIRED = (
     "apple-notes", "apple-reminders", "aws-research", "clarifier", "coder",
     "digital-agency-frontend", "digital-agency-slides", "git-workflow",
@@ -195,6 +203,10 @@ def check_skill(skill: Skill, all_names: set[str], kinds: dict[str, str]) -> lis
         fail("C-04", f"metadata.sandbox {sandbox!r} is not one of {sorted(SANDBOX)}")
     if sandbox == "network" and not skill.metadata.get("network-hosts"):
         fail("C-04", "metadata.sandbox is network but metadata.network-hosts names no host")
+    if skill.metadata.get("role", "") not in ROLES:
+        fail("C-04", f"metadata.role {skill.metadata.get('role', '')!r} is not one of {sorted(ROLES)}")
+    if skill.metadata.get("branch", "") not in BRANCHES:
+        fail("C-04", f"metadata.branch {skill.metadata.get('branch', '')!r} is not one of {sorted(BRANCHES)}")
 
     body_lines = skill.body.count("\n") + 1
     if body_lines > 500:
@@ -236,8 +248,17 @@ def check_skill(skill: Skill, all_names: set[str], kinds: dict[str, str]) -> lis
             if in_scripts and sandbox != "network" and NETWORK_COMMANDS.search(line) and not line.lstrip().startswith("#"):
                 fail("C-07", f"{where}: network command in a skill not declared sandbox: network")
         if path.suffix == ".md" or in_scripts:
+            # metadata.role in the frontmatter names a Scrum accountability, not a
+            # skill: its value scrum-master is also a retired skill name. Only that
+            # line is exempt; the same text in the body still counts.
+            names_text = text
+            if relative == "SKILL.md":
+                front = re.match(r"^---\n.*?\n---\n", text, re.S)
+                if front:
+                    head = re.sub(r"^  role: \S+$", "", front.group(0), flags=re.M)
+                    names_text = head + text[front.end():]
             for retired in RETIRED:
-                if word_boundary(retired).search(text):
+                if word_boundary(retired).search(names_text):
                     fail("C-08", f"{relative}: names the retired skill {retired!r}")
         if path.suffix == ".md":
             for other in others:

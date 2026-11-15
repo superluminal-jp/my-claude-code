@@ -27,6 +27,8 @@ metadata:
   kind: {kind}
   permission: read_only
   sandbox: inside
+  role: developers
+  branch: execute
 ---
 
 # Title
@@ -110,6 +112,26 @@ class ContractTests(unittest.TestCase):
         write_skill(self.root, "do-thing", text=text)
         self.assert_fails("C-04", "network-hosts")
 
+    def test_c04_missing_role(self) -> None:
+        text = VALID.format(name="do-thing", kind="worker", extra="").replace("  role: developers\n", "")
+        write_skill(self.root, "do-thing", text=text)
+        self.assert_fails("C-04", "metadata.role")
+
+    def test_c04_undefined_role(self) -> None:
+        text = VALID.format(name="do-thing", kind="worker", extra="").replace("role: developers", "role: tester")
+        write_skill(self.root, "do-thing", text=text)
+        self.assert_fails("C-04", "metadata.role")
+
+    def test_c04_missing_branch(self) -> None:
+        text = VALID.format(name="do-thing", kind="worker", extra="").replace("  branch: execute\n", "")
+        write_skill(self.root, "do-thing", text=text)
+        self.assert_fails("C-04", "metadata.branch")
+
+    def test_c04_undefined_branch(self) -> None:
+        text = VALID.format(name="do-thing", kind="worker", extra="").replace("branch: execute", "branch: deliver")
+        write_skill(self.root, "do-thing", text=text)
+        self.assert_fails("C-04", "metadata.branch")
+
     def test_c05_one_block_of_dense_prose(self) -> None:
         write_skill(self.root, "do-thing", extra="\n" + " ".join(["word"] * 151) + "\n")
         self.assert_fails("C-05", "151 words")
@@ -152,6 +174,20 @@ class ContractTests(unittest.TestCase):
 
     def test_c08_retired_name(self) -> None:
         write_skill(self.root, "do-thing", extra="\nSee the `coder` skill.\n")
+        self.assert_fails("C-08", "retired")
+
+    def test_c08_role_value_is_not_a_skill_name(self) -> None:
+        # metadata.role names a Scrum accountability; scrum-master is also a
+        # retired skill name, which must not make a correct declaration fail.
+        text = VALID.format(name="do-thing", kind="worker", extra="").replace("role: developers", "role: scrum-master")
+        write_skill(self.root, "do-thing", text=text)
+        code, err = run_contract(self.root)
+        self.assertEqual(code, 0, err)
+
+    def test_c08_role_line_in_the_body_is_still_a_name(self) -> None:
+        # Only the frontmatter's metadata.role is exempt; the same line in the
+        # body is prose that names the retired skill.
+        write_skill(self.root, "do-thing", extra="\n  role: scrum-master\n")
         self.assert_fails("C-08", "retired")
 
     def test_c08_sibling_named_by_a_worker(self) -> None:

@@ -1,0 +1,7 @@
+# command: python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:23:25Z
+
+skill-map: 7 edges, 5 pages, 65 line citations, 20 anchors, 0 failures
+
+exit=0

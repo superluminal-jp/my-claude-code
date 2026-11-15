@@ -1,0 +1,8 @@
+# command: compare the names under harness/skills and harness/agents at main and HEAD (git ls-tree, then diff of two files under $TMPDIR)
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:57:55Z
+
+main: 22 names, HEAD: 22 names
+harness/skills and harness/agents hold the same names at main and HEAD; form-and-name-review.md has no row that says 変える
+
+exit=0

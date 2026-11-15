@@ -1,0 +1,13 @@
+# command: bash tests/run-specify-requirements-skill.sh
+# commit: dcb14259969f0354be32736cc7b337b14891379e
+# date: 2026-11-14T23:56:30Z
+
+PASS RC-01: acceptance tests pass (Ran 83 tests in 7.762s)
+PASS RC-02: the requirements example passes
+PASS RC-03: the skills example passes
+PASS RC-04: this repository's skills pass in compatibility mode
+PASS RC-05: the example problem card, graph, and challenge report are ready
+
+Results: 5 passed, 0 failed
+
+exit=0

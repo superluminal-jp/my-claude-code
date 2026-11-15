@@ -1,8 +1,10 @@
 ---
 name: specify-requirements
-description: Turn an agreed problem into requirements that can be checked before implementation - a problem card that keeps evidence, hypotheses, and fixes apart, a requirements graph in which every requirement and every parent carries its own acceptance criterion, an independent read-only challenge for risky changes or weak evidence, and the bundled gate, which answers ready or blocked. Use before implementing a nontrivial, security-relevant, or multi-part change, and when asked to write acceptance criteria, to decompose requirements, or to check a requirements graph. Do not use to define a vague problem in the first place, to analyze root causes, to implement or review code, or to judge test evidence after implementation.
+description: Turn an agreed problem into requirements that can be checked before implementation - a problem card that keeps evidence, hypotheses, and fixes apart, a requirements graph in which every requirement and every parent carries its own acceptance criterion, an independent read-only challenge for risky changes or weak evidence, and the bundled gate, which answers ready or blocked. Use before implementing a nontrivial, security-relevant, or multi-part change, and when asked to write acceptance criteria, to decompose requirements, or to check a requirements graph. Do not use to define a vague problem in the first place, to analyze root causes, to implement or review code, or to judge test evidence after implementation. [Developers / define]
 metadata:
   kind: worker
+  role: developers
+  branch: define
   permission: workspace_write
   sandbox: inside
   consumes: a problem statement the person has agreed to

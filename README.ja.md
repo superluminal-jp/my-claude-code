@@ -191,6 +191,37 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   そのままアップロードできるスキルと、その ZIP の作り方も載せている。
   `install.sh` の同期対象ではない
 
+### 役割の木
+
+すべてのスキルとサブエージェントの定義は、3段の木の中の場所を1つ、自分の前付けに宣言します（`metadata.role`、`metadata.branch`、段階が2つ以上の枝にまたがるときは `metadata.stage`）。`description` の末尾にも、同じ場所を `[Developers / execute]` のような標識で書きます。役割は、主な成果物がどの Scrum のアカウンタビリティに属するかで決まります。Product Owner は何をなぜ作るか（Product Goal と Product Backlog の項目の中身）、Developers はどう作りどう確かめるか（Sprint の計画と、Definition of Done を満たす Increment）、Scrum Master は Scrum が成り立っているかです。枝は、その要素が支える `harness/CLAUDE.md` の節で、[`docs/harness/capability-map.json`](docs/harness/capability-map.json) と同じ語を使います。下の表は、宣言から `python3 tests/assert_role_tree.py --table ja` で生成したもので、同じスクリプトが宣言と一致するかも確かめます。目的の列は各 `description` の最初の文です。木の図は [`docs/harness/skill-map/03-role-tree.md`](docs/harness/skill-map/03-role-tree.md)、決定は [ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md) にあります。
+
+<!-- role-tree:start -->
+| 役割 | 枝 | 名前 | 種類 | 目的 |
+|---|---|---|---|---|
+| Product Owner | define | `clarify-intent` | スキル | Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. |
+| Product Owner | define | `define-problem` | スキル | Turn a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the ideal state - in any domain, business, technical, personal, or organizational, keeping the problem apart from any solution or unverified cause brought along with it. |
+| Product Owner | define | `define-product-strategy` | スキル | Formulate product or business strategy before development begins - vision, target users, problem and value proposition, success metrics, prioritized scope, constraints - for a new product or for a new initiative, extension, or pivot of an existing one, as one strategy brief. |
+| Developers | define | `research-aws` | スキル | Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. |
+| Developers | define | `specify-requirements` | スキル | Turn an agreed problem into requirements that can be checked before implementation - a problem card that keeps evidence, hypotheses, and fixes apart, a requirements graph in which every requirement and every parent carries its own acceptance criterion, an independent read-only challenge for risky changes or weak evidence, and the bundled gate, which answers ready or blocked. |
+| Developers | execute | `apply-dads-frontend` | スキル | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
+| Developers | execute | `apply-scrum-guide` | スキル | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
+| Developers | execute | `apply-secure-logging` | スキル | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
+| Developers | execute | `build-dads-slides` | スキル | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. |
+| Developers | execute | `check-runner` | エージェント | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
+| Developers | execute | `draw-system-diagrams` | スキル | Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. |
+| Developers | execute | `file-searcher` | エージェント | Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. |
+| Developers | execute | `implement-change` | スキル | Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first, in the smallest coherent step, and verify it before reporting. |
+| Developers | execute | `manage-git` | スキル | Create branches, commits, pushes, and pull requests so that history stays reviewable and nothing is published beyond what was asked. |
+| Developers | execute | `task-worker` | エージェント | Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. |
+| Developers | handoff | `deliver-change` | スキル | Carry a change from an agreed problem to an acceptance decision that a person can make from its evidence, by applying four skills in a fixed order - problem, requirements, implementation, verification. |
+| Developers | handoff | `read-only-reviewer` | エージェント | Independent read-only reviewer for the challenge of a problem card and requirements graph, the assurance review of a change's evidence, and other reviews that must not start from the author's reasoning. |
+| Developers | handoff | `structure-document` | スキル | Structure a document as one claim tree, so that a reader finds its one answer first and can check the support under it, and check the result with the bundled checker - a report, proposal, design document, specification, README, email, slide outline, or pull-request or issue body. |
+| Developers | handoff | `sync-docs` | スキル | Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. |
+| Developers | handoff | `verify-change` | スキル | Record, for every acceptance criterion of a change, which check ran on which commit with what result, have the evidence read by an independent read-only reviewer when the risk calls for it, and run the bundled gate, which answers pass, fail, or blocked and never builds a parent's pass out of its children's. |
+| Scrum Master | execute | `manage-scrum-artifacts` | スキル | Keep a product's Scrum artifacts as files inside its repository - the Product Backlog with its Product Goal, the Definition of Done, and for each Sprint the Sprint Backlog with its Sprint Goal, the Increment, and the event records - placed from bundled Scrum Guide (2020) templates under the product folder's scrum/ directory, extended one Sprint at a time, and checked by bundled scripts. |
+| Scrum Master | execute | `scrum-master-agent` | エージェント | Holds the Scrum Master accountability of the Scrum Guide (2020) for a Scrum Team in which the agent that starts it works as one of the Developers. |
+<!-- role-tree:end -->
+
 ## 補足ドキュメント
 
 `docs/` は保守者向けで、Claude 向けではありません。`install.sh` は `~/.claude/`
@@ -204,6 +235,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、`settings.json` で止めているサーバー、サーバー追加時の更新箇所 |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | harness 全体の振る舞いの基準。対応表とシナリオ集の検査、2つのコミットを費用の上限の下で `claude plugin eval` にかけて比べる手順、実際の環境との違い |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | 作業の各段階の担い手、担い手のない段階、互いに除外し合うスキル、各段階を覆うシナリオ（`capability-map.json` から生成） |
+| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | harness の組み立てを示す5枚の図。だれが使い何に頼るか、5つの層、すべてのスキルとサブエージェントを Scrum の役割と枝の下に置いた役割の木（宣言から生成）、どのスキルがどれを従え・判断基準を重ね・サブエージェントを起動させるか、変更を1件届けるときにスキルとサブエージェントを使う順 |
 | [`docs/adr/`](docs/adr/) | アーキテクチャ決定記録 — Accepted 後は不変で、supersede のみ |
 
 ## ユーザー設定としてインストール
@@ -405,14 +437,14 @@ bash tests/run-readme-skill-index.sh
 [`tests/assert_skill_contract.py`](tests/assert_skill_contract.py) を実行し、すべてのスキルに規則 C-01 から
 C-11（スクリプトの docstring に一覧がある）を課す: 名前がディレクトリと一致すること、`description` が
 1行で1,024字以内であり、使わない場面を述べていること、許された前付けのキーだけを持ち、モデルを切り替える
-ものがないこと、`metadata` が定義された `kind`・`permission`・`sandbox` を持ち、ネットワークが要る
+ものがないこと、`metadata` が定義された `kind`・`permission`・`sandbox`・`role`・`branch` を持ち、ネットワークが要る
 スキルがホストを名指していること、本文が大きさの上限に収まること、`Done when` の節があり、同梱の
 参照ファイルのそれぞれに読む条件を書いた `Bundled files` の節があること、サンドボックスを壊す
 コマンド（引数なしの `mktemp`、`/tmp` の直書き、リポジトリの外への書き込み、宣言のないスキルでの
-`osascript` やネットワークのコマンド）がないこと、宣言した子を名指す取りまとめ役のスキルでなければ、
+`osascript` やネットワークのコマンド）がないこと、廃止したスキルを名指さないこと（前付けの `metadata.role` の値は名前に数えない）、宣言した子を名指す取りまとめ役のスキルでなければ、
 ほかのスキルを名指さないこと、インストール先に依存するパスや、このリポジトリの `specs/`・`archive/` への
 参照がないこと、パッケージ内の相対リンクが解決すること、取りまとめ役のスキルが実在する
-子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。続けて、
+子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。次に [`tests/assert_role_tree.py`](tests/assert_role_tree.py) を実行し、すべてのスキルとサブエージェントの定義の[役割の木](#役割の木)を確かめる: `metadata.role` と `metadata.branch` を定義された値で1回ずつ宣言していること、対応表がその要素を持ち、枝が担う段階と合うこと（段階が2つ以上の枝にまたがるときは `metadata.stage` で段階を選ぶ）、`description` の末尾が一致する標識であること、README の表と木の図が宣言から生成したものと一致すること。`--self-test` は、どれか1つの規則を壊した写しが拒まれることを示す。続けて、
 `specify-requirements`・`verify-change`・`draw-system-diagrams`・`structure-document`・`sync-docs`・`manage-scrum-artifacts` に
 同梱した検査スクリプトの単体テストを実行する。1つのスキルの単体テストだけを実行するには:
 

@@ -1,8 +1,10 @@
 ---
 name: apply-dads-frontend
-description: Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. Use for DADS components, Japanese government or public-service interfaces, accessibility remediation, and presentation or exploration dashboards. Do not use for Power BI artifacts, for projects outside React and Tailwind CSS, or for slide decks.
+description: Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. Use for DADS components, Japanese government or public-service interfaces, accessibility remediation, and presentation or exploration dashboards. Do not use for Power BI artifacts, for projects outside React and Tailwind CSS, or for slide decks. [Developers / execute]
 metadata:
   kind: overlay
+  role: developers
+  branch: execute
   permission: workspace_write
   sandbox: network
   network-hosts: registry.npmjs.org, raw.githubusercontent.com, github.com, design.digital.go.jp, www.digital.go.jp
