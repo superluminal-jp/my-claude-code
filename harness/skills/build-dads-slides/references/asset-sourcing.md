@@ -109,7 +109,8 @@ carry their own licences.
 
 State which of these applies in the hand-off rather than leaving it to the
 reader. When a deck is published under an organisation's name, put the notice on
-a closing slide or in the deck's own source line, not only in the workspace.
+the last slide of the appendix or in the deck's own source line, not only in
+the workspace.
 
 ## Standing limits
 

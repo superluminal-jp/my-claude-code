@@ -214,7 +214,10 @@ redesign that produced this layout is recorded in
     set are out of scope), and
     `build-dads-slides` (16:9 slide decks delivered as one HTML file on the
     Digital Agency Design System's official HTML and CSS assets, built as a
-    tree — premises, then the answer, then one slide per supporting point —
+    Minto pyramid in one of two forms chosen for the audience — a paper form
+    (summary, premises, method, results, discussion, conclusion) or a
+    business form (introduction, answer, points, next step) that can borrow
+    the paper form's method and discussion —
     with a tracker on every main slide showing where it sits, a
     機密性/公開範囲 classification marking at the top right of every slide,
     and checked by its own bundled linter and preview images)
@@ -325,7 +328,7 @@ and the decision is [ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-
 | Developers | execute | `apply-dads-frontend` | skill | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
 | Developers | execute | `apply-scrum-guide` | skill | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
 | Developers | execute | `apply-secure-logging` | skill | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
-| Developers | execute | `build-dads-slides` | skill | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. |
+| Developers | execute | `build-dads-slides` | skill | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured as a Minto pyramid in the form its audience needs - a research-paper form (summary, premises, method, results, discussion, conclusion), a business-presentation form (introduction, answer, supporting points, next step), or a business deck that borrows parts of the paper form - with every slide showing where it sits in that structure. |
 | Developers | execute | `check-runner` | agent | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
 | Developers | execute | `draw-system-diagrams` | skill | Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. |
 | Developers | execute | `file-searcher` | agent | Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. |
@@ -501,7 +504,7 @@ my-claude-code/
         │   ├── examples/           #   a complete example set that passes the checker
         │   ├── scripts/            #   check_diagrams.py (read-only, standard library only)
         │   └── tests/              #   unit tests
-        ├── build-dads-slides/      # DADS 16:9 HTML decks built as premise -> answer -> points (worker; needs network for assets)
+        ├── build-dads-slides/      # DADS 16:9 HTML decks as a Minto pyramid, in a paper form or a business form (worker; needs network for assets)
         │   ├── SKILL.md            #   playbook
         │   ├── references/         #   slide design, markup contract, checks, sourcing
         │   ├── assets/             #   1280x720 layout CSS + annotated deck template

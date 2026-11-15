@@ -41,78 +41,108 @@ given a slide of its own; it sits on the slide of the point it proves.
 
 | Tree level | Where it goes |
 |---|---|
-| Governing message | The cover's title, and the answer slide's headline |
+| Governing message | The cover's title, and the headline of the answer slide (要旨 in the paper form, 結論 in the business form) |
 | Key-line point | One `point` slide each, and one branch of the answer slide's tree |
 | Support that is itself a claim with its own evidence | A continuation slide (`data-continues`) after its point's slide, one per support |
 | Evidence for a point | The body of that point's slide |
 | Detail behind the evidence | The appendix, the footer's source line, or the speaker notes |
+| What the audience needs around the tree — the introduction or the premises, the method, the discussion, the next step | Slides of their own, in the positions the deck's form sets; each is one node with its children, like any other slide |
 
 A continuation slide is still one node with its children — the support as the
 headline, its evidence in the body — so it is not a split. A slide that feels
 crowded is not split into two: either its children are not one group — regroup them into at most
 four — or some of them are detail, which moves down a level.
 
-### The order: premises, then the answer, then the tree
+### Choose the form
 
-| # | Role (`data-layout`) | The slide | Test |
-|---|---|---|---|
-| 1 | `title` | The governing message as the title | A reader who sees only this slide knows the answer |
-| 2 | `premise` | What the audience must share before the answer makes sense: the situation they already accept, what has gone wrong, the terms they need, how the evidence was gathered, and the question this raises | Every fact on it is undisputed; every term the deck relies on is defined |
-| 3 | `answer` | The governing message, the key line drawn as a tree, and the ask | A reader who stops here has the answer, its reasons, and what is asked of them |
-| 4 … | `point` | One key-line point and its evidence | The body proves the headline without help from another slide |
-| last | `closing` | The decision, the actions, the owners, the dates, and where the conclusion stops holding | Who does what by when, and under what condition the answer would change |
-| after | `appendix` | Detail a reader may look up | Nothing on it is needed to follow the main deck |
+Both forms build the same Minto pyramid: the governing message, the key line
+and the evidence under it, the answer before its support, one node per slide,
+and every headline an assertion. They differ in what the audience needs around
+the tree before it can weigh the answer. Choose by the least-informed person
+who must act on the deck, and declare the choice on `<body>` as `data-form`.
 
-The answer comes by slide 3. An audience that learns on slide 9 what is being
-asked of them spent eight slides not evaluating it.
-
-**Slide count follows the tree.** The main deck is the cover, the premises,
-the answer, one slide per key-line point plus one per continued support, and
-the closing — however many that is. Do not pad a thin argument to fill a slot,
-and do not crowd two nodes onto one slide to save a page. If the deck is too
-long for the occasion, cut a branch or move it to the appendix; `lint
---max-slides N` checks a limit the occasion sets. Omit the premise slide only
-when the audience already shares its facts and terms, and the closing slide
-only when the deck asks for nothing.
-
-Because the count is free, a reader must never lose their place. There is no
-agenda slide and no section divider: the answer slide's tree is the map, every
-main slide's tracker marks its part, and the shoulder text names it —
-`論点2` on the point's slide, `論点2-1` on its first continuation. A
-continuation carries `data-continues`, so its tracker marks the same part as
-the point it continues.
-
-### The parts of a research paper, on slides
-
-The deck follows the order of a research paper's parts while keeping the
-answer first, without adding slides for them: the method and the discussion
-each take one line on an existing slide, not a slide of their own.
-
-| Paper part | Slide | What it carries |
+| | Paper form (`data-form="paper"`) | Business form (`data-form="business"`) |
 |---|---|---|
-| Summary | `title`, then `answer` | The governing message; the answer slide adds the key line and the ask |
-| Introduction | `premise` | The background, the problem, the terms, the question |
-| Method | `premise`, one line | How the evidence was gathered — sources, period, procedure — so the audience can judge how far to trust it |
-| Results | `point` | One key-line point and its evidence per slide |
-| Discussion | `closing`, one line | The conclusion's limits: where it stops holding, and what would change it |
-| Conclusion | `closing` | The decision asked for, and who does what by when |
-| Appendix | `appendix` | Detail a reader may look up |
+| Choose it when | The audience is new to the subject, or must be able to check the evidence: 審議会資料, 調査報告, 評価報告, a deck read alone or kept as a record | The audience shares the background and must decide or act: 決裁, 経営会議, 定例報告, a deck presented in a short slot |
+| Before the answer | Nothing: the summary is slide 2 | At most one introduction slide that reminds the audience of the situation, the complication and the question |
+| After the answer | Premises, method, results, discussion, conclusion, each with the slides its content needs | The supporting points, then the next step; a method or discussion slide only when borrowed |
+| Parts `lint` requires | `premise`, `method`, `point`, `discussion`, `closing` | `point`, `closing` |
+| Shoulder and tracker | 要旨, 前提, 方法, 論点n, 考察, 結論 | 導入, 結論, 方法 if borrowed, 論点n, リスク if borrowed, 次の一手 |
 
-Any paragraph on a slide opens with its claim in the first sentence; the
-sentences after it support that claim.
+When the choice is unclear, choose the paper form: an audience given premises
+it already shares skims them, but one denied the premises it needs cannot
+check the answer. A deck that declares no form is checked as a paper deck.
 
-A single key-line point is not a tree. Put its evidence directly on the answer
-slide. More than five points means the key line is at the wrong level:
-regroup the points under fewer, broader ones.
+結論 names a different slide in each form: the conclusion at the end of a
+paper deck (`closing`), and the answer near the start of a business deck
+(`answer`). Within one deck it always means one of them.
+
+### The paper form: the parts of a research paper, answer first
+
+The paper form follows the order of a research paper's parts and, as a paper's
+abstract does, gives the answer first: summary, premises, method, results,
+discussion, conclusion. Each part has its own role (`data-layout`) and takes
+the slides its content needs.
+
+| Paper part | Role (`data-layout`) | Shoulder and tracker | Slides | What it carries | Test |
+|---|---|---|---|---|---|
+| Title | `title` | none | 1 | The governing message as the title | A reader who sees only this slide knows the answer |
+| Summary | `answer` | 要旨 | 1, always slide 2 | The governing message, the key line drawn as a tree with one line of evidence per branch, and the ask | A reader who stops here has the answer, its reasons and what is asked of them, without having read the premises |
+| Premises | `premise` | 前提 | As many as the content needs | The situation the audience already accepts, what has gone wrong, the question this raises, and the terms | Every fact on them is undisputed; every term the deck relies on is defined |
+| Method | `method` | 方法 | As many as the content needs, usually 1 | The sources, the period, the procedure and the assumptions behind the evidence — or that the answer rests on reasoning alone | The audience can judge how far to trust every figure that follows |
+| Results | `point` | `論点n`; `論点n-m` when continued | One per key-line point, plus one per continued support | One key-line point and its evidence | The body proves the headline without help from another slide |
+| Discussion | `discussion` | 考察 | As many as the content needs, usually 1 | What the results mean, where the conclusion stops holding, and the alternative explanations not ruled out | The audience knows under what condition the answer would change |
+| Conclusion | `closing` | 結論 | 1 | The decision asked for, the actions, the owners and the dates | Who does what by when, without repeating the summary |
+| Appendix | `appendix` | `付録n` | Any | Detail a reader may look up | Nothing on it is needed to follow the main deck |
+
+A part that spans several slides keeps one entry in the tracker, and each of
+its slides' shoulder names the part and the slide's topic, as in
+`前提：背景と問い` and `前提：用語`; a continued point keeps `論点n-m`.
+
+**The answer comes first; its support comes in full.** The summary on slide 2
+gives the audience the answer to weigh everything after it against: an
+audience that learns on slide 9 what is being asked of them spent eight slides
+not evaluating it. Because the answer is already given, no later part is
+shortened to reach it sooner. The premises take as many slides as a newcomer
+needs, and the method and the discussion each take at least one slide of their
+own, not one line on another part's slide. An answer given without its premises, its
+method or its limits is an assertion the audience cannot check.
+
+### Write the summary so it stands alone
+
+The summary comes before the premises, as a paper's abstract comes before its
+introduction, so it must be read without them.
+
+- The headline is the governing message. The tree's branches are the key-line
+  points, numbered as their results slides will be, each with one line of the
+  evidence that proves it.
+- Write it in words a newcomer already knows. A term the premises will define
+  appears in plain words or with its explanation in passing, such as
+  案A（段階的オンライン化）.
+- Name the question it answers in passing — in the headline or a branch —
+  when the answer alone does not reveal it. The premises state the question
+  in full after the summary; the audience should not meet the answer before
+  it knows what the answer replies to.
+- State the ask, with its deadline, at its foot.
+- Show no figure the results slides do not show, and none that means
+  something different there.
 
 ### Set the premises for a newcomer
 
-The premise slide is where an audience new to the subject gets what the
-answer depends on. Write it for the least-informed person who must act on the
-deck.
+The premise slides are where an audience new to the subject gets what the
+answer depends on. Write them for the least-informed person who must act on
+the deck.
 
 - State only the premises the answer depends on: the situation, the change or
-  problem, and the scope. Nothing on it is an argument yet.
+  problem, and the scope. Nothing on them is an argument yet.
+- State the question the deck answers as soon as the problem is laid out, and
+  define the terms after it, so the audience holds the question while the
+  terms, the method and the results lead to its answer.
+- Give them the slides they need. Each premise slide is one node with its
+  children, like any other slide; a common split is one slide for the
+  situation, the problem and the question, and one for the terms.
+  Never fold them onto one slide to reach the answer sooner — the answer is
+  already on slide 2.
 - Define every term the deck uses that a newcomer would not know, in plain
   words, by what the thing is and what it does here. Use the description list,
   which is the design system's component for a term paired with its
@@ -122,10 +152,129 @@ deck.
   rest wrongly. Explain the thing itself: its definition, its parts, and a
   concrete instance of it. An instance of the subject is an example, not a
   comparison, and is welcome.
-- State in one line how the evidence was gathered: its sources, the period
-  it covers, and how it was measured or estimated.
-- End with the question the deck answers, so the answer slide reads as its
-  reply.
+
+### State the method
+
+The method slide tells the audience how far to trust the results before they
+see them.
+
+- Name each source of evidence, the period it covers, and how it was
+  measured, counted or estimated.
+- State the assumptions the figures rest on, such as a volume held level or a
+  rate carried forward.
+- Say which figures are measured and which are estimated.
+- When the answer rests on reasoning alone, with no evidence gathered, say so
+  here and name the premises the reasoning starts from. The audience must see
+  it on the slide, not only in the hand-off.
+- Pair each kind of figure the deck shows — 作業時間, 費用, 削減効果 — with
+  where it comes from and how it was obtained in a description list, and give
+  the assumptions an item of their own; use a table when several sources share
+  the same columns.
+
+### Discuss before concluding
+
+The discussion slide comes after the results and before the conclusion, as in
+a paper, so the decision is asked for with its limits in view.
+
+- State what the results mean together, which is more than any one of them
+  says.
+- State where the conclusion stops holding: the condition under which the
+  answer would change, and how that condition will be watched.
+- State the alternative explanations the evidence does not rule out.
+- Give each of the three its own block. A limit left only in the speaker
+  notes is a limit the decision-maker never sees.
+- Draw no conclusion the results slides do not support. A claim that needs
+  evidence of its own is a result, not a discussion.
+
+### Conclude with what follows
+
+The conclusion is what the audience does next, not a repeat of the summary.
+The summary's ask names the decision; the conclusion makes it executable: the
+decision with its deadline, each action with its owner and date, and what the
+decision costs or what not deciding costs.
+
+### The business form: introduction, answer, points, next step
+
+The business form is the order Minto gives for a presentation: a short
+introduction that tells the audience what they already know, then the answer,
+then the points that support it, then the next step.
+
+| Part | Role (`data-layout`) | Shoulder and tracker | Slides | What it carries | Test |
+|---|---|---|---|---|---|
+| Title | `title` | none | 1 | The governing message as the title | A reader who sees only this slide knows the answer |
+| Introduction | `premise` | 導入 | 0 or 1, slide 2 | The situation the audience knows, the complication that changed it, and the question it raises | Every line reminds; nothing on it is news to this audience |
+| Answer | `answer` | 結論 | 1, slide 2 or 3 | The governing message, the key line drawn as a tree with one line of evidence per branch, and the ask | A reader who stops here has the answer, its reasons and what is asked of them |
+| Points | `point` | `論点n`; `論点n-m` when continued | One per key-line point, plus one per continued support | One key-line point and its evidence | The body proves the headline without help from another slide |
+| Next step | `closing` | 次の一手 | 1 | The decision asked for, the actions, the owners and the dates | Who does what by when |
+| Appendix | `appendix` | `付録n` | Any | Background the introduction could not hold, terms, and detail a reader may look up | Nothing on it is needed to follow the main deck |
+
+Write the introduction as a reminder, in Minto's three steps:
+
+- **Situation**: what the audience already accepts as true, stated so that
+  nobody disputes it.
+- **Complication**: what changed, or went wrong, in that situation.
+- **Question**: the question the complication raises, which the answer slide
+  then answers.
+
+The introduction holds one slide because it informs nobody. If the audience
+needs to learn the background before it can follow the answer, it does not
+share the background: put the detail in the appendix, or use the paper form.
+Leave the introduction out when the audience arrives already asking the
+question. A term the audience may not know is defined in passing on the slide
+that uses it, or in the appendix.
+
+### Blend the forms
+
+The forms are two layouts of one pyramid, so a deck can take what it needs
+from the other form without changing its tree.
+
+- A business deck borrows a paper part when its audience needs it: a method
+  slide (`method`, 方法) when the figures will be challenged, and a discussion
+  slide (`discussion`, headed リスク) when the answer depends on a condition
+  that may not hold. It may borrow both. A borrowed part sits where the paper
+  form puts it — the method before the points, the discussion after them — and
+  `lint` checks that order in either form.
+- A borrowed risk slide may carry only where the answer stops holding and the
+  explanations not ruled out: in the business form, what the results mean is
+  the answer slide's job.
+- A business deck borrows no premises. If its audience needs the background
+  explained — more than the one introduction slide can remind them of — the
+  audience does not share it, and the deck is a paper deck: change its form
+  rather than stretch the introduction. `lint` reports a premise slide after
+  the answer of a business deck.
+- A paper deck takes nothing away: when its audience shares the background,
+  its premises are short, but they stay after the summary and the method and
+  the discussion keep their slides. An audience that shares every premise is
+  the business form's audience.
+
+### Slide count and place, in either form
+
+**Slide count follows the tree.** The main deck is the cover and the parts its
+form lays out, with one slide per key-line point plus one per continued
+support — however many that is. Do not pad a thin argument to fill a slot, and
+do not crowd two nodes onto one slide to save a page. If the deck is too long
+for the occasion, cut a branch or move detail to the appendix; `lint
+--max-slides N` checks a limit the occasion sets. Omit a part the form
+requires only when it has nothing to say to this audience — the conclusion or
+the next step when the deck asks for nothing — and say why in the hand-off,
+since `lint` reports the missing part. A paper deck whose premises the audience
+already shares does not drop them: it is a business deck.
+
+Because the count is free, a reader must never lose their place. There is no
+agenda slide and no section divider: the answer slide's tree is the map, every
+main slide's tracker marks its part, and the shoulder text names it, in the
+labels of the deck's form — `論点2` on the point's slide, `論点2-1` on its
+first continuation. A slide that carries on the part of the slide before it —
+a further premise, method or discussion slide, or a support of a point —
+carries `data-continues`, so its tracker marks the same part.
+
+Any paragraph on a slide opens with its claim in the first sentence; the
+sentences after it support that claim.
+
+A single key-line point means the governing message and the point say the
+same thing: make the point's own supports the key line. More than five points
+means the key line is at the wrong level: regroup the points under fewer,
+broader ones.
 
 ### One grouping basis per group
 
@@ -178,7 +327,7 @@ agree with each other.
 
 | Cue | Where | What it says |
 |---|---|---|
-| Tracker (`sld-tracker`) | Top right, on the shoulder text's line | The parts of the main deck after the cover — 前提, 結論, 論点1 … 依頼 — with this slide's part in bold, underlined in the key colour, and marked `aria-current="step"` |
+| Tracker (`sld-tracker`) | Top right, on the shoulder text's line | The parts of the main deck after the cover, in the labels of the deck's form — 要旨, 前提, 方法, 論点1 …, 考察, 結論 in the paper form; 導入, 結論, 方法, 論点1 …, リスク, 次の一手 in the business form, 方法 and リスク only when borrowed — with this slide's part in bold, underlined in the key colour, and marked `aria-current="step"` |
 | Shoulder text | Above the headline | This slide's part, in words |
 | Page number | Footer, right | `n / N` in the main deck; `付録 n` in the appendix |
 
@@ -189,7 +338,8 @@ agree with each other.
 - It takes no height from the body. If a shoulder text is long enough to
   reach it, shorten the shoulder text.
 - `lint` checks every tracker against the slide's real part. Parts, not
-  slides, are listed: a point continued over three slides is one entry.
+  slides, are listed: premises over two slides are one entry, and so is a
+  point continued over three.
 
 ### Make the tree visible
 
@@ -288,18 +438,23 @@ Content never crosses the safe area. The linter reports anything that does.
 
 A slide has a **role**, which is its place in the tree (`data-layout`), and a
 **body pattern**, which is how its evidence is shown. Choose them
-independently. `assets/deck-template.html` implements all of them; copy the
-one that matches rather than building layout from scratch.
+independently. `assets/deck-template.html` (the paper form) implements all of
+them, and `assets/deck-template-business.html` shows the business form's
+introduction, answer and borrowed risk slide; copy the one that matches rather
+than building layout from scratch.
 
 | Role | Use it for | Keep to |
 |---|---|---|
 | `title` | The deck's cover | Governing message as the title, not the project name |
-| `premise` | Shared facts, terms and the question | Facts the audience accepts; every term defined |
-| `answer` | The governing message and its key line | Two to four branches in `sld-tree`, plus the ask |
+| `answer` | The answer: the summary (要旨) on slide 2 in the paper form; the answer (結論) on slide 2 or 3 in the business form | Two to four branches in `sld-tree`, plus the ask; in the paper form, readable without the premises |
+| `premise` | Shared facts, terms and the question in the paper form; the one-slide introduction (導入) in the business form | Facts the audience accepts; every term defined; in the business form, nothing the audience does not already know |
+| `premise`, `method` or `discussion` with `data-continues` | A further slide of the same part, such as the terms | Same tracker part as the slide before it; shoulder names the part and the slide's topic |
+| `method` | How the evidence was gathered | Sources, period, procedure and assumptions; which figures are measured and which estimated |
 | `point` | One key-line point and its evidence | One body pattern, or two that prove different parts of the point |
 | `point` with `data-continues` | One support of the point before it, when that support is a claim with its own evidence | Same tracker part as its point; shoulder `論点n-m` |
-| `closing` | The decision, the actions, the owners, the dates | Who does what by when |
-| `appendix` | Detail a reader may look up | After the closing; outside the tracker and the `n / N` count |
+| `discussion` | What the results mean and where they stop holding; in the business form, the borrowed risk slide (リスク) | Meaning, limits, and alternative explanations, each in its own block |
+| `closing` | The conclusion (結論), or the business form's next step (次の一手): the decision, the actions, the owners, the dates | Who does what by when |
+| `appendix` | Detail a reader may look up | After the conclusion; outside the tracker and the `n / N` count |
 
 | Body pattern | Use it when | Keep to |
 |---|---|---|

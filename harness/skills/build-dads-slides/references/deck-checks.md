@@ -37,14 +37,21 @@ deck.py preview deck.html -o preview         # one PNG per slide, plus the findi
 
 A finding on slide 0 is about the whole document.
 
-### Structure — is the tree in order?
+### Structure — is the deck in the order of its form?
+
+The structure checks follow the form `<body data-form>` declares; `lint
+--json` reports it as `deck.form`. A deck that declares none is checked as a
+paper deck.
 
 | Code | Level | Means |
 |---|---|---|
+| `form-unknown` | warn | `data-form` on `<body>` names neither `paper` nor `business`, or `data-form` sits on another element, where it is not read. The deck is checked as a paper deck |
 | `deck-long` | warn | The main deck is longer than the `--max-slides` limit given. Cut a branch or move it to the appendix |
-| `late-answer` | warn | No slide has `data-layout="answer"`, or it comes after slide 3 |
+| `late-answer` | warn | No slide has `data-layout="answer"`, or the answer is not where the form puts it: slide 2 in the paper form; slide 2, or slide 3 straight after one introduction slide (`data-layout="premise"`, not a continuation), in the business form |
+| `part-order` | warn | A `premise`, `method`, `point`, `discussion` or `closing` slide comes after a slide of a later part, counting only those five roles, so one misplaced slide is reported once, on the slide where the order breaks. The parts run in that order in either form. In the business form, a premise slide after the answer is reported as a misplaced introduction. A main slide after the appendix is reported as `appendix-order` instead |
+| `missing-part` | warn | The deck lacks a part its form requires — `premise`, `method`, `point`, `discussion` and `closing` in the paper form; `point` and `closing` in the business form — one finding per missing part, on slide 0. Give the part a slide, or say in the hand-off why this deck leaves it out |
 | `appendix-order` | warn | A main slide follows an appendix slide |
-| `tracker` | error | A tracker lists a different number of parts than the main deck has after the cover — a `data-continues` slide shares its point's part — or marks a part other than this slide's — it tells the audience they are somewhere they are not |
+| `tracker` | error | A tracker lists a different number of parts than the main deck has after the cover — a `data-continues` slide shares the part of the slide before it — or marks a part other than this slide's — it tells the audience they are somewhere they are not |
 | `tracker-missing` | warn | Other main slides carry a tracker and this one does not. A deck with no trackers at all is not reported |
 
 ### Document — can assistive technology navigate it?
@@ -95,6 +102,14 @@ decision: fix it, or say in the hand-off why it stays.
   meaning. It cannot tell that a point fails to support the governing message,
   that siblings overlap, or that a term went undefined. Check those against
   `references/slide-design.md`.
+- **Whether the form fits the audience.** The linter checks a deck against
+  the form it declares, not whether that form was the right choice. A
+  business deck for an audience new to the subject passes `lint` and still
+  leaves them unable to check the answer. Choose by `references/slide-design.md`.
+- **Whether a part was compressed.** The linter sees that the premises, the
+  method and the discussion have slides, not whether the premises were
+  squeezed onto one slide or the method shrunk to a line. Read those slides
+  against `references/slide-design.md`.
 - **Whether a slide reads well.** Look at every preview image.
 - **Content that slides under the footer.** A body that runs past the frame
   but not past the slide edge is neither clipped nor off the slide. The
@@ -111,6 +126,7 @@ decision: fix it, or say in the hand-off why it stays.
 | Unstyled slides in the preview | `dads/` was not fetched, or the paths in `deck.html` do not match | Run `fetch-dads-assets.sh` in the deck folder |
 | `heading-skip` on a card title | A block title was written as `h4` under the slide's `h2` | Make it an `h3` |
 | `deck-long` on a deck with few points | Evidence was given slides of its own | Move it onto its point's slide, or to the appendix |
+| `late-answer` and `missing-part` on a deck that opens with one premise slide | The deck is laid out in the business form's order but declares the paper form, or declares no form | If the audience shares the background, declare `data-form="business"`. If it does not, move the summary to slide 2 and give the method a slide between the premises and the results, and the discussion a slide after the results |
 | Chromium will not launch | Playwright's browser build does not match | `--chromium PATH`, or re-run `scripts/setup.sh` |
 | Chromium aborts with `bootstrap_check_in … Permission denied (1100)` | The macOS command sandbox refuses the Mach service registration Chromium makes at startup | `deck.py` already launches it with `--single-process` when the command runs in that sandbox (`SANDBOX_RUNTIME=1`); a browser launched any other way needs the same flag |
 

@@ -140,7 +140,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     凡例・線のラベル・1枚あたりの要素数の上限・すべての図を結ぶ索引を、同梱の標準ライブラリだけの
     検査器（`check_diagrams.py`）で確かめる。クラウド事業者の公式アイコンで描く図は対象外）、
     `build-dads-slides`（DADS 公式の HTML と CSS の資材で、16:9 スライドを1つの HTML ファイルとして
-    作成し、前提 → 結論 → 論点ごとのスライドという木の構造で組み、本編の各スライドに全体の中の現在地を、
+    作成し、ミント・ピラミッドの木を、聞き手に合わせて選んだ2つの型のどちらかで組み（論文型は
+    要旨 → 前提 → 方法 → 結果 → 考察 → 結論、ビジネス型は導入 → 結論 → 論点 → 次の一手で、
+    論文型の方法と考察を借りられる）、
+    本編の各スライドに全体の中の現在地を、
     全スライドの右上に機密性と公開範囲の表示を置き、同梱のリンタとプレビュー画像で確認する）
   - ドメインオーバーレイ（一致する作業と組み合わさる。置き換えではない）: `apply-dads-frontend`
     （DADS に基づくアクセシブルな React/Tailwind の公共サービスのフロントエンドと Web
@@ -206,7 +209,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 | Developers | execute | `apply-dads-frontend` | スキル | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
 | Developers | execute | `apply-scrum-guide` | スキル | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
 | Developers | execute | `apply-secure-logging` | スキル | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
-| Developers | execute | `build-dads-slides` | スキル | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. |
+| Developers | execute | `build-dads-slides` | スキル | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured as a Minto pyramid in the form its audience needs - a research-paper form (summary, premises, method, results, discussion, conclusion), a business-presentation form (introduction, answer, supporting points, next step), or a business deck that borrows parts of the paper form - with every slide showing where it sits in that structure. |
 | Developers | execute | `check-runner` | エージェント | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
 | Developers | execute | `draw-system-diagrams` | スキル | Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. |
 | Developers | execute | `file-searcher` | エージェント | Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. |
@@ -386,7 +389,7 @@ my-claude-code/
         │   ├── examples/           #   検査器を通る図の一式の作例
         │   ├── scripts/            #   check_diagrams.py(読み取り専用、標準ライブラリのみ)
         │   └── tests/              #   単体テスト
-        ├── build-dads-slides/      # DADS 16:9 HTML デッキを 前提 -> 結論 -> 論点 で組む(作業。資材の取得にネットワークが要る)
+        ├── build-dads-slides/      # DADS 16:9 HTML デッキをミント・ピラミッドで、論文型かビジネス型で組む(作業。資材の取得にネットワークが要る)
         │   ├── SKILL.md            #   プレイブック
         │   ├── references/         #   スライド設計、マークアップ契約、検査、資材の出典
         │   ├── assets/             #   1280x720 のレイアウト CSS + 注釈付きデッキテンプレート
