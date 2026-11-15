@@ -108,7 +108,7 @@ flowchart LR
 ## 前提と未確認の点
 
 - `apply-scrum-guide` から4つの作業スキルへの点線は、推定です。本文の「コードの変更、検証、文書、Git の操作は、それぞれを扱う能力と併用し」（`skills/apply-scrum-guide/SKILL.md`:15）を、それぞれの作業を扱うスキルに当てはめました。本文は、スキルを名前では指していません。
-- `apply-secure-logging` と `apply-dads-frontend` は「実装かレビュー」に基準を重ねると書いています（各 `SKILL.md` の 13 行目、14 行目）。このうち実装だけを、`implement-change` への線にしました。レビューを担うスキルはハーネスにありません（[capability-map.md](../capability-map.md) の `H-code-review`）。
+- `apply-secure-logging` と `apply-dads-frontend` は「実装かレビュー」に基準を重ねると書いています（`skills/apply-secure-logging/SKILL.md`:15、`skills/apply-dads-frontend/SKILL.md`:16）。このうち実装だけを、`implement-change` への線にしました。レビューを担うスキルはハーネスにありません（[capability-map.md](../capability-map.md) の `H-code-review`）。
 - サブエージェント定義は別の層の要素ですが、スキルから起動される関係を見せるために、この図に置きました。`check-runner`、`file-searcher`、`task-worker` は、どのスキルからも名指しされないため描いていません。これらは、頂点の指示にある委任の条件で選ばれます（[コンテナ図](02-containers.md)）。
 - 作業スキルの間の受け渡し（問題文 → 要件グラフ → 変更 → 証拠）は、使う順の問いなので、[動的図](05-dynamic-deliver-change.md)に描きました。
 - 各要素の役割と枝（木の中の場所）は、この図には描いていません。[役割の木](03-role-tree.md)にあります。

@@ -235,7 +235,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、`settings.json` で止めているサーバー、サーバー追加時の更新箇所 |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | harness 全体の振る舞いの基準。対応表とシナリオ集の検査、2つのコミットを費用の上限の下で `claude plugin eval` にかけて比べる手順、実際の環境との違い |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | 作業の各段階の担い手、担い手のない段階、互いに除外し合うスキル、各段階を覆うシナリオ（`capability-map.json` から生成） |
-| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | harness の組み立てを示す4枚の図。だれが使い何に頼るか、5つの層、どのスキルがどれを従え・判断基準を重ね・サブエージェントを起動させるか、変更を1件届けるときにスキルとサブエージェントを使う順 |
+| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | harness の組み立てを示す5枚の図。だれが使い何に頼るか、5つの層、すべてのスキルとサブエージェントを Scrum の役割と枝の下に置いた役割の木（宣言から生成）、どのスキルがどれを従え・判断基準を重ね・サブエージェントを起動させるか、変更を1件届けるときにスキルとサブエージェントを使う順 |
 | [`docs/adr/`](docs/adr/) | アーキテクチャ決定記録 — Accepted 後は不変で、supersede のみ |
 
 ## ユーザー設定としてインストール

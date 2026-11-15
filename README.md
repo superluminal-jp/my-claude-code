@@ -354,7 +354,7 @@ and skills carry their own sources inline instead.
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, which servers `settings.json` stops, and what to update when a server is added |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | The whole-harness behavior baseline: how to check the capability map and scenario suite, run the suite with `claude plugin eval` against two commits under a cost ceiling, and compare the results, and where the eval differs from a real session |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | Which component owns each stage of the work, which stages have no owner, which skills exclude one another, and which scenarios cover each stage (generated from `capability-map.json`) |
-| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | Four diagrams, in Japanese, of how the harness fits together: who uses it and what it depends on, its five layers, which skill orchestrates, overlays, or starts a subagent for which, and the order in which skills and subagents are used to deliver one change |
+| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | Five diagrams, in Japanese, of how the harness fits together: who uses it and what it depends on, its five layers, the role tree that places every skill and subagent under a Scrum role and a branch (generated from their declarations), which skill orchestrates, overlays, or starts a subagent for which, and the order in which skills and subagents are used to deliver one change |
 | [`docs/adr/`](docs/adr/) | Architecture decision records — immutable once Accepted, only superseded |
 
 ## Install as user configuration

@@ -186,7 +186,7 @@
         },
         {
           "id": "AC-DIAGRAM-3",
-          "description": "python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py が次を確かめて終了コード 0 を返す。木の外の関係のページの Mermaid に、次の7本の辺がある: deliver-change から define-problem、specify-requirements、implement-change、verify-change への4本、specify-requirements と verify-change から read-only-reviewer への2本、apply-scrum-guide から scrum-master-agent への1本。同じページに、役割や枝の節がない。一覧のページの表が、システムコンテキスト、コンテナ、役割の木、木の外の関係、動的図の順に5枚を載せる。さらに、ページ 01、02、04、05 の `…/SKILL.md`:N の行の引用は、どれも実在する行を指す。20か所の引用は、ページが主張する文言を含む行を指す。たとえば deliver-change の ## Child skills、read-only-reviewer と scrum-master-agent を名指す行、オーバーレイが判断基準を重ねると述べる行である。dcb1425 の時点のページは、この確かめに失敗する（前付けが伸びて行がずれた）。",
+          "description": "python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py が次を確かめて終了コード 0 を返す。木の外の関係のページの Mermaid に、次の7本の辺がある: deliver-change から define-problem、specify-requirements、implement-change、verify-change への4本、specify-requirements と verify-change から read-only-reviewer への2本、apply-scrum-guide から scrum-master-agent への1本。同じページに、役割や枝の節がない。一覧のページの表が、システムコンテキスト、コンテナ、役割の木、木の外の関係、動的図の順に5枚を載せる。さらに、ページ 01、02、04、05 の `…/SKILL.md`:N の行の引用は、どれも実在する行を指す。20か所の引用は、ページが主張する文言を含む行を指す。たとえば deliver-change の ## Child skills、read-only-reviewer と scrum-master-agent を名指す行、オーバーレイが判断基準を重ねると述べる行である。dcb1425 の時点のページは、この確かめに失敗する（前付けが伸びて行がずれた）。どのページも、SKILL.md の行を「`SKILL.md` の N 行目」のような文では引用しない（行の確かめが読めない形を拒む）。README.md と README.ja.md の docs/harness/skill-map/ の行は、一覧と同じ図の数（Five diagrams、5枚の図）と、役割の木（role tree、役割の木）を述べる。e3a3d2a の時点のページと README は、この確かめに失敗する。",
           "level": "L1"
         }
       ]

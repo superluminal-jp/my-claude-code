@@ -10,7 +10,12 @@ Checks, from the repository root:
   system context, containers, role tree, relations, dynamic;
 - every `...SKILL.md`:N citation in pages 01, 02, 04, and 05 names a line that
   exists, and the citations below still point at the line that says what the
-  page claims (AR-04 of the first assurance review: the frontmatter grew).
+  page claims (AR-04 of the first assurance review: the frontmatter grew);
+- the rows of README.md and README.ja.md that list docs/harness/skill-map/
+  give the same number of diagrams as the index and name the role tree
+  (AR-03 of the second assurance review);
+- no page cites a SKILL.md line in prose ("`SKILL.md` の N 行目"), a form the
+  line check cannot read (AR-02 of the second assurance review).
 With REV, the pages are read as committed at REV (git show), the skills from
 the working tree.
 Run: python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py [REV]
@@ -25,7 +30,10 @@ REV = sys.argv[1] if len(sys.argv) > 1 else None
 
 
 def page_text(name):
-    rel = f"docs/harness/skill-map/{name}"
+    return repo_text(f"docs/harness/skill-map/{name}")
+
+
+def repo_text(rel):
     if REV:
         return subprocess.run(["git", "show", f"{REV}:{rel}"], capture_output=True, text=True, check=True).stdout
     return pathlib.Path(rel).read_text(encoding="utf-8")
@@ -54,6 +62,7 @@ ANCHORS = [
     ("05-dynamic-deliver-change.md", "apply-scrum-guide", 48, "完了を判定する"),
     ("05-dynamic-deliver-change.md", "apply-scrum-guide", 57, "開発でファイルを変えた作業"),
 ]
+PROSE_CITE = re.compile(r"SKILL\.md`?\s*の\s*[0-9]+\s*行目")
 CITE = re.compile(r"`(?:harness/)?(?:skills/)?([a-z0-9-]+)/SKILL\.md`:([0-9](?:[0-9, -]*[0-9])?)")
 
 DIR = pathlib.Path("docs/harness/skill-map")
@@ -87,6 +96,8 @@ for name in ("01-system-context.md", "02-containers.md", "04-components-relation
             cited += 1
             if int(n) > size:
                 errors.append(f"{name}: {skill}/SKILL.md:{n} is past the end ({size} lines)")
+    for hit in PROSE_CITE.findall(text):
+        errors.append(f"{name}: a line cited in prose ({hit!r}); write it as `<skill>/SKILL.md`:N")
     for page, skill, n, want in ANCHORS:
         if page == name and f"{skill}/SKILL.md`:" in text:
             line = pathlib.Path(f"harness/skills/{skill}/SKILL.md").read_text(encoding="utf-8").split("\n")[n - 1]
@@ -96,6 +107,11 @@ for name in ("01-system-context.md", "02-containers.md", "04-components-relation
                 errors.append(f"{skill}/SKILL.md:{n} does not contain {want!r}")
             if not cites_n:
                 errors.append(f"{name} does not cite {skill}/SKILL.md:{n}, where {want!r} is")
+WORDS = {"README.md": ({4: "Four diagrams", 5: "Five diagrams"}, "role tree"), "README.ja.md": ({4: "4枚の図", 5: "5枚の図"}, "役割の木")}
+for rel, (numbers, tree_word) in WORDS.items():
+    row = next((l for l in repo_text(rel).splitlines() if l.startswith("| [`docs/harness/skill-map/`]")), "")
+    if numbers.get(len(listed), "?") not in row or tree_word not in row:
+        errors.append(f"{rel}: the docs/harness/skill-map/ row does not say {numbers.get(len(listed))!r} and {tree_word!r}")
 for e in errors:
     print(f"FAIL {e}")
 print(f"skill-map: {len(EDGES)} edges, {len(ORDER)} pages, {cited} line citations, {len(ANCHORS)} anchors, {len(errors)} failures")
