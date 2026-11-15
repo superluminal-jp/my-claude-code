@@ -1,0 +1,11 @@
+# command: python3 -B harness/skills/sync-docs/scripts/find_related.py --root . --base main; for d in CLAUDE.md docs/harness-zero-base.md; do printf "%s named in documentation-impact.md: %s times\n" "$d" "$(grep -c -- "$d" specs/073-scrum-role-tree/documentation-impact.md)"; done
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:23:26Z
+
+changed files: 38
+related documents (closest first):
+  docs/harness-zero-base.md  [P2 mention]  <- tests/assert_skill_contract.py, tests/run-harness-skills.sh, tests/test_skill_contract.py
+CLAUDE.md named in documentation-impact.md: 2 times
+docs/harness-zero-base.md named in documentation-impact.md: 2 times
+
+exit=0

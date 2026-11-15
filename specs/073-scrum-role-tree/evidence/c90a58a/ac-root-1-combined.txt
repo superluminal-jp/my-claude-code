@@ -1,0 +1,55 @@
+# AC-ROOT-1: 全規則の検査と、--print と期待のファイルの一致
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0
+# この記録は、下に挙げたファイルをそのまま連結したものである（行を選んだ部分は、そう書いた）。各部の見出しに元のファイルを書いた。
+
+## 全規則の検査（specs/073-scrum-role-tree/evidence/c90a58a/ac-root-1.txt）
+
+# command: python3 -B tests/assert_role_tree.py
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:22:45Z
+
+role-tree: 22 elements, 0 violations
+
+exit=0
+
+## --print と expected-tree.txt の diff と、印字した木（specs/073-scrum-role-tree/evidence/c90a58a/ac-declare-1.txt）
+
+# command: python3 -B tests/assert_role_tree.py --print > "$TMPDIR/073-tree.txt" && diff "$TMPDIR/073-tree.txt" specs/073-scrum-role-tree/evidence/expected-tree.txt && echo "the printed tree equals specs/073-scrum-role-tree/evidence/expected-tree.txt" && cat "$TMPDIR/073-tree.txt"
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:22:45Z
+
+the printed tree equals specs/073-scrum-role-tree/evidence/expected-tree.txt
+harness
+├── Product Owner
+│   └── define
+│       ├── clarify-intent (skill)
+│       ├── define-problem (skill)
+│       └── define-product-strategy (skill)
+├── Developers
+│   ├── define
+│   │   ├── research-aws (skill)
+│   │   └── specify-requirements (skill)
+│   ├── execute
+│   │   ├── apply-dads-frontend (skill)
+│   │   ├── apply-scrum-guide (skill)
+│   │   ├── apply-secure-logging (skill)
+│   │   ├── build-dads-slides (skill)
+│   │   ├── check-runner (agent)
+│   │   ├── draw-system-diagrams (skill)
+│   │   ├── file-searcher (agent)
+│   │   ├── implement-change (skill)
+│   │   ├── manage-git (skill)
+│   │   └── task-worker (agent)
+│   └── handoff
+│       ├── deliver-change (skill)
+│       ├── read-only-reviewer (agent)
+│       ├── structure-document (skill)
+│       ├── sync-docs (skill)
+│       └── verify-change (skill)
+└── Scrum Master
+    └── execute
+        ├── manage-scrum-artifacts (skill)
+        └── scrum-master-agent (agent)
+
+exit=0
+

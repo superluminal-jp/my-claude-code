@@ -1,0 +1,134 @@
+# command: bash tests/run-build-dads-slides-skill.sh
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:25:26Z
+
+[0;32mPASS[0m SKILL-01: skill file exists
+[0;32mPASS[0m SKILL-02: skill name is canonical
+[0;32mPASS[0m SKILL-03: description routes 16:9 slide work
+[0;32mPASS[0m SKILL-04: description routes DADS official assets
+[0;32mPASS[0m SKILL-05: description states the deck is delivered as HTML
+[0;32mPASS[0m SKILL-06: description states the negative boundary
+[0;32mPASS[0m SKILL-07: skill body names no sibling skill (self-contained)
+[0;32mPASS[0m SKILL-08: description excludes PowerPoint files
+[0;32mPASS[0m SKILL-09: skill states the 1280x720 canvas
+[0;32mPASS[0m SKILL-10: skill links the design reference
+[0;32mPASS[0m SKILL-11: skill links the authoring contract
+[0;32mPASS[0m SKILL-12: skill links the checks reference
+[0;32mPASS[0m SKILL-13: skill links the sourcing reference
+[0;32mPASS[0m SKILL-14: workflow gates delivery on lint and preview
+[0;32mPASS[0m SKILL-15: workflow orders premises, then the answer, then the tree
+[0;32mPASS[0m SKILL-16: guardrail forbids splitting a node across slides
+[0;32mPASS[0m SKILL-17: guardrail forbids claiming Digital Agency endorsement
+[0;32mPASS[0m SKILL-18: guardrail forbids inventing tokens or versions
+[0;32mPASS[0m SKILL-19: no DADS version number is pinned in prose (must resolve current)
+[0;32mPASS[0m SKILL-20: no official DADS code is vendored in the skill
+[0;32mPASS[0m SKILL-21: nothing in the package converts to or targets PowerPoint
+[0;32mPASS[0m SKILL-22: the conversion reference is gone
+[0;32mPASS[0m SKILL-23: guardrail forbids guessing a classification
+[0;32mPASS[0m DSN-01: design reference exists
+[0;32mPASS[0m DSN-02: reference requires one assertion per headline
+[0;32mPASS[0m DSN-03: reference records the canvas and safe area
+[0;32mPASS[0m DSN-04: reference maps roles to the DADS heading sizes
+[0;32mPASS[0m DSN-05: reference records the DADS colour tokens
+[0;32mPASS[0m DSN-06: reference records the contrast thresholds
+[0;32mPASS[0m DSN-07: reference records the layout catalogue
+[0;32mPASS[0m DSN-08: reference states reading order is document order
+[0;32mPASS[0m DSN-09: reference states the design system removes WCAG's large-text relaxation
+[0;32mPASS[0m DSN-10: reference records the non-text contrast rule
+[0;32mPASS[0m DSN-11: reference branches on delivery mode
+[0;32mPASS[0m DSN-12: reference gives a procedure for the argument, not just its vocabulary
+[0;32mPASS[0m DSN-13: reference maps slides to nodes of the tree
+[0;32mPASS[0m DSN-14: reference lets the slide count follow the tree
+[0;32mPASS[0m DSN-15: reference sets premises and definitions before the answer
+[0;32mPASS[0m DSN-16: reference forbids explaining by metaphor or analogy
+[0;32mPASS[0m DSN-17: reference puts the paper's method on the premise slide
+[0;32mPASS[0m DSN-18: reference puts the paper's discussion on the closing slide
+[0;32mPASS[0m DSN-19: reference shows where each slide sits in the deck
+[0;32mPASS[0m DSN-20: reference gives each tree level its own visual treatment
+[0;32mPASS[0m DSN-21: reference places the classification marking on every slide
+[0;32mPASS[0m CON-01: authoring contract exists
+[0;32mPASS[0m CON-02: contract uses the DADS heading with a shoulder
+[0;32mPASS[0m CON-03: contract requires one h1 and no skipped heading level
+[0;32mPASS[0m CON-04: contract uses the description list for definitions
+[0;32mPASS[0m CON-05: contract names the slide roles
+[0;32mPASS[0m CON-06: contract separates the dads-* and sld-* namespaces
+[0;32mPASS[0m CON-07: contract gives the marking's markup
+[0;32mPASS[0m CHK-01: checks reference exists
+[0;32mPASS[0m CHK-02: reference documents both subcommands
+[0;32mPASS[0m CHK-03: reference lists the structure findings
+[0;32mPASS[0m CHK-04: reference lists the document findings
+[0;32mPASS[0m CHK-05: reference documents the slide budget option
+[0;32mPASS[0m CHK-06: reference lists the tracker findings
+[0;32mPASS[0m CHK-07: reference lists the marking findings
+[0;32mPASS[0m SRC-01: sourcing reference exists
+[0;32mPASS[0m SRC-02: reference links the official DADS site
+[0;32mPASS[0m SRC-03: reference states nothing official is vendored
+[0;32mPASS[0m SRC-04: reference states source precedence
+[0;32mPASS[0m SRC-05: reference resolves package versions at task time
+[0;32mPASS[0m SRC-06: reference records the MIT code terms
+[0;32mPASS[0m SRC-07: reference records the Japanese source notice
+[0;32mPASS[0m SRC-08: reference carves out illustrations, icons and Figma data
+[0;32mPASS[0m CSS-01: slide layout stylesheet exists
+[0;32mPASS[0m CSS-02: canvas is 1280px wide
+[0;32mPASS[0m CSS-03: canvas is 720px tall
+[0;32mPASS[0m CSS-04: stylesheet uses DADS tokens only, never a raw hex colour
+[0;32mPASS[0m CSS-05: stylesheet does not re-implement the DADS heading
+[0;32mPASS[0m CSS-06: stylesheet disclaims being a DADS component library
+[0;32mPASS[0m CSS-07: slides clip rather than reflow
+[0;32mPASS[0m CSS-08: layout classes stay in the sld-* namespace
+[0;32mPASS[0m CSS-09: stylesheet prints one slide per page
+[0;32mPASS[0m CSS-10: stylesheet draws the answer slide's tree
+[0;32mPASS[0m CSS-11: stylesheet draws the position tracker
+[0;32mPASS[0m CSS-12: stylesheet draws the classification marking
+[0;32mPASS[0m TPL-01: deck template exists
+[0;32mPASS[0m TPL-02: template links the fetched DADS global stylesheet
+[0;32mPASS[0m TPL-03: template links this skill's layout layer
+[0;32mPASS[0m TPL-04: template carries a title layout
+[0;32mPASS[0m TPL-05: template carries a table using the DADS component
+[0;32mPASS[0m TPL-06: template heads slides with the DADS heading and shoulder
+[0;32mPASS[0m TPL-07: template sets premises with a DADS description list
+[0;32mPASS[0m TPL-08: figure carries a text alternative
+[0;32mPASS[0m TPL-09: template carries a premise slide
+[0;32mPASS[0m TPL-10: template carries an answer slide with the tree
+[0;32mPASS[0m TPL-11: template has no section divider slides
+[0;32mPASS[0m TPL-13: template's premise slide states how the evidence was gathered
+[0;32mPASS[0m TPL-14: template's closing slide states the conclusion's limits
+[0;32mPASS[0m TPL-15: template shows each slide's place in the deck
+[0;32mPASS[0m TPL-16: the tracker marks the current part for assistive technology
+[0;32mPASS[0m TPL-21: template continues a point onto a further slide
+[0;32mPASS[0m TPL-22: template uses the official notification banner
+[0;32mPASS[0m TPL-23: template uses the official blockquote
+[0;32mPASS[0m TPL-24: template keeps no interactive banner controls
+[0;32mPASS[0m CON-12: contract documents data-continues
+[0;32mPASS[0m TPL-17: main slides number themselves against the whole
+[0;32mPASS[0m TPL-19: the marking writes the level as 機密性n情報
+[0;32mPASS[0m TPL-18: every slide carries the classification marking
+[0;32mPASS[0m TPL-12: template has exactly one h1
+[0;32mPASS[0m TOOL-01: deck CLI exists and is executable
+[0;32mPASS[0m TOOL-02: checker exists
+[0;32mPASS[0m TOOL-03: asset fetch script exists and is executable
+[0;32mPASS[0m TOOL-04: setup script exists and is executable
+[0;32mPASS[0m TOOL-05: requirements are declared
+[0;32mPASS[0m TOOL-06: deck CLI parses
+[0;32mPASS[0m TOOL-08: checker parses
+[0;32mPASS[0m TOOL-09: shell scripts parse
+[0;32mPASS[0m TOOL-10: CLI exposes exactly lint and preview
+[0;32mPASS[0m TOOL-11: lint can report machine-readable findings
+[0;32mPASS[0m TOOL-07: requirements carry no PowerPoint library
+[0;32mPASS[0m TOOL-12: checker emits findings for clipped text
+[0;32mPASS[0m TOOL-13: checker checks contrast
+[0;32mPASS[0m TOOL-14: checker checks the heading outline
+[0;32mPASS[0m TOOL-19: checker checks each slide's tracker against its position
+[0;32mPASS[0m TOOL-20: checker checks each slide's classification marking
+[0;32mPASS[0m TOOL-17: checker compares tags case-insensitively (SVG reports lower case)
+[0;32mPASS[0m TOOL-18: the conversion extractor is gone
+[0;32mPASS[0m TOOL-15: fetch script records upstream provenance
+[0;32mPASS[0m TOOL-16: repository root scripts/ stays removed (ADR-0007)
+[0;33mSKIP[0m UNIT-*: playwright not installed (run scripts/setup.sh, then set DECK_PYTHON)
+[0;33mSKIP[0m LINT-*: playwright not installed
+[0;33mSKIP[0m E2E-01..03: playwright not installed (run scripts/setup.sh, then set DECK_PYTHON)
+
+====================
+Results: [0;32m122 passed[0m, [0;31m0 failed[0m, [0;33m3 skipped[0m
+
+exit=0

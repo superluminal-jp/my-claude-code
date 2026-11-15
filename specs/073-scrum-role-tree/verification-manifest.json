@@ -3,7 +3,7 @@
   "verification_manifest": {
     "change_id": "CHG-073",
     "problem_id": "PRB-073",
-    "reviewed_commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd",
+    "reviewed_commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0",
     "implementer": "claude",
     "risk": {
       "class": "medium",
@@ -16,8 +16,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-root-1-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-root-1-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -25,8 +25,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ci/03-run-harness-skills.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ci/03-run-harness-skills.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -34,8 +34,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-form-1.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-form-1.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -43,8 +43,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-form-2.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-form-2.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -52,8 +52,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-values-1-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-values-1-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -61,8 +61,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-values-2-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-values-2-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -70,8 +70,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-agent-meta-1-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-agent-meta-1-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -83,8 +83,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-declare-1-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-declare-1-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -92,8 +92,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-tree-check-1.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-tree-check-1.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -101,8 +101,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-tag-1-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-tag-1-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -110,8 +110,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-tag-2-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-tag-2-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -119,8 +119,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-readme-1-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-readme-1-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -128,8 +128,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-diagram-1-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-diagram-1-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -137,8 +137,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-diagram-2.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-diagram-2.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -146,8 +146,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-diagram-3-combined.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-diagram-3-combined.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -155,8 +155,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-adr-1.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-adr-1.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -164,8 +164,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-sync-1.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-sync-1.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -173,8 +173,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-sync-2.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-sync-2.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -182,8 +182,8 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ac-compat-1.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ac-compat-1.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       },
       {
@@ -191,19 +191,21 @@
         "status": "passed",
         "evidence": {
           "kind": "local_run",
-          "ref": "specs/073-scrum-role-tree/evidence/e3a3d2a/ci-summary.txt",
-          "commit": "e3a3d2adb1934e695709490981a96b28e5c87fbd"
+          "ref": "specs/073-scrum-role-tree/evidence/c90a58a/ci-summary.txt",
+          "commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0"
         }
       }
     ],
     "test_changes": [
       {
         "path": "tests/assert_skill_contract.py C-08（廃止したスキルの名前）: 前付けの metadata.role の行だけを走査から外す",
-        "change": "weakened"
+        "change": "weakened",
+        "approved_by": "Taiki Ogihara"
       },
       {
         "path": "tests/assert_reviewer_agent.py R1a（read-only-reviewer の前付けの欄）: metadata の欄を受け入れる（キーは role、branch、stage に限る）",
-        "change": "weakened"
+        "change": "weakened",
+        "approved_by": "Taiki Ogihara"
       }
     ],
     "infra_changes": []

@@ -1,0 +1,29 @@
+# command: bash tests/run-package-safety-bundle.sh
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:24:38Z
+
+PASS settings file is a JSON object
+PASS no allow tier, defaultMode, or autoMode
+PASS no sandbox loosening keys
+PASS excluded commands are exactly gh, terraform, and git's network commands
+PASS sandbox is on and refuses to run unsandboxed
+PASS extra writable paths are exactly the npm and uv caches
+PASS env: pip uses its bundled CA certificates
+PASS env: pip requires a virtual environment
+PASS network allowlist is exactly the public npm and PyPI hosts
+PASS credential env vars are all deny entries
+PASS env: npm resolves only versions >= 7 days old
+PASS env: pnpm resolves only versions >= 10080 minutes old
+PASS env: no UV_EXCLUDE_NEWER or PIP_UPLOADED_PRIOR_TO
+PASS template: .npmrc min-release-age=7
+PASS template: pnpm minimumReleaseAge 10080
+PASS template: uv exclude-newer P7D
+PASS npm dependency scripts off in env and template
+PASS ask covers every install-class command
+PASS deny covers pip and global installs
+PASS uv tool install and pipx are asked, not denied
+PASS other deny entries are portable Read rules without carve-outs
+
+Results: 21 passed, 0 failed
+
+exit=0

@@ -1,0 +1,104 @@
+# AC-DECLARE-1: 宣言の前は期待の木と一致せず、宣言の後は一致する
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0
+# この記録は、下に挙げたファイルをそのまま連結したものである（行を選んだ部分は、そう書いた）。各部の見出しに元のファイルを書いた。
+
+## 宣言の前（specs/073-scrum-role-tree/evidence/red-declare.txt）
+
+# diff <(assert_role_tree.py --print) expected-tree.txt before any declaration (exit 1 = differs)
+2,24c2,31
+< └── (unplaced)
+<     ├── apply-dads-frontend (skill)
+<     ├── apply-scrum-guide (skill)
+<     ├── apply-secure-logging (skill)
+<     ├── build-dads-slides (skill)
+<     ├── check-runner (agent)
+<     ├── clarify-intent (skill)
+<     ├── define-problem (skill)
+<     ├── define-product-strategy (skill)
+<     ├── deliver-change (skill)
+<     ├── draw-system-diagrams (skill)
+<     ├── file-searcher (agent)
+<     ├── implement-change (skill)
+<     ├── manage-git (skill)
+<     ├── manage-scrum-artifacts (skill)
+<     ├── read-only-reviewer (agent)
+<     ├── research-aws (skill)
+<     ├── scrum-master-agent (agent)
+<     ├── specify-requirements (skill)
+<     ├── structure-document (skill)
+<     ├── sync-docs (skill)
+<     ├── task-worker (agent)
+<     └── verify-change (skill)
+---
+> ├── Product Owner
+> │   └── define
+> │       ├── clarify-intent (skill)
+> │       ├── define-problem (skill)
+> │       └── define-product-strategy (skill)
+> ├── Developers
+> │   ├── define
+> │   │   ├── research-aws (skill)
+> │   │   └── specify-requirements (skill)
+> │   ├── execute
+> │   │   ├── apply-dads-frontend (skill)
+> │   │   ├── apply-scrum-guide (skill)
+> │   │   ├── apply-secure-logging (skill)
+> │   │   ├── build-dads-slides (skill)
+> │   │   ├── check-runner (agent)
+> │   │   ├── draw-system-diagrams (skill)
+> │   │   ├── file-searcher (agent)
+> │   │   ├── implement-change (skill)
+> │   │   ├── manage-git (skill)
+> │   │   └── task-worker (agent)
+> │   └── handoff
+> │       ├── deliver-change (skill)
+> │       ├── read-only-reviewer (agent)
+> │       ├── structure-document (skill)
+> │       ├── sync-docs (skill)
+> │       └── verify-change (skill)
+> └── Scrum Master
+>     └── execute
+>         ├── manage-scrum-artifacts (skill)
+>         └── scrum-master-agent (agent)
+
+## 宣言の後（specs/073-scrum-role-tree/evidence/c90a58a/ac-declare-1.txt）
+
+# command: python3 -B tests/assert_role_tree.py --print > "$TMPDIR/073-tree.txt" && diff "$TMPDIR/073-tree.txt" specs/073-scrum-role-tree/evidence/expected-tree.txt && echo "the printed tree equals specs/073-scrum-role-tree/evidence/expected-tree.txt" && cat "$TMPDIR/073-tree.txt"
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:22:45Z
+
+the printed tree equals specs/073-scrum-role-tree/evidence/expected-tree.txt
+harness
+├── Product Owner
+│   └── define
+│       ├── clarify-intent (skill)
+│       ├── define-problem (skill)
+│       └── define-product-strategy (skill)
+├── Developers
+│   ├── define
+│   │   ├── research-aws (skill)
+│   │   └── specify-requirements (skill)
+│   ├── execute
+│   │   ├── apply-dads-frontend (skill)
+│   │   ├── apply-scrum-guide (skill)
+│   │   ├── apply-secure-logging (skill)
+│   │   ├── build-dads-slides (skill)
+│   │   ├── check-runner (agent)
+│   │   ├── draw-system-diagrams (skill)
+│   │   ├── file-searcher (agent)
+│   │   ├── implement-change (skill)
+│   │   ├── manage-git (skill)
+│   │   └── task-worker (agent)
+│   └── handoff
+│       ├── deliver-change (skill)
+│       ├── read-only-reviewer (agent)
+│       ├── structure-document (skill)
+│       ├── sync-docs (skill)
+│       └── verify-change (skill)
+└── Scrum Master
+    └── execute
+        ├── manage-scrum-artifacts (skill)
+        └── scrum-master-agent (agent)
+
+exit=0
+

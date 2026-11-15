@@ -15,7 +15,8 @@
         "target": "CHG-073",
         "severity": "high",
         "statement": "manifest.json の test_changes は tests/assert_skill_contract.py の C-08 と tests/assert_reviewer_agent.py の R1a を weakened と申告しているが、どちらにも approved_by がなく、approvals も空のままである。前回の AR-01 で指摘され、2つの緩めを狭める修正は e3a3d2a に入ったが、承認の記録は manifest に足されていない。harness/skills/verify-change/scripts/assure.py の609〜610行目は、approved_by が実装者以外でない test_changes の項目ごとに A-06 で blocked にするので、この manifest のままではゲートは blocked になる。ADR-0026 の「契約の拡張」は、承認を求める項目として検証の記録に載せたと述べるが、manifest 側に承認を示す欄はない。C-08 は前付けの `  role: <値>` の行を走査から外し、R1a は metadata の下の `key: value` の行を role、branch、stage のキーに限って受け入れる。実装者ではない利用者の承認が得られるまで、この変更は pass にならない。",
-        "disposition": "open"
+        "disposition": "accepted",
+        "resolution": "利用者 Taiki Ogihara に、緩めた2つの検査を承認するかを尋ねた。2026-11-15 に「Approve both (Recommended)」の回答を得た（specs/073-scrum-role-tree/decisions.md の D-9 に、回答の文言と承認の対象を記録した）。verification-manifest.json の test_changes の2項目に approved_by: Taiki Ogihara を足した。実装者は claude で、承認した者とは別である。C-08 と R1a の緩めを狭める修正は e3a3d2a に入っている。"
       },
       {
         "id": "AR-02",

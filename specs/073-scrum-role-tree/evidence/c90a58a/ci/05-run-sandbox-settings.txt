@@ -1,0 +1,75 @@
+# command: bash tests/run-sandbox-settings.sh
+# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
+# date: 2026-11-15T00:24:36Z
+
+PASS SBX-01 the sandbox is on by default
+PASS SBX-02 strictness is standard: retry outside stays possible, unlisted hosts are not refused outright
+PASS SBX-03 nothing under ~/.aws, nor the home directory, is re-opened or made writable
+PASS SBX-04 GPG secrets, revocation certificates, and other credential stores stay unreadable
+PASS SBX-05 GPG secrets, keyrings, trust database, configuration, and scd-event stay unwritable
+PASS SBX-06 only the gpg-agent and keyboxd sockets are reachable
+PASS SBX-07 hosts allowed without asking are exactly the two Google Fonts hosts
+PASS SBX-08 every sandbox path is anchored at ~/
+PASS SBX-09 writes are opened for ~/.gnupg and ~/Library/Fonts only
+PASS SBX-10 only aws commands are taken out of the sandbox
+PASS MCP-01 the hosted GitHub MCP server is denied wherever it is defined
+PASS MCP-02 the github plugin is disabled
+PASS MCP-03 bedrock-agentcore is denied by name
+PASS MCP-04 bedrock-agentcore is denied by command
+PASS MCP-05 claude.ai connectors are off
+PASS MCP-06 plugins are not synced from claude.ai
+PASS MCP-07 the allowlist is exactly the AWS knowledge URL and the AWS documentation command
+PASS MCP-08 the allowlist matches by URL and command, never by name
+PASS MCP-09 the built-in Chrome integration is denied
+PASS MCP-10 .mcp.json defines only the two allowed servers, each matching an allowlist entry
+PASS MCP-11 the deploy-on-aws plugin is disabled
+PASS MCP-12 the microsoft-docs plugin is disabled
+PASS HOOK-00 exactly one SessionStart hook says "Removing Bedrock AWS variables from Bash commands..."
+PASS HOOK-00 exactly one SessionStart hook says "Starting gpg-agent outside the sandbox..."
+PASS HOOK-00 exactly one SessionStart hook says "Adding shell and sandbox notes..."
+PASS AWS-01 [sh] CLAUDE_CODE_USE_BEDROCK=1 leaves Bash none of the eight AWS variables
+PASS AWS-01 [sh] CLAUDE_CODE_USE_BEDROCK=true leaves Bash none of the eight AWS variables
+PASS AWS-02 [sh] CLAUDE_CODE_USE_BEDROCK='0' changes no AWS variable
+PASS AWS-02 [sh] CLAUDE_CODE_USE_BEDROCK='' changes no AWS variable
+PASS AWS-03 [sh] without CLAUDE_ENV_FILE the hook does nothing and succeeds
+PASS GPG-01 [sh] with gpgconf and ~/.gnupg the hook launches gpg-agent
+PASS GPG-02 [sh] without ~/.gnupg the hook launches nothing
+PASS GPG-03 [sh] without gpgconf the hook succeeds quietly
+PASS NOTE-01 [sh] when the Bash tool runs zsh the note names the three zsh pitfalls
+PASS NOTE-02 [sh] on macOS the note says Chromium needs --single-process in the sandbox
+PASS NOTE-03 [sh] CLAUDE_CODE_SHELL=bash wins over SHELL=zsh
+PASS NOTE-04 [sh] CLAUDE_CODE_SHELL=zsh wins over SHELL=bash
+PASS NOTE-05 [sh] with bash on Linux and no aws CLI the hook adds nothing
+PASS NOTE-06 [sh] with the aws CLI installed the note says how aws leaves the sandbox and to name --profile
+PASS AWS-01 [bash] CLAUDE_CODE_USE_BEDROCK=1 leaves Bash none of the eight AWS variables
+PASS AWS-01 [bash] CLAUDE_CODE_USE_BEDROCK=true leaves Bash none of the eight AWS variables
+PASS AWS-02 [bash] CLAUDE_CODE_USE_BEDROCK='0' changes no AWS variable
+PASS AWS-02 [bash] CLAUDE_CODE_USE_BEDROCK='' changes no AWS variable
+PASS AWS-03 [bash] without CLAUDE_ENV_FILE the hook does nothing and succeeds
+PASS GPG-01 [bash] with gpgconf and ~/.gnupg the hook launches gpg-agent
+PASS GPG-02 [bash] without ~/.gnupg the hook launches nothing
+PASS GPG-03 [bash] without gpgconf the hook succeeds quietly
+PASS NOTE-01 [bash] when the Bash tool runs zsh the note names the three zsh pitfalls
+PASS NOTE-02 [bash] on macOS the note says Chromium needs --single-process in the sandbox
+PASS NOTE-03 [bash] CLAUDE_CODE_SHELL=bash wins over SHELL=zsh
+PASS NOTE-04 [bash] CLAUDE_CODE_SHELL=zsh wins over SHELL=bash
+PASS NOTE-05 [bash] with bash on Linux and no aws CLI the hook adds nothing
+PASS NOTE-06 [bash] with the aws CLI installed the note says how aws leaves the sandbox and to name --profile
+PASS AWS-01 [zsh] CLAUDE_CODE_USE_BEDROCK=1 leaves Bash none of the eight AWS variables
+PASS AWS-01 [zsh] CLAUDE_CODE_USE_BEDROCK=true leaves Bash none of the eight AWS variables
+PASS AWS-02 [zsh] CLAUDE_CODE_USE_BEDROCK='0' changes no AWS variable
+PASS AWS-02 [zsh] CLAUDE_CODE_USE_BEDROCK='' changes no AWS variable
+PASS AWS-03 [zsh] without CLAUDE_ENV_FILE the hook does nothing and succeeds
+PASS GPG-01 [zsh] with gpgconf and ~/.gnupg the hook launches gpg-agent
+PASS GPG-02 [zsh] without ~/.gnupg the hook launches nothing
+PASS GPG-03 [zsh] without gpgconf the hook succeeds quietly
+PASS NOTE-01 [zsh] when the Bash tool runs zsh the note names the three zsh pitfalls
+PASS NOTE-02 [zsh] on macOS the note says Chromium needs --single-process in the sandbox
+PASS NOTE-03 [zsh] CLAUDE_CODE_SHELL=bash wins over SHELL=zsh
+PASS NOTE-04 [zsh] CLAUDE_CODE_SHELL=zsh wins over SHELL=bash
+PASS NOTE-05 [zsh] with bash on Linux and no aws CLI the hook adds nothing
+PASS NOTE-06 [zsh] with the aws CLI installed the note says how aws leaves the sandbox and to name --profile
+
+Results: 67 passed, 0 failed
+
+exit=0
