@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "assurance_review": {
+    "change_id": "CHG-073",
+    "reviewed_commit": "c90a58af546f66a26ecee909fa2962c2d1fb96f0",
+    "reviewer": "read-only-reviewer subagent, agentId a037ad55d82a3d426, 2026-11-15, read 25 files",
+    "context_given": [
+      "review_prep.py bundle --base main --previous e3a3d2a --previous-review assurance-review-2.e3a3d2a.json の束（$TMPDIR/review-073-r3）。範囲 e3a3d2a..c90a58a、scope fixes",
+      "references/assurance-review.md の2回目以降の指示文（記録の言語は日本語。1回目の答えの形を参考に添えた）"
+    ],
+    "findings": []
+  }
+}
