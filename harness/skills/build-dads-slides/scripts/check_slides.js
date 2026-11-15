@@ -186,7 +186,45 @@
 
   const slideNumber = new Map();
 
-  function checkStructure(slides, opts, report) {
+  /*
+   * Both forms build the same pyramid; they differ in what comes before the
+   * answer and in which parts a deck must have. A deck that declares no form
+   * is held to the paper form, the stricter of the two, so the business form
+   * is always a choice the author made. A value that names neither form is
+   * reported rather than silently read as one.
+   */
+  const FORMS = {
+    paper: {
+      required: ['premise', 'method', 'point', 'discussion', 'closing'],
+      names: { premise: 'premise', method: 'method', point: 'results', discussion: 'discussion', closing: 'conclusion' },
+    },
+    business: {
+      required: ['point', 'closing'],
+      names: { premise: 'introduction', method: 'method', point: 'point', discussion: 'risk', closing: 'next step' },
+    },
+  };
+
+  function deckForm(report) {
+    const declared = document.body ? document.body.getAttribute('data-form') : null;
+    if (declared === null) {
+      const elsewhere = document.querySelector('[data-form]');
+      if (elsewhere) {
+        report(
+          0,
+          'warn',
+          'form-unknown',
+          `data-form is on <${tagOf(elsewhere).toLowerCase()}>, not <body>, so it was not read; the paper form's rules apply.`,
+          null,
+        );
+      }
+      return 'paper';
+    }
+    if (Object.prototype.hasOwnProperty.call(FORMS, declared)) return declared;
+    report(0, 'warn', 'form-unknown', `data-form="${declared}" names neither "paper" nor "business"; the paper form's rules apply.`, null);
+    return 'paper';
+  }
+
+  function checkStructure(slides, opts, report, form) {
     const roles = slides.map((s) => s.layout);
     const main = roles.filter((role) => role !== 'appendix');
     if (opts.max_slides && main.length > opts.max_slides) {
@@ -198,18 +236,77 @@
         null,
       );
     }
+    /* The paper form gives its summary on slide 2. The business form may
+       first remind the audience of the situation in one introduction slide,
+       so its answer is on slide 2, or on slide 3 straight after that slide. */
     const answerAt = roles.indexOf('answer') + 1;
-    if (answerAt === 0 || answerAt > 3) {
+    const introduced = form === 'business' && answerAt === 3 && roles[1] === 'premise' && !slides[1].continues;
+    if (answerAt !== 2 && !introduced) {
+      const rule =
+        form === 'business'
+          ? 'in the business form the answer is slide 2, or slide 3 after a single introduction slide'
+          : 'in the paper form the summary is slide 2, right after the cover';
       report(
         answerAt || 0,
         'warn',
         'late-answer',
-        answerAt === 0
-          ? 'No slide has data-layout="answer"; the conclusion must come by slide 3.'
-          : `The answer is on slide ${answerAt}; it must come by slide 3, after the cover and the premises.`,
+        answerAt === 0 ? `No slide has data-layout="answer"; ${rule}.` : `The answer is on slide ${answerAt}; ${rule}.`,
         null,
       );
     }
+    /* After the answer the main deck follows the parts of a research paper,
+       and a business deck borrows them in the same order. The answer's own
+       place is late-answer's to report, and a main slide
+       after the appendix is appendix-order's, so neither is ranked here. Each
+       slide is compared with the ranked slide before it, so one misplaced
+       slide is reported once rather than once for every slide it precedes.
+       In the business form a premise is the introduction, which comes before
+       the answer; one after it is reported as that, and not again below. */
+    const PAPER_ORDER = ['premise', 'method', 'point', 'discussion', 'closing'];
+    const appendixAt = roles.indexOf('appendix');
+    let previous = null;
+    roles.forEach((role, i) => {
+      const rank = PAPER_ORDER.indexOf(role);
+      if (rank < 0 || (appendixAt >= 0 && i > appendixAt)) return;
+      if (form === 'business' && role === 'premise' && answerAt > 0 && i + 1 > answerAt) {
+        report(
+          i + 1,
+          'warn',
+          'part-order',
+          'A premise slide follows the answer; in the business form the introduction comes before the answer. Move the background to the appendix, or make this a paper deck.',
+          null,
+        );
+        return;
+      }
+      if (previous !== null && rank < PAPER_ORDER.indexOf(previous)) {
+        report(
+          i + 1,
+          'warn',
+          'part-order',
+          `A ${role} slide follows a ${previous} slide; the parts go premise, method, point, discussion, closing.`,
+          null,
+        );
+      }
+      previous = role;
+    });
+    const purpose = {
+      premise: 'the background, the problem, the question and the terms',
+      method: 'how the evidence was gathered',
+      point: 'each key-line point with its evidence',
+      discussion: 'what the results mean and where the answer stops holding',
+      closing: 'the decision asked for and who does what by when',
+    };
+    FORMS[form].required.forEach((role) => {
+      if (!roles.includes(role)) {
+        report(
+          0,
+          'warn',
+          'missing-part',
+          `The ${form} form requires a ${FORMS[form].names[role]} slide (data-layout="${role}") for ${purpose[role]}, and the deck has none. Give it a slide, or say in the hand-off why the deck leaves it out.`,
+          null,
+        );
+      }
+    });
     let appendixSeen = false;
     roles.forEach((role, i) => {
       if (role === 'appendix') appendixSeen = true;
@@ -222,8 +319,9 @@
   /*
    * The tracker lists the main deck's parts after the cover and marks the
    * slide's own part. A slide with data-continues carries on the part of the
-   * slide before it, so a point that runs over several slides is one part. A tracker that marks the wrong part tells the audience they are
-   * somewhere they are not, so it is an error; a slide that drops a tracker
+   * slide before it, so a part that runs over several slides is one part. A
+   * tracker that marks the wrong part tells the audience they are somewhere
+   * they are not, so it is an error; a slide that drops a tracker
    * the rest of the deck carries is a lapse in consistency.
    */
   function checkTrackers(slideEls, slides, report) {
@@ -517,7 +615,8 @@
       }
     });
     const slides = slideEls.map((el, i) => checkSlide(el, i + 1, opts, report));
-    checkStructure(slides, opts, report);
+    const form = deckForm(report);
+    checkStructure(slides, opts, report, form);
     checkTrackers(slideEls, slides, report);
     checkMarkings(slideEls, report);
     findings.sort((a, b) => a.slide - b.slide);
@@ -528,6 +627,7 @@
         height_px: first.height,
         title: document.title || '',
         lang: document.documentElement.getAttribute('lang') || '',
+        form,
       },
       slides,
       findings,

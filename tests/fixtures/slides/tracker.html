@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>A deck whose position tracker goes wrong</title>
-<!-- Slide 4's tracker marks the answer as current although slide 4 is the
-     first point, and slide 5 has no tracker while the others do. The checker
+<!-- Slide 5's tracker marks the summary as current although slide 5 is the
+     first point, and slide 6 has no tracker while the others do. The checker
      must report exactly those two things. -->
 <style>
   body { margin: 0; background: #f2f2f2; font-family: sans-serif; }
@@ -22,27 +22,45 @@
   <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
   <div class="frame"><h1>The staged option cuts staff hours</h1></div>
 </section>
-<section class="sld-slide" data-layout="premise">
-  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
-  <div class="frame"><h2>Paper forms are retyped before review</h2>
-    <ol class="sld-tracker" aria-label="Deck"><li aria-current="step">Premise</li><li>Answer</li><li>Point one</li><li>Point two</li></ol>
-  </div>
-</section>
 <section class="sld-slide" data-layout="answer">
   <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
   <div class="frame"><h2>Start the staged option now</h2>
-    <ol class="sld-tracker" aria-label="Deck"><li>Premise</li><li aria-current="step">Answer</li><li>Point one</li><li>Point two</li></ol>
+    <ol class="sld-tracker" aria-label="Deck"><li aria-current="step">Summary</li><li>Premise</li><li>Method</li><li>Point one</li><li>Point two</li><li>Discussion</li><li>Conclusion</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="premise">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>Paper forms are retyped before review</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Summary</li><li aria-current="step">Premise</li><li>Method</li><li>Point one</li><li>Point two</li><li>Discussion</li><li>Conclusion</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="method">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>Hours were measured for a year</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Summary</li><li>Premise</li><li aria-current="step">Method</li><li>Point one</li><li>Point two</li><li>Discussion</li><li>Conclusion</li></ol>
   </div>
 </section>
 <section class="sld-slide" data-layout="point">
   <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
   <div class="frame"><h2>The delay comes from retyping</h2>
-    <ol class="sld-tracker" aria-label="Deck"><li>Premise</li><li aria-current="step">Answer</li><li>Point one</li><li>Point two</li></ol>
+    <ol class="sld-tracker" aria-label="Deck"><li aria-current="step">Summary</li><li>Premise</li><li>Method</li><li>Point one</li><li>Point two</li><li>Discussion</li><li>Conclusion</li></ol>
   </div>
 </section>
 <section class="sld-slide" data-layout="point">
   <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
   <div class="frame"><h2>The staged option is cheaper</h2></div>
+</section>
+<section class="sld-slide" data-layout="discussion">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>The saving holds while applications stay level</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Summary</li><li>Premise</li><li>Method</li><li>Point one</li><li>Point two</li><li aria-current="step">Discussion</li><li>Conclusion</li></ol>
+  </div>
+</section>
+<section class="sld-slide" data-layout="closing">
+  <p class="sld-marking" data-level="2"><span class="sld-marking__level">Level 2</span> <span class="sld-marking__scope">Team only</span></p>
+  <div class="frame"><h2>Approve the staged option by 20 January</h2>
+    <ol class="sld-tracker" aria-label="Deck"><li>Summary</li><li>Premise</li><li>Method</li><li>Point one</li><li>Point two</li><li>Discussion</li><li aria-current="step">Conclusion</li></ol>
+  </div>
 </section>
 </main>
 </body>
