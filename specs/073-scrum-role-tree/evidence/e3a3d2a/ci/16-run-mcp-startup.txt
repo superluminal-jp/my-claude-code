@@ -1,0 +1,9 @@
+# command: bash tests/run-mcp-startup.sh
+# reviewed_commit: e3a3d2adb1934e695709490981a96b28e5c87fbd (files outside specs/073-scrum-role-tree/ identical at HEAD 6758b86)
+# date: 2026-11-15T00:14:38Z
+
+FAIL awslabs.aws-documentation-mcp-server@latest did not start cleanly
+error: failed to open file `/Users/taikiogihara/.cache/uv/sdists-v9/.git`: Operation not permitted (os error 1)
+MCP startup smoke test failed: 1 package(s).
+
+exit=1

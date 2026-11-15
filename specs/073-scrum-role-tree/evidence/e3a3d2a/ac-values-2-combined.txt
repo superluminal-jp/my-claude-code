@@ -1,0 +1,33 @@
+# AC-VALUES-2: C-08 は前付けの role の値を数えず、本文の同じ行は数える
+# reviewed_commit: e3a3d2adb1934e695709490981a96b28e5c87fbd
+# この記録は、下に挙げたファイルをそのまま連結したものである（行を選んだ部分は、そう書いた）。各部の見出しに元のファイルを書いた。
+
+## 変更前1（C-08 が role の値を数えなくなる前）（specs/073-scrum-role-tree/evidence/red-c08-role.txt）
+
+# python3 -B -m unittest tests/test_skill_contract.py (2026-11-15, before C-08 skips the metadata.role value)
+FAIL: test_c08_role_value_is_not_a_skill_name (tests.test_skill_contract.ContractTests.test_c08_role_value_is_not_a_skill_name)
+AssertionError: 1 != 0 : FAIL C-08 do-thing: SKILL.md: names the retired skill 'scrum-master'
+Ran 29 tests in 1.072s
+FAILED (failures=1)
+
+## 変更前2（例外を前付けに限る前）（specs/073-scrum-role-tree/evidence/red-c08-body.txt）
+
+# python3 -B -m unittest tests/test_skill_contract.py (2026-11-15, round-1 fix of AR-01: before C-08 limits its exemption to the frontmatter)
+FAIL: test_c08_role_line_in_the_body_is_still_a_name (tests.test_skill_contract.ContractTests.test_c08_role_line_in_the_body_is_still_a_name)
+AssertionError: 0 != 1 : 
+Ran 30 tests in 1.198s
+FAILED (failures=1)
+
+## 変更後（試験ごとの結果）（specs/073-scrum-role-tree/evidence/e3a3d2a/ac-values.txt）
+
+# command: python3 -B -m unittest -v tests/test_skill_contract.py
+test_c08_orchestrator_may_name_its_declared_children (tests.test_skill_contract.ContractTests.test_c08_orchestrator_may_name_its_declared_children) ... ok
+test_c08_orchestrator_names_an_undeclared_skill (tests.test_skill_contract.ContractTests.test_c08_orchestrator_names_an_undeclared_skill) ... ok
+test_c08_retired_name (tests.test_skill_contract.ContractTests.test_c08_retired_name) ... ok
+test_c08_role_line_in_the_body_is_still_a_name (tests.test_skill_contract.ContractTests.test_c08_role_line_in_the_body_is_still_a_name) ... ok
+test_c08_role_value_is_not_a_skill_name (tests.test_skill_contract.ContractTests.test_c08_role_value_is_not_a_skill_name) ... ok
+test_c08_sibling_named_by_a_worker (tests.test_skill_contract.ContractTests.test_c08_sibling_named_by_a_worker) ... ok
+Ran 30 tests in 1.082s
+OK
+exit=0
+
