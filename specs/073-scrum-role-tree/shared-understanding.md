@@ -34,7 +34,7 @@
   - 頂点の指示（`harness/CLAUDE.md`）とルールの変更（どの役割にも共通で、汎用に保つ）
   - 基準が求めない手順の変更
   - Claude.ai 用の写しの作り直しと、再アップロード
-  - `scrum/` の Product Goal と Definition of Done を埋めること（Product Owner の決定）
+  - `scrum/` の Product Goal と Definition of Done を埋めること（Product Goal は Product Owner、Definition of Done は組織の標準か、なければ Scrum Team が決める [SG20, pp.5-6, 12]。Scrum Master の所見 F-4 を受けて 2026-11-15 に直した）
 
 ## 基準
 
