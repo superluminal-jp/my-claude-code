@@ -13,7 +13,7 @@ HEAD（6758b86。e3a3d2a との違いは specs/073-scrum-role-tree/ の記録だ
 | 06-run-commit-tree-hook.txt | 0 | Results: 18 passed, 0 failed |
 | 07-run-package-safety-bundle.txt | 0 | Results: 21 passed, 0 failed |
 | 08-run-readme-skill-index.txt | 0 | Results: 46 passed, 0 failed |
-| 09-run-specify-requirements-skill.txt | 0 | Results: 5 passed, 0 failed |
+| 09-run-specify-reqs-skill.txt | 0 | Results: 5 passed, 0 failed |
 | 10-run-verify-change-skill.txt | 0 | Results: 8 passed, 0 failed |
 | 11-run-draw-system-diagrams-skill.txt | 0 | system-diagrams: 4 passed, 0 failed |
 | 12-run-apply-secure-logging-skill.txt | 0 | Results: 38 passed, 0 failed |
@@ -24,3 +24,5 @@ HEAD（6758b86。e3a3d2a との違いは specs/073-scrum-role-tree/ の記録だ
 
 16 の run-mcp-startup.sh は、変更前（../baseline-ci.md の 16）と同じ理由で失敗した。サンドボックスが uv のキャッシュ（~/.cache/uv/sdists-v9/.git）への読み書きを拒んだためで、ci/16-run-mcp-startup.txt に "Operation not permitted (os error 1)" とある。
 ほかの15は終了コード 0 で、要約行の件数は変更前と同じである。ただし run-harness-skills.sh は 8 から 10 に増えた。増えたのは、この変更で足した HS-03 と HS-04 である。
+
+2026-11-15 に、9 番目の出力のファイルの名前を 09-run-specify-requirements-skill.txt から 09-run-specify-reqs-skill.txt に変えた。中身（実行したのは bash tests/run-specify-requirements-skill.sh）は変えていない。名前に requirements を含む .txt は、GitHub の自動の依存関係グラフ（Graph Update: pip）が pip の requirements ファイルとして読み、解釈できずに失敗するためである。
