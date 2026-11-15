@@ -184,6 +184,12 @@ class ContractTests(unittest.TestCase):
         code, err = run_contract(self.root)
         self.assertEqual(code, 0, err)
 
+    def test_c08_role_line_in_the_body_is_still_a_name(self) -> None:
+        # Only the frontmatter's metadata.role is exempt; the same line in the
+        # body is prose that names the retired skill.
+        write_skill(self.root, "do-thing", extra="\n  role: scrum-master\n")
+        self.assert_fails("C-08", "retired")
+
     def test_c08_sibling_named_by_a_worker(self) -> None:
         write_skill(self.root, "do-thing", extra="\nThen apply `other-thing`.\n")
         write_skill(self.root, "other-thing")

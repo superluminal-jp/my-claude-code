@@ -23,8 +23,8 @@ inside the Claude Code Bash sandbox:
         outside the repository unless it names $TMPDIR; osascript only in a
         skill declared to run outside the sandbox; network commands only in
         a skill declared to need it
-  C-08  names: no retired skill name (the value of metadata.role is not a
-        name); no other skill's name unless this
+  C-08  names: no retired skill name (the value of metadata.role in the
+        frontmatter is not a name); no other skill's name unless this
         skill is an orchestrator that declares it as a child
   C-09  paths: no install-root path, no placeholder such as <skill-dir>, no
         reference to this repository's specs/ or archive/
@@ -248,9 +248,15 @@ def check_skill(skill: Skill, all_names: set[str], kinds: dict[str, str]) -> lis
             if in_scripts and sandbox != "network" and NETWORK_COMMANDS.search(line) and not line.lstrip().startswith("#"):
                 fail("C-07", f"{where}: network command in a skill not declared sandbox: network")
         if path.suffix == ".md" or in_scripts:
-            # metadata.role names a Scrum accountability, not a skill: its value
-            # scrum-master is also a retired skill name.
-            names_text = re.sub(r"^  role: \S+$", "", text, flags=re.M) if relative == "SKILL.md" else text
+            # metadata.role in the frontmatter names a Scrum accountability, not a
+            # skill: its value scrum-master is also a retired skill name. Only that
+            # line is exempt; the same text in the body still counts.
+            names_text = text
+            if relative == "SKILL.md":
+                front = re.match(r"^---\n.*?\n---\n", text, re.S)
+                if front:
+                    head = re.sub(r"^  role: \S+$", "", front.group(0), flags=re.M)
+                    names_text = head + text[front.end():]
             for retired in RETIRED:
                 if word_boundary(retired).search(names_text):
                     fail("C-08", f"{relative}: names the retired skill {retired!r}")

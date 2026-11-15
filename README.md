@@ -323,7 +323,7 @@ and the decision is [ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-
 | Developers | define | `research-aws` | skill | Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. |
 | Developers | define | `specify-requirements` | skill | Turn an agreed problem into requirements that can be checked before implementation - a problem card that keeps evidence, hypotheses, and fixes apart, a requirements graph in which every requirement and every parent carries its own acceptance criterion, an independent read-only challenge for risky changes or weak evidence, and the bundled gate, which answers ready or blocked. |
 | Developers | execute | `apply-dads-frontend` | skill | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
-| Developers | execute | `apply-scrum-guide` | skill | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。リポジトリに Scrum の作成物（Product Goal、Sprint Goal と Sprint Backlog、Definition of Done。たとえば `scrum/` の下）があるときは、依頼に Scrum という語がなくても、そこでの開発作業のたびに使う。依頼が Scrum のイベント、作成物、アカウンタビリティ、Sprint、Scrum の導入、または Scrum からの逸脱の診断や改善に触れるときにも使う。作成物のファイルを置く・書く作業はこのスキルでは行わない。一般的なプロジェクト管理、ステータス報告、ガントチャート、予算やマイルストーンの管理、Scrum と特定できないチームの進行役には使わない。 |
+| Developers | execute | `apply-scrum-guide` | skill | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
 | Developers | execute | `apply-secure-logging` | skill | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
 | Developers | execute | `build-dads-slides` | skill | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. |
 | Developers | execute | `check-runner` | agent | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
@@ -561,7 +561,8 @@ within its size limits; a `Done when` section exists, and a `Bundled files`
 section gives every bundled reference its load condition; no command breaks the
 sandbox (a bare `mktemp`, a `/tmp` literal, a write outside the repository,
 `osascript` or a network command in a skill that does not declare it); no skill
-names a retired skill (the value of `metadata.role` is not a name) or
+names a retired skill (the value of `metadata.role` in the frontmatter is
+not a name) or
 another skill unless it is an orchestrator naming a declared child; no path
 depends on the install location and none points into this repository's
 `specs/` or `archive/`; package-relative links resolve; and an orchestrator

@@ -204,7 +204,7 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 | Developers | define | `research-aws` | スキル | Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. |
 | Developers | define | `specify-requirements` | スキル | Turn an agreed problem into requirements that can be checked before implementation - a problem card that keeps evidence, hypotheses, and fixes apart, a requirements graph in which every requirement and every parent carries its own acceptance criterion, an independent read-only challenge for risky changes or weak evidence, and the bundled gate, which answers ready or blocked. |
 | Developers | execute | `apply-dads-frontend` | スキル | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
-| Developers | execute | `apply-scrum-guide` | スキル | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。リポジトリに Scrum の作成物（Product Goal、Sprint Goal と Sprint Backlog、Definition of Done。たとえば `scrum/` の下）があるときは、依頼に Scrum という語がなくても、そこでの開発作業のたびに使う。依頼が Scrum のイベント、作成物、アカウンタビリティ、Sprint、Scrum の導入、または Scrum からの逸脱の診断や改善に触れるときにも使う。作成物のファイルを置く・書く作業はこのスキルでは行わない。一般的なプロジェクト管理、ステータス報告、ガントチャート、予算やマイルストーンの管理、Scrum と特定できないチームの進行役には使わない。 |
+| Developers | execute | `apply-scrum-guide` | スキル | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
 | Developers | execute | `apply-secure-logging` | スキル | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
 | Developers | execute | `build-dads-slides` | スキル | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured top down - shared premises, then the conclusion, then the supporting points - with every slide showing where it sits in that structure. |
 | Developers | execute | `check-runner` | エージェント | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
@@ -441,7 +441,7 @@ C-11（スクリプトの docstring に一覧がある）を課す: 名前がデ
 スキルがホストを名指していること、本文が大きさの上限に収まること、`Done when` の節があり、同梱の
 参照ファイルのそれぞれに読む条件を書いた `Bundled files` の節があること、サンドボックスを壊す
 コマンド（引数なしの `mktemp`、`/tmp` の直書き、リポジトリの外への書き込み、宣言のないスキルでの
-`osascript` やネットワークのコマンド）がないこと、廃止したスキルを名指さないこと（`metadata.role` の値は名前に数えない）、宣言した子を名指す取りまとめ役のスキルでなければ、
+`osascript` やネットワークのコマンド）がないこと、廃止したスキルを名指さないこと（前付けの `metadata.role` の値は名前に数えない）、宣言した子を名指す取りまとめ役のスキルでなければ、
 ほかのスキルを名指さないこと、インストール先に依存するパスや、このリポジトリの `specs/`・`archive/` への
 参照がないこと、パッケージ内の相対リンクが解決すること、取りまとめ役のスキルが実在する
 子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。次に [`tests/assert_role_tree.py`](tests/assert_role_tree.py) を実行し、すべてのスキルとサブエージェントの定義の[役割の木](#役割の木)を確かめる: `metadata.role` と `metadata.branch` を定義された値で1回ずつ宣言していること、対応表がその要素を持ち、枝が担う段階と合うこと（段階が2つ以上の枝にまたがるときは `metadata.stage` で段階を選ぶ）、`description` の末尾が一致する標識であること、README の表と木の図が宣言から生成したものと一致すること。`--self-test` は、どれか1つの規則を壊した写しが拒まれることを示す。続けて、

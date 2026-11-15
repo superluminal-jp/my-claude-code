@@ -51,7 +51,7 @@ flowchart LR
 
 | 矢印 | 出典 |
 |---|---|
-| スキルからサブエージェント定義へ | `specify-requirements/SKILL.md`:36 と `verify-change/SKILL.md`:30 が `read-only-reviewer` を、`apply-scrum-guide/SKILL.md`:53 が `scrum-master-agent` を名指しする（パスは `harness/skills/` から） |
+| スキルからサブエージェント定義へ | `specify-requirements/SKILL.md`:38 と `verify-change/SKILL.md`:32 が `read-only-reviewer` を、`apply-scrum-guide/SKILL.md`:55 が `scrum-master-agent` を名指しする（パスは `harness/skills/` から） |
 | 頂点の指示からサブエージェント定義へ | `harness/CLAUDE.md`:16。3つの条件は、出力が長く結果だけが要る、独立して並べられる、作者から独立した読み手が要る、の3つ |
 | 設定からスキルへ | `harness/settings.json`:138 が `~/.claude/skills/sync-docs/scripts/check_tree.py` を実行する |
 | 頂点・ルール・サブエージェント定義がスキルを名指ししないこと | `harness/CLAUDE.md`、`harness/rules/*.md`、`harness/agents/*.md` を17のスキル名で grep して0件（2026-11-15） |

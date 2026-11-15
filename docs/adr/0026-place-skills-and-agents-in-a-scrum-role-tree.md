@@ -53,7 +53,7 @@ harness には、スキル17件とサブエージェントの定義5件がある
 
 ### 検査
 
-- **契約の拡張:** スキルの契約（`tests/assert_skill_contract.py` の C-04）が、`role` と `branch` の値を確かめる。C-08 は、`metadata.role` の値を名前に数えなくなった。値 `scrum-master` が、廃止したスキルの名前と同じだからである。
+- **契約の拡張:** スキルの契約（`tests/assert_skill_contract.py` の C-04）が、`role` と `branch` の値を確かめる。C-08 は、前付けの `metadata.role` の値だけを名前に数えなくなった。値 `scrum-master` が、廃止したスキルの名前と同じだからである。本文の同じ文字列は、これまでどおり数える。エージェント定義の検査（`tests/assert_reviewer_agent.py`）は `metadata` の欄を受け入れるが、キーは `role`、`branch`、`stage` に限る。どちらも検査を緩める変更なので、検証の記録に、利用者の承認を求める項目として載せた。
 - **新しい検査:** `tests/assert_role_tree.py` が、すべてのスキルとサブエージェントの定義について次の一致を確かめ、`tests/run-harness-skills.sh` から毎回実行される。
   - 宣言
   - 対応表との整合
@@ -88,6 +88,7 @@ harness には、スキル17件とサブエージェントの定義5件がある
 - `bash tests/run-harness-skills.sh` が、契約（C-04、C-08）、`tests/assert_role_tree.py`、`tests/assert_role_tree.py --self-test` を通す。
 - `bash tests/run-verify-change-skill.sh` が、`metadata` を持つエージェント定義を受け入れ、既存の変えた写しをすべて拒む。
 - `python3 -B harness/skills/draw-system-diagrams/scripts/check_diagrams.py docs/harness/skill-map` が、エラー0で通る。
+- `install.sh` で入れた後の新しいセッションで、`/agents` に5件のエージェントが読み込みの誤りなしに並ぶことを、利用者が確かめる。Claude Code が未知の欄を無視するという公式文書の記述を、実際の環境で確かめるためである（要件グラフの AC-AGENT-META-2、デプロイの後）。
 - 測っていないことが2つある。1つは、標識によってスキルの選ばれ方が変わるかどうか。もう1つは、主の会話が実際に `scrum-master-agent` を起動するかどうか（ADR-0025 から引き続き未観測）である。
 
 ## 補足情報

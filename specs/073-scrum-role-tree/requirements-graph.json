@@ -70,19 +70,24 @@
     },
     {
       "id": "REQ-VALUES",
-      "statement": "スキルの契約（tests/assert_skill_contract.py の C-04）が metadata.role と metadata.branch の値の集合を定め、どちらかが欠けたスキルと、集合にない値のスキルを拒む。",
+      "statement": "スキルの契約（tests/assert_skill_contract.py の C-04）が metadata.role と metadata.branch の値の集合を定め、どちらかが欠けたスキルと、集合にない値のスキルを拒む。C-08（廃止したスキルの名前）は、前付けの metadata.role の値だけを名前に数えない。値 scrum-master は廃止したスキルの名前と同じだからである。本文の同じ文字列は、これまでどおり数える。",
       "decomposition": "LEAF",
       "acceptance": [
         {
           "id": "AC-VALUES-1",
           "description": "tests/test_skill_contract.py に4つの試験を足す。role がない、role が集合にない、branch がない、branch が集合にない、の4つで、どれも C-04 で失敗すると主張する。これらは変更前の assert_skill_contract.py に対して失敗し、変更後は python3 -B -m unittest tests/test_skill_contract.py が終了コード 0 を返す。",
           "level": "L1"
+        },
+        {
+          "id": "AC-VALUES-2",
+          "level": "L1",
+          "description": "tests/test_skill_contract.py の test_c08_role_value_is_not_a_skill_name（前付けの role: scrum-master が C-08 で失敗しない）と test_c08_role_line_in_the_body_is_still_a_name（本文の同じ行は C-08 で失敗する）が、python3 -B -m unittest tests/test_skill_contract.py で通る。前者は C-08 を変える前に、後者は C-08 の例外を前付けに限る前に失敗する。"
         }
       ]
     },
     {
       "id": "REQ-AGENT-META",
-      "statement": "サブエージェント定義の前付けは、metadata のマップで role と branch（と、必要なら stage）を宣言できる。tests/assert_reviewer_agent.py はその欄を受け入れ、既存の単一の変更をすべて拒み続ける。",
+      "statement": "サブエージェント定義の前付けは、metadata のマップで role と branch（と、必要なら stage）を宣言できる。キーはこの3つに限る。tests/assert_reviewer_agent.py はその欄を受け入れ、既存の単一の変更と、ほかのキーを持つ写しを拒む。Claude Code は、metadata を持つ5件の定義を読み込める。",
       "decomposition": "LEAF",
       "assumptions": [
         "Claude Code はサブエージェント定義の前付けの未知の欄を、エラーにせずに無視する（問題カードの evidence、https://code.claude.com/docs/en/sub-agents.md）。"
@@ -90,8 +95,14 @@
       "acceptance": [
         {
           "id": "AC-AGENT-META-1",
-          "description": "5件のエージェント定義に metadata を足した状態で、bash tests/run-verify-change-skill.sh が終了コード 0 を返す。このスクリプトは、assert_reviewer_agent.py が変えた写しをすべて拒むことの確認を含む。また、変更前の assert_reviewer_agent.py は、metadata を持つ read-only-reviewer.md を拒む。",
+          "description": "5件のエージェント定義に metadata を足した状態で、bash tests/run-verify-change-skill.sh が終了コード 0 を返す。このスクリプトは、assert_reviewer_agent.py が変えた写しをすべて拒むことの確認を含む。写しには、metadata の外に置いた項目と、role、branch、stage 以外のキーを持つものがある。また、変更前の assert_reviewer_agent.py は metadata を持つ read-only-reviewer.md を拒む。キーを限る前の版は、ほかのキーを持つ写しを拒まない。",
           "level": "L1"
+        },
+        {
+          "id": "AC-AGENT-META-2",
+          "level": "L1",
+          "stage": "post_deploy",
+          "description": "install.sh でこの変更を ~/.claude/ に入れた後、新しく始めた Claude Code のセッションで、利用者が /agents を開く。そこに check-runner、file-searcher、read-only-reviewer、scrum-master-agent、task-worker の5件が、読み込みの誤りなしに並ぶ。証拠は利用者の確認（human_review）とする。インストールは ~/.claude/ を書き換えるので、デプロイの後にしか確かめられない。"
         }
       ]
     },
@@ -153,7 +164,7 @@
       "acceptance": [
         {
           "id": "AC-README-1",
-          "description": "assert_role_tree.py が、両方の README の目印の間の文字列と生成した表が一致することを確かめて通る。--self-test は、README の表の1行の目的を書き換えた写しを拒む。",
+          "description": "assert_role_tree.py が、両方の README の目印の間の文字列と生成した表が一致することを確かめて通る。同時に PURPOSE の規則も通る。この規則は、README の表の目的の欄がそれぞれ1文であること（「。」か、後に空白が続く「.」が欄の途中にないこと）を確かめる。--self-test は、README の表の1行の目的を書き換えた写しと、README.ja.md の目的の欄を2文にした写しを拒む。",
           "level": "L1"
         }
       ]
@@ -165,7 +176,7 @@
       "acceptance": [
         {
           "id": "AC-DIAGRAM-1",
-          "description": "assert_role_tree.py が、木の図のページにある Mermaid のブロックと、宣言から生成したブロックが一致することを確かめて通る。生成したブロックでは、ルート以外のすべての節が、辺の終点にちょうど1回現れる。",
+          "description": "assert_role_tree.py が、木の図のページにある Mermaid のブロックと、宣言から生成したブロックが一致することを確かめて通る。同時に TREE の規則も通る。この規則はそのページのブロックを図として読み、根が1つで、根以外のすべての節が辺の終点にちょうど1回現れ、どの辺も宣言された節を結ぶことを確かめる。--self-test は、1つの節に2つ目の親を持たせた写しを拒む。",
           "level": "L1"
         },
         {
@@ -175,7 +186,7 @@
         },
         {
           "id": "AC-DIAGRAM-3",
-          "description": "python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py が次を確かめて終了コード 0 を返す。木の外の関係のページの Mermaid に、次の7本の辺がある: deliver-change から define-problem、specify-requirements、implement-change、verify-change への4本、specify-requirements と verify-change から read-only-reviewer への2本、apply-scrum-guide から scrum-master-agent への1本。同じページに、役割や枝の節がない。一覧のページの表が、システムコンテキスト、コンテナ、役割の木、木の外の関係、動的図の順に5枚を載せる。",
+          "description": "python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py が次を確かめて終了コード 0 を返す。木の外の関係のページの Mermaid に、次の7本の辺がある: deliver-change から define-problem、specify-requirements、implement-change、verify-change への4本、specify-requirements と verify-change から read-only-reviewer への2本、apply-scrum-guide から scrum-master-agent への1本。同じページに、役割や枝の節がない。一覧のページの表が、システムコンテキスト、コンテナ、役割の木、木の外の関係、動的図の順に5枚を載せる。さらに、ページ 01、02、04、05 の `…/SKILL.md`:N の行の引用は、どれも実在する行を指す。20か所の引用は、ページが主張する文言を含む行を指す。たとえば deliver-change の ## Child skills、read-only-reviewer と scrum-master-agent を名指す行、オーバーレイが判断基準を重ねると述べる行である。dcb1425 の時点のページは、この確かめに失敗する（前付けが伸びて行がずれた）。",
           "level": "L1"
         }
       ]

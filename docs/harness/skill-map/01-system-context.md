@@ -42,9 +42,9 @@ flowchart LR
 | ハーネス | このシステム | Claude Code に与える頂点の指示、ルール、スキル、サブエージェント定義、設定 | このリポジトリの `CLAUDE.md`:3 |
 | Claude Code | 外部のシステム | ハーネスを読み込み、主の会話とサブエージェントで作業する。読むのは `~/.claude/` に入れた複製 | このリポジトリの `CLAUDE.md`:9 |
 | 作業対象のリポジトリ | 外部のシステム | コード、文書、Scrum の作成物を置く | `harness/skills/implement-change/SKILL.md`:3、`harness/skills/manage-scrum-artifacts/SKILL.md`:3 |
-| Git のリモート | 外部のシステム | push と Pull Request を受け取る。このリポジトリでは GitHub | `harness/skills/manage-git/SKILL.md`:8、`git remote -v` |
+| Git のリモート | 外部のシステム | push と Pull Request を受け取る。このリポジトリでは GitHub | `harness/skills/manage-git/SKILL.md`:10、`git remote -v` |
 | AWS の公式文書 | 外部のシステム | 許可した2つの MCP サーバー（MCP は、Claude Code に外部の道具を接続する仕組み）で、AWS の現行の機能、API、クォータなどを答える | `harness/settings.json`:83-86、`harness/skills/research-aws/SKILL.md`:3 |
-| デジタル庁の公式資料 | 外部のシステム | DADS（デジタル庁デザインシステム）の文書、コード、素材を、npm、GitHub、デジタル庁のサイトから配る | `harness/skills/apply-dads-frontend/SKILL.md`:8、`harness/skills/build-dads-slides/SKILL.md`:8 |
+| デジタル庁の公式資料 | 外部のシステム | DADS（デジタル庁デザインシステム）の文書、コード、素材を、npm、GitHub、デジタル庁のサイトから配る | `harness/skills/apply-dads-frontend/SKILL.md`:10、`harness/skills/build-dads-slides/SKILL.md`:10 |
 
 ## 前提と未確認の点
 

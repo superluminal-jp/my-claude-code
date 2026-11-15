@@ -85,14 +85,14 @@ flowchart LR
 
 | 名前 | 種類 | 責任 | 使う場面 | 出典 |
 |---|---|---|---|---|
-| deliver-change | 親スキル | 問題、要件、実装、検証の4つの子スキルを決まった順で適用し、ゲートの判断とレビューカードを人に渡す | 自明でない変更、セキュリティに関わる変更、複数部分にわたる変更を、差分を読み直さずに受け入れたいとき | `skills/deliver-change/SKILL.md`:3, 15-20 |
-| apply-scrum-guide | オーバーレイ（読み取り専用） | 作業を Sprint Goal と Definition of Done（DoD）に結び付け、DoD の項目ごとに完了を判定する。作成物のファイルは書かない | Scrum の作成物があるリポジトリでの開発のたび。Scrum の診断や改善を求められたとき | `skills/apply-scrum-guide/SKILL.md`:3, 13, 32 |
-| apply-secure-logging | オーバーレイ | ログの出力を、OWASP などのセキュリティ要件のチェックリストに照らす | ログの追加、変更、レビュー | `skills/apply-secure-logging/SKILL.md`:3, 13 |
-| apply-dads-frontend | オーバーレイ | DADS（デジタル庁デザインシステム）とアクセシビリティの基準を、公式資料から当てる | React と Tailwind CSS の画面。公共サービスの画面 | `skills/apply-dads-frontend/SKILL.md`:3, 14 |
+| deliver-change | 親スキル | 問題、要件、実装、検証の4つの子スキルを決まった順で適用し、ゲートの判断とレビューカードを人に渡す | 自明でない変更、セキュリティに関わる変更、複数部分にわたる変更を、差分を読み直さずに受け入れたいとき | `skills/deliver-change/SKILL.md`:3, 17-22 |
+| apply-scrum-guide | オーバーレイ（読み取り専用） | 作業を Sprint Goal と Definition of Done（DoD）に結び付け、DoD の項目ごとに完了を判定する。作成物のファイルは書かない | Scrum の作成物があるリポジトリでの開発のたび。Scrum の診断や改善を求められたとき | `skills/apply-scrum-guide/SKILL.md`:3, 15, 34 |
+| apply-secure-logging | オーバーレイ | ログの出力を、OWASP などのセキュリティ要件のチェックリストに照らす | ログの追加、変更、レビュー | `skills/apply-secure-logging/SKILL.md`:3, 15 |
+| apply-dads-frontend | オーバーレイ | DADS（デジタル庁デザインシステム）とアクセシビリティの基準を、公式資料から当てる | React と Tailwind CSS の画面。公共サービスの画面 | `skills/apply-dads-frontend/SKILL.md`:3, 16 |
 | define-problem | 作業スキル | 漠然とした不満を、現状と理想の差としての問題文にする | 原因や解決策を考える前に、問題そのものを定めたいとき | `skills/define-problem/SKILL.md`:3 |
-| specify-requirements | 作業スキル | 問題カードと要件グラフを書き、ゲートで ready か blocked かを判定する | 実装の前に、受け入れ基準を書き、要件を分解するとき | `skills/specify-requirements/SKILL.md`:3, 36 |
+| specify-requirements | 作業スキル | 問題カードと要件グラフを書き、ゲートで ready か blocked かを判定する | 実装の前に、受け入れ基準を書き、要件を分解するとき | `skills/specify-requirements/SKILL.md`:3, 38 |
 | implement-change | 作業スキル | 失敗する検査を先に見てから最小の変更を行い、検査してから報告する | コード、設定、テスト、スクリプトの変更のすべて | `skills/implement-change/SKILL.md`:3 |
-| verify-change | 作業スキル | 受け入れ基準ごとの証拠を記録し、ゲートで pass、fail、blocked を判定する | 要件グラフのある変更を、証拠で受け入れるとき | `skills/verify-change/SKILL.md`:3, 30 |
+| verify-change | 作業スキル | 受け入れ基準ごとの証拠を記録し、ゲートで pass、fail、blocked を判定する | 要件グラフのある変更を、証拠で受け入れるとき | `skills/verify-change/SKILL.md`:3, 32 |
 | sync-docs | 作業スキル | 変更が古くする文書を挙げ、同じ変更で直す | 振る舞い、インターフェース、設定、判断記録が変わるとき。文書のずれを監査するとき | `skills/sync-docs/SKILL.md`:3 |
 | manage-git | 作業スキル（外部に影響） | 頼まれた Git の操作だけを行う | ブランチ、コミット、push、Pull Request を明示的に頼まれたとき | `skills/manage-git/SKILL.md`:3 |
 | manage-scrum-artifacts | 作業スキル | Scrum の作成物を、リポジトリの `scrum/` にファイルとして置き、形を検査する | 作成物を置く、Sprint を足す、イベントを準備するとき | `skills/manage-scrum-artifacts/SKILL.md`:3 |
@@ -107,7 +107,7 @@ flowchart LR
 
 ## 前提と未確認の点
 
-- `apply-scrum-guide` から4つの作業スキルへの点線は、推定です。本文の「コードの変更、検証、文書、Git の操作は、それぞれを扱う能力と併用し」（`skills/apply-scrum-guide/SKILL.md`:13）を、それぞれの作業を扱うスキルに当てはめました。本文は、スキルを名前では指していません。
+- `apply-scrum-guide` から4つの作業スキルへの点線は、推定です。本文の「コードの変更、検証、文書、Git の操作は、それぞれを扱う能力と併用し」（`skills/apply-scrum-guide/SKILL.md`:15）を、それぞれの作業を扱うスキルに当てはめました。本文は、スキルを名前では指していません。
 - `apply-secure-logging` と `apply-dads-frontend` は「実装かレビュー」に基準を重ねると書いています（各 `SKILL.md` の 13 行目、14 行目）。このうち実装だけを、`implement-change` への線にしました。レビューを担うスキルはハーネスにありません（[capability-map.md](../capability-map.md) の `H-code-review`）。
 - サブエージェント定義は別の層の要素ですが、スキルから起動される関係を見せるために、この図に置きました。`check-runner`、`file-searcher`、`task-worker` は、どのスキルからも名指しされないため描いていません。これらは、頂点の指示にある委任の条件で選ばれます（[コンテナ図](02-containers.md)）。
 - 作業スキルの間の受け渡し（問題文 → 要件グラフ → 変更 → 証拠）は、使う順の問いなので、[動的図](05-dynamic-deliver-change.md)に描きました。

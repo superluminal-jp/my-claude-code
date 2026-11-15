@@ -25,6 +25,10 @@ Rules, each reported with the element it concerns:
   TAG      the description ends with " [<Role> / <branch>]"
   README   README.md and README.ja.md hold, between <!-- role-tree:start -->
            and <!-- role-tree:end -->, the table this script generates
+  PURPOSE  every purpose cell of those tables is one sentence (the
+           description's first, without the tag)
+  TREE     in the diagram block of that page, every node but the root is the
+           head of exactly one edge, and every edge joins declared nodes
   DIAGRAM  docs/harness/skill-map/03-role-tree.md holds, between
            <!-- role-tree-diagram:start --> and <!-- role-tree-diagram:end -->,
            the Mermaid block this script generates
@@ -71,6 +75,8 @@ DIAGRAM_PAGE = "docs/harness/skill-map/03-role-tree.md"
 CAPABILITY_MAP = "docs/harness/capability-map.json"
 README_MARK = ("<!-- role-tree:start -->", "<!-- role-tree:end -->")
 DIAGRAM_MARK = ("<!-- role-tree-diagram:start -->", "<!-- role-tree-diagram:end -->")
+# A sentence ends at 。 or at a period followed by whitespace; "draw.io" does not.
+SENTENCE_BREAK = re.compile(r"。(?=\S)|\.(?=\s+\S)")
 TOP = re.compile(r"^([A-Za-z0-9_-]+):\s*(.*)$")
 NESTED = re.compile(r"^  ([A-Za-z0-9_-]+):\s*(.*)$")
 
@@ -157,7 +163,7 @@ def purpose(element: Element) -> str:
     text = element.description
     if element.placed and text.endswith(tag(element)):
         text = text[: -len(tag(element))]
-    match = re.match(r"^(.*?[.。])(?=\s|$)", text)
+    match = re.match(r"^(.*?(?:。|\.(?=\s|$)))", text)
     return (match.group(1) if match else text).replace("|", "\\|")
 
 
@@ -241,6 +247,19 @@ def mermaid(items: list[Element]) -> str:
     return "\n".join(out) + "\n"
 
 
+def tree_violations(block: str) -> list[str]:
+    """Read the diagram block as a graph: one root, and one parent for every other node."""
+    nodes = re.findall(r"^  ([A-Za-z_][A-Za-z0-9_]*)\[", block, re.M)
+    edges = re.findall(r"^  ([A-Za-z_][A-Za-z0-9_]*) -->\|\"[^\"]*\"\| ([A-Za-z_][A-Za-z0-9_]*)$", block, re.M)
+    out = [f"edge {a} --> {b} joins a node that is not declared" for a, b in edges if a not in nodes or b not in nodes]
+    heads = [b for _, b in edges]
+    roots = [n for n in nodes if n not in heads]
+    if len(roots) != 1:
+        out.append(f"the diagram has {len(roots)} roots {roots}, not one")
+    out += [f"{n} has {heads.count(n)} parents" for n in nodes if heads.count(n) > 1]
+    return out
+
+
 def between(text: str, marks: tuple[str, str]) -> str | None:
     start, end = text.find(marks[0]), text.find(marks[1])
     if start < 0 or end < start:
@@ -288,11 +307,17 @@ def check(root: Path) -> list[tuple[str, str, str]]:
             out.append(("README", rel, f"no {README_MARK[0]} ... {README_MARK[1]} block"))
         elif block != table(items, lang):
             out.append(("README", rel, "the role table differs from the declarations; regenerate it with --table " + lang))
+        for row in re.findall(r"^\| [^|]+ \| [^|]+ \| `([^`]+)` \| [^|]+ \| (.*) \|$", block or "", re.M):
+            name, cell = row
+            if SENTENCE_BREAK.search(cell.rstrip("。.")):
+                out.append(("PURPOSE", rel, f"the purpose of {name} is more than one sentence: {cell[:60]!r}..."))
     block = between(read(root, DIAGRAM_PAGE), DIAGRAM_MARK) if (root / DIAGRAM_PAGE).is_file() else None
     if block is None:
         out.append(("DIAGRAM", DIAGRAM_PAGE, f"no {DIAGRAM_MARK[0]} ... {DIAGRAM_MARK[1]} block"))
     elif block != mermaid(items):
         out.append(("DIAGRAM", DIAGRAM_PAGE, "the tree diagram differs from the declarations; regenerate it with --mermaid"))
+    if block is not None:
+        out += [("TREE", DIAGRAM_PAGE, message) for message in tree_violations(block)]
     return out
 
 
@@ -344,6 +369,20 @@ def first_table_row(lang: str) -> Callable[[Path], None]:
     return apply
 
 
+def two_sentences(lang: str) -> Callable[[Path], None]:
+    def apply(root: Path) -> None:
+        rel = next(r for r, l in READMES.items() if l == lang)
+        path = root / rel
+        text = path.read_text(encoding="utf-8")
+        start = text.index(README_MARK[0])
+        row = re.search(r"^\| Developers \| [^|]+ \| `[^`]+` \| [^|]+ \| ", text[start:], re.M)
+        if not row:
+            raise AssertionError(f"self-test cannot apply: no Developers row in {rel}")
+        at = start + row.end()
+        path.write_text(text[:at] + "一文目を足した。" + text[at:], encoding="utf-8")
+    return apply
+
+
 MUTATIONS: list[tuple[str, str, Callable[[Path], None]]] = [
     ("an agent definition without metadata", "DECL", drop_metadata("harness/agents/check-runner.md")),
     ("a skill whose role is not defined", "DECL", replace_in("harness/skills/implement-change/SKILL.md", "  role: developers", "  role: tester")),
@@ -357,6 +396,10 @@ MUTATIONS: list[tuple[str, str, Callable[[Path], None]]] = [
     ("a tag naming another role", "TAG", replace_in("harness/skills/deliver-change/SKILL.md", " [Developers / handoff]\n", " [Product Owner / handoff]\n")),
     ("a README table row edited by hand", "README", first_table_row("en")),
     ("a README.ja table row edited by hand", "README", first_table_row("ja")),
+    ("a README.ja purpose cell of two sentences", "PURPOSE", two_sentences("ja")),
+    ("a node with a second parent in the tree diagram", "TREE",
+     replace_in(DIAGRAM_PAGE, '  developers_execute -->|"含む"| implement_change\n',
+                '  developers_execute -->|"含む"| implement_change\n  developers_handoff -->|"含む"| implement_change\n')),
     ("a tree diagram edited by hand", "DIAGRAM", replace_in(DIAGRAM_PAGE, '-->|"含む"| define_problem', '-->|"含む"| specify_requirements')),
 ]
 

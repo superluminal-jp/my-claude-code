@@ -3,8 +3,8 @@
 
 R1a: `harness/agents/read-only-reviewer.md` declares exactly the fields
 name, description, tools, model, effort, omitClaudeMd, and metadata (the
-map of its place in the role tree, whose entries tests/assert_role_tree.py
-checks; spec 073), with tools exactly
+map of its place in the role tree, with no key but role, branch, and stage,
+whose values tests/assert_role_tree.py checks; spec 073), with tools exactly
 Read, Grep, and Glob, model sonnet, effort xhigh, and omitClaudeMd true, and
 its body tells the reviewer to answer `NOT REVIEWED: <path>: <reason>` when a
 file it was given cannot be read.
@@ -64,6 +64,8 @@ OLD_PHRASES = (
 FIELDS = {"name", "description", "tools", "model", "effort", "omitClaudeMd", "metadata"}
 EXPECTED = {"name": "read-only-reviewer", "model": "sonnet", "effort": "xhigh", "omitClaudeMd": "true"}
 TOOLS = {"Read", "Grep", "Glob"}
+# The keys of the metadata map: the element's place in the role tree (spec 073).
+METADATA_KEYS = {"role", "branch", "stage"}
 NOT_REVIEWED = "NOT REVIEWED: <path>: <reason>"
 
 
@@ -91,6 +93,8 @@ def agent_violations(text: str) -> List[str]:
             nested_key, nested_sep, nested_value = line[2:].partition(":")
             if not nested_sep or not nested_key or nested_key != nested_key.strip() or not nested_value.strip():
                 out.append(f"metadata entry is not '  key: value': {line!r}")
+            elif nested_key not in METADATA_KEYS:
+                out.append(f"metadata key {nested_key!r} is not one of {sorted(METADATA_KEYS)}")
             continue
         key, sep, value = line.partition(":")
         if not sep or not key.strip() or key != key.strip():
@@ -181,6 +185,7 @@ def changed_agents(text: str) -> List[Tuple[str, str]]:
         ("a missing field", swap("effort: xhigh\n", "")),
         ("an extra field", swap("omitClaudeMd: true\n", "omitClaudeMd: true\npermissionMode: plan\n")),
         ("a metadata entry outside the map", swap("metadata:\n", "")),
+        ("an unknown metadata key", swap("  branch: handoff\n", "  branch: handoff\n  owner: someone\n")),
         ("no NOT REVIEWED answer", swap(NOT_REVIEWED, "a short note")),
     ]
 
