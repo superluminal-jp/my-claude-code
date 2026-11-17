@@ -14,7 +14,7 @@ Claude Code は `CLAUDE.md` と `rules/` を **advisory（助言）** として�
 
 強制が必要な項目は設定側へ移してある。実例は3つある。ファイルツールに対する資格情報の読み取り拒否(経緯と受け入れた副作用は [ADR-0014](adr/0014-restore-credential-deny-rules.md))、Bash のコマンドを OS の制限で閉じ込めるサンドボックス、使わない MCP サーバーの拒否である([ADR-0020](adr/0020-enable-sandbox-by-default.md)、[ADR-0021](adr/0021-block-mcp-servers-by-settings.md))。hooks とガードレールスクリプトを全廃した経緯は [ADR-0005](adr/0005-remove-claude-hooks.md) と [ADR-0007](adr/0007-remove-scripts.md)。
 
-例外として、`settings.json` の `SessionStart` フックが、条件に当たるセッションにだけ短い注意を文脈に足す(Bash ツールが zsh のとき、macOS のとき、aws CLI があるとき)。中身は §2 の問い「これが無いと Claude は間違えるか」を、会話記録とこのマシンでの観察で通したものに限る(zsh の3種類の誤り、サンドボックスの中の Chromium、サンドボックスの外に出る aws の書き方)。条件に当たらない環境では何も足さないので、ルールとして全セッションに課金しない。経緯は ADR-0020。
+例外として、`settings.json` の `SessionStart` フックが、条件に当たるセッションにだけ短い注意を文脈に足す(Bash ツールが zsh のとき、macOS のとき、aws CLI があるとき)。中身は §2 の問い「これが無いと Claude は間違えるか」を、会話記録とこのマシンでの観察で通したものに限る(zsh の3種類の誤り、サンドボックスの中の Chromium、サンドボックスの中での aws の認証のしかた)。条件に当たらない環境では何も足さないので、ルールとして全セッションに課金しない。経緯は ADR-0020 と、aws の扱いを置き換えた [ADR-0027](adr/0027-open-aws-sso-config-and-caches-to-the-sandbox.md)。
 
 同じく文脈に足すだけの例として、`PreToolUse` フックが1つある。`.living-documentation.json` に文書の木を宣言したリポジトリで、Claude が `git commit` を実行する前にだけ、`check_tree.py` が見つけた誤り（README がない、親子のリンクがない）を伝える。コミットは止めない。経緯は [ADR-0024](adr/0024-warn-claude-of-docs-tree-errors-before-commit.md)。
 

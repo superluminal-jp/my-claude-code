@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Contract for what harness/settings.json installs at user scope about the
 # OS sandbox, the SessionStart hooks, and the MCP servers it stops
-# (spec 067, ADR-0020, ADR-0021).
+# (spec 067, ADR-0020, ADR-0021, ADR-0027).
 #
 # Offline and side-effect free: it reads the settings file, and runs each
 # SessionStart hook command with a scratch HOME, a scratch CLAUDE_ENV_FILE,
@@ -52,14 +52,18 @@ check "SBX-01 the sandbox is on by default" \
 check "SBX-02 strictness is standard: retry outside stays possible, unlisted hosts are not refused outright" \
   "$(q '(.sandbox.allowUnsandboxedCommands // true) == true and (.sandbox.network.strictAllowlist // false) == false')"
 
-check "SBX-03 nothing under ~/.aws, nor the home directory, is re-opened or made writable" \
-  "$(q '[(.sandbox.filesystem // {} | .allowRead, .allowWrite | .[]?)
-         | select(. == "~" or . == "~/" or . == "/" or startswith("~/.aws"))] | length == 0')"
+# ADR-0027: an IAM Identity Center (SSO) profile authenticates inside the
+# sandbox. That needs the profile definitions and the two token caches, and
+# nothing else under ~/.aws; ~/.aws/credentials holds long-term keys.
+check "SBX-03 reads are re-opened for ~/.aws/config and the SSO and CLI caches only, never the home directory" \
+  "$(q '((.sandbox.filesystem.allowRead // []) | sort) == ["~/.aws/cli/cache", "~/.aws/config", "~/.aws/sso/cache"]
+        and ([(.sandbox.filesystem // {} | .allowRead, .allowWrite | .[]?)
+              | select(. == "~" or . == "~/" or . == "/" or . == "~/.aws" or . == "~/.aws/")] | length == 0)')"
 
 check "SBX-04 GPG secrets, revocation certificates, and other credential stores stay unreadable" \
   "$(q '["~/.gnupg/private-keys-v1.d", "~/.gnupg/secring.gpg", "~/.gnupg/openpgp-revocs.d",
          "~/.git-credentials", "~/.netrc", "~/.config/gh/hosts.yml", "~/.docker/config.json",
-         "~/.kube/config"]
+         "~/.kube/config", "~/.aws/credentials"]
         - (.sandbox.filesystem.denyRead // []) | length == 0')"
 
 # Configuration and scd-event can make a GnuPG process outside the sandbox
@@ -88,11 +92,17 @@ check "SBX-08 every sandbox path is anchored at ~/" \
 
 # --- The daily work it opens ---------------------------------------------
 
-check "SBX-09 writes are opened for ~/.gnupg and ~/Library/Fonts only" \
-  "$(q '((.sandbox.filesystem.allowWrite // []) | sort) == ["~/.gnupg", "~/Library/Fonts"]')"
+# The two AWS caches are written when a token or a role credential is
+# refreshed. ~/.aws/config is not in the list: a profile there can name a
+# credential_process, a program the AWS tools run outside the sandbox too.
+check "SBX-09 writes are opened for ~/.gnupg, ~/Library/Fonts, and the two AWS caches only" \
+  "$(q '((.sandbox.filesystem.allowWrite // []) | sort) == ["~/.aws/cli/cache", "~/.aws/sso/cache", "~/.gnupg", "~/Library/Fonts"]')"
 
-check "SBX-10 only aws commands are taken out of the sandbox" \
-  "$(q '(.sandbox.excludedCommands // []) == ["aws *"]')"
+check "SBX-10 no command is taken out of the sandbox by name" \
+  "$(q '(.sandbox.excludedCommands // []) == []')"
+
+check "SBX-11 no AWS host is reachable without asking" \
+  "$(q '[(.sandbox.network.allowedDomains // [])[] | select(test("amazonaws|\\.aws$"))] | length == 0')"
 
 # --- MCP servers it stops ------------------------------------------------
 
@@ -275,8 +285,13 @@ for sh_name in $SHELLS; do
   printf '#!/bin/sh\nexit 0\n' >"$STUBS/aws"
   chmod +x "$STUBS/aws"
   out="$(run_hook "$sh_name" "$note_cmd" SHELL=/bin/bash)"
-  case "$out" in *"one aws command"*"--profile"*) c=1 ;; *) c=0 ;; esac
-  check "NOTE-06 [$sh_name] with the aws CLI installed the note says how aws leaves the sandbox and to name --profile" "$c"
+  case "$out" in
+    *"inside the sandbox"*"~/.aws/credentials stays unreadable"*"--profile"*"--use-device-code"*) c=1 ;;
+    *) c=0 ;;
+  esac
+  check "NOTE-06 [$sh_name] with the aws CLI installed the note says SSO profiles work inside, to name --profile, and how to log in" "$c"
+  case "$out" in *"outside the sandbox"*) c=0 ;; *) c=1 ;; esac
+  check "NOTE-07 [$sh_name] the aws note no longer says aws runs outside the sandbox" "$c"
   rm -f "$STUBS/aws" "$STUBS/uname"
 done
 

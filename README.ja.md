@@ -579,9 +579,11 @@ hooks のディレクトリ（`harness/hooks/` と `.claude/hooks/`）や `scrip
 `install.sh` がユーザースコープへ複製した時点で別のパスに解決されるためです。
 
 `run-sandbox-settings.sh` は、`harness/settings.json` の `sandbox`、`SessionStart`、
-MCP のキーを [spec 067](specs/067-sandbox-by-default/spec.md) に照らして検査します。
+MCP のキーを [spec 067](specs/067-sandbox-by-default/spec.md) と
+[ADR-0027](docs/adr/0027-open-aws-sso-config-and-caches-to-the-sandbox.md) に照らして検査します。
+`~/.aws` の下で開け直すのが設定ファイルと SSO・CLI のキャッシュだけであること、
 開け直した場所のどれも `~/.aws/credentials` や GPG の秘密鍵に届かないこと、
-開けたパス・ソケット・ホストがレビュー済みのものとちょうど一致すること、許可する
+開けたパス・ソケット・ホストがレビュー済みのものとちょうど一致し、名前で外に出すコマンドが無いこと、許可する
 MCP サーバーが AWS のドキュメントの2つだけで、`.mcp.json` もその2つだけを定義する
 こと、止めた MCP サーバーが止まったままであることを確かめます。各 `SessionStart` フックも、
 一時的な HOME と stub のコマンドで `sh`・`bash`・`zsh` のもとで実行します。
@@ -642,7 +644,8 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
 （auto モードの判定か、確認のプロンプト）を経て外で再実行でき、許可リストにないホストは
 権限モードに従って決まります。Claude のファイルツール、MCP サーバー、フックは
 サンドボックスの外で動きます。決定は [ADR-0020](docs/adr/0020-enable-sandbox-by-default.md)、
-要件は [spec 067](specs/067-sandbox-by-default/spec.md) にあります。
+要件は [spec 067](specs/067-sandbox-by-default/spec.md) にあります。AWS のコマンドの動かし方は、
+[ADR-0027](docs/adr/0027-open-aws-sso-config-and-caches-to-the-sandbox.md) が置き換えました。
 
 このリポジトリのスキルとテストは、サンドボックスの中で動くように書いています。スキルの契約
 （`tests/assert_skill_contract.py` の規則 C-07。「検証」参照）は、引数なしの `mktemp`、`/tmp` の直書き、
@@ -653,15 +656,16 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
 | 作業 | どこで動くか | 開けるもの | 閉じたままのもの |
 |---|---|---|---|
 | 署名つきの `git commit`（GnuPG） | 中 | `~/.gnupg` への書き込み、`S.gpg-agent` と `S.keyboxd` のソケット | 秘密鍵（`private-keys-v1.d`、`secring.gpg`）と失効証明書の読み取り。それらとキーリング、`trustdb.gpg`、gpg・gpgsm・gpg-agent のすべての設定ファイル、scdaemon が実行する `scd-event` への書き込み |
-| `aws … --profile X` | 外。権限の確認を経る（`excludedCommands: ["aws *"]`） | サンドボックスの中には何も開けない | サンドボックスの中のすべてのコマンドから `~/.aws` 全体。Claude の Read ツールからも読めない |
+| IAM Identity Center（SSO）のプロファイルを使う `aws`、boto3、CDK、SAM、Terraform | 中 | `~/.aws/config`、`~/.aws/sso/cache`、`~/.aws/cli/cache` の読み取り、2つのキャッシュへの書き込み | `~/.aws/credentials`（長期のアクセスキー）の読み取り、`~/.aws/config` への書き込み。AWS のホストはすべて権限モードで決まる。Claude の Read ツールは `~/.aws` の下を読めない |
 | Chromium、Playwright | 中。`--single-process` で起動する | 追加なし | — |
 | Google Fonts からの Noto Sans のインストール | 中 | `~/Library/Fonts` への書き込み、`fonts.googleapis.com` と `fonts.gstatic.com` への確認なしの接続 | ほかのホストは権限モードで決まる |
 
 ファイルツールの deny に加えて、サンドボックスの中のコマンドは `~/.git-credentials`、
 `~/.netrc`、`~/.config/gh/hosts.yml`、`~/.docker/config.json`、`~/.kube/config` も
-読めません。`aws` のコマンドがサンドボックスの外に出るのは、Bash の呼び出し全体がその
-1つのコマンドであるときだけです。パイプ、`&&`、`;`、`$(...)` でつないだものは中に残り、
-`~/.aws` を読めません。
+読めません。名前でサンドボックスの外に出すコマンドはありません（`excludedCommands` は空です）。
+`~/.aws/credentials` の長期のアクセスキーを使うプロファイルは、中では失敗します。そのコマンドは、
+権限の確認を経て外で再実行できます。`aws sso login` は、`--use-device-code` を付けて中で動かします。
+ブラウザの起動とローカルのポートでの待ち受けの代わりに、URL とコードを表示する方式です。
 
 セッションの開始時に、`settings.json` に直接書いた3つの `SessionStart` フックが
 サンドボックスの外で動きます:
@@ -679,8 +683,9 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
   `SHELL`）、そのことと、Claude のコマンドを最も多く壊した zsh の3つの落とし穴
   （一致しないグロブ、`=` で始まる語、zsh が分割しない引用符なしの変数）を伝えます。
   macOS では、サンドボックスの中の Chromium に `--single-process` が要ることを
-  伝えます。`aws` CLI があれば、`aws` を1つのコマンドで実行し、プロファイルを
-  `--profile` で指定するよう伝えます。
+  伝えます。`aws` CLI があれば、SSO のプロファイルならサンドボックスの中で認証できること、
+  プロファイルをコマンドごとに指定すること（`--profile`、またはそのコマンドの前の
+  `AWS_PROFILE=名前`）、ログインには `aws sso login --use-device-code` を使うことを伝えます。
 
 Claude が `git commit` を実行する前には、`PreToolUse` フックが1つ、サンドボックスの外で動きます。
 これも `settings.json` に直接書いた短いコマンドです。絞り込みの `"if": "Bash(git *)"` によって、
@@ -703,6 +708,18 @@ git のコマンドのたびに起動します（1回あたり約 0.16 秒）。
   ソケットを通じてあなたの鍵で署名できます。パスフレーズの無い鍵なら書き出しも
   できます。代わりに `git commit` を外で動かすと、リポジトリの git フックも外で
   動きます。
+- サンドボックスの中のどのコマンドも、`~/.aws/sso/cache` の SSO のアクセストークンと、
+  キャッシュされた一時的な認証情報を読め、2つのキャッシュを書き換えられます。この
+  トークンは、割り当てられた全アカウントの一時的な認証情報を取れます。外へ送るには
+  許可リストにないホストへの接続が要り、権限モードが決めます。`Read(~/.aws/**)` の
+  deny が閉じたパスを `allowRead` が開け直せるかは、公式ドキュメントの「狭いパスが効く」
+  からの推論で、測定していません。macOS で手作業で確かめる5項目は ADR-0027 にあります。
+- AWS を呼ぶたびに、接続先のホストを権限モードが判定します。AWS のホストは許可リストに
+  入れていません。`*.amazonaws.com` を開けると、どのコマンドも確認なしで任意の S3
+  バケットへ送れるためです。
+- AWS の許可は `~/.aws` を前提にしています。`AWS_CONFIG_FILE` で場所を変えている場合は
+  及びません。ツールが `~/.aws` の外に書く場所（`~/.cdk`、`~/.aws-sam`、`~/.terraform.d`）は
+  開けていません。
 - `settings.json` の `env` は、Bash だけでなくフックと stdio の MCP サーバーにも
   届きます。そのため、AWS を呼ぶ stdio の MCP サーバーは、Bedrock のセッションでは
   Bedrock 用のアカウントとして動きます。AWS を呼ぶサーバーを持つ `deploy-on-aws`
