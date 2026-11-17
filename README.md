@@ -729,10 +729,12 @@ would resolve to a different path once `install.sh` copies the file to user
 scope.
 
 `run-sandbox-settings.sh` checks the `sandbox`, `SessionStart`, and MCP keys
-of `harness/settings.json` against [spec 067](specs/067-sandbox-by-default/spec.md):
-that nothing under `~/.aws` is re-opened and the GPG secrets and other
-credential files stay closed, that the opened paths, sockets, hosts, and
-excluded commands are exactly the reviewed ones, that only the two AWS
+of `harness/settings.json` against [spec 067](specs/067-sandbox-by-default/spec.md)
+and [ADR-0027](docs/adr/0027-open-aws-sso-config-and-caches-to-the-sandbox.md):
+that under `~/.aws` only the config file and the SSO and CLI caches are
+re-opened, that `~/.aws/credentials`, the GPG secrets, and other credential
+files stay closed, that the opened paths, sockets, and hosts are exactly the
+reviewed ones and no command is excluded by name, that only the two AWS
 documentation servers are allowed and `.mcp.json` defines only those, and
 that the stopped MCP servers stay stopped. It also runs each `SessionStart`
 hook under `sh`, `bash`, and `zsh` with a scratch home and stub commands.
@@ -800,6 +802,8 @@ or a prompt), and a host outside the allowlist is decided by the permission
 mode. Claude's file tools, MCP servers, and hooks run outside the sandbox.
 The decision is [ADR-0020](docs/adr/0020-enable-sandbox-by-default.md); the
 requirements are [spec 067](specs/067-sandbox-by-default/spec.md).
+[ADR-0027](docs/adr/0027-open-aws-sso-config-and-caches-to-the-sandbox.md)
+replaces how AWS commands run.
 
 The skills and tests of this repository are written to run inside it. The
 skill contract (rule C-07 of `tests/assert_skill_contract.py`; see
@@ -812,15 +816,18 @@ How the everyday work it was built for runs:
 | Work | Where it runs | What is opened | What stays closed |
 |---|---|---|---|
 | Signed `git commit` (GnuPG) | Inside | Writes to `~/.gnupg`; the `S.gpg-agent` and `S.keyboxd` sockets | Reading the private keys (`private-keys-v1.d`, `secring.gpg`) and revocation certificates; writing them, the keyrings, `trustdb.gpg`, every gpg, gpgsm, and gpg-agent configuration file, and the `scd-event` script scdaemon runs |
-| `aws … --profile X` | Outside, after the permission check (`excludedCommands: ["aws *"]`) | Nothing inside the sandbox | All of `~/.aws` for every sandboxed command; Claude's Read tool cannot read it either |
+| `aws`, boto3, CDK, SAM, Terraform with an IAM Identity Center (SSO) profile | Inside | Reads of `~/.aws/config`, `~/.aws/sso/cache`, and `~/.aws/cli/cache`; writes to the two caches | Reading `~/.aws/credentials` (long-term keys); writing `~/.aws/config`; every AWS host is decided by the permission mode; Claude's Read tool cannot read anything under `~/.aws` |
 | Chromium, Playwright | Inside, launched with `--single-process` | Nothing extra | — |
 | Installing Noto Sans from Google Fonts | Inside | Writes to `~/Library/Fonts`; `fonts.googleapis.com` and `fonts.gstatic.com` without asking | Any other host is decided by the permission mode |
 
 Every sandboxed command is also kept from reading `~/.git-credentials`,
 `~/.netrc`, `~/.config/gh/hosts.yml`, `~/.docker/config.json`, and
-`~/.kube/config`, on top of the file tools' deny list. An `aws` command leaves
-the sandbox only when the whole Bash call is that one command; one joined
-with a pipe, `&&`, `;`, or `$(...)` stays inside and cannot read `~/.aws`.
+`~/.kube/config`, on top of the file tools' deny list. No command is taken
+out of the sandbox by name (`excludedCommands` is empty). A profile that
+takes long-term keys from `~/.aws/credentials` fails inside; that command
+can be retried outside after the permission check. `aws sso login` runs
+inside with `--use-device-code`, which prints a URL and a code instead of
+starting a browser and listening on a local port.
 
 Three `SessionStart` hooks, each a short command written into
 `settings.json`, run outside the sandbox when a session starts:
@@ -839,8 +846,10 @@ Three `SessionStart` hooks, each a short command written into
   its commands most often: unmatched globs, words starting with `=`, and
   unquoted variables that zsh does not split. On macOS it is told that
   Chromium needs `--single-process` inside the sandbox. When the `aws` CLI is
-  installed, it is told to run `aws` as one command and to name the profile
-  with `--profile`.
+  installed, it is told that SSO profiles authenticate inside the sandbox,
+  to name the profile on every command (`--profile`, or `AWS_PROFILE=name`
+  in front of that one command), and to log in with
+  `aws sso login --use-device-code`.
 
 One `PreToolUse` hook, also a short command in `settings.json`, runs outside
 the sandbox before Claude runs `git commit`. Its filter, `"if": "Bash(git *)"`,
@@ -869,6 +878,20 @@ Claude Code 2.1.319:
   data with your key through its socket; with a key that has no passphrase,
   it could also export it. Running `git commit` outside the sandbox instead
   would run the repository's git hooks outside too.
+- Any sandboxed command can read the SSO access token in `~/.aws/sso/cache`
+  and the cached temporary credentials, and can rewrite both caches. The
+  token can fetch temporary credentials for every account assigned to you.
+  Sending them anywhere needs a host outside the allowlist, which the
+  permission mode decides. Whether `allowRead` re-opens paths that the
+  `Read(~/.aws/**)` deny rule closes follows from the documented "narrower
+  path applies" rule and has not been measured; ADR-0027 lists the five
+  checks to run by hand on macOS.
+- Each call to AWS asks the permission mode about its host, because no AWS
+  host is in the allowlist: `*.amazonaws.com` would let any command upload
+  to any S3 bucket without asking.
+- The AWS openings assume `~/.aws`; with `AWS_CONFIG_FILE` elsewhere they do
+  not apply. Directories the tools write outside `~/.aws` (`~/.cdk`,
+  `~/.aws-sam`, `~/.terraform.d`) are not opened.
 - `env` in `settings.json` reaches hooks and stdio MCP servers as well as
   Bash. A stdio MCP server that calls AWS would therefore act as the Bedrock
   account in a Bedrock session; the `deploy-on-aws` plugin, whose servers
