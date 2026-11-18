@@ -50,7 +50,7 @@ sequenceDiagram
 
 ## 要素の一覧
 
-この図に出る要素は、[システムコンテキスト図](01-system-context.md)と[木の外の関係](04-components-relations.md)の要素と同じです。新しい要素はありません。
+この図に出る要素は、[システムコンテキスト図](../../docs/harness/skill-map/01-system-context.md)と[木の外の関係](../../docs/harness/skill-map/04-components-relations.md)の要素と同じです。新しい要素はありません。
 
 | 手順 | 使うスキル・サブエージェント | 出典（`harness/skills/` から） |
 |---|---|---|
@@ -77,10 +77,10 @@ sequenceDiagram
 - 手順 9 で、ログや画面の変更なら、該当するオーバーレイ（`apply-secure-logging`、`apply-dads-frontend`）を重ねます。図には書いていません。
 - 手順 18〜19 は、振る舞いを変えない小さな変更で、Sprint Backlog の項目の進捗や完了を主張しないものでは省きます（`apply-scrum-guide/SKILL.md`:57）。
 - `deliver-change` を使わず、`implement-change` だけで進む変更では、手順 3〜8 と 13〜16 がありません。
-- 主の会話が実際に `scrum-master-agent` を起動するかは、まだ観測していません（[ADR-0025](../../adr/0025-ai-as-developer-scrum-master-as-subagent.md):60）。
+- 主の会話が実際に `scrum-master-agent` を起動するかは、まだ観測していません（[ADR-0025](../../docs/adr/0025-ai-as-developer-scrum-master-as-subagent.md):60）。
 
 ## 関連する図
 
-- スキルの木の外の関係: [コンポーネント図: 木の外の関係](04-components-relations.md)
-- 木の中の場所: [コンポーネント図: 役割の木](03-role-tree.md)
+- スキルの木の外の関係: [コンポーネント図: 木の外の関係](../../docs/harness/skill-map/04-components-relations.md)
+- 木の中の場所: [コンポーネント図: 役割の木](../../docs/harness/skill-map/03-role-tree.md)
 - 一覧: [構成図の一覧](README.md)
