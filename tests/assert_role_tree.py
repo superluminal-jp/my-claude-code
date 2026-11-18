@@ -423,7 +423,7 @@ def self_test(root: Path) -> int:
     if failures:
         for rule, where, message in failures:
             print(f"FAIL {rule} {where}: {message}", file=sys.stderr)
-        print("role-tree self-test: the repository itself fails, so no copy was tried", file=sys.stderr)
+        print("phase-tree self-test: the repository itself fails, so no copy was tried", file=sys.stderr)
         return 1
     missed = 0
     for label, rule, mutate in MUTATIONS:
@@ -435,7 +435,7 @@ def self_test(root: Path) -> int:
         refused = rule in rules
         missed += not refused
         print(f"{'refused' if refused else 'MISSED '} {rule:8s} {label}")
-    print(f"role-tree self-test: {len(MUTATIONS) - missed} of {len(MUTATIONS)} broken copies refused")
+    print(f"phase-tree self-test: {len(MUTATIONS) - missed} of {len(MUTATIONS)} broken copies refused")
     return 1 if missed else 0
 
 
@@ -466,7 +466,7 @@ def main(argv: list[str]) -> int:
             return 2
         failures = check(root)
     except (Unreadable, OSError) as exc:
-        print(f"role-tree: cannot read {exc}", file=sys.stderr)
+        print(f"phase-tree: cannot read {exc}", file=sys.stderr)
         return 2
     for rule, where, message in failures:
         print(f"FAIL {rule} {where}: {message}", file=sys.stderr)

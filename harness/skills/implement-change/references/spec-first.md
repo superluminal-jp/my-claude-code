@@ -16,7 +16,7 @@ The specification names the behavior, the test enforces it, and the implementati
 
 When the project already uses [github/spec-kit](https://github.com/github/spec-kit), follow its installed lifecycle (specification, planning, tasks, consistency analysis, implementation) as it is; do not improvise a shorter substitute.
 
-One exception: when the change also has a requirements graph whose acceptance criteria a checker gates, that graph is the only source of the acceptance criteria. `spec.md` then cites the graph's acceptance identifiers instead of restating them. Every other step of the lifecycle stays.
+One exception: when the change's acceptance criteria are already agreed in another artifact of the project (the requirements of a workflow stage, for example), that artifact is the only source of the acceptance criteria. `spec.md` then cites its identifiers instead of restating them. Every other step of the lifecycle stays.
 
 ## Sources
 

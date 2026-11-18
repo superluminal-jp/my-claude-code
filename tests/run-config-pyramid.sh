@@ -78,9 +78,11 @@ run_apex_contract() {
   check_contains "APEX-13: states what each level of risk needs" "$APEX" \
     "failing check and a passing run.*evidence for each acceptance criterion.*independent review.*person's approval"
   check_contains "APEX-14: leaves stage order and gate approval to a workflow engine the project runs (ADR-0029)" "$APEX" \
-    'AI-DLC.*(engine|workflow).*(stage|gate)'
+    'AI-DLC workflow is active.*`aidlc/`.*engine decide.*stage.*gate'
   check_contains "APEX-15: never approves a workflow gate for the person" "$APEX" \
-    'never.*(approve|advance).*(gate|stage)'
+    'never approve a gate or advance a stage'
+  check_contains "APEX-16: work outside a workflow keeps following the apex" "$APEX" \
+    'outside a workflow follows this document'
   check "SKILL-09: the skills given to AI-DLC Workflows stay out of the harness (ADR-0029)" \
     "$([ ! -e "$SKILL_DIR/deliver-change" ] && [ ! -e "$SKILL_DIR/specify-requirements" ] && [ ! -e "$SKILL_DIR/verify-change" ] && [ ! -e "$SKILL_DIR/define-product-strategy" ] && echo 1 || echo 0)"
 }

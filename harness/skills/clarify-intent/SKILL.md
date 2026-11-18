@@ -1,9 +1,9 @@
 ---
 name: clarify-intent
-description: Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. Use when the person asks to align on intent, scope, or constraints, and when drift shows itself - the previous deliverable is rejected, one point is restated twice, a summary of the request is corrected, a new instruction contradicts an earlier agreement, or two materially different readings would both let work proceed. Do not use merely because a request is brief when it names a recognizable artifact or workflow, for ordinary context gathering inside other work, to frame a problem as a gap, to set product direction, or to write formal requirements. [Ideation / define]
+description: Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. Use when the person asks to align on intent, scope, or constraints, and when drift shows itself - the previous deliverable is rejected, one point is restated twice, a summary of the request is corrected, a new instruction contradicts an earlier agreement, or two materially different readings would both let work proceed. Do not use merely because a request is brief when it names a recognizable artifact or workflow, for ordinary context gathering inside other work, to frame a problem as a gap, to set product direction, or to write formal requirements. [Cross-phase / define]
 metadata:
   kind: worker
-  phase: ideation
+  phase: cross-phase
   branch: define
   permission: workspace_write
   sandbox: inside

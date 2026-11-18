@@ -83,4 +83,4 @@ sequenceDiagram
 
 - スキルの木の外の関係: [コンポーネント図: 木の外の関係](../../docs/harness/skill-map/04-components-relations.md)
 - 木の中の場所: [コンポーネント図: 役割の木](../../docs/harness/skill-map/03-role-tree.md)
-- 一覧: [構成図の一覧](README.md)
+- 一覧: [構成図の一覧](../../docs/harness/skill-map/README.md)

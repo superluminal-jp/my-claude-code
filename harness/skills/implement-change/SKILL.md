@@ -17,7 +17,7 @@ A change is done when a check that failed before it passes after it, the reposit
 
 ## Steps
 
-1. **Define.** State the purpose, the scope, and the observable completion condition. Resolve a gap that would change the result before editing. When the change has a requirements graph, its acceptance criteria are the completion condition: take one leaf requirement at a time and do not restate the criteria anywhere else.
+1. **Define.** State the purpose, the scope, and the observable completion condition. Resolve a gap that would change the result before editing. When the project already holds agreed acceptance criteria for the change (a workflow's requirements artifact, a specification), they are the completion condition: take one criterion at a time and cite them instead of restating them anywhere else.
 2. **Specify, when observable behavior is added or altered.** Read `references/spec-first.md` and write or update the specification first.
 3. **Red.** Add or identify a deterministic check and watch it fail on what it asserts.
    - For something that does not exist yet (a function, an endpoint, an option), first add it with its final signature returning a wrong result of the right type, then watch the assertion fail. An import, name, compile, or usage error is not a red, because nothing tells it apart from a check that is itself broken.

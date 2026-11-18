@@ -6,7 +6,7 @@
 
 2026-11-10 に、ハーネス全体を組み直した。配布元は、このリポジトリの `.claude/` から `harness/` へ移り、スキルは 17 件を破棄して 16 件に作り直された。理由と旧名との対応は [`harness-zero-base.md`](harness-zero-base.md) にある。本書のうち、その日付を記した箇所が、組み直しで変わった点である。
 
-2026-11-18 に、変更を意図から受け入れまで運ぶ手順の基盤を、AWS の AI-DLC Workflows v2 にした（[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。AI-DLC Workflows v2 は、利用者が上流の `aidlc` コマンドでプロジェクトごとに導入するもので、`install.sh` は導入しない。ハーネスはその補完に絞り、ステージと重なるスキル4件（`deliver-change`、`specify-requirements`、`verify-change`、`define-product-strategy`）を `archive/delivery-gates/` へ移した。スキルは13件、サブエージェントの定義は5件である。検査 SKILL-09 は、この4件が `harness/skills/` に戻ると失敗する。`harness/CLAUDE.md` には項目を1つ加えた。AI-DLC Workflows を動かすプロジェクト（ワークフローの記録が、プロジェクトのルートの `aidlc/` にある）では、次に進むステージとゲートを開く時期をそのエンジンが決め、ハーネスの方針は各ステージの中の作業に適用し、人に代わってゲートを承認しない、という項目である（検査 APEX-14、APEX-15）。`harness/settings.json` は変えていない。本書のうち、この日付を記した箇所が、そのときに変わった点である。
+2026-11-18 に、変更を意図から受け入れまで運ぶ手順の基盤を、AWS の AI-DLC Workflows v2 にした（[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。AI-DLC Workflows v2 は、利用者が上流の `aidlc` コマンドでプロジェクトごとに導入するもので、`install.sh` は導入しない。ハーネスはその補完に絞り、ステージと重なるスキル4件（`deliver-change`、`specify-requirements`、`verify-change`、`define-product-strategy`）を `archive/delivery-gates/` へ移した。スキルは13件、サブエージェントの定義は5件である。検査 SKILL-09 は、この4件が `harness/skills/` に戻ると失敗する。`harness/CLAUDE.md` には項目を1つ加えた。AI-DLC のワークフローが動いている間（プロジェクトにそのフックがあり、記録が `aidlc/` にある）は、次に進むステージとゲートを開く時期をそのエンジンが決め、ハーネスの方針は各ステージの中の作業に適用し、人に代わってゲートを承認せず、ワークフローの外の作業にはハーネスの方針がそのまま適用される、という項目である（検査 APEX-14、APEX-15、APEX-16）。`harness/settings.json` は変えていない。本書のうち、この日付を記した箇所が、そのときに変わった点である。
 
 ## 1. 設定は強制しない。設定 *ファイル* が強制する
 

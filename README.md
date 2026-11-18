@@ -39,10 +39,11 @@ redesign that produced this layout is recorded in
   write the same file; otherwise it does the work itself, because a subagent
   starts from an empty context. Decisions, design, code review, and the
   judgment that the work is complete stay on the main conversation's model.
-  In a project that runs AI-DLC Workflows (its workflow records sit in an
-  `aidlc/` directory at the project root), the engine of that workflow decides
-  which stage runs next and when a gate opens; this document applies to the
-  work inside each stage, and Claude never approves a gate for the person
+  While an AI-DLC workflow is active (the project carries its hooks, and its
+  records are in `aidlc/`), the engine of that workflow decides which stage
+  runs next and when a gate opens; this document applies inside each stage,
+  Claude never approves a gate for the person, and work outside a workflow
+  follows this document as usual
   (see [AI-DLC Workflows v2](#ai-dlc-workflows-v2)).
   `harness/CLAUDE.md` names no rule, skill, server, or model — the design
   rationale is in [`docs/claude-config-design.md`](docs/claude-config-design.md)
@@ -306,21 +307,21 @@ table keep the names they had under that tree (`assert_role_tree.py`,
 <!-- role-tree:start -->
 | Phase | Branch | Name | Kind | Purpose |
 |---|---|---|---|---|
-| Ideation | define | `clarify-intent` | skill | Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. |
 | Ideation | define | `define-problem` | skill | Turn a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the ideal state - in any domain, business, technical, personal, or organizational, keeping the problem apart from any solution or unverified cause brought along with it. |
 | Inception | execute | `draw-system-diagrams` | skill | Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. |
 | Construction | execute | `apply-dads-frontend` | skill | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
 | Construction | execute | `apply-secure-logging` | skill | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
-| Construction | execute | `check-runner` | agent | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
 | Construction | execute | `implement-change` | skill | Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first, in the smallest coherent step, and verify it before reporting. |
-| Construction | execute | `task-worker` | agent | Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. |
+| Cross-phase | define | `clarify-intent` | skill | Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. |
 | Cross-phase | define | `research-aws` | skill | Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. |
 | Cross-phase | execute | `apply-scrum-guide` | skill | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
 | Cross-phase | execute | `build-dads-slides` | skill | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured as a Minto pyramid in the form its audience needs - a research-paper form (summary, premises, method, results, discussion, conclusion), a business-presentation form (introduction, answer, supporting points, next step), or a business deck that borrows parts of the paper form - with every slide showing where it sits in that structure. |
+| Cross-phase | execute | `check-runner` | agent | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
 | Cross-phase | execute | `file-searcher` | agent | Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. |
 | Cross-phase | execute | `manage-git` | skill | Create branches, commits, pushes, and pull requests so that history stays reviewable and nothing is published beyond what was asked. |
 | Cross-phase | execute | `manage-scrum-artifacts` | skill | Keep a product's Scrum artifacts as files inside its repository - the Product Backlog with its Product Goal, the Definition of Done, and for each Sprint the Sprint Backlog with its Sprint Goal, the Increment, and the event records - placed from bundled Scrum Guide (2020) templates under the product folder's scrum/ directory, extended one Sprint at a time, and checked by bundled scripts. |
 | Cross-phase | execute | `scrum-master-agent` | agent | Holds the Scrum Master accountability of the Scrum Guide (2020) for a Scrum Team in which the agent that starts it works as one of the Developers. |
+| Cross-phase | execute | `task-worker` | agent | Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. |
 | Cross-phase | handoff | `read-only-reviewer` | agent | Independent read-only reviewer for a review that must not start from the author's reasoning, such as a challenge of requirements or a review of a change's evidence. |
 | Cross-phase | handoff | `structure-document` | skill | Structure a document as one claim tree, so that a reader finds its one answer first and can check the support under it, and check the result with the bundled checker - a report, proposal, design document, specification, README, email, slide outline, or pull-request or issue body. |
 | Cross-phase | handoff | `sync-docs` | skill | Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. |
@@ -612,8 +613,8 @@ bash tests/run-config-pyramid.sh
 
 It checks the always-loaded layers offline: the apex's three branches and its
 delegation under three conditions, that the apex leaves stage order and gate
-approval to AI-DLC Workflows in a project that runs it and never approves a
-gate for the person, that the four skills retired under ADR-0029 stay out of
+approval to the engine while an AI-DLC workflow is active, never approves a
+gate for the person, and keeps applying to work outside a workflow, that the four skills retired under ADR-0029 stay out of
 `harness/skills/`, exactly four rule files that name no other
 rule, skill, or config path and carry no reference list, the phrases each skill
 description must keep so that requests route the same way, and that the apex

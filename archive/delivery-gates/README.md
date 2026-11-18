@@ -21,5 +21,6 @@ removes the four skills from `~/.claude/skills/`.
 To restore a skill, move it back under `harness/skills/`, replace
 `metadata.role` with `metadata.phase` and the tag at the end of its
 `description`, add it to `docs/harness/capability-map.json` and the evaluation
-scenarios, move its tests back, and drop check SKILL-09 in
+scenarios, move its tests back, remove its name from `RETIRED` in
+`tests/assert_skill_contract.py`, and drop check SKILL-09 in
 `tests/run-config-pyramid.sh`.

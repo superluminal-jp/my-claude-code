@@ -1,12 +1,12 @@
 ---
 name: check-runner
-description: Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. Use when the commands are already decided and only their results are needed. It starts from an empty context and costs a full run of its own, so run a check with short output yourself. It changes no file and decides nothing. [Construction / execute]
+description: Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. Use when the commands are already decided and only their results are needed. It starts from an empty context and costs a full run of its own, so run a check with short output yourself. It changes no file and decides nothing. [Cross-phase / execute]
 tools: Bash, Read, Grep, Glob
 model: haiku
 effort: low
 omitClaudeMd: true
 metadata:
-  phase: construction
+  phase: cross-phase
   branch: execute
 ---
 

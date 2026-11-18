@@ -1,10 +1,10 @@
 ---
 name: task-worker
-description: Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. Use when several such tasks are independent and can run in parallel. It starts from an empty context and costs more tokens than it returns, so do a single small task yourself, and never give two workers the same file to write. [Construction / execute]
+description: Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. Use when several such tasks are independent and can run in parallel. It starts from an empty context and costs more tokens than it returns, so do a single small task yourself, and never give two workers the same file to write. [Cross-phase / execute]
 model: sonnet
 effort: xhigh
 metadata:
-  phase: construction
+  phase: cross-phase
   branch: execute
 ---
 

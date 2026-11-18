@@ -30,10 +30,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   定義されたサブエージェントの型を使い（モデル・effort・道具はその定義が固定する）、同じファイルを
   2つのサブエージェントに書かせない。それ以外は、サブエージェントが空の文脈から始まるため、自分で行う。
   判断、設計、コードレビュー、作業が完了したかの判定はメインの会話のモデルに残す。
-  AI-DLC Workflows を使うプロジェクト（ワークフローの記録が、プロジェクトのルートの `aidlc/`
-  ディレクトリにある）では、次に進むステージと承認ゲートを開く時点を、そのワークフローの
-  エンジンが決める。この文書は各ステージの中の作業に適用し、Claude は人に代わってゲートを
-  承認しない（後述「AI-DLC Workflows v2」参照）。
+  AI-DLC のワークフローが動いている間（プロジェクトにそのフックがあり、記録が `aidlc/` に
+  ある）は、次に進むステージと承認ゲートを開く時点を、そのワークフローのエンジンが決める。
+  この文書は各ステージの中の作業に適用し、Claude は人に代わってゲートを承認しない。
+  ワークフローの外の作業には、この文書がそのまま適用される（後述「AI-DLC Workflows v2」参照）。
   `harness/CLAUDE.md` はルール・スキル・サーバー・モデルの名前を一切含まない — 設計根拠は
   [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
 - **`harness/settings.json`**: Claude Code のユーザーレベル設定。メインの会話のモデル
@@ -186,21 +186,21 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 <!-- role-tree:start -->
 | フェーズ | 枝 | 名前 | 種類 | 目的 |
 |---|---|---|---|---|
-| Ideation | define | `clarify-intent` | スキル | Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. |
 | Ideation | define | `define-problem` | スキル | Turn a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the ideal state - in any domain, business, technical, personal, or organizational, keeping the problem apart from any solution or unverified cause brought along with it. |
 | Inception | execute | `draw-system-diagrams` | スキル | Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. |
 | Construction | execute | `apply-dads-frontend` | スキル | Apply the Digital Agency Design System (DADS), its dashboard guidance, and public-interest accessibility to React and Tailwind CSS frontend work, from a bundled copy of the official documentation. |
 | Construction | execute | `apply-secure-logging` | スキル | Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. |
-| Construction | execute | `check-runner` | エージェント | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
 | Construction | execute | `implement-change` | スキル | Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first, in the smallest coherent step, and verify it before reporting. |
-| Construction | execute | `task-worker` | エージェント | Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. |
+| Cross-phase | define | `clarify-intent` | スキル | Form an explicit shared understanding of what the person intends before work continues - state the reading as something they can reject, converge on a criterion rather than on cases, and record the agreement. |
 | Cross-phase | define | `research-aws` | スキル | Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. |
 | Cross-phase | execute | `apply-scrum-guide` | スキル | Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。 |
 | Cross-phase | execute | `build-dads-slides` | スキル | Build 16:9 presentation slides as one HTML deck on the Digital Agency Design System's official HTML and CSS reference assets, structured as a Minto pyramid in the form its audience needs - a research-paper form (summary, premises, method, results, discussion, conclusion), a business-presentation form (introduction, answer, supporting points, next step), or a business deck that borrows parts of the paper form - with every slide showing where it sits in that structure. |
+| Cross-phase | execute | `check-runner` | エージェント | Runs checks whose output is long - tests, builds, linters, type checkers - and reports each command, its exit code, and the verbatim output of every failure. |
 | Cross-phase | execute | `file-searcher` | エージェント | Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. |
 | Cross-phase | execute | `manage-git` | スキル | Create branches, commits, pushes, and pull requests so that history stays reviewable and nothing is published beyond what was asked. |
 | Cross-phase | execute | `manage-scrum-artifacts` | スキル | Keep a product's Scrum artifacts as files inside its repository - the Product Backlog with its Product Goal, the Definition of Done, and for each Sprint the Sprint Backlog with its Sprint Goal, the Increment, and the event records - placed from bundled Scrum Guide (2020) templates under the product folder's scrum/ directory, extended one Sprint at a time, and checked by bundled scripts. |
 | Cross-phase | execute | `scrum-master-agent` | エージェント | Holds the Scrum Master accountability of the Scrum Guide (2020) for a Scrum Team in which the agent that starts it works as one of the Developers. |
+| Cross-phase | execute | `task-worker` | エージェント | Carries out one self-contained task that needs judgment - a piece of research, an analysis, or a change to files that no other agent is writing - and returns a short report. |
 | Cross-phase | handoff | `read-only-reviewer` | エージェント | Independent read-only reviewer for a review that must not start from the author's reasoning, such as a challenge of requirements or a review of a change's evidence. |
 | Cross-phase | handoff | `structure-document` | スキル | Structure a document as one claim tree, so that a reader finds its one answer first and can check the support under it, and check the result with the bundled checker - a report, proposal, design document, specification, README, email, slide outline, or pull-request or issue body. |
 | Cross-phase | handoff | `sync-docs` | スキル | Keep documentation consistent with code, specifications, decisions, and research artifacts as they change, and audit existing documentation for drift, using bundled read-only scripts that list the documents a change may leave out of date. |

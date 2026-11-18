@@ -134,6 +134,40 @@
       ]
     },
     {
+      "id": "D-product",
+      "branch": "define",
+      "title": "開発の前に、プロダクトの方向（対象、価値、指標、範囲）を定める",
+      "owners": [],
+      "gap": true,
+      "basis": [
+        {
+          "file": "harness/skills/define-problem/SKILL.md",
+          "quote": "for a product strategy or roadmap"
+        },
+        {
+          "file": "harness/skills/clarify-intent/SKILL.md",
+          "quote": "to set product direction"
+        }
+      ]
+    },
+    {
+      "id": "D-decompose",
+      "branch": "define",
+      "title": "合意した問題を、検査できる要件に分解する",
+      "owners": [],
+      "gap": true,
+      "basis": [
+        {
+          "file": "harness/skills/clarify-intent/SKILL.md",
+          "quote": "to write formal requirements"
+        },
+        {
+          "file": "harness/skills/define-problem/SKILL.md",
+          "quote": "for confirming the scope of an already-agreed feature"
+        }
+      ]
+    },
+    {
       "id": "D-evidence",
       "branch": "define",
       "title": "事実の主張を、適用できる最新の一次の証拠に基づかせる",
@@ -220,21 +254,8 @@
       "gap": true,
       "basis": [
         {
-          "file": "harness/skills/define-problem/SKILL.md",
-          "quote": "for root-cause analysis, for evaluating or proposing solutions, for an execution plan"
-        }
-      ]
-    },
-    {
-      "id": "D-document",
-      "branch": "define",
-      "title": "不完全な材料から、対話しながら文書を組み立てる",
-      "owners": [],
-      "gap": true,
-      "basis": [
-        {
-          "file": "harness/skills/clarify-intent/SKILL.md",
-          "quote": "Do not use merely because a request is brief when it names a recognizable artifact or workflow"
+          "file": "harness/skills/draw-system-diagrams/SKILL.md",
+          "quote": "choosing the architecture itself"
         }
       ]
     },
@@ -287,6 +308,21 @@
         {
           "file": "harness/skills/implement-change/SKILL.md",
           "quote": "Do not use for prose-only documents"
+        }
+      ]
+    },
+    {
+      "id": "E-workflow",
+      "branch": "execute",
+      "title": "AI-DLC のワークフローが動いている間は、段階の順とゲートをエンジンに委ね、人に代わって承認しない",
+      "owners": [
+        "apex"
+      ],
+      "unobservable": "評価の作業領域には AI-DLC のフックと記録がなく、エンジンも動かないので、この振る舞いは観測できない",
+      "basis": [
+        {
+          "file": "harness/CLAUDE.md",
+          "quote": "Never approve a gate or advance a stage for the person."
         }
       ]
     },

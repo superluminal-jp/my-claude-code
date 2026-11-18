@@ -12,7 +12,6 @@ flowchart LR
   harness["ハーネス<br/>[このシステム: harness/skills/ と harness/agents/]"]:::system
   role_ideation["Ideation<br/>[フェーズ: 意図と範囲を確かめる]"]:::container
   ideation_define["define<br/>[枝: 1 正しい作業を定める]"]:::component
-  clarify_intent["clarify-intent<br/>[スキル]"]:::component
   define_problem["define-problem<br/>[スキル]"]:::component
   role_inception["Inception<br/>[フェーズ: 要件と設計を定める]"]:::container
   inception_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
@@ -21,26 +20,26 @@ flowchart LR
   construction_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
   apply_dads_frontend["apply-dads-frontend<br/>[スキル]"]:::component
   apply_secure_logging["apply-secure-logging<br/>[スキル]"]:::component
-  check_runner["check-runner<br/>[エージェント]"]:::component
   implement_change["implement-change<br/>[スキル]"]:::component
-  task_worker["task-worker<br/>[エージェント]"]:::component
   role_cross_phase["Cross-phase<br/>[フェーズ: どのフェーズにも重ねて使う]"]:::container
   cross_phase_define["define<br/>[枝: 1 正しい作業を定める]"]:::component
+  clarify_intent["clarify-intent<br/>[スキル]"]:::component
   research_aws["research-aws<br/>[スキル]"]:::component
   cross_phase_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
   apply_scrum_guide["apply-scrum-guide<br/>[スキル]"]:::component
   build_dads_slides["build-dads-slides<br/>[スキル]"]:::component
+  check_runner["check-runner<br/>[エージェント]"]:::component
   file_searcher["file-searcher<br/>[エージェント]"]:::component
   manage_git["manage-git<br/>[スキル]"]:::component
   manage_scrum_artifacts["manage-scrum-artifacts<br/>[スキル]"]:::component
   scrum_master_agent["scrum-master-agent<br/>[エージェント]"]:::component
+  task_worker["task-worker<br/>[エージェント]"]:::component
   cross_phase_handoff["handoff<br/>[枝: 3 引き渡す]"]:::component
   read_only_reviewer["read-only-reviewer<br/>[エージェント]"]:::component
   structure_document["structure-document<br/>[スキル]"]:::component
   sync_docs["sync-docs<br/>[スキル]"]:::component
   harness -->|"含む"| role_ideation
   role_ideation -->|"含む"| ideation_define
-  ideation_define -->|"含む"| clarify_intent
   ideation_define -->|"含む"| define_problem
   harness -->|"含む"| role_inception
   role_inception -->|"含む"| inception_execute
@@ -49,19 +48,20 @@ flowchart LR
   role_construction -->|"含む"| construction_execute
   construction_execute -->|"含む"| apply_dads_frontend
   construction_execute -->|"含む"| apply_secure_logging
-  construction_execute -->|"含む"| check_runner
   construction_execute -->|"含む"| implement_change
-  construction_execute -->|"含む"| task_worker
   harness -->|"含む"| role_cross_phase
   role_cross_phase -->|"含む"| cross_phase_define
+  cross_phase_define -->|"含む"| clarify_intent
   cross_phase_define -->|"含む"| research_aws
   role_cross_phase -->|"含む"| cross_phase_execute
   cross_phase_execute -->|"含む"| apply_scrum_guide
   cross_phase_execute -->|"含む"| build_dads_slides
+  cross_phase_execute -->|"含む"| check_runner
   cross_phase_execute -->|"含む"| file_searcher
   cross_phase_execute -->|"含む"| manage_git
   cross_phase_execute -->|"含む"| manage_scrum_artifacts
   cross_phase_execute -->|"含む"| scrum_master_agent
+  cross_phase_execute -->|"含む"| task_worker
   role_cross_phase -->|"含む"| cross_phase_handoff
   cross_phase_handoff -->|"含む"| read_only_reviewer
   cross_phase_handoff -->|"含む"| structure_document

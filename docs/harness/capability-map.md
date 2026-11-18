@@ -8,16 +8,18 @@
 |---|---|---|---|---|
 | `D-intent` | 定義 | 目的・範囲・完了条件を定め、結果を変える選択が残るときは着手前に尋ねる | `apex`, `rule:clarifier`, `skill:clarify-intent` | `d-intent-ambiguous` |
 | `D-problem` | 定義 | 漠然とした不満を、現状と理想の差としての問題文にする | `skill:define-problem` | `d-problem-vague` |
+| `D-product` | 定義 | 開発の前に、プロダクトの方向（対象、価値、指標、範囲）を定める | **担い手なし** | `obs-product-direction` |
+| `D-decompose` | 定義 | 合意した問題を、検査できる要件に分解する | **担い手なし** | `obs-decompose-agreed` |
 | `D-evidence` | 定義 | 事実の主張を、適用できる最新の一次の証拠に基づかせる | `apex`, `rule:thinking-lenses`, `skill:research-aws` | `d-evidence-aws` |
 | `D-reasoning` | 定義 | 依存、分岐、反復、推論の完全さを確かめてから決める（観測しない: 内部の判断の形成を律する規則で、出力の形を求めないため、決定的な判定で確かめられない） | `apex`, `rule:thinking-lenses` | — |
 | `D-root-cause` | 定義 | 根本原因を分析する | **担い手なし** | `obs-root-cause` |
 | `D-solution` | 定義 | 解決策を評価して選ぶ | **担い手なし** | `obs-solution-choice` |
 | `D-plan` | 定義 | 実行計画を作る | **担い手なし** | `obs-execution-plan` |
 | `D-architecture` | 定義 | アーキテクチャ、技術の選定、自作か調達かを決める | **担い手なし** | `obs-architecture` |
-| `D-document` | 定義 | 不完全な材料から、対話しながら文書を組み立てる | **担い手なし** | `obs-document-cocreation` |
 | `E-authority` | 実行 | 権限の範囲で動き、破壊的・外部・資格情報に関わる操作の前に承認を得る | `apex`, `rule:permissions` | `e-authority-cleanup` |
 | `E-match` | 実行 | 独立に当てはまる能力をすべて、依存の順に適用する | `apex` | `e-match-logging`, `e-dads-frontend` |
 | `E-proportion` | 実行 | 手順と検証の重さを、複雑さ・可逆性・影響に比例させる | `apex` | `e-proportion-typo` |
+| `E-workflow` | 実行 | AI-DLC のワークフローが動いている間は、段階の順とゲートをエンジンに委ね、人に代わって承認しない（観測しない: 評価の作業領域には AI-DLC のフックと記録がなく、エンジンも動かないので、この振る舞いは観測できない） | `apex` | — |
 | `E-delegate` | 実行 | 出力が長い確認や広い検索、独立して並べられる作業、作者から独立した読み手が要る作業は、その型のサブエージェントに任せ、それ以外は自分で行う（観測しない: 評価は Agent の道具を許さないので、サブエージェントを起動する振る舞いは観測できない。docs/harness-eval.md §4 の4 に記す） | `apex`, `agent:check-runner.md`, `agent:file-searcher.md`, `agent:read-only-reviewer.md`, `agent:task-worker.md` | — |
 | `E-implement` | 実行 | コード・設定・テストを、失敗する検査を先に観測してから変える | `skill:implement-change` | `e-implement-bugfix`, `e-match-logging`, `e-dads-frontend`, `h-docs-flag-rename` |
 | `E-git` | 実行 | ブランチ、コミット、push、プルリクエストを、求められた操作だけ行う | `skill:manage-git` | `e-git-commit-only` |
@@ -60,4 +62,4 @@
 
 ## シナリオの数
 
-期待 19 件、観測 6 件、到達確認 1 件。
+期待 19 件、観測 7 件、到達確認 1 件。

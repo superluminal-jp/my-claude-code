@@ -15,11 +15,11 @@ AWS は AI-DLC Workflows の 2.x 系（以下 AI-DLC v2）を公開している�
 - 最新の安定版は v2.11.4（2026-11-13）、ライセンスは MIT-0。
 - 5つのフェーズ（Initialization、Ideation、Inception、Construction、Operation）に33のステージがあり、11のスコープ（`classic`、`feature`、`bugfix` など）が実行するステージを選ぶ。
 - 次のステージを決めるのは `aidlc` という実行ファイル（エンジン）で、モデルではない。状態と監査の記録は、プロジェクトの `aidlc/spaces/<space>/intents/<intent-id>/` に残る。
-- 導入はプロジェクト単位である。`aidlc config --harness claude` が、プロジェクトの `.claude/`（スキル43件、エージェント14件、ステージ、フック）と `aidlc/` を書く。`~/.claude/` に入れる方法は文書にない。
+- 導入はプロジェクト単位である。`aidlc config --harness claude` が、プロジェクトの `.claude/`（試行で数えたスキル43件、エージェント14件と、ステージ、フック）と `aidlc/` を書く。`~/.claude/` に入れる方法は文書にない。
 - プロジェクトの `.claude/settings.json` に、9種類のフック（`PreToolUse`、`PostToolUse`、`UserPromptSubmit`、`SessionStart`、`SessionEnd`、`PreCompact`、`SubagentStart`、`SubagentStop`、`Stop`）と、`Edit(/**)`、`Task`、`WebSearch`、`Bash(aidlc engine *)` などの事前許可を書く。
 - エンジンは、Claude Code がフックを実行していないプロジェクトでは、ワークフローを進めない。
 - 任意で、MCP サーバー5件（`context7`、`aws-mcp`、`aws-pricing`、`aws-iac`、`aws-serverless`）を `.mcp.json` に書く。
-- 読んだ文書に、Scrum と Sprint の語はない。
+- 上流は Scrum のイベント、作成物、アカウンタビリティを定めていない。`docs/guide/08-knowledge.md` が、チームの知識の例として Sprint の語を挙げるだけである。
 
 利用者は 2026-11-18 に「AI-DLC V2をベースにするように刷新できるか」と尋ね、示した3つの案から B（公式ツールを実行基盤にし、harness は重複するスキルを削って補完だけにする）を選んだ。続いて、実装者が示した7つの提案を承認し、`aidlc` をクラウドのコンテナで試すことを許した。
 
@@ -35,8 +35,8 @@ AWS は AI-DLC Workflows の 2.x 系（以下 AI-DLC v2）を公開している�
    - `manage-git`、`sync-docs`、`structure-document`、`draw-system-diagrams`、`research-aws`、`apply-secure-logging`、`apply-dads-frontend`、`build-dads-slides`
    - `apply-scrum-guide`、`manage-scrum-artifacts`、`scrum-master-agent`（Scrum の作成物があるリポジトリのためのもの）
 4. **木の第1段を、Scrum の役割から AI-DLC v2 のフェーズに置き換える。** 各要素は `metadata.role` に代えて `metadata.phase` を宣言する。値は `ideation`、`inception`、`construction`、`operation` と、どのフェーズにも結び付かない `cross-phase` である。`description` の末尾の標識は `[<フェーズ> / <枝>]` にする。第2段の枝（`metadata.branch`）と、枝をまたぐ要素の `metadata.stage` は残す。枝は `harness/CLAUDE.md` の節であり、Scrum に由来しないためである。ADR-0026 は「Superseded by 0029」にした。
-5. **`harness/CLAUDE.md` は、AI-DLC v2 を使うプロジェクトでは、ステージの順とゲートをエンジンに委ねると述べる。** 見分ける手がかりは、プロジェクトのルートの `aidlc/` ディレクトリである。モデルは、人に代わってゲートを承認せず、ステージを進めない。導入されていないプロジェクトでは、今の「定める、実行する、引き渡す」の指示がそのまま働く。
-6. **`harness/settings.json` は変えない。** 試行で、エンジンの最初の一歩は、プロジェクトと `$TMPDIR` の外に書かず、ネットワークにも出なかった。足すべき項目は見つかっていない。拒否の規則（認証情報の読み取り）もそのままである。
+5. **`harness/CLAUDE.md` は、AI-DLC v2 のワークフローが動いている間、ステージの順とゲートをエンジンに委ねると述べる。** 見分ける手がかりは、プロジェクトにそのフックがあり、記録が `aidlc/` にあることである。`aidlc/` だけを手がかりにしないのは、その記録がどの道具でも同じ形でコミットされ、Claude Code のフックのないプロジェクトにもあるためである。モデルは、人に代わってゲートを承認せず、ステージを進めない。ワークフローの外の作業と、導入されていないプロジェクトでは、今の「定める、実行する、引き渡す」の指示がそのまま働く。
+6. **`harness/settings.json` は変えない。** 試行で、モデルが Bash で呼ぶエンジンのコマンド（`aidlc engine orchestrate next`）は、プロジェクトと `$TMPDIR` の外に書かず、ネットワークにも出なかった。フック（`aidlc engine hook session-start`）は `~/.bun/install/cache` を作ったが、フックはサンドボックスの外で動く。足すべき項目は見つかっていない。拒否の規則（認証情報の読み取り）もそのままである。
 7. **`install.sh` は `aidlc` を導入しない。** 取得したインストーラーを利用者の機械で走らせることになるためである。導入の手順は README に書く。
 8. **MCP サーバーの許可リスト（[ADR-0021](0021-block-mcp-servers-by-settings.md)）は変えない。** AI-DLC v2 の任意の MCP サーバーは、`--mcp none` で入れない。
 9. **対象のフェーズは Ideation から Construction までとする。** Operation のための要素は、この変更では足さない。このリポジトリ自身に AI-DLC v2 を導入するかどうかは、別に決める。
@@ -54,8 +54,8 @@ AWS は AI-DLC Workflows の 2.x 系（以下 AI-DLC v2）を公開している�
 ## 結果
 
 - スキルは17件から13件になった。サブエージェントの定義は5件のままである。
-- 除いたスキルだけを確かめていた検査（`tests/run-specify-requirements-skill.sh`、`tests/run-verify-change-skill.sh`、`tests/assert_assurance_parity.py`、`tests/assert_delivery_flow.py`、`tests/assert_review_prep_flow.py`）は、CI から外して `archive/delivery-gates/tests/` に移した。サブエージェントの定義の検査（`tests/assert_reviewer_agent.py`）は、手順が定義を名指すことの確認を除き、`tests/run-harness-skills.sh` から実行する。
-- 対応表（`docs/harness/capability-map.json`）から、段階 `D-product` と `D-decompose` を除いた。評価のシナリオは、`d-product-direction`、`d-decompose-agreed`、`h-verify-evidence` を除き、除いたスキルを判定に使っていた項目を、残るスキルの項目に替えた。
+- 除いたスキルのための検査（`tests/run-specify-requirements-skill.sh`、`tests/run-verify-change-skill.sh`、`tests/assert_assurance_parity.py`、`tests/assert_delivery_flow.py`、`tests/assert_review_prep_flow.py`）は、CI から外して `archive/delivery-gates/tests/` に移した。このうち `run-specify-requirements-skill.sh` の RC-04 は、すべてのスキルの親子の宣言（`check_graph.py --skills-dir`）も確かめていた。親スキルがなくなったので確かめる対象はないが、この検査も失った。サブエージェントの定義の検査（`tests/assert_reviewer_agent.py`）は、手順が定義を名指すことの確認を除き、`tests/run-harness-skills.sh` から実行する。
+- 対応表（`docs/harness/capability-map.json`）では、段階 `D-product` と `D-decompose` を担い手のない段階にし、その依頼を観測のシナリオ（`obs-product-direction`、`obs-decompose-agreed`）にした。段階 `D-document` と、そのシナリオ `obs-document-cocreation` は、根拠にしていた記述が除いたスキルにしかなかったので除いた。`harness/CLAUDE.md` に足した指示は、観測しない段階 `E-workflow` として載せた。期待のシナリオ `h-verify-evidence` は除き、除いたスキルを判定に使っていた項目は、残るスキルの項目に替えた。
 - スキルの契約（`tests/assert_skill_contract.py`）の C-04 は `metadata.phase` を確かめる。C-08 が `metadata.role` の値だけを名前に数えなかった例外は、なくした。
 - AI-DLC v2 を導入していないプロジェクトでは、要件グラフと検証の記録によるゲートがなくなる。このリポジトリ自身も、`specs/` の手順を進めるスキルを失った。
 - AI-DLC v2 のフックは、すべての道具の呼び出しの前後で走る。応答の時間と、harness のフックとの相互作用は測っていない。
@@ -67,12 +67,14 @@ AWS は AI-DLC Workflows の 2.x 系（以下 AI-DLC v2）を公開している�
 
 - **AC-1（一部を確かめた）**: クラウドのコンテナ（Linux、root）で、公式の `install.sh` が来歴の検証（`gh attestation verify`）を通して v2.11.4 を入れた。空の Git リポジトリで `aidlc config --harness claude --mcp none --yes` と `aidlc doctor` が、どちらも終了コード0で終わった（問題0件、警告3件）。harness を `~/.claude/` に入れた状態では試していない。
 - **AC-2（確かめていない）**: サンドボックスを有効にした Claude Code の会話で、`bugfix` スコープのワークフローが最初の承認ゲートまで進むこと。確かめたのは、`aidlc engine hook session-start` と `aidlc engine orchestrate next --scope bugfix` を `strace` で追い、プロジェクトと `$TMPDIR` の外への書き込みが、フックによる `~/.bun/install/cache` の作成だけで、ネットワークへの接続がないことまでである。エンジンは、フックが動いていないので進めないと答えた。利用者が、自分の機械で確かめる。
-- **AC-3**: `harness/skills/` に4つのスキルがない（`tests/run-config-pyramid.sh` の SKILL-09）。残りのスキルとエージェントの本文は、それらを名指さない。
+- **AC-3**: `harness/skills/` に4つのスキルがない（`tests/run-config-pyramid.sh` の SKILL-09）。残りのスキルは、それらを名指さない（契約 C-08 の退役名）。`implement-change` の本文は、要件グラフを前提にした記述を、プロジェクトがすでに持つ合意済みの受け入れ基準を引く記述に替えた。
 - **AC-4**: `python3 tests/assert_role_tree.py` と `--self-test` が、フェーズの宣言、標識、README の表、図の一致を確かめて通る。
 - **AC-5**: `bash tests/run-harness-skills.sh`、`bash tests/run-config-pyramid.sh`、`bash tests/run-install.sh`、`bash tests/run-harness-eval.sh` が通る。`bash tests/run-sandbox-settings.sh` と `bash tests/run-commit-tree-hook.sh` は、変更の前と同じ項目（GPG-02、TREE-05、TREE-06）だけがクラウドのコンテナで失敗する。
 - **AC-6**: `harness/settings.json` を変えていない。
-- **AC-7**: `harness/CLAUDE.md` の記述は、`aidlc/` があるプロジェクトだけを条件にする（APEX-14、APEX-15）。harness のフックは `aidlc` を呼ばない。
+- **AC-7**: `harness/CLAUDE.md` の記述は、ワークフローが動いている間だけを条件にし、ワークフローの外の作業には今の指示が働くと述べる（APEX-14、APEX-15、APEX-16）。harness のフックは `aidlc` を呼ばない。
 - **AC-8**: `README.md` と `README.ja.md` が、AI-DLC v2 の導入の手順と、harness が補う範囲を述べる。
+
+- **独立したレビュー**: 作者の結論を渡していないサブエージェントが、`origin/main` との差分をこの記録に照らして読んだ。差し止めに当たる指摘はなく、直すべき指摘は6件だった（指示文が発動する条件、APEX-14 が失敗し得ないこと、`implement-change` に残っていた要件グラフの前提、3つの要素のフェーズ、対応表の根拠、この記録の誤り）。6件とも直した。直した後の差分は、もう一度は読ませていない。
 
 確かめていないことは、ほかに次のとおりである。
 
