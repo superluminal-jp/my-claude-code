@@ -691,7 +691,10 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
   macOS では、サンドボックスの中の Chromium に `--single-process` が要ることを
   伝えます。`aws` CLI があれば、SSO のプロファイルならサンドボックスの中で認証できること、
   プロファイルをコマンドごとに指定すること（`--profile`、またはそのコマンドの前の
-  `AWS_PROFILE=名前`）、ログインには `aws sso login --use-device-code` を使うことを伝えます。
+  `AWS_PROFILE=名前`）、ログインには `aws sso login --use-device-code` を使うことを伝えます。`npm` があれば、サンドボックスの中で
+  npm が書けるのは `~/.npm/_logs` だけなので、`cdk synth` のようなコマンドには `~/.npm` を開ける代わりに、
+  前に `npm_config_cache=$TMPDIR/npm-cache` を付けることを伝えます
+  （[ADR-0029](docs/adr/0029-point-the-npm-cache-at-tmpdir-inside-the-sandbox.md)）。
 
 Claude が `git commit` を実行する前には、`PreToolUse` フックが1つ、サンドボックスの外で動きます。
 これも `settings.json` に直接書いた短いコマンドです。絞り込みの `"if": "Bash(git *)"` によって、

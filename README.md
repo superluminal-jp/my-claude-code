@@ -855,7 +855,11 @@ Three `SessionStart` hooks, each a short command written into
   installed, it is told that SSO profiles authenticate inside the sandbox,
   to name the profile on every command (`--profile`, or `AWS_PROFILE=name`
   in front of that one command), and to log in with
-  `aws sso login --use-device-code`.
+  `aws sso login --use-device-code`. When `npm` is installed, it is told that
+  npm can write only `~/.npm/_logs` inside the sandbox, so a command such as
+  `cdk synth` takes `npm_config_cache=$TMPDIR/npm-cache` in front of it
+  instead of `~/.npm` being opened
+  ([ADR-0029](docs/adr/0029-point-the-npm-cache-at-tmpdir-inside-the-sandbox.md)).
 
 One `PreToolUse` hook, also a short command in `settings.json`, runs outside
 the sandbox before Claude runs `git commit`. Its filter, `"if": "Bash(git *)"`,

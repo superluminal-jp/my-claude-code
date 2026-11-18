@@ -296,7 +296,24 @@ for sh_name in $SHELLS; do
   check "NOTE-06 [$sh_name] with the aws CLI installed the note says SSO profiles work inside, to name --profile, and how to log in" "$c"
   case "$out" in *"outside the sandbox"*) c=0 ;; *) c=1 ;; esac
   check "NOTE-07 [$sh_name] the aws note no longer says aws runs outside the sandbox" "$c"
-  rm -f "$STUBS/aws" "$STUBS/uname"
+  rm -f "$STUBS/aws"
+
+  # NOTE-08/09: npm can write only ~/.npm/_logs inside the sandbox, so a
+  # command that runs npm, npx, or a tool built on them (cdk synth) takes its
+  # cache from $TMPDIR instead of ~/.npm being opened (ADR-0029).
+  printf '#!/bin/sh\nexit 0\n' >"$STUBS/npm"
+  chmod +x "$STUBS/npm"
+  out="$(run_hook "$sh_name" "$note_cmd" SHELL=/bin/bash)"
+  case "$out" in
+    *"cdk synth"*"~/.npm"*'npm_config_cache=$TMPDIR/npm-cache'*"do not ask to open ~/.npm"*) c=1 ;;
+    *) c=0 ;;
+  esac
+  check "NOTE-08 [$sh_name] with npm installed the note says to put the npm cache under \$TMPDIR in front of that one command" "$c"
+  rm -f "$STUBS/npm"
+  out="$(run_hook "$sh_name" "$note_cmd" SHELL=/bin/bash)"
+  [ -z "$out" ] && c=1 || c=0
+  check "NOTE-09 [$sh_name] without npm the hook adds no npm note" "$c"
+  rm -f "$STUBS/uname"
 done
 
 echo
