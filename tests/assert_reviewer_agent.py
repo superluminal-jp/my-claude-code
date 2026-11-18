@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
-"""spec 070 R1a and R1b: the read-only reviewer the two review procedures start.
+"""spec 070 R1a: the read-only reviewer, and the other subagent definitions.
 
 R1a: `harness/agents/read-only-reviewer.md` declares exactly the fields
 name, description, tools, model, effort, omitClaudeMd, and metadata (the
-map of its place in the role tree, with no key but role, branch, and stage,
-whose values tests/assert_role_tree.py checks; spec 073), with tools exactly
+map of its place in the phase tree, with no key but phase, branch, and stage,
+whose values tests/assert_role_tree.py checks; ADR-0029), with tools exactly
 Read, Grep, and Glob, model sonnet, effort xhigh, and omitClaudeMd true, and
 its body tells the reviewer to answer `NOT REVIEWED: <path>: <reason>` when a
 file it was given cannot be read.
 
-R1b: the challenger procedure (specify-requirements's SKILL.md and
-references/challenge.md) and the assurance review procedure
-(verify-change's SKILL.md and references/assurance-review.md) name the
-definition's `name`, and no longer describe the reviewer only as "a new
-subagent that can only read and search".
+R1b (the challenger and assurance review procedures name the definition) was
+dropped with the skills that held those procedures (ADR-0029).
 
 The other subagent definitions fix the model, effort, and tools of the work
 they are for, so that delegation does not depend on a model named at each
@@ -25,8 +22,8 @@ conversation, runs on sonnet at xhigh without CLAUDE.md and can only read and
 search, and that skill's SKILL.md names it.
 
 The script checks the repository's files, then checks that every one of a set
-of single changes to them (another tool, another model, a missing field, a
-procedure that does not name the reviewer, ...) is refused, so that the check
+of single changes to them (another tool, another model, a missing field, ...)
+is refused, so that the check
 is shown able to fail on each rule.
 
 Usage: assert_reviewer_agent.py REPO_ROOT. Exit 0 when the repository's files
@@ -40,12 +37,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 AGENT = "harness/agents/read-only-reviewer.md"
-PROCEDURES = (
-    "harness/skills/specify-requirements/SKILL.md",
-    "harness/skills/specify-requirements/references/challenge.md",
-    "harness/skills/verify-change/SKILL.md",
-    "harness/skills/verify-change/references/assurance-review.md",
-)
 # name -> the frontmatter values each of the other definitions must fix.
 OTHER_AGENTS = {
     "check-runner": {"model": "haiku", "effort": "low", "tools": "Bash, Read, Grep, Glob", "omitClaudeMd": "true"},
@@ -57,15 +48,11 @@ OTHER_AGENTS = {
 STARTED_BY = {
     "scrum-master-agent": ("harness/skills/apply-scrum-guide/SKILL.md",),
 }
-OLD_PHRASES = (
-    "a new subagent that can only read and search",
-    "a new subagent whose tools can only read and search",
-)
 FIELDS = {"name", "description", "tools", "model", "effort", "omitClaudeMd", "metadata"}
 EXPECTED = {"name": "read-only-reviewer", "model": "sonnet", "effort": "xhigh", "omitClaudeMd": "true"}
 TOOLS = {"Read", "Grep", "Glob"}
-# The keys of the metadata map: the element's place in the role tree (spec 073).
-METADATA_KEYS = {"role", "branch", "stage"}
+# The keys of the metadata map: the element's place in the phase tree (ADR-0029).
+METADATA_KEYS = {"phase", "branch", "stage"}
 NOT_REVIEWED = "NOT REVIEWED: <path>: <reason>"
 
 
@@ -120,17 +107,6 @@ def agent_violations(text: str) -> List[str]:
     return out
 
 
-def procedure_violations(texts: Dict[str, str], name: str) -> List[str]:
-    out = []
-    for rel, text in texts.items():
-        if name not in text:
-            out.append(f"{rel} does not name the reviewer {name}")
-        for phrase in OLD_PHRASES:
-            if phrase in text:
-                out.append(f"{rel} still describes the reviewer as {phrase!r}")
-    return out
-
-
 def other_agent_violations(root: Path) -> List[str]:
     out = []
     for name, expected in OTHER_AGENTS.items():
@@ -160,15 +136,6 @@ def started_by_texts(root: Path) -> Dict[str, Dict[str, str]]:
     return {name: {rel: (root / rel).read_text(encoding="utf-8") for rel in files} for name, files in STARTED_BY.items()}
 
 
-def agent_name(text: str) -> str:
-    head, _ = split_frontmatter(text)
-    for line in head:
-        key, _, value = line.partition(":")
-        if key == "name":
-            return value.strip()
-    return ""
-
-
 def changed_agents(text: str) -> List[Tuple[str, str]]:
     def swap(old: str, new: str) -> str:
         if old not in text:
@@ -192,12 +159,10 @@ def changed_agents(text: str) -> List[Tuple[str, str]]:
 
 def main(root: Path) -> int:
     agent_text = (root / AGENT).read_text(encoding="utf-8")
-    texts = {rel: (root / rel).read_text(encoding="utf-8") for rel in PROCEDURES}
-    name = agent_name(agent_text)
     started = started_by_texts(root)
     failures = []
     started_violations = [v for other, files in started.items() for v in started_by_violations(files, other)]
-    for v in agent_violations(agent_text) + procedure_violations(texts, name) + other_agent_violations(root) + started_violations:
+    for v in agent_violations(agent_text) + other_agent_violations(root) + started_violations:
         failures.append(f"repository: {v}")
     if failures:
         # The changed copies are built from a passing definition; there is none.
@@ -207,13 +172,6 @@ def main(root: Path) -> int:
     for label, changed in changed_agents(agent_text):
         if not agent_violations(changed):
             failures.append(f"a definition with {label} is not refused")
-    first = PROCEDURES[0]
-    unnamed = dict(texts, **{first: texts[first].replace(name, "a reviewer")})
-    if not procedure_violations(unnamed, name):
-        failures.append(f"a {first} that does not name {name} is not refused")
-    old = dict(texts, **{first: texts[first] + "\n" + OLD_PHRASES[0] + "\n"})
-    if not procedure_violations(old, name):
-        failures.append(f"a {first} with the old description is not refused")
     for other, files in started.items():
         rel = next(iter(files))
         if not started_by_violations(dict(files, **{rel: files[rel].replace(other, "a subagent")}), other):
@@ -222,7 +180,7 @@ def main(root: Path) -> int:
         print(f"FAIL {f}", file=sys.stderr)
     if failures:
         return 1
-    print(f"ok: {AGENT} and the {len(PROCEDURES)} procedure files hold, and {len(changed_agents(agent_text)) + 2 + len(started)} changed copies are refused")
+    print(f"ok: {AGENT} and the other definitions hold, and {len(changed_agents(agent_text)) + len(started)} changed copies are refused")
     return 0
 
 

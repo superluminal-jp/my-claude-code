@@ -43,12 +43,6 @@ jobs:
       - name: Run README skill-index check
         run: bash tests/run-readme-skill-index.sh
 
-      - name: Run specify-requirements skill tests
-        run: bash tests/run-specify-requirements-skill.sh
-
-      - name: Run verify-change skill tests
-        run: bash tests/run-verify-change-skill.sh
-
       - name: Run draw-system-diagrams skill tests
         run: bash tests/run-draw-system-diagrams-skill.sh
 

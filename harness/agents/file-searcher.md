@@ -1,12 +1,12 @@
 ---
 name: file-searcher
-description: Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. Use for a broad search across many files, directories, or naming conventions when only the locations and short excerpts are needed. It starts from an empty context and costs a full run of its own, so look up a known file or symbol yourself. [Developers / execute]
+description: Searches a codebase or a set of documents read-only and returns where things are, with paths and line numbers. Use for a broad search across many files, directories, or naming conventions when only the locations and short excerpts are needed. It starts from an empty context and costs a full run of its own, so look up a known file or symbol yourself. [Cross-phase / execute]
 tools: Read, Grep, Glob
 model: haiku
 effort: medium
 omitClaudeMd: true
 metadata:
-  role: developers
+  phase: cross-phase
   branch: execute
 ---
 

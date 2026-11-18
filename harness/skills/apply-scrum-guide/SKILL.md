@@ -1,9 +1,9 @@
 ---
 name: apply-scrum-guide
-description: Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。リポジトリに Scrum の作成物（Product Goal、Sprint Goal と Sprint Backlog、Definition of Done。たとえば `scrum/` の下）があるときは、依頼に Scrum という語がなくても、そこでの開発作業のたびに使う。依頼が Scrum のイベント、作成物、アカウンタビリティ、Sprint、Scrum の導入、または Scrum からの逸脱の診断や改善に触れるときにも使う。作成物のファイルを置く・書く作業はこのスキルでは行わない。一般的なプロジェクト管理、ステータス報告、ガントチャート、予算やマイルストーンの管理、Scrum と特定できないチームの進行役には使わない。 [Developers / execute]
+description: Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一人としてリポジトリで開発し、Scrum Master のアカウンタビリティは独立したサブエージェントに担わせる。リポジトリに Scrum の作成物（Product Goal、Sprint Goal と Sprint Backlog、Definition of Done。たとえば `scrum/` の下）があるときは、依頼に Scrum という語がなくても、そこでの開発作業のたびに使う。依頼が Scrum のイベント、作成物、アカウンタビリティ、Sprint、Scrum の導入、または Scrum からの逸脱の診断や改善に触れるときにも使う。作成物のファイルを置く・書く作業はこのスキルでは行わない。一般的なプロジェクト管理、ステータス報告、ガントチャート、予算やマイルストーンの管理、Scrum と特定できないチームの進行役には使わない。 [Cross-phase / execute]
 metadata:
   kind: overlay
-  role: developers
+  phase: cross-phase
   branch: execute
   permission: read_only
   sandbox: inside

@@ -1,5 +1,5 @@
 ---
-status: Proposed
+status: Superseded by 0029
 date: 2026-11-15
 deciders: Taiki Ogihara
 ---

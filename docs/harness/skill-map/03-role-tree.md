@@ -5,69 +5,65 @@
 <!-- role-tree-diagram:start -->
 ```mermaid
 flowchart LR
-  accTitle: コンポーネント図: 役割の木
-  accDescr: harness のスキルとエージェントを、Scrum の役割、作業の枝、要素の3段の木に置いた図。どの要素も親は1つで、各要素の前付けの metadata.role と metadata.branch から生成している。
+  accTitle: コンポーネント図: フェーズの木
+  accDescr: harness のスキルとエージェントを、AI-DLC のフェーズ、作業の枝、要素の3段の木に置いた図。どの要素も親は1つで、各要素の前付けの metadata.phase と metadata.branch から生成している。
   harness["ハーネス<br/>[このシステム: harness/skills/ と harness/agents/]"]:::system
-  role_product_owner["Product Owner<br/>[役割: 何をなぜ作るか]"]:::container
-  product_owner_define["define<br/>[枝: 1 正しい作業を定める]"]:::component
+  role_ideation["Ideation<br/>[フェーズ: 意図と範囲を確かめる]"]:::container
+  ideation_define["define<br/>[枝: 1 正しい作業を定める]"]:::component
   clarify_intent["clarify-intent<br/>[スキル]"]:::component
   define_problem["define-problem<br/>[スキル]"]:::component
-  define_product_strategy["define-product-strategy<br/>[スキル]"]:::component
-  role_developers["Developers<br/>[役割: どう作り、どう確かめるか]"]:::container
-  developers_define["define<br/>[枝: 1 正しい作業を定める]"]:::component
-  research_aws["research-aws<br/>[スキル]"]:::component
-  specify_requirements["specify-requirements<br/>[スキル]"]:::component
-  developers_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
-  apply_dads_frontend["apply-dads-frontend<br/>[スキル]"]:::component
-  apply_scrum_guide["apply-scrum-guide<br/>[スキル]"]:::component
-  apply_secure_logging["apply-secure-logging<br/>[スキル]"]:::component
-  build_dads_slides["build-dads-slides<br/>[スキル]"]:::component
-  check_runner["check-runner<br/>[エージェント]"]:::component
+  role_inception["Inception<br/>[フェーズ: 要件と設計を定める]"]:::container
+  inception_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
   draw_system_diagrams["draw-system-diagrams<br/>[スキル]"]:::component
-  file_searcher["file-searcher<br/>[エージェント]"]:::component
+  role_construction["Construction<br/>[フェーズ: 作り、試す]"]:::container
+  construction_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
+  apply_dads_frontend["apply-dads-frontend<br/>[スキル]"]:::component
+  apply_secure_logging["apply-secure-logging<br/>[スキル]"]:::component
+  check_runner["check-runner<br/>[エージェント]"]:::component
   implement_change["implement-change<br/>[スキル]"]:::component
-  manage_git["manage-git<br/>[スキル]"]:::component
   task_worker["task-worker<br/>[エージェント]"]:::component
-  developers_handoff["handoff<br/>[枝: 3 引き渡す]"]:::component
-  deliver_change["deliver-change<br/>[スキル]"]:::component
+  role_cross_phase["Cross-phase<br/>[フェーズ: どのフェーズにも重ねて使う]"]:::container
+  cross_phase_define["define<br/>[枝: 1 正しい作業を定める]"]:::component
+  research_aws["research-aws<br/>[スキル]"]:::component
+  cross_phase_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
+  apply_scrum_guide["apply-scrum-guide<br/>[スキル]"]:::component
+  build_dads_slides["build-dads-slides<br/>[スキル]"]:::component
+  file_searcher["file-searcher<br/>[エージェント]"]:::component
+  manage_git["manage-git<br/>[スキル]"]:::component
+  manage_scrum_artifacts["manage-scrum-artifacts<br/>[スキル]"]:::component
+  scrum_master_agent["scrum-master-agent<br/>[エージェント]"]:::component
+  cross_phase_handoff["handoff<br/>[枝: 3 引き渡す]"]:::component
   read_only_reviewer["read-only-reviewer<br/>[エージェント]"]:::component
   structure_document["structure-document<br/>[スキル]"]:::component
   sync_docs["sync-docs<br/>[スキル]"]:::component
-  verify_change["verify-change<br/>[スキル]"]:::component
-  role_scrum_master["Scrum Master<br/>[役割: Scrum が成り立っているか]"]:::container
-  scrum_master_execute["execute<br/>[枝: 2 統制の下で実行する]"]:::component
-  manage_scrum_artifacts["manage-scrum-artifacts<br/>[スキル]"]:::component
-  scrum_master_agent["scrum-master-agent<br/>[エージェント]"]:::component
-  harness -->|"含む"| role_product_owner
-  role_product_owner -->|"含む"| product_owner_define
-  product_owner_define -->|"含む"| clarify_intent
-  product_owner_define -->|"含む"| define_problem
-  product_owner_define -->|"含む"| define_product_strategy
-  harness -->|"含む"| role_developers
-  role_developers -->|"含む"| developers_define
-  developers_define -->|"含む"| research_aws
-  developers_define -->|"含む"| specify_requirements
-  role_developers -->|"含む"| developers_execute
-  developers_execute -->|"含む"| apply_dads_frontend
-  developers_execute -->|"含む"| apply_scrum_guide
-  developers_execute -->|"含む"| apply_secure_logging
-  developers_execute -->|"含む"| build_dads_slides
-  developers_execute -->|"含む"| check_runner
-  developers_execute -->|"含む"| draw_system_diagrams
-  developers_execute -->|"含む"| file_searcher
-  developers_execute -->|"含む"| implement_change
-  developers_execute -->|"含む"| manage_git
-  developers_execute -->|"含む"| task_worker
-  role_developers -->|"含む"| developers_handoff
-  developers_handoff -->|"含む"| deliver_change
-  developers_handoff -->|"含む"| read_only_reviewer
-  developers_handoff -->|"含む"| structure_document
-  developers_handoff -->|"含む"| sync_docs
-  developers_handoff -->|"含む"| verify_change
-  harness -->|"含む"| role_scrum_master
-  role_scrum_master -->|"含む"| scrum_master_execute
-  scrum_master_execute -->|"含む"| manage_scrum_artifacts
-  scrum_master_execute -->|"含む"| scrum_master_agent
+  harness -->|"含む"| role_ideation
+  role_ideation -->|"含む"| ideation_define
+  ideation_define -->|"含む"| clarify_intent
+  ideation_define -->|"含む"| define_problem
+  harness -->|"含む"| role_inception
+  role_inception -->|"含む"| inception_execute
+  inception_execute -->|"含む"| draw_system_diagrams
+  harness -->|"含む"| role_construction
+  role_construction -->|"含む"| construction_execute
+  construction_execute -->|"含む"| apply_dads_frontend
+  construction_execute -->|"含む"| apply_secure_logging
+  construction_execute -->|"含む"| check_runner
+  construction_execute -->|"含む"| implement_change
+  construction_execute -->|"含む"| task_worker
+  harness -->|"含む"| role_cross_phase
+  role_cross_phase -->|"含む"| cross_phase_define
+  cross_phase_define -->|"含む"| research_aws
+  role_cross_phase -->|"含む"| cross_phase_execute
+  cross_phase_execute -->|"含む"| apply_scrum_guide
+  cross_phase_execute -->|"含む"| build_dads_slides
+  cross_phase_execute -->|"含む"| file_searcher
+  cross_phase_execute -->|"含む"| manage_git
+  cross_phase_execute -->|"含む"| manage_scrum_artifacts
+  cross_phase_execute -->|"含む"| scrum_master_agent
+  role_cross_phase -->|"含む"| cross_phase_handoff
+  cross_phase_handoff -->|"含む"| read_only_reviewer
+  cross_phase_handoff -->|"含む"| structure_document
+  cross_phase_handoff -->|"含む"| sync_docs
   classDef system fill:#DCE9F7,stroke:#1F4E79,stroke-width:2px,color:#0B1F33
   classDef container fill:#E8F1FB,stroke:#1F4E79,color:#0B1F33
   classDef component fill:#F3F8FD,stroke:#1F4E79,color:#0B1F33

@@ -8,8 +8,6 @@
 |---|---|---|---|---|
 | `D-intent` | 定義 | 目的・範囲・完了条件を定め、結果を変える選択が残るときは着手前に尋ねる | `apex`, `rule:clarifier`, `skill:clarify-intent` | `d-intent-ambiguous` |
 | `D-problem` | 定義 | 漠然とした不満を、現状と理想の差としての問題文にする | `skill:define-problem` | `d-problem-vague` |
-| `D-product` | 定義 | 開発の前に、プロダクトの方向（対象、価値、指標、範囲）を定める | `skill:define-product-strategy` | `d-product-direction` |
-| `D-decompose` | 定義 | 合意した問題を、検査できる要件のグラフに分解する | `skill:specify-requirements`, `agent:read-only-reviewer.md` | `d-decompose-agreed`, `e-proportion-typo` |
 | `D-evidence` | 定義 | 事実の主張を、適用できる最新の一次の証拠に基づかせる | `apex`, `rule:thinking-lenses`, `skill:research-aws` | `d-evidence-aws` |
 | `D-reasoning` | 定義 | 依存、分岐、反復、推論の完全さを確かめてから決める（観測しない: 内部の判断の形成を律する規則で、出力の形を求めないため、決定的な判定で確かめられない） | `apex`, `rule:thinking-lenses` | — |
 | `D-root-cause` | 定義 | 根本原因を分析する | **担い手なし** | `obs-root-cause` |
@@ -29,7 +27,7 @@
 | `E-scrum-artifacts` | 実行 | Scrum の作成物を、リポジトリの中のファイルとして置き、保つ | `skill:manage-scrum-artifacts` | `e-scrum-artifacts-setup` |
 | `E-logging` | 実行 | ログ出力の実装と確認を、セキュリティの要件に照らして行う | `skill:apply-secure-logging` | `e-match-logging` |
 | `E-diagrams` | 実行 | システム構成図を、1枚に1つの問い・1種類の読者・1つの抽象度で作る | `skill:draw-system-diagrams` | `e-system-diagrams`, `e-diagrams-vendor-icons` |
-| `H-verify` | 引き渡し | 完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする | `apex`, `skill:deliver-change`, `skill:verify-change`, `skill:implement-change`, `agent:read-only-reviewer.md` | `h-verify-evidence`, `e-proportion-typo` |
+| `H-verify` | 引き渡し | 完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする | `apex`, `skill:implement-change`, `agent:read-only-reviewer.md` | `e-proportion-typo` |
 | `H-structure` | 引き渡し | 会話の答えで、答えを先に置き、支えを下に組む | `apex`, `rule:pyramid-principle` | `h-structure-recommend` |
 | `H-document` | 引き渡し | 文書を1つの主張の木に組み、同梱の検査器で確かめる | `skill:structure-document` | `h-document-proposal` |
 | `H-docs` | 引き渡し | 公開の契約と文書を、変更と同期させる | `apex`, `skill:sync-docs`, `skill:implement-change` | `h-docs-flag-rename` |
@@ -40,7 +38,7 @@
 
 同じグループのスキルは互いの description で除外し合う。グループのスキルを期待するシナリオは、他のメンバー（期待するスキルが宣言した子を除く）が使われないことも判定する。
 
-- `G-define`: `skill:clarify-intent`, `skill:define-problem`, `skill:define-product-strategy`, `skill:specify-requirements`
+- `G-define`: `skill:clarify-intent`, `skill:define-problem`
 
 ## settings.json の扱い
 
@@ -62,4 +60,4 @@
 
 ## シナリオの数
 
-期待 22 件、観測 6 件、到達確認 1 件。
+期待 19 件、観測 6 件、到達確認 1 件。

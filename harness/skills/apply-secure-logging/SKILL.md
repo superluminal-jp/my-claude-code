@@ -1,9 +1,9 @@
 ---
 name: apply-secure-logging
-description: Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. Use when code or a workflow adds or modifies log output, security event logging, audit trails, error handling that logs, or logging configuration, including logging resources in infrastructure code (AWS CDK, Terraform, Bicep), and when asked whether logging follows best practice. Do not use for operating log infrastructure such as a SIEM or alert tuning, for observability that records no log or trace content, or for a change that touches no logging behavior. [Developers / execute]
+description: Implement, change, or review application and CI logging against a bundled checklist of security requirements (OWASP Logging Cheat Sheet, OWASP ASVS V16, related CWE entries) and of the logging practices in the official documentation of Python, React, AWS Lambda, Google Cloud including Cloud Run functions, Azure including Azure Functions, cloud AI inference services, and GitHub Actions. Use when code or a workflow adds or modifies log output, security event logging, audit trails, error handling that logs, or logging configuration, including logging resources in infrastructure code (AWS CDK, Terraform, Bicep), and when asked whether logging follows best practice. Do not use for operating log infrastructure such as a SIEM or alert tuning, for observability that records no log or trace content, or for a change that touches no logging behavior. [Construction / execute]
 metadata:
   kind: overlay
-  role: developers
+  phase: construction
   branch: execute
   permission: workspace_write
   sandbox: inside

@@ -1,9 +1,9 @@
 ---
 name: draw-system-diagrams
-description: Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. Use when asked to draw, document, or review the architecture, configuration, deployment, or runtime flows of a codebase or a described system, or to split an overloaded diagram. Do not use for diagrams built from a cloud vendor's official icon set, data charts or dashboards, UI mockups, BPMN process models, schema or class diagrams generated from code, or choosing the architecture itself. [Developers / execute]
+description: Create, split, or review system architecture diagrams (システム構成図) that a first-time reader, from a non-engineer to a specialist, can follow - a set of views, each answering one question for one audience at one C4 level, written as Mermaid in Markdown by default, draw.io when a person will hand-edit the layout, or Structurizr DSL when many views share one model, and checked by a bundled checker. Use when asked to draw, document, or review the architecture, configuration, deployment, or runtime flows of a codebase or a described system, or to split an overloaded diagram. Do not use for diagrams built from a cloud vendor's official icon set, data charts or dashboards, UI mockups, BPMN process models, schema or class diagrams generated from code, or choosing the architecture itself. [Inception / execute]
 metadata:
   kind: worker
-  role: developers
+  phase: inception
   branch: execute
   permission: workspace_write
   sandbox: inside

@@ -1,9 +1,9 @@
 ---
 name: research-aws
-description: Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. Use when a claim depends on an AWS service's current feature, API, quota, regional availability, pricing, setup, IAM or service-specific behavior, or SDK, CLI, CloudFormation, or CDK syntax. Do not use for an incidental mention of AWS, for another cloud provider, or for a general engineering question whose answer does not depend on the provider. [Developers / define]
+description: Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. Use when a claim depends on an AWS service's current feature, API, quota, regional availability, pricing, setup, IAM or service-specific behavior, or SDK, CLI, CloudFormation, or CDK syntax. Do not use for an incidental mention of AWS, for another cloud provider, or for a general engineering question whose answer does not depend on the provider. [Cross-phase / define]
 metadata:
   kind: worker
-  role: developers
+  phase: cross-phase
   branch: define
   permission: read_only
   sandbox: inside

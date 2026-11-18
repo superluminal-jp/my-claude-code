@@ -1,9 +1,9 @@
 ---
 name: structure-document
-description: Structure a document as one claim tree, so that a reader finds its one answer first and can check the support under it, and check the result with the bundled checker - a report, proposal, design document, specification, README, email, slide outline, or pull-request or issue body. Use when drafting or revising such a document, and when asked to review or restructure an existing one. Do not use for a short conversational answer, a single fact, raw command output, or a commit message; those need no separate procedure. [Developers / handoff]
+description: Structure a document as one claim tree, so that a reader finds its one answer first and can check the support under it, and check the result with the bundled checker - a report, proposal, design document, specification, README, email, slide outline, or pull-request or issue body. Use when drafting or revising such a document, and when asked to review or restructure an existing one. Do not use for a short conversational answer, a single fact, raw command output, or a commit message; those need no separate procedure. [Cross-phase / handoff]
 metadata:
   kind: worker
-  role: developers
+  phase: cross-phase
   branch: handoff
   permission: workspace_write
   sandbox: inside

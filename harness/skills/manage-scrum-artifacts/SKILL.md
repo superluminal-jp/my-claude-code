@@ -1,10 +1,10 @@
 ---
 name: manage-scrum-artifacts
-description: Keep a product's Scrum artifacts as files inside its repository - the Product Backlog with its Product Goal, the Definition of Done, and for each Sprint the Sprint Backlog with its Sprint Goal, the Increment, and the event records - placed from bundled Scrum Guide (2020) templates under the product folder's scrum/ directory, extended one Sprint at a time, and checked by bundled scripts. Use when asked to set up, add a Sprint to, check, or draft from Scrum artifacts kept in a repository. Do not use to diagnose or improve how a team practices Scrum, to facilitate an event, for Scrum artifacts kept in an external tool such as an issue tracker or a wiki, or for general project management. [Scrum Master / execute]
+description: Keep a product's Scrum artifacts as files inside its repository - the Product Backlog with its Product Goal, the Definition of Done, and for each Sprint the Sprint Backlog with its Sprint Goal, the Increment, and the event records - placed from bundled Scrum Guide (2020) templates under the product folder's scrum/ directory, extended one Sprint at a time, and checked by bundled scripts. Use when asked to set up, add a Sprint to, check, or draft from Scrum artifacts kept in a repository. Do not use to diagnose or improve how a team practices Scrum, to facilitate an event, for Scrum artifacts kept in an external tool such as an issue tracker or a wiki, or for general project management. [Cross-phase / execute]
 compatibility: Python 3.9 or later.
 metadata:
   kind: worker
-  role: scrum-master
+  phase: cross-phase
   branch: execute
   permission: workspace_write
   sandbox: inside

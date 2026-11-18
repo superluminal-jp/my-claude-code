@@ -77,6 +77,12 @@ run_apex_contract() {
     '(`haiku`|`sonnet`|`opus`|`fable`|read-only-reviewer|check-runner|file-searcher|task-worker|(^|[^[:alnum:]_-])('"$skill_names"')([^[:alnum:]_-]|$))' "$APEX"
   check_contains "APEX-13: states what each level of risk needs" "$APEX" \
     "failing check and a passing run.*evidence for each acceptance criterion.*independent review.*person's approval"
+  check_contains "APEX-14: leaves stage order and gate approval to a workflow engine the project runs (ADR-0029)" "$APEX" \
+    'AI-DLC.*(engine|workflow).*(stage|gate)'
+  check_contains "APEX-15: never approves a workflow gate for the person" "$APEX" \
+    'never.*(approve|advance).*(gate|stage)'
+  check "SKILL-09: the skills given to AI-DLC Workflows stay out of the harness (ADR-0029)" \
+    "$([ ! -e "$SKILL_DIR/deliver-change" ] && [ ! -e "$SKILL_DIR/specify-requirements" ] && [ ! -e "$SKILL_DIR/verify-change" ] && [ ! -e "$SKILL_DIR/define-product-strategy" ] && echo 1 || echo 0)"
 }
 
 run_rule_contract() {
@@ -141,11 +147,8 @@ thinking-lenses.md"
 run_routing_contract() {
   check_contains "ROUTE-01: code-only work selects implementation" "$SKILL_DIR/implement-change/SKILL.md" '^description:.*(code|configuration|observable behavior)'
   check_contains "ROUTE-02: clarification leaves requirements, problems, and product direction to others" "$SKILL_DIR/clarify-intent/SKILL.md" '^description:.*Do not use.*(problem|product direction|formal requirements)'
-  check_contains "ROUTE-03: requirements exclude defining the problem and judging evidence" "$SKILL_DIR/specify-requirements/SKILL.md" '^description:.*Do not use.*define a vague problem.*test evidence'
-  check_contains "ROUTE-04: the parent skill is not for a single step" "$SKILL_DIR/deliver-change/SKILL.md" '^description:.*Do not use.*only one of the four steps'
   check_contains "ROUTE-07: Scrum applies to named Scrum events, artifacts, and accountabilities" "$SKILL_DIR/apply-scrum-guide/SKILL.md" '^description:.*(イベント|作成物).*(使う)'
   check_contains "ROUTE-08: generic project management and Gantt work is not Scrum" "$SKILL_DIR/apply-scrum-guide/SKILL.md" '^description:.*(ガントチャート|プロジェクト管理).*(使わない)'
-  check_contains "ROUTE-09: product strategy excludes feature scope, facilitation, and architecture" "$SKILL_DIR/define-product-strategy/SKILL.md" '^description:.*strategy.*Do not use.*(scope|Scrum|architecture)'
   check_contains "ROUTE-10: problem definition excludes cause analysis and solutions" "$SKILL_DIR/define-problem/SKILL.md" '^description:.*problem.*Do not use.*(root-cause|solutions)'
   check_contains "ROUTE-11: document structuring is not for a conversational answer" "$SKILL_DIR/structure-document/SKILL.md" '^description:.*Do not use.*conversational answer'
   check_contains "ROUTE-13: secure logging excludes log infrastructure operations" "$SKILL_DIR/apply-secure-logging/SKILL.md" '^description:.*(Do not use|not for).*(SIEM|infrastructure)'

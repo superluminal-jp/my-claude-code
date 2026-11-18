@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
-"""spec 073: every skill and agent of the harness has one place in the role tree.
+"""ADR-0029: every skill and agent of the harness has one place in the phase tree.
 
-The tree has three levels below the harness: the Scrum role whose
-accountability the element's main output belongs to (Product Owner,
-Developers, Scrum Master), the branch of harness/CLAUDE.md it supports
-(define, execute, handoff), and the element. Each element declares its place
-in its own frontmatter:
+The tree has three levels below the harness: the AI-DLC phase the element's
+main output supports (Ideation, Inception, Construction, Operation, or
+Cross-phase when it is tied to none), the branch of harness/CLAUDE.md it
+supports (define, execute, handoff), and the element. Each element declares
+its place in its own frontmatter:
 
   metadata:
-    role: developers
+    phase: construction
     branch: execute
     stage: E-implement   # only when its stages span several branches
 
 Rules, each reported with the element it concerns:
 
   DECL     every harness/skills/*/SKILL.md and harness/agents/*.md declares
-           role and branch exactly once, with values from
-           assert_skill_contract.ROLES and BRANCHES
+           phase and branch exactly once, with values from
+           assert_skill_contract.PHASES and BRANCHES
   MAP      docs/harness/capability-map.json names the element as a component
            and gives it at least one stage
   BRANCH   when the element's stages carry one branch, branch is that branch
   STAGE    when they carry several, stage is one of its stages and branch is
            that stage's branch; a stage that is given is always one of them
-  TAG      the description ends with " [<Role> / <branch>]"
+  TAG      the description ends with " [<Phase> / <branch>]"
   README   README.md and README.ja.md hold, between <!-- role-tree:start -->
            and <!-- role-tree:end -->, the table this script generates
   PURPOSE  every purpose cell of those tables is one sentence (the
@@ -57,19 +57,24 @@ from pathlib import Path
 from typing import Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from assert_skill_contract import BRANCHES, ROLES  # noqa: E402
+from assert_skill_contract import BRANCHES, PHASES  # noqa: E402
 
-ROLE_ORDER = ("product-owner", "developers", "scrum-master")
-ROLE_LABEL = {"product-owner": "Product Owner", "developers": "Developers", "scrum-master": "Scrum Master"}
-ROLE_GLOSS = {
-    "product-owner": "何をなぜ作るか",
-    "developers": "どう作り、どう確かめるか",
-    "scrum-master": "Scrum が成り立っているか",
+PHASE_ORDER = ("ideation", "inception", "construction", "operation", "cross-phase")
+PHASE_LABEL = {
+    "ideation": "Ideation", "inception": "Inception", "construction": "Construction",
+    "operation": "Operation", "cross-phase": "Cross-phase",
+}
+PHASE_GLOSS = {
+    "ideation": "意図と範囲を確かめる",
+    "inception": "要件と設計を定める",
+    "construction": "作り、試す",
+    "operation": "配備し、運用する",
+    "cross-phase": "どのフェーズにも重ねて使う",
 }
 BRANCH_ORDER = ("define", "execute", "handoff")
 BRANCH_GLOSS = {"define": "1 正しい作業を定める", "execute": "2 統制の下で実行する", "handoff": "3 引き渡す"}
 KIND_LABEL = {"en": {"skill": "skill", "agent": "agent"}, "ja": {"skill": "スキル", "agent": "エージェント"}}
-TABLE_HEADER = {"en": ("Role", "Branch", "Name", "Kind", "Purpose"), "ja": ("役割", "枝", "名前", "種類", "目的")}
+TABLE_HEADER = {"en": ("Phase", "Branch", "Name", "Kind", "Purpose"), "ja": ("フェーズ", "枝", "名前", "種類", "目的")}
 READMES = {"README.md": "en", "README.ja.md": "ja"}
 DIAGRAM_PAGE = "docs/harness/skill-map/03-role-tree.md"
 CAPABILITY_MAP = "docs/harness/capability-map.json"
@@ -100,7 +105,7 @@ class Element:
 
     @property
     def placed(self) -> bool:
-        return self.metadata.get("role") in ROLES and self.metadata.get("branch") in BRANCHES
+        return self.metadata.get("phase") in PHASES and self.metadata.get("branch") in BRANCHES
 
 
 def unquote(value: str) -> str:
@@ -156,7 +161,7 @@ def elements(root: Path) -> list[Element]:
 
 
 def tag(element: Element) -> str:
-    return f" [{ROLE_LABEL[element.metadata['role']]} / {element.metadata['branch']}]"
+    return f" [{PHASE_LABEL[element.metadata['phase']]} / {element.metadata['branch']}]"
 
 
 def purpose(element: Element) -> str:
@@ -169,9 +174,9 @@ def purpose(element: Element) -> str:
 
 def grouped(items: list[Element]) -> list[tuple[str, str, list[Element]]]:
     groups = []
-    for role in ROLE_ORDER:
+    for role in PHASE_ORDER:
         for branch in BRANCH_ORDER:
-            members = [e for e in items if e.placed and e.metadata["role"] == role and e.metadata["branch"] == branch]
+            members = [e for e in items if e.placed and e.metadata["phase"] == role and e.metadata["branch"] == branch]
             if members:
                 groups.append((role, branch, members))
     return groups
@@ -180,11 +185,11 @@ def grouped(items: list[Element]) -> list[tuple[str, str, list[Element]]]:
 def text_tree(items: list[Element]) -> str:
     lines = ["harness"]
     groups = grouped(items)
-    roles = [r for r in ROLE_ORDER if any(g[0] == r for g in groups)]
+    roles = [r for r in PHASE_ORDER if any(g[0] == r for g in groups)]
     unplaced = [e for e in items if not e.placed]
     for ri, role in enumerate(roles):
         last_role = ri == len(roles) - 1 and not unplaced
-        lines.append(("└── " if last_role else "├── ") + ROLE_LABEL[role])
+        lines.append(("└── " if last_role else "├── ") + PHASE_LABEL[role])
         pad = "    " if last_role else "│   "
         branches = [g for g in groups if g[0] == role]
         for bi, (_, branch, members) in enumerate(branches):
@@ -205,7 +210,7 @@ def table(items: list[Element], lang: str) -> str:
     rows = ["| " + " | ".join(header) + " |", "|" + "---|" * len(header)]
     for role, branch, members in grouped(items):
         for member in members:
-            rows.append(f"| {ROLE_LABEL[role]} | {branch} | `{member.name}` | {KIND_LABEL[lang][member.kind]} | {purpose(member)} |")
+            rows.append(f"| {PHASE_LABEL[role]} | {branch} | `{member.name}` | {KIND_LABEL[lang][member.kind]} | {purpose(member)} |")
     return "\n".join(rows) + "\n"
 
 
@@ -217,18 +222,18 @@ def mermaid(items: list[Element]) -> str:
     out = [
         "```mermaid",
         "flowchart LR",
-        "  accTitle: コンポーネント図: 役割の木",
-        "  accDescr: harness のスキルとエージェントを、Scrum の役割、作業の枝、要素の3段の木に置いた図。"
-        "どの要素も親は1つで、各要素の前付けの metadata.role と metadata.branch から生成している。",
+        "  accTitle: コンポーネント図: フェーズの木",
+        "  accDescr: harness のスキルとエージェントを、AI-DLC のフェーズ、作業の枝、要素の3段の木に置いた図。"
+        "どの要素も親は1つで、各要素の前付けの metadata.phase と metadata.branch から生成している。",
         '  harness["ハーネス<br/>[このシステム: harness/skills/ と harness/agents/]"]:::system',
     ]
     edges = []
     groups = grouped(items)
-    for role in ROLE_ORDER:
+    for role in PHASE_ORDER:
         if not any(g[0] == role for g in groups):
             continue
         rid = f"role_{ident(role)}"
-        out.append(f'  {rid}["{ROLE_LABEL[role]}<br/>[役割: {ROLE_GLOSS[role]}]"]:::container')
+        out.append(f'  {rid}["{PHASE_LABEL[role]}<br/>[フェーズ: {PHASE_GLOSS[role]}]"]:::container')
         edges.append(f'  harness -->|"含む"| {rid}')
         for _, branch, members in (g for g in groups if g[0] == role):
             bid = f"{ident(role)}_{branch}"
@@ -280,8 +285,8 @@ def check(root: Path) -> list[tuple[str, str, str]]:
     for e in items:
         for dup in e.duplicates:
             out.append(("DECL", e.name, f"{e.path}: {dup} is given more than once"))
-        if e.metadata.get("role") not in ROLES:
-            out.append(("DECL", e.name, f"{e.path}: metadata.role {e.metadata.get('role')!r} is not one of {sorted(ROLES)}"))
+        if e.metadata.get("phase") not in PHASES:
+            out.append(("DECL", e.name, f"{e.path}: metadata.phase {e.metadata.get('phase')!r} is not one of {sorted(PHASES)}"))
         if e.metadata.get("branch") not in BRANCHES:
             out.append(("DECL", e.name, f"{e.path}: metadata.branch {e.metadata.get('branch')!r} is not one of {sorted(BRANCHES)}"))
         if e.component not in components:
@@ -299,14 +304,14 @@ def check(root: Path) -> list[tuple[str, str, str]]:
         if len(set(own.values())) > 1 and stage is None:
             out.append(("STAGE", e.name, f"its stages {sorted(own)} span branches {sorted(set(own.values()))}; metadata.stage must name one"))
         if not e.placed or not e.description.endswith(tag(e)):
-            want = tag(e) if e.placed else " [<Role> / <branch>]"
+            want = tag(e) if e.placed else " [<Phase> / <branch>]"
             out.append(("TAG", e.name, f"{e.path}: the description does not end with {want.strip()!r}"))
     for rel, lang in READMES.items():
         block = between(read(root, rel), README_MARK)
         if block is None:
             out.append(("README", rel, f"no {README_MARK[0]} ... {README_MARK[1]} block"))
         elif block != table(items, lang):
-            out.append(("README", rel, "the role table differs from the declarations; regenerate it with --table " + lang))
+            out.append(("README", rel, "the phase table differs from the declarations; regenerate it with --table " + lang))
         for row in re.findall(r"^\| [^|]+ \| [^|]+ \| `([^`]+)` \| [^|]+ \| (.*) \|$", block or "", re.M):
             name, cell = row
             if SENTENCE_BREAK.search(cell.rstrip("。.")):
@@ -361,9 +366,9 @@ def first_table_row(lang: str) -> Callable[[Path], None]:
         path = root / rel
         text = path.read_text(encoding="utf-8")
         start = text.index(README_MARK[0])
-        row = re.search(r"^\| Product Owner \| [^|]+ \| `[^`]+` \| [^|]+ \| ", text[start:], re.M)
+        row = re.search(r"^\| Ideation \| [^|]+ \| `[^`]+` \| [^|]+ \| ", text[start:], re.M)
         if not row:
-            raise AssertionError(f"self-test cannot apply: no Product Owner row in {rel}")
+            raise AssertionError(f"self-test cannot apply: no Ideation row in {rel}")
         at = start + row.end()
         path.write_text(text[:at] + "Rewritten by hand. " + text[at:], encoding="utf-8")
     return apply
@@ -375,9 +380,9 @@ def two_sentences(lang: str) -> Callable[[Path], None]:
         path = root / rel
         text = path.read_text(encoding="utf-8")
         start = text.index(README_MARK[0])
-        row = re.search(r"^\| Developers \| [^|]+ \| `[^`]+` \| [^|]+ \| ", text[start:], re.M)
+        row = re.search(r"^\| Construction \| [^|]+ \| `[^`]+` \| [^|]+ \| ", text[start:], re.M)
         if not row:
-            raise AssertionError(f"self-test cannot apply: no Developers row in {rel}")
+            raise AssertionError(f"self-test cannot apply: no Construction row in {rel}")
         at = start + row.end()
         path.write_text(text[:at] + "一文目を足した。" + text[at:], encoding="utf-8")
     return apply
@@ -385,22 +390,22 @@ def two_sentences(lang: str) -> Callable[[Path], None]:
 
 MUTATIONS: list[tuple[str, str, Callable[[Path], None]]] = [
     ("an agent definition without metadata", "DECL", drop_metadata("harness/agents/check-runner.md")),
-    ("a skill whose role is not defined", "DECL", replace_in("harness/skills/implement-change/SKILL.md", "  role: developers", "  role: tester")),
+    ("a skill whose phase is not defined", "DECL", replace_in("harness/skills/implement-change/SKILL.md", "  phase: construction", "  phase: testing")),
     ("a single-branch element on another branch", "BRANCH", replace_in("harness/skills/define-problem/SKILL.md", "  branch: define", "  branch: execute")),
     ("an element missing from the capability map", "MAP", drop_component("skill:clarify-intent")),
-    ("role given twice", "DECL", replace_in("harness/skills/sync-docs/SKILL.md", "  role: developers\n", "  role: developers\n  role: developers\n")),
+    ("phase given twice", "DECL", replace_in("harness/skills/sync-docs/SKILL.md", "  phase: cross-phase\n", "  phase: cross-phase\n  phase: cross-phase\n")),
     ("a new agent definition without a place", "DECL", add_agent),
     ("a multi-branch element without stage", "STAGE", replace_in("harness/skills/implement-change/SKILL.md", "  stage: E-implement\n", "")),
     ("a stage on another branch than the declared one", "STAGE", replace_in("harness/agents/read-only-reviewer.md", "  stage: H-verify", "  stage: E-delegate")),
-    ("a description without its tag", "TAG", replace_in("harness/skills/verify-change/SKILL.md", " [Developers / handoff]\n", "\n")),
-    ("a tag naming another role", "TAG", replace_in("harness/skills/deliver-change/SKILL.md", " [Developers / handoff]\n", " [Product Owner / handoff]\n")),
+    ("a description without its tag", "TAG", replace_in("harness/skills/sync-docs/SKILL.md", " [Cross-phase / handoff]\n", "\n")),
+    ("a tag naming another phase", "TAG", replace_in("harness/skills/structure-document/SKILL.md", " [Cross-phase / handoff]\n", " [Ideation / handoff]\n")),
     ("a README table row edited by hand", "README", first_table_row("en")),
     ("a README.ja table row edited by hand", "README", first_table_row("ja")),
     ("a README.ja purpose cell of two sentences", "PURPOSE", two_sentences("ja")),
     ("a node with a second parent in the tree diagram", "TREE",
-     replace_in(DIAGRAM_PAGE, '  developers_execute -->|"含む"| implement_change\n',
-                '  developers_execute -->|"含む"| implement_change\n  developers_handoff -->|"含む"| implement_change\n')),
-    ("a tree diagram edited by hand", "DIAGRAM", replace_in(DIAGRAM_PAGE, '-->|"含む"| define_problem', '-->|"含む"| specify_requirements')),
+     replace_in(DIAGRAM_PAGE, '  construction_execute -->|"含む"| implement_change\n',
+                '  construction_execute -->|"含む"| implement_change\n  cross_phase_handoff -->|"含む"| implement_change\n')),
+    ("a tree diagram edited by hand", "DIAGRAM", replace_in(DIAGRAM_PAGE, '-->|"含む"| define_problem', '-->|"含む"| define_problems')),
 ]
 
 
@@ -466,7 +471,7 @@ def main(argv: list[str]) -> int:
     for rule, where, message in failures:
         print(f"FAIL {rule} {where}: {message}", file=sys.stderr)
     count = len(elements(root))
-    print(f"role-tree: {count} elements, {len(failures)} violations")
+    print(f"phase-tree: {count} elements, {len(failures)} violations")
     return 1 if failures else 0
 
 

@@ -40,20 +40,25 @@ status=$?
 [ "$status" -ne 0 ] && printf '%s\n' "$out" | grep '^FAIL' | sed 's/^/    /' >&2
 check "HS-01: every skill meets the contract ($(printf '%s\n' "$out" | tail -n 1))" "$status"
 
-# The role tree (spec 073) is read from the repository, not from $SKILLS: it
+# The phase tree (ADR-0029; formerly the role tree of spec 073) is read from the repository, not from $SKILLS: it
 # also checks the agent definitions, the capability map, the READMEs, and the
 # tree diagram, which live outside the skills directory.
 out="$(cd "$REPO_ROOT" && python3 -B tests/assert_role_tree.py 2>&1)"
 status=$?
 [ "$status" -ne 0 ] && printf '%s\n' "$out" | grep '^FAIL' | sed 's/^/    /' >&2
-check "HS-03: every skill and agent has one place in the role tree ($(printf '%s\n' "$out" | tail -n 1))" "$status"
+check "HS-03: every skill and agent has one place in the phase tree ($(printf '%s\n' "$out" | tail -n 1))" "$status"
 
 out="$(cd "$REPO_ROOT" && python3 -B tests/assert_role_tree.py --self-test 2>&1)"
 status=$?
 [ "$status" -ne 0 ] && printf '%s\n' "$out" | grep -E '^(MISSED|FAIL)' | sed 's/^/    /' >&2
-check "HS-04: every rule of the role tree is shown able to fail ($(printf '%s\n' "$out" | tail -n 1))" "$status"
+check "HS-04: every rule of the phase tree is shown able to fail ($(printf '%s\n' "$out" | tail -n 1))" "$status"
 
-for skill in specify-requirements verify-change draw-system-diagrams structure-document sync-docs manage-scrum-artifacts; do
+out="$(python3 -B "$REPO_ROOT/tests/assert_reviewer_agent.py" "$REPO_ROOT" 2>&1)"
+status=$?
+[ "$status" -ne 0 ] && printf '%s\n' "$out" | grep '^FAIL' | sed 's/^/    /' >&2
+check "HS-05: the subagent definitions fix their model, effort, and tools, and the reviewers can only read ($(printf '%s\n' "$out" | tail -n 1))" "$status"
+
+for skill in draw-system-diagrams structure-document sync-docs manage-scrum-artifacts; do
   out="$(python3 -B -m unittest discover -s "$SKILLS/$skill/tests" -t "$SKILLS/$skill/tests" 2>&1)"
   status=$?
   summary="$(printf '%s\n' "$out" | grep -E '^Ran [0-9]+ tests?' | tail -n 1)"

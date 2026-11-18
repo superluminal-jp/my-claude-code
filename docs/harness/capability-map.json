@@ -66,20 +66,6 @@
       "path": "harness/skills/define-problem/SKILL.md"
     },
     {
-      "id": "skill:define-product-strategy",
-      "path": "harness/skills/define-product-strategy/SKILL.md"
-    },
-    {
-      "id": "skill:deliver-change",
-      "path": "harness/skills/deliver-change/SKILL.md",
-      "children": [
-        "skill:define-problem",
-        "skill:implement-change",
-        "skill:specify-requirements",
-        "skill:verify-change"
-      ]
-    },
-    {
       "id": "skill:draw-system-diagrams",
       "path": "harness/skills/draw-system-diagrams/SKILL.md"
     },
@@ -100,20 +86,12 @@
       "path": "harness/skills/research-aws/SKILL.md"
     },
     {
-      "id": "skill:specify-requirements",
-      "path": "harness/skills/specify-requirements/SKILL.md"
-    },
-    {
       "id": "skill:structure-document",
       "path": "harness/skills/structure-document/SKILL.md"
     },
     {
       "id": "skill:sync-docs",
       "path": "harness/skills/sync-docs/SKILL.md"
-    },
-    {
-      "id": "skill:verify-change",
-      "path": "harness/skills/verify-change/SKILL.md"
     }
   ],
   "stages": [
@@ -152,35 +130,6 @@
         {
           "file": "harness/skills/define-problem/SKILL.md",
           "quote": "Turn a vague sense that"
-        }
-      ]
-    },
-    {
-      "id": "D-product",
-      "branch": "define",
-      "title": "開発の前に、プロダクトの方向（対象、価値、指標、範囲）を定める",
-      "owners": [
-        "skill:define-product-strategy"
-      ],
-      "basis": [
-        {
-          "file": "harness/skills/define-product-strategy/SKILL.md",
-          "quote": "Formulate product or business strategy before development begins"
-        }
-      ]
-    },
-    {
-      "id": "D-decompose",
-      "branch": "define",
-      "title": "合意した問題を、検査できる要件のグラフに分解する",
-      "owners": [
-        "skill:specify-requirements",
-        "agent:read-only-reviewer.md"
-      ],
-      "basis": [
-        {
-          "file": "harness/skills/specify-requirements/SKILL.md",
-          "quote": "Turn an agreed problem into requirements that can be checked before implementation"
         }
       ]
     },
@@ -234,10 +183,6 @@
         {
           "file": "harness/skills/define-problem/SKILL.md",
           "quote": "for root-cause analysis, for evaluating or proposing solutions, for an execution plan"
-        },
-        {
-          "file": "harness/skills/specify-requirements/SKILL.md",
-          "quote": "to analyze root causes"
         }
       ]
     },
@@ -275,8 +220,8 @@
       "gap": true,
       "basis": [
         {
-          "file": "harness/skills/define-product-strategy/SKILL.md",
-          "quote": "for architecture, technology-stack, or build-versus-buy decisions"
+          "file": "harness/skills/define-problem/SKILL.md",
+          "quote": "for root-cause analysis, for evaluating or proposing solutions, for an execution plan"
         }
       ]
     },
@@ -288,8 +233,8 @@
       "gap": true,
       "basis": [
         {
-          "file": "harness/skills/define-product-strategy/SKILL.md",
-          "quote": "for a document with no development destination"
+          "file": "harness/skills/clarify-intent/SKILL.md",
+          "quote": "Do not use merely because a request is brief when it names a recognizable artifact or workflow"
         }
       ]
     },
@@ -338,6 +283,10 @@
         {
           "file": "harness/CLAUDE.md",
           "quote": "Choose process and verification proportional to complexity, reversibility, and impact"
+        },
+        {
+          "file": "harness/skills/implement-change/SKILL.md",
+          "quote": "Do not use for prose-only documents"
         }
       ]
     },
@@ -519,8 +468,6 @@
       "title": "完了条件を確かめてから報告し、変更を証拠で受け入れられるようにする",
       "owners": [
         "apex",
-        "skill:deliver-change",
-        "skill:verify-change",
         "skill:implement-change",
         "agent:read-only-reviewer.md"
       ],
@@ -528,14 +475,6 @@
         {
           "file": "harness/CLAUDE.md",
           "quote": "Verify the actual completion condition before reporting success."
-        },
-        {
-          "file": "harness/skills/deliver-change/SKILL.md",
-          "quote": "Carry a change from an agreed problem to an acceptance decision that a person can make from its evidence"
-        },
-        {
-          "file": "harness/skills/verify-change/SKILL.md",
-          "quote": "Record, for every acceptance criterion of a change, which check ran on which commit with what result"
         }
       ]
     },
@@ -604,16 +543,8 @@
       "gap": true,
       "basis": [
         {
-          "file": "harness/skills/specify-requirements/SKILL.md",
-          "quote": "to implement or review code"
-        },
-        {
-          "file": "harness/skills/verify-change/SKILL.md",
-          "quote": "for a code review that decides nothing"
-        },
-        {
-          "file": "harness/skills/deliver-change/SKILL.md",
-          "quote": "for a review that decides nothing"
+          "file": "harness/skills/implement-change/SKILL.md",
+          "quote": "for a review that changes nothing"
         }
       ]
     },
@@ -638,9 +569,7 @@
       "id": "G-define",
       "members": [
         "skill:clarify-intent",
-        "skill:define-problem",
-        "skill:define-product-strategy",
-        "skill:specify-requirements"
+        "skill:define-problem"
       ],
       "basis": [
         {
@@ -650,14 +579,6 @@
         {
           "file": "harness/skills/define-problem/SKILL.md",
           "quote": "for confirming the scope of an already-agreed feature, or for a product strategy or roadmap"
-        },
-        {
-          "file": "harness/skills/define-product-strategy/SKILL.md",
-          "quote": "for confirming the scope or acceptance criteria of an already-agreed feature"
-        },
-        {
-          "file": "harness/skills/specify-requirements/SKILL.md",
-          "quote": "Do not use to define a vague problem in the first place"
         }
       ]
     }

@@ -1,12 +1,12 @@
 ---
 name: scrum-master-agent
-description: Holds the Scrum Master accountability of the Scrum Guide (2020) for a Scrum Team in which the agent that starts it works as one of the Developers. It reads the team's Scrum artifacts and the facts of the work it is given, and returns findings on how Scrum is established and how effective the team is - impediments, transparency gaps, deviations from the Sprint Goal or the Definition of Done, and the events. Start it only when a procedure names this subagent type; it can read and search files and do nothing else. [Scrum Master / execute]
+description: Holds the Scrum Master accountability of the Scrum Guide (2020) for a Scrum Team in which the agent that starts it works as one of the Developers. It reads the team's Scrum artifacts and the facts of the work it is given, and returns findings on how Scrum is established and how effective the team is - impediments, transparency gaps, deviations from the Sprint Goal or the Definition of Done, and the events. Start it only when a procedure names this subagent type; it can read and search files and do nothing else. [Cross-phase / execute]
 tools: Read, Grep, Glob
 model: sonnet
 effort: xhigh
 omitClaudeMd: true
 metadata:
-  role: scrum-master
+  phase: cross-phase
   branch: execute
 ---
 

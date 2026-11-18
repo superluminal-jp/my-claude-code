@@ -1,9 +1,9 @@
 ---
 name: implement-change
-description: Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first, in the smallest coherent step, and verify it before reporting. Use for every such change - a feature, a fix, a refactor, review feedback. Do not use for prose-only documents, for a review that changes nothing, or for research that changes no file. [Developers / execute]
+description: Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first, in the smallest coherent step, and verify it before reporting. Use for every such change - a feature, a fix, a refactor, review feedback. Do not use for prose-only documents, for a review that changes nothing, or for research that changes no file. [Construction / execute]
 metadata:
   kind: worker
-  role: developers
+  phase: construction
   branch: execute
   stage: E-implement
   permission: workspace_write
