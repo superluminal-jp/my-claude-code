@@ -39,6 +39,11 @@ redesign that produced this layout is recorded in
   write the same file; otherwise it does the work itself, because a subagent
   starts from an empty context. Decisions, design, code review, and the
   judgment that the work is complete stay on the main conversation's model.
+  In a project that runs AI-DLC Workflows (its workflow records sit in an
+  `aidlc/` directory at the project root), the engine of that workflow decides
+  which stage runs next and when a gate opens; this document applies to the
+  work inside each stage, and Claude never approves a gate for the person
+  (see [AI-DLC Workflows v2](#ai-dlc-workflows-v2)).
   `harness/CLAUDE.md` names no rule, skill, server, or model — the design
   rationale is in [`docs/claude-config-design.md`](docs/claude-config-design.md)
 - **`harness/settings.json`** — User-level Claude Code settings: the main
@@ -73,9 +78,14 @@ redesign that produced this layout is recorded in
 - **`harness/agents/`** — Five subagent definitions, one per kind of delegated
   work. Each definition fixes the model, reasoning effort, and tools, which is
   what the delegation policy of `harness/CLAUDE.md` relies on:
-  - `read-only-reviewer` (`sonnet`, `xhigh`) — the independent reviewer that
-    the challenge step of `specify-requirements` and the assurance review of
-    `verify-change` start. Its tools are Read, Grep, and Glob only, and it
+  - `read-only-reviewer` (`sonnet`, `xhigh`) — an independent reviewer for a
+    review that must not start from the author's reasoning, such as a
+    challenge of requirements or a review of a change's evidence. It is
+    started when the work needs a reader independent of its author. The two
+    skills whose review procedures started it were retired
+    ([ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md));
+    the definition stays as a general-purpose reviewer. Its tools are Read,
+    Grep, and Glob only, and it
     starts without CLAUDE.md (a CLAUDE.md in a directory whose files it reads
     still loads, as do the MCP servers' instructions). When a file it was given
     cannot be read, it answers `NOT REVIEWED: <path>: <reason>` instead of
@@ -98,18 +108,24 @@ redesign that produced this layout is recorded in
     the facts of the work and returns findings on impediments, transparency
     gaps, and deviations from the Sprint Goal or the Definition of Done. Its
     tools are Read, Grep, and Glob; it starts without CLAUDE.md
-- **`harness/skills/`** — On-demand playbooks loaded by relevance, 17 in all,
+- **`harness/skills/`** — On-demand playbooks loaded by relevance, 13 in all,
   self-describing so that no central router is needed. Each `SKILL.md` holds
   a `description` (when to use the skill and when not to) and, under
-  `metadata`, its `kind` (`worker`, `overlay`, or `orchestrator`), its
+  `metadata`, its `kind` (`worker` or `overlay`; the contract also defines
+  `orchestrator`, which no skill declares at present), its
   `permission` (`read_only`, `workspace_write`, or `external_effect`), and its
   `sandbox` declaration: `inside` (every bundled command runs in the Bash
   sandbox as it is) or `network` (some steps need the hosts the skill names).
-  13 skills are `inside`; `apply-dads-frontend`, `build-dads-slides`, and
+  10 skills are `inside`; `apply-dads-frontend`, `build-dads-slides`, and
   `manage-git` are `network`. A skill is one unit — one trigger, one product,
   one completion check (`Done when`) — and meets the contract that
   `tests/assert_skill_contract.py` checks (see [Verification](#verification)).
-  - Carrying a change from problem to acceptance, in the order the work goes.
+  - Defining a change and making it. The stage order and the approval gates
+    of a whole change, from intent to acceptance, are left to AI-DLC Workflows
+    v2 (see [AI-DLC Workflows v2](#ai-dlc-workflows-v2)). Three skills
+    remain: `implement-change` is the test-first procedure used inside its
+    code generation stage, and the other two are also used outside the
+    workflow.
     `clarify-intent` (agree on intent first: the AI states its reading in
     four parts — understanding, assumptions with confidence, what is out of
     scope, open points — for the person to reject, converges on a criterion
@@ -120,19 +136,7 @@ redesign that produced this layout is recorded in
     `define-problem` (turn a vague complaint into one verifiable problem
     statement — the gap between the current and the ideal state, with its
     significance — keeping any solution or unverified cause the person brought
-    in a section of its own),
-    `specify-requirements` (record an agreed problem as a problem card that
-    keeps evidence, counter-evidence, hypotheses, and proposed solutions
-    apart; decompose it into an AND/OR/LEAF requirements graph whose parents
-    carry their own `L2` or `L3` acceptance criteria; have a read-only
-    challenger (`read-only-reviewer`) object when the change is risky or the
-    evidence is thin; and run a bundled standard-library checker whose gate
-    answers `ready` or `blocked` before implementation starts. A requirement
-    a person directed carries its `origin`, and a criterion verifiable only
-    after deploy carries its `stage`; the graph is the only place for the
-    acceptance criteria;
-    [spec 059](specs/059-refinement-graph-checker/spec.md),
-    [spec 060](specs/060-goal-refinement/spec.md)),
+    in a section of its own), and
     `implement-change` (change code, configuration, tests, scripts, or
     interfaces test-first in the smallest coherent step: define the completion
     condition, write the specification first when observable behavior
@@ -141,40 +145,8 @@ redesign that produced this layout is recorded in
     state a changed contract, and commit, push, or open a pull request only on
     request; its guidance on specification first, type safety, and system
     boundaries such as input, errors, secrets, and logging loads only when it
-    applies), and
-    `verify-change` (record in a verification manifest, for every acceptance
-    criterion, which check ran on which commit with what result; classify the
-    change's risk; for medium and high risk have `read-only-reviewer` run an
-    independent assurance review of the committed change; and run a bundled
-    standard-library checker whose gate answers `pass`, `fail`, or `blocked` —
-    never building a parent's pass from its children's, never counting an
-    AI's claim as evidence, and stopping on unclassified risk, a missing
-    approval, a high-risk change without a challenge report, a medium- or
-    high-risk change without an assurance review of its commit, or a finding
-    not answered. It reads JUnit XML and Jest `--json` results, decides before
-    deploy with `--stage pre_deploy` when some criteria can only be verified
-    after it, keeps its records in a records-only commit after the reviewed
-    one, has each review round read a bundle that `review_prep.py` writes
-    under `$TMPDIR` and a round after fixes read only the fix diff, prints a
-    one-screen review card for the person who decides, and carries a
-    preregistered pilot procedure (`references/pilot.md`, `scripts/pilot.py`)
-    for deciding whether it cuts review time without losing quality;
-    [spec 061](specs/061-change-assurance/spec.md),
-    [spec 062](specs/062-review-card/spec.md),
-    [spec 063](specs/063-pilot-metrics/spec.md),
-    [spec 064](specs/064-assurance-gate-hardening/spec.md),
-    [spec 068](specs/068-skill-procedure-gaps/problem.md),
-    [spec 069](specs/069-assurance-review-cost/problem.md)).
-    `deliver-change` is the parent skill (`kind: orchestrator`) that applies
-    `define-problem`, `specify-requirements`, `implement-change`, and
-    `verify-change` in that order: it goes on to implementation only when the
-    requirements gate says `ready`, returns to implementation or to the
-    requirements by the reason a failed or blocked gate gives, and hands the
-    person the gate's decision with the review card unchanged
-  - Other workers: `define-product-strategy` (vision, target users, value
-    proposition, success metrics, must/should/could/won't scope, and
-    constraints, framed before development begins as one strategy brief, for a
-    new product or for an initiative on an existing one),
+    applies)
+  - Other workers:
     `structure-document` (structure a document — report, proposal, design
     document, specification, README, email, slide outline, pull-request or
     issue body — as one claim tree with its answer first, checked by a bundled
@@ -254,17 +226,26 @@ redesign that produced this layout is recorded in
     several skills in a set order — may name, by name and never by path, the
     child skills it declares in a `## Child skills` section of its `SKILL.md`;
     a child declares no children of its own
-    ([spec 058](specs/058-parent-skill-references/spec.md)). A skill may also
-    name, by name, a subagent defined in `harness/agents/`: the review
-    procedures of `specify-requirements` and `verify-change` start
-    `read-only-reviewer` and stop when it is missing, and `apply-scrum-guide`
-    starts `scrum-master-agent` and, when it cannot, labels its own check a
-    self-check rather than an independent Scrum Master's findings
+    ([spec 058](specs/058-parent-skill-references/spec.md)). No skill is a
+    parent at present: the only one, `deliver-change`, was retired
+    ([ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)).
+    A skill may also name, by name, a subagent defined in `harness/agents/`:
+    `apply-scrum-guide` starts `scrum-master-agent` and, when it cannot,
+    labels its own check a self-check rather than an independent Scrum
+    Master's findings
   - The 17 skills of the earlier layout were discarded and rebuilt as 16,
     under new names; the old-to-new mapping is in
     [`docs/harness-zero-base.md`](docs/harness-zero-base.md).
     `manage-scrum-artifacts` was added after that rebuild
-    ([ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)). The Apple Notes
+    ([ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)),
+    which made 17. Four of those 17 (`deliver-change`,
+    `specify-requirements`, `verify-change`, and `define-product-strategy`)
+    were then retired to
+    [`archive/delivery-gates/`](archive/delivery-gates/README.md), with the
+    tests that ran only against them, when AI-DLC Workflows v2 became the base
+    for carrying a change from intent to acceptance
+    ([ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md));
+    13 remain. The Apple Notes
     and Apple Reminders integrations were removed with no replacement, and the
     skill-level README files, evaluation suites, and plugin manifests that some
     earlier skills carried were not carried over. The vendored `minto-pyramid`
@@ -298,24 +279,29 @@ redesign that produced this layout is recorded in
   Claude.ai unchanged, and how to package them. They are not synced by
   `install.sh`
 
-### Role tree
+### Phase tree
 
 Every skill and subagent definition declares one place in a three-level tree
-in its own frontmatter (`metadata.role`, `metadata.branch`, and
+in its own frontmatter (`metadata.phase`, `metadata.branch`, and
 `metadata.stage` when its stages span several branches), and its
 `description` ends with the same place as a tag such as
-`[Developers / execute]`. The role is the Scrum accountability its main
-output belongs to: Product Owner for what to build and why (the Product Goal
-and the content of Product Backlog items), Developers for how to build and
-check it (the Sprint plan and an Increment that meets the Definition of
-Done), and Scrum Master for whether Scrum is in place. The branch is the
+`[Construction / execute]`. The phase is the phase of AI-DLC Workflows v2
+that the element's main output supports: `ideation`, `inception`,
+`construction`, or `operation`, or `cross-phase` when it is tied to no single
+phase. No element declares `operation` at present. The branch is the
 `harness/CLAUDE.md` branch it supports, in the words of
 [`docs/harness/capability-map.json`](docs/harness/capability-map.json). The
 table below is generated from those declarations by
 `python3 tests/assert_role_tree.py --table en`, which also checks that it
 still matches them; the tree as a diagram is
 [`docs/harness/skill-map/03-role-tree.md`](docs/harness/skill-map/03-role-tree.md),
-and the decision is [ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md).
+and the decision is
+[ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md).
+The tree replaced a tree of Scrum roles
+([ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md),
+now superseded). The checker, the diagram page, and the markers around the
+table keep the names they had under that tree (`assert_role_tree.py`,
+`03-role-tree.md`, `role-tree`).
 
 <!-- role-tree:start -->
 | Phase | Branch | Name | Kind | Purpose |
@@ -349,11 +335,11 @@ and skills carry their own sources inline instead.
 | Document | Covers |
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | The test each always-on instruction must pass, what each file deliberately omits, and the reference lists the rules cite |
-| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | The redesign of the harness: why the source moved to `harness/` and the 17 skills were rebuilt as 16, the old-to-new skill mapping, the sandbox contract every skill meets, and the open work |
+| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | The redesign of the harness: why the source moved to `harness/` and the 17 skills were rebuilt as 16, the old-to-new skill mapping, the sandbox contract every skill meets, and the open work. It predates the retirement of four skills under ADR-0029 |
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | Why MCP servers are user-installed, what `.mcp.json` can and cannot carry, each server's vendor reference, which servers `settings.json` stops, and what to update when a server is added |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | The whole-harness behavior baseline: how to check the capability map and scenario suite, run the suite with `claude plugin eval` against two commits under a cost ceiling, and compare the results, and where the eval differs from a real session |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | Which component owns each stage of the work, which stages have no owner, which skills exclude one another, and which scenarios cover each stage (generated from `capability-map.json`) |
-| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | Five diagrams, in Japanese, of how the harness fits together: who uses it and what it depends on, its five layers, the role tree that places every skill and subagent under a Scrum role and a branch (generated from their declarations), which skill orchestrates, overlays, or starts a subagent for which, and the order in which skills and subagents are used to deliver one change |
+| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | Four diagrams, in Japanese, of how the harness fits together: who uses it and what it depends on, its five layers, the phase tree that places every skill and subagent under an AI-DLC phase and a branch (generated from their declarations), and which skill overlays or starts a subagent for which. A fifth diagram, of the order in which the retired parent skill used its children, is in [`archive/delivery-gates/`](archive/delivery-gates/README.md) |
 | [`docs/adr/`](docs/adr/) | Architecture decision records — immutable once Accepted, only superseded |
 
 ## Install as user configuration
@@ -416,6 +402,39 @@ If you prefer not to copy, import from any `CLAUDE.md`:
 @/absolute/path/to/my-claude-code/harness/CLAUDE.md
 ```
 
+## AI-DLC Workflows v2
+
+[AI-DLC Workflows](https://github.com/awslabs/aidlc-workflows) is a workflow
+that AWS publishes for carrying a change from intent to acceptance through
+phases and stages. Its executable, `aidlc`, decides which stage runs next and
+when an approval gate opens, and keeps the state and the audit records of the
+work in the project's `aidlc/` directory. This configuration uses it as the
+base for delivering a change, and the harness is its complement
+([ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)):
+the skills, subagents, and rules here apply to the work inside each stage and
+to work outside the workflow, and `harness/CLAUDE.md` tells Claude to leave
+the stage order and the gates to the engine and never to approve a gate for
+the person.
+
+AI-DLC Workflows is installed per project, by you. `install.sh` of this
+repository does not install it: doing so would run a downloaded installer on
+your machine. Install the `aidlc` command once, then set up each project and
+check the setup:
+
+```sh
+curl -fsSL https://github.com/awslabs/aidlc-workflows/releases/latest/download/install.sh | sh
+cd path/to/your-project
+aidlc config --harness claude --mcp none --yes
+aidlc doctor
+```
+
+- `--mcp none` leaves out AI-DLC's optional MCP servers. The harness's MCP
+  allowlist ([ADR-0021](docs/adr/0021-block-mcp-servers-by-settings.md); see
+  [MCP Servers](#mcp-servers)) does not include them, so they would not load.
+- The version tried with this harness is v2.11.4.
+- Not yet verified: a full workflow run inside the Claude Code Bash sandbox
+  with this harness installed.
+
 ## File structure
 
 ```
@@ -432,7 +451,7 @@ my-claude-code/
 ├── specs/                          # Spec Kit feature specifications for this repository's own changes
 ├── .specify/                       # Spec Kit project files, local to each checkout (gitignored; ADR-0022)
 ├── scrum/                          # This repository's own Scrum artifacts, placed by manage-scrum-artifacts (not synced; ADR-0023)
-├── archive/                        # Retired skills kept for reference (not synced)
+├── archive/                        # Retired skills and their tests, kept for reference (not synced)
 ├── team/package-safety/            # Team bundle: Claude settings + npm/pnpm/uv templates (not synced; ADR-0017)
 ├── .github/
 │   ├── workflows/
@@ -448,37 +467,21 @@ my-claude-code/
     │   ├── permissions.md          # Authorization and safety; enforced deny → settings.json
     │   └── pyramid-principle.md    # Reader-facing structure: pyramid, paper-part order, premises and terms
     ├── agents/                     # Subagent definitions: model, effort, and tools fixed per kind of delegated work
-    │   ├── read-only-reviewer.md   # Challenger and assurance review: Read/Grep/Glob only, starts without CLAUDE.md
+    │   ├── read-only-reviewer.md   # Independent review: Read/Grep/Glob only, starts without CLAUDE.md
     │   ├── check-runner.md         # Long-output checks: reports each command, exit code, and failure verbatim
     │   ├── file-searcher.md        # Read-only search: returns path:line locations
     │   ├── task-worker.md          # One self-contained task that needs judgment, run in parallel with others
     │   └── scrum-master-agent.md   # Scrum Master apart from the Developer in the main conversation: Read/Grep/Glob only
-    └── skills/                     # On-demand: body loaded when relevant, self-describing; 17 skills
+    └── skills/                     # On-demand: body loaded when relevant, self-describing; 13 skills
         ├── clarify-intent/         # Shared understanding of intent (worker)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   framework inventory (named to the user) + design basis (not named)
         ├── define-problem/         # Problem = gap between current and ideal state (worker)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   framework sources
-        ├── specify-requirements/   # Problem card -> requirements graph -> challenger -> ready/blocked gate (worker)
-        │   ├── SKILL.md            #   playbook
-        │   ├── references/         #   checker formats and rules, criteria forms, challenge procedure and prompt
-        │   ├── scripts/            #   check_graph.py (read-only, standard library only)
-        │   ├── examples/           #   a complete set of records whose gate is ready
-        │   └── tests/              #   acceptance tests and fixtures
         ├── implement-change/       # Change workflow, test-first (worker)
         │   ├── SKILL.md            #   playbook
         │   └── references/         #   spec first, type safety, system boundaries (each loaded when it applies)
-        ├── verify-change/          # Evidence per acceptance criterion -> pass/fail/blocked gate + review card (worker)
-        │   ├── SKILL.md            #   playbook
-        │   ├── references/         #   manifest format and rules, assurance review procedure and prompts, pilot
-        │   ├── scripts/            #   assure.py (read-only, standard library only), review_prep.py (git read-only), pilot.py
-        │   ├── examples/           #   a complete set of records whose gate passes
-        │   └── tests/              #   acceptance tests and fixtures
-        ├── deliver-change/SKILL.md # Parent skill: define-problem -> specify-requirements -> implement-change -> verify-change (orchestrator)
-        ├── define-product-strategy/ # Vision/users/value-prop/metrics before development begins (worker)
-        │   ├── SKILL.md            #   playbook
-        │   └── references/         #   framework per section
         ├── structure-document/     # Claim tree for a document + bundled structure checker (worker)
         │   ├── SKILL.md            #   playbook
         │   ├── references/         #   templates, genres, claim-tree schema, read without context
@@ -555,27 +558,31 @@ every skill to rules C-01 to C-11 (listed in its docstring): the name matches
 the directory; the `description` is one line of at most 1,024 characters and
 states what the skill is not for; only the allowed frontmatter keys appear and
 none switches the model; `metadata` carries a defined `kind`, `permission`, `sandbox`,
-`role`, and `branch`, and a skill that needs the network names its hosts; the body stays
+`phase`, and `branch`, and a skill that needs the network names its hosts; the body stays
 within its size limits; a `Done when` section exists, and a `Bundled files`
 section gives every bundled reference its load condition; no command breaks the
 sandbox (a bare `mktemp`, a `/tmp` literal, a write outside the repository,
 `osascript` or a network command in a skill that does not declare it); no skill
-names a retired skill (the value of `metadata.role` in the frontmatter is
-not a name) or
+names a retired skill or
 another skill unless it is an orchestrator naming a declared child; no path
 depends on the install location and none points into this repository's
 `specs/` or `archive/`; package-relative links resolve; and an orchestrator
 declares at least two existing children, none of them an orchestrator, while no
 other kind declares any. It then runs
 [`tests/assert_role_tree.py`](tests/assert_role_tree.py), which checks the
-[role tree](#role-tree) of every skill and subagent definition: each declares
-`metadata.role` and `metadata.branch` once with defined values, the
+[phase tree](#phase-tree) of every skill and subagent definition: each declares
+`metadata.phase` and `metadata.branch` once with defined values, the
 capability map names it and its branch agrees with the stages it owns (a
 `metadata.stage` picks the stage when they span several branches), its
 `description` ends with the matching tag, and the README tables and the tree
 diagram equal what the declarations generate; `--self-test` then shows that a
-copy with any one of those rules broken is refused. It then runs the unit tests of the checker scripts
-bundled in `specify-requirements`, `verify-change`, `draw-system-diagrams`,
+copy with any one of those rules broken is refused. It then runs
+[`tests/assert_reviewer_agent.py`](tests/assert_reviewer_agent.py) (check
+HS-05), which checks that each subagent definition fixes its model, effort,
+and tools, that `read-only-reviewer` and `scrum-master-agent` allow only Read,
+Grep, and Glob, that `apply-scrum-guide` names `scrum-master-agent`, and that
+a copy with any one of those changed is refused. It then runs the unit tests
+of the checker scripts bundled in `draw-system-diagrams`,
 `structure-document`, `sync-docs`, and `manage-scrum-artifacts`. To run one skill's unit tests alone:
 
 ```sh
@@ -604,43 +611,13 @@ bash tests/run-config-pyramid.sh
 ```
 
 It checks the always-loaded layers offline: the apex's three branches and its
-delegation under three conditions, exactly four rule files that name no other
+delegation under three conditions, that the apex leaves stage order and gate
+approval to AI-DLC Workflows in a project that runs it and never approves a
+gate for the person, that the four skills retired under ADR-0029 stay out of
+`harness/skills/`, exactly four rule files that name no other
 rule, skill, or config path and carry no reference list, the phrases each skill
 description must keep so that requests route the same way, and that the apex
 and the rules together stay under a size budget.
-
-After changing [`harness/skills/specify-requirements/`](harness/skills/specify-requirements/):
-
-```sh
-bash tests/run-specify-requirements-skill.sh
-bash tests/run-harness-skills.sh
-```
-
-The first runs the bundled checker's acceptance tests (Python standard library
-only), checks that its example declarations pass, reads this repository's
-`harness/skills/` in compatibility mode, and checks that the example problem
-card, requirements graph, and challenge report pass the gate.
-
-After changing [`harness/skills/verify-change/`](harness/skills/verify-change/):
-
-```sh
-bash tests/run-verify-change-skill.sh
-bash tests/run-harness-skills.sh
-```
-
-The first runs the bundled checker's acceptance tests, checks that the example
-manifest passes its own rules, that the example graph and manifest pass the
-gate, and that the example review card renders; that the gate passes no
-requirements graph from `specify-requirements`'s test fixtures that its checker
-rejects under a rule the gate depends on
-(`tests/assert_assurance_parity.py`); and carries one made-up change from
-decomposition to acceptance (`tests/assert_delivery_flow.py`: a requirement a
-person directed, Jest results, the decision before deploy, and both decisions
-on the card) and through two assurance review rounds with `review_prep.py` in a
-temporary Git repository (`tests/assert_review_prep_flow.py`). It also checks
-that the `read-only-reviewer` definition allows only Read, Grep, and Glob and
-that both review procedures name it, and that `scrum-master-agent` is likewise
-read-only and named by `apply-scrum-guide` (`tests/assert_reviewer_agent.py`).
 
 After changing [`harness/skills/draw-system-diagrams/`](harness/skills/draw-system-diagrams/):
 

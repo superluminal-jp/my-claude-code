@@ -6,6 +6,8 @@
 
 2026-11-10 に、ハーネス全体を組み直した。配布元は、このリポジトリの `.claude/` から `harness/` へ移り、スキルは 17 件を破棄して 16 件に作り直された。理由と旧名との対応は [`harness-zero-base.md`](harness-zero-base.md) にある。本書のうち、その日付を記した箇所が、組み直しで変わった点である。
 
+2026-11-18 に、変更を意図から受け入れまで運ぶ手順の基盤を、AWS の AI-DLC Workflows v2 にした（[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。AI-DLC Workflows v2 は、利用者が上流の `aidlc` コマンドでプロジェクトごとに導入するもので、`install.sh` は導入しない。ハーネスはその補完に絞り、ステージと重なるスキル4件（`deliver-change`、`specify-requirements`、`verify-change`、`define-product-strategy`）を `archive/delivery-gates/` へ移した。スキルは13件、サブエージェントの定義は5件である。検査 SKILL-09 は、この4件が `harness/skills/` に戻ると失敗する。`harness/CLAUDE.md` には項目を1つ加えた。AI-DLC Workflows を動かすプロジェクト（ワークフローの記録が、プロジェクトのルートの `aidlc/` にある）では、次に進むステージとゲートを開く時期をそのエンジンが決め、ハーネスの方針は各ステージの中の作業に適用し、人に代わってゲートを承認しない、という項目である（検査 APEX-14、APEX-15）。`harness/settings.json` は変えていない。本書のうち、この日付を記した箇所が、そのときに変わった点である。
+
 ## 1. 設定は強制しない。設定 *ファイル* が強制する
 
 Claude Code は `CLAUDE.md` と `rules/` を **advisory（助言）** として扱い、`settings.json`（permissions、hooks）だけを**強制**する [1]。この区別は程度差ではなく種類の差である。
@@ -49,7 +51,7 @@ Claude Code は `CLAUDE.md` と `rules/` を **advisory（助言）** として�
 | `permissions.md` | 資格情報パスの列挙 | `settings.json` の `permissions.deny` が正本 |
 | `permissions.md` | 部分一致をグロブ化しない理由 | [ADR-0014](adr/0014-restore-credential-deny-rules.md) |
 | `clarifier.md` | 意図の共通認識を形成する手順、判断基準の接地先となる枠組みの在庫、出典 | `harness/skills/clarify-intent/` |
-| `clarifier.md` | 合意を検査できる要件に変換する手順、曖昧性パターン目録、品質ゲート | `harness/skills/specify-requirements/` |
+| `clarifier.md` | 合意を検査できる要件に変換する手順、曖昧性パターン目録、品質ゲート | 2026-11-18 から、ハーネスには置いていない。要件を定める手順は、プロジェクトに導入する AI-DLC Workflows v2 のステージ（Requirements Analysis、User Stories）が担う（[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。それまでのスキル `specify-requirements` は `archive/delivery-gates/skills/specify-requirements/` にある |
 | `pyramid-principle.md` | Minto の4条件の詳述そのもの、構成の機械検査、成果物を会話を見ていないサブエージェントに読ませる手順（spec 057） | `harness/skills/structure-document/`（spec 055 の `pyramid-structure` を作り直したもの。従来の対話・診断・書き直し向け Minto スキル3件は `archive/minto-suite/` へ、取り込みプラグイン `minto-pyramid` は `archive/minto-pyramid/` へ退避済み） |
 | `thinking-lenses.md` | 4つのセルフチェック（依存と並行・条件と分岐・反復・推論）を出力へ強制する書式 | 自然な置き場がある成果物（要件の Given/When/Then、Spec Kit の依存順タスクリストなど）にだけ表出させる |
 | 4ルールすべて | 参考文献 | 本書 §6 |
@@ -62,6 +64,7 @@ Claude Code は `CLAUDE.md` と `rules/` を **advisory（助言）** として�
 ——重大な結果ギャップが残るなら着手前に解消せよ、という常時適用の不変条件。一方スキル `clarify-intent` が持つのは、
 **その解消をどう実行するか**の手順である——AIが理解を言語化して突き合わせ、名前のある枠組みから判断基準を引き、
 合意を共通認識メモに残す。合意を形式的要件へ変換する後半は、2026-11-10 にスキル `specify-requirements` へ移った。
+そのスキルは、2026-11-18 にハーネスから除いた（[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。
 
 2026-11-10 まで、スキルの名前もルールと同じ `clarifier` だった。[ADR-0015](adr/0015-rule-layer-independence.md) のルール層独立原則により、
 ルールがスキルを名指しできず、スキル側の拡張に追随して改名する経路も持たなかったためである。作り直しでスキルの名前を
@@ -112,7 +115,7 @@ Claude Code は `CLAUDE.md` と `rules/` を **advisory（助言）** として�
   | `check-runner` | 出力の長い検査を実行する | haiku、low | Bash、Read、Grep、Glob。`CLAUDE.md` を読み込まない |
   | `file-searcher` | 広い範囲を検索する | haiku、medium | Read、Grep、Glob。`CLAUDE.md` を読み込まない |
   | `task-worker` | 判断を要する独立した作業を並行で行う | sonnet、xhigh | 制限なし。`CLAUDE.md` を読み込む |
-  | `read-only-reviewer` | 独立したレビュー（[spec 070](../specs/070-review-integrity/problem.md)） | sonnet、xhigh | Read、Grep、Glob。`CLAUDE.md` を読み込まない |
+  | `read-only-reviewer` | 独立したレビュー（[spec 070](../specs/070-review-integrity/problem.md)）。2026-11-18 から、この定義を名指しするスキルの手順はない。作者から独立した読み手が要るときに使う、汎用のレビュー役として残している | sonnet、xhigh | Read、Grep、Glob。`CLAUDE.md` を読み込まない |
   | `scrum-master-agent` | Developer として開発する主の会話から独立して、Scrum Master のアカウンタビリティを担う。`apply-scrum-guide` が起動する | sonnet、xhigh | Read、Grep、Glob。`CLAUDE.md` を読み込まない |
 
 - **同じファイルへの書き込みを、複数のサブエージェントに並行させない。**
@@ -130,19 +133,19 @@ Claude Code は `CLAUDE.md` と `rules/` を **advisory（助言）** として�
 
 ## 5. 変更するとき
 
-構成は `CLAUDE.md` を唯一の頂点とする独立ピラミッドとして保つ。各層は**意味**でのみ親の主張を支え、名前やパスで他ノードを名指ししない（唯一の例外は下の親スキル）。第2層は4個のユニバーサルルール（品質の関心事1つにつき1ファイル）、第3層はスキルである。スキルは `SKILL.md` の前付けの `metadata.kind` で型を宣言する。作業（`worker`）は何かを作るか変える。オーバーレイ（`overlay`）は、一致する作業に**追加で**適用する判断基準であり、置き換えではない。親スキル（`orchestrator`）は、宣言した子スキルを決まった順に適用する。第3層の分類がなぜルールへの1対1対応ではないのかは [ADR-0015](adr/0015-rule-layer-independence.md) にある。
+構成は `CLAUDE.md` を唯一の頂点とする独立ピラミッドとして保つ。各層は**意味**でのみ親の主張を支え、名前やパスで他ノードを名指ししない（唯一の例外は下の親スキル。現在、親スキルはない）。第2層は4個のユニバーサルルール（品質の関心事1つにつき1ファイル）、第3層はスキルである。スキルは `SKILL.md` の前付けの `metadata.kind` で型を宣言する。作業（`worker`）は何かを作るか変える。オーバーレイ（`overlay`）は、一致する作業に**追加で**適用する判断基準であり、置き換えではない。親スキル（`orchestrator`）は、宣言した子スキルを決まった順に適用する。第3層の分類がなぜルールへの1対1対応ではないのかは [ADR-0015](adr/0015-rule-layer-independence.md) にある。
 
-これとは別の軸として、どのスキルとサブエージェントの定義も、木の中の場所を1つ、前付けの `metadata` に宣言する（spec 073、[ADR-0026](adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md)）。`role` は、主な成果物がどの Scrum のアカウンタビリティに属するかを示す。値は `product-owner`（何をなぜ作るか）、`developers`（どう作りどう確かめるか）、`scrum-master`（Scrum が成り立っているか）の3つである。`branch` は、その要素が支える頂点の枝で、値は `define`、`execute`、`handoff` の3つである。段階が2つ以上の枝にまたがる要素だけは、`stage` で主な段階を選ぶ。`description` の末尾にも、同じ場所を `[Developers / execute]` のような標識で書く。宣言は名前による参照ではなく、木の節は抽象的な役割と枝である。そのため、上の層がスキルを名指さないという決まりは変わらない。`tests/assert_role_tree.py` が、宣言、対応表、README の表、木の図の一致を確かめる。
+これとは別の軸として、どのスキルとサブエージェントの定義も、木の中の場所を1つ、前付けの `metadata` に宣言する（[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。`phase` は、主な成果物が AI-DLC Workflows v2 のどのフェーズを支えるかを示す。値は `ideation`、`inception`、`construction`、`operation` と、どのフェーズにも結び付かない `cross-phase` の5つである。`branch` は、その要素が支える頂点の枝で、値は `define`、`execute`、`handoff` の3つである。段階が2つ以上の枝にまたがる要素だけは、`stage` で主な段階を選ぶ。`description` の末尾にも、同じ場所を `[Construction / execute]` のような標識で書く。宣言は名前による参照ではなく、木の節は抽象的なフェーズと枝である。そのため、上の層がスキルを名指さないという決まりは変わらない。`tests/assert_role_tree.py` が、宣言、対応表、README の表、木の図の一致を確かめる。現在の木は `python3 tests/assert_role_tree.py --print` が出力する。2026-11-18 までは、木の1段目は Scrum の役割で、`metadata.role` に宣言していた（spec 073、[ADR-0026](adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md)。ADR-0029 が置き換えた）。検査のファイル名 `assert_role_tree.py` は、そのときの名前のままである。
 
 | 層 | 依存できる上位層 | 分類原理 | 許可する参照 | 禁止する参照 |
 |---|---|---|---|---|
 | `harness/CLAUDE.md`（1件） | なし | ライフサイクル段階（定義→実行→引き渡し） | なし | ルール・スキル・サブエージェント・コマンド・サーバーいずれの個別名も、モデルの名前も不可 |
 | `harness/rules/*.md`（4件） | `CLAUDE.md` | 品質の関心事1つにつき1ファイル | なし（参考文献は本書 §6） | 他のルールのファイル名・パス・それと分かる言及、スキルへの名指し |
-| `harness/skills/*/SKILL.md`（17件） | `CLAUDE.md` と、自身が支える品質の関心事 | 型（作業、オーバーレイ、親スキル） | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源、サブエージェントの定義の名前。親スキルに限り、自身の `SKILL.md` で宣言した子スキルの名前 | 他スキルへの名指し（親スキルが宣言した子を除く）・パス参照、インストール先のパスのハードコード、このリポジトリの `specs/` と `archive/` の参照(インストール先にないため) |
+| `harness/skills/*/SKILL.md`（13件） | `CLAUDE.md` と、自身が支える品質の関心事 | 型（作業、オーバーレイ、親スキル） | 自身のパッケージ内リソース（`references/`、スクリプト等）、外部一次情報源、サブエージェントの定義の名前。親スキルに限り、自身の `SKILL.md` で宣言した子スキルの名前 | 他スキルへの名指し（親スキルが宣言した子を除く）・パス参照、インストール先のパスのハードコード、このリポジトリの `specs/` と `archive/` の参照(インストール先にないため) |
 
 スキルの層の定めは、`tests/assert_skill_contract.py` が、`harness/skills/` にあるすべてのスキルに対して検査する（契約 C-01〜C-11）。対象は、ディレクトリから読み取る。2026-11-10 までは、検査の対象を `tests/run-config-pyramid.sh` の中の手書きの一覧に列挙しており、17 件のうち 13 件しか載っていなかった。契約の各規則が違反を実際に検出することは、`tests/test_skill_contract.py` が、一時ディレクトリに作る架空のスキルで確かめる。
 
-**親スキルは、宣言した子スキルを名前で参照できる**（[spec 058](../specs/058-parent-skill-references/spec.md)）。親スキルは、複数のスキルを決まった順序で適用する取りまとめ役のスキルである。`SKILL.md` に `## Child skills` 節を置き、子を1行に1つ「- `名前`」の形で宣言する。契約 C-08 は、パッケージ内の Markdown が、宣言した子以外のスキルを名指しすると失敗する。契約 C-11 は次を確かめる: 親は子を2つ以上宣言する。子は実在し、自分が親スキルではない（階層は1段）。親スキル以外は子を宣言しない。現在の親スキルは `deliver-change` の1件で、子は `define-problem`、`specify-requirements`、`implement-change`、`verify-change` である。
+**親スキルは、宣言した子スキルを名前で参照できる**（[spec 058](../specs/058-parent-skill-references/spec.md)）。親スキルは、複数のスキルを決まった順序で適用する取りまとめ役のスキルである。`SKILL.md` に `## Child skills` 節を置き、子を1行に1つ「- `名前`」の形で宣言する。契約 C-08 は、パッケージ内の Markdown が、宣言した子以外のスキルを名指しすると失敗する。契約 C-11 は次を確かめる: 親は子を2つ以上宣言する。子は実在し、自分が親スキルではない（階層は1段）。親スキル以外は子を宣言しない。2026-11-18 までは、親スキルは `deliver-change` の1件で、子は `define-problem`、`specify-requirements`、`implement-change`、`verify-change` だった。その日に `deliver-change` を除いたので（[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）、現在、親スキルはない。AI-DLC Workflows v2 を導入したプロジェクトでは、ステージの順序とゲートを決めるのは、そのエンジンである。契約 C-08 と C-11 の定めは、検査に残っている。
 
 この例外は、[ADR-0015](adr/0015-rule-layer-independence.md) が却下した「下向き参照と中央ルーターを許可する案」とは別物である。ADR-0015 の却下理由は2つあった。発見の情報（どのスキルをいつ使うか）を二重に管理すること、スキルの追加や改名のたびに常時ロードの設定を変えることである。親スキルはどちらにも当たらない。親スキルは常時ロードではなく、条件付きで読み込まれる。子がいつ呼ばれるかは、引き続き子自身の `description` が決め、親が持つのは自分の手順の中で子を使う順序だけである。子を改名して壊れるのは、その子を宣言した親だけで、契約 C-11 がそれを見つける。ただし ADR-0015 の「参照境界」節（設定ノードは上位・下位・横の別ノードを名前やパスで参照しない）は、スキル層ではもう成り立たない。ADR-0015 の本文は変えていない。
 

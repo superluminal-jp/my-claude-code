@@ -2,6 +2,8 @@
 
 状態: 実施済み（このブランチのプルリクエストとして提出、未インストール）。作成日 2026-11-10。ブランチ `refactor/harness-zero-base`（`main` の c272c2f から分岐）。§1〜§5 と §7 は、何も変更していない時点の検討結果である。§6 は提案で、そのうち §6.6 と §6.8 は実際に作ったものを記す。§8 は、利用者の決定と、それを実施した結果と、残っている作業を記す。
 
+追記（2026-11-18）: この文書は 2026-11-10 の時点の記録であり、本文はその時点のまま残している。その後、[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md) により、変更を意図から受け入れまで運ぶ手順の基盤を、AWS の AI-DLC Workflows v2 にした。これは、利用者が上流の `aidlc` コマンドでプロジェクトごとに導入するもので、`install.sh` は導入しない。ハーネスはその補完に絞り、§6.6 の表のうち `deliver-change`、`specify-requirements`、`verify-change`、`define-product-strategy` の4件を、`harness/skills/` から `archive/delivery-gates/` へ移した。2026-11-18 の時点で、この文書の後に加えたものを含めて、スキルは13件、サブエージェントの定義は5件である。その時点の構成は [`claude-config-design.md`](claude-config-design.md) にある。
+
 ## 1. 要約: 作り直す対象は部品そのものではなく、部品の置き場所と大きさを決める規則である
 
 現行のハーネスは、強制する設定・常時読み込む指示・必要時に読み込むスキルの3層と、「層どうしは名前ではなく意味でつなぐ」原則を保ったまま、次の5つの規則で組み直すのがよい。ここでハーネスは、`install.sh` が `~/.claude/` に入れる設定一式（`CLAUDE.md`、`rules/`、`skills/`、`agents/`、`settings.json`）を指す。
@@ -346,6 +348,8 @@ CI は、リポジトリにあるオフラインのテストをすべて実行�
 `apple-notes` と `apple-reminders` は、利用者の決定により削除した。他のアプリを操作するコマンドは、サンドボックスの中では動かないためである。そのテスト4本も削除した。連携の型（§6.2）のスキルは、今は1件もない。
 
 監査の型は、独立したスキルにしなかった。レビューは、各スキルの手順の中で、読み取り専用のサブエージェント `read-only-reviewer` に参照ファイルの指示文を渡して行う。スキルを増やさずに、読み手の独立を保つためである。
+
+追記（2026-11-18）: 上の表のうち `define-product-strategy`、`specify-requirements`、`verify-change`、`deliver-change` の4件は、[ADR-0029](adr/0029-base-delivery-on-ai-dlc-workflows-v2.md) により `harness/skills/` から除かれ、`archive/delivery-gates/skills/` にある。この4件だけを対象にしたテスト（付録B 補足の `run-specify-requirements-skill.sh` と `run-verify-change-skill.sh` を含む）は、`archive/delivery-gates/tests/` にある。親スキルは、今は1件もない。`read-only-reviewer` を名指ししていたレビューの手順（要件の challenger と保証レビュー）は除いたスキルにあったので、今は、この定義を名指しするスキルの手順はない。定義そのものは、作者から独立した読み手が要るときの汎用のレビュー役として `harness/agents/` に残っている。
 
 検査スクリプト、検査スクリプトのテスト、取り込んだ公式資料（デジタル庁デザインシステムの文書、Scrum Guide の PDF）、テンプレート、例は、中身を変えずに新しいスキルへ持ち込んだ。変えたのは、スクリプトの置き場所の書き方、古いスキル名、一時ディレクトリの作り方である。
 

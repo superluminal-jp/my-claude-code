@@ -30,6 +30,10 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   定義されたサブエージェントの型を使い（モデル・effort・道具はその定義が固定する）、同じファイルを
   2つのサブエージェントに書かせない。それ以外は、サブエージェントが空の文脈から始まるため、自分で行う。
   判断、設計、コードレビュー、作業が完了したかの判定はメインの会話のモデルに残す。
+  AI-DLC Workflows を使うプロジェクト（ワークフローの記録が、プロジェクトのルートの `aidlc/`
+  ディレクトリにある）では、次に進むステージと承認ゲートを開く時点を、そのワークフローの
+  エンジンが決める。この文書は各ステージの中の作業に適用し、Claude は人に代わってゲートを
+  承認しない（後述「AI-DLC Workflows v2」参照）。
   `harness/CLAUDE.md` はルール・スキル・サーバー・モデルの名前を一切含まない — 設計根拠は
   [`docs/claude-config-design.md`](docs/claude-config-design.md) にあります
 - **`harness/settings.json`**: Claude Code のユーザーレベル設定。メインの会話のモデル
@@ -47,8 +51,11 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   各ファイルが何を意図的に置いていないかは [`docs/claude-config-design.md`](docs/claude-config-design.md) に記録しています
 - **`harness/agents/`**: 委任する作業の種類ごとに1つ、計5つのサブエージェントの定義。各定義が
   モデル・推論の effort・使える道具を固定し、`harness/CLAUDE.md` の委任の方針はそれを前提にする:
-  - `read-only-reviewer`（`sonnet`、`xhigh`）— `specify-requirements` の反証役と `verify-change` の
-    保証レビューが起動する、独立した読み手。道具は Read・Grep・Glob だけで、CLAUDE.md を読み込まずに
+  - `read-only-reviewer`（`sonnet`、`xhigh`）— 書いた本人の推論から始めてはならないレビュー（要件への
+    反証、変更の証拠のレビューなど）のための、独立した読み手。書いた本人から独立した読み手が要るときに
+    起動する。レビューの手順でこれを起動していた2つのスキルは退役し
+    （[ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）、
+    定義は汎用の読み手として残している。道具は Read・Grep・Glob だけで、CLAUDE.md を読み込まずに
     始まる（読んだファイルのディレクトリの CLAUDE.md と、MCP サーバーの説明文は、起動の後に入る）。
     渡されたファイルを読めないときは、残りから判断せず `NOT REVIEWED: <パス>: <理由>` と答える
     （[spec 070](specs/070-review-integrity/problem.md)）
@@ -64,57 +71,31 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     切り離す Scrum Master のアカウンタビリティを担う。チームの Scrum の作成物と作業の事実を読み、
     阻害要因、透明性の欠け、Sprint Goal や Definition of Done からの逸脱についての所見を返す。
     道具は Read・Grep・Glob だけで、CLAUDE.md を読み込まずに始まる
-- **`harness/skills/`**: 必要時に読み込まれるプレイブック。全部で17件あり、中央ルーティング表なしに
+- **`harness/skills/`**: 必要時に読み込まれるプレイブック。全部で13件あり、中央ルーティング表なしに
   自己記述だけで選択できる。各 `SKILL.md` は `description`（いつ使い、いつ使わないか）と、
-  `metadata` に `kind`（`worker`・`overlay`・`orchestrator`）、`permission`（`read_only`・
+  `metadata` に `kind`（`worker` か `overlay`。契約は `orchestrator` も定義しているが、
+  今それを宣言するスキルはない）、`permission`（`read_only`・
   `workspace_write`・`external_effect`）、`sandbox` の宣言を持つ。`sandbox` は `inside`（同梱の
   コマンドがすべて、そのまま Bash のサンドボックスの中で動く）か `network`（一部の手順が、スキルの
-  宣言したホストを必要とする）。`inside` は13件で、`apply-dads-frontend`・`build-dads-slides`・
+  宣言したホストを必要とする）。`inside` は10件で、`apply-dads-frontend`・`build-dads-slides`・
   `manage-git` が `network`。スキルは、発動条件1つ・成果物1つ・完了確認（`Done when`）1つの単位であり、
   `tests/assert_skill_contract.py` が検査する契約を満たす（後述「検証」参照）
-  - 問題から受け入れまで変更を運ぶもの（作業の順）: `clarify-intent`（まず意図の共通認識を
+  - 変更を定め、実装するもの。変更の全体（意図から受け入れまで）のステージの順と承認ゲートは、
+    AI-DLC Workflows v2 に任せる（後述「AI-DLC Workflows v2」参照）。残るのは次の3件で、
+    `implement-change` はそのコード生成のステージの中で使うテスト先行の手順であり、ほかの2件は
+    ワークフローの外でも使う: `clarify-intent`（まず意図の共通認識を
     形成する。AIが自分の理解・前提と確度・スコープ外・未決の点の4つを、ユーザーが却下できる形で述べ、
     事例ではなく基準に合意し、基準を名指しの枠組みに根拠づけ、3往復までに収め、合意をメモに記録する。
     依頼されたとき、または成果物の却下や同じ点の言い直しなどのずれが現れたときに動く。形式的な
     要件は書かない）、
     `define-problem`（曖昧な訴えを、現状とあるべき姿のギャップとその重要性としての、検証可能な
     問題文に変換する。持ち込まれた解決策や未検証の原因は、別の節に置く）、
-    `specify-requirements`（合意済みの問題を、根拠・反証・原因の仮説・解決策の案を分けた問題カードに
-    記録し、親が固有の `L2` か `L3` の受け入れ条件を持つ AND/OR/LEAF の要求グラフへ分解し、変更が
-    危ういとき、または根拠が薄いとき、読み取り専用の反証役（`read-only-reviewer`）に異議を出させ、
-    標準ライブラリだけで動く同梱の検査器の判定で、実装へ進めるか（`ready` か `blocked`）を決める。
-    人の指示で入れた要件は `origin` を持ち、deploy の後でしか確かめられない受け入れ条件は `stage` を持つ。
-    受け入れ条件を書く場所は要求グラフだけである。
-    [spec 059](specs/059-refinement-graph-checker/spec.md)、
-    [spec 060](specs/060-goal-refinement/spec.md)）、
     `implement-change`（コード・設定・テスト・スクリプト・インターフェースを、テストを先に、
     最小の一貫した歩幅で変える。完了条件を定め、観測できる振る舞いが変わるときは仕様を先に書き、
     検査が正しい理由で失敗するのを見て、それを通す最小の変更を行い、リポジトリ自身の検査を実行し、
     変えた契約を述べる文書を更新し、コミット・push・プルリクエストは依頼があったときだけ行う。
-    仕様先行、型安全、入力・エラー・秘密・ログといったシステムの境界についての指針は、当てはまるときだけ読み込む）、
-    `verify-change`（受け入れ条件ごとに、どのコミットで何の検査がどう終わったかを検証の記録に残し、
-    変更のリスクを分類し、中・高リスクではコミットした変更の独立した保証レビューを
-    `read-only-reviewer` に行わせ、同梱の標準ライブラリだけの検査器の判定で `pass`・`fail`・`blocked`
-    を返す。子の合格から親の合格を作らず、AI の申告を証拠とせず、未分類のリスク、承認の欠け、
-    反証の記録のない高リスクの変更、コミットに対する保証レビューのない中・高リスクの変更、
-    答えられていない指摘で止まる。JUnit XML に加えて Jest の `--json` の結果も読み、deploy の後でしか
-    確かめられない受け入れ条件があるときは `--stage pre_deploy` で deploy の前に判定し、記録は
-    審査したコミットの後の記録だけのコミットに入れ、保証レビューの各回は `review_prep.py` が
-    `$TMPDIR` の下に書く bundle を読み、直しの後の回は直しの差分だけを読み、判断する人に1画面の
-    レビューカードを示し、レビューの時間を品質を保ったまま減らすかを、事前登録した基準の比較実験
-    （`references/pilot.md`、`scripts/pilot.py`）で判定する。
-    [spec 061](specs/061-change-assurance/spec.md)、[spec 062](specs/062-review-card/spec.md)、
-    [spec 063](specs/063-pilot-metrics/spec.md)、
-    [spec 064](specs/064-assurance-gate-hardening/spec.md)、
-    [spec 068](specs/068-skill-procedure-gaps/problem.md)、
-    [spec 069](specs/069-assurance-review-cost/problem.md)）。
-    `deliver-change` は親スキル（`kind: orchestrator`）で、`define-problem`・`specify-requirements`・
-    `implement-change`・`verify-change` をこの順に適用する。要求の判定が `ready` を返したときだけ実装へ進み、
-    判定が `fail` か `blocked` のときはその理由に従って実装か要求へ戻り、判定とレビューカードを
-    そのまま判断する人に渡す
-  - そのほかの作業: `define-product-strategy`（ビジョン・ターゲットユーザー・提供価値・成功指標・
-    must/should/could/won't によるスコープ・制約を、開発着手前に1つの戦略ブリーフとして整理する。
-    新しいプロダクトにも、既存のプロダクトの新しい取り組みにも使う）、
+    仕様先行、型安全、入力・エラー・秘密・ログといったシステムの境界についての指針は、当てはまるときだけ読み込む）
+  - そのほかの作業:
     `structure-document`（文書 — 報告書、提案書、設計書、仕様書、README、メール、スライドの骨子、
     プルリクエストや issue の本文 — を、結論を先に置く1本の主張の木として組み、同梱の標準ライブラリだけの
     検査器（`check.py`）で本文を検査し、論理の審査では既存の文書から書き起こした主張の木も検査する。
@@ -163,10 +144,14 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
     Sprint ごとの記録をプロダクトのフォルダの `scrum/` に置き、Sprint のフォルダを1つずつ足し、
     同梱の読み取り専用のスクリプトで形を検査する。検査は、まだ書かれていない Product Goal・
     Sprint Goal・Definition of Done も警告する。既存のファイルは書き換えず、Scrum Team が決める値は埋めない）
-  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言しない（[spec 058](specs/058-parent-skill-references/spec.md)）。スキルは `harness/agents/` に定義したサブエージェントも名前で名指せる。`specify-requirements` と `verify-change` のレビューの手順は `read-only-reviewer` を起動し、その型が無ければ止まる。`apply-scrum-guide` は `scrum-master-agent` を起動し、起動できないときは、自分の検査を独立した Scrum Master の所見ではない自己点検と明記する
+  - スキルはほかのスキルを名指ししない。例外は親スキル（複数のスキルを決まった順序で適用する取りまとめ役のスキル）で、自分の `SKILL.md` の `## Child skills` 節で宣言した子スキルだけを、パスではなく名前で参照できる。子スキルは自分の子を宣言しない（[spec 058](specs/058-parent-skill-references/spec.md)）。今は親スキルがない。唯一の親スキルだった `deliver-change` は退役した（[ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。スキルは `harness/agents/` に定義したサブエージェントも名前で名指せる。`apply-scrum-guide` は `scrum-master-agent` を起動し、起動できないときは、自分の検査を独立した Scrum Master の所見ではない自己点検と明記する
   - 以前の構成の17件のスキルは破棄し、新しい名前で、16件に作り直した。新旧の対応は
     [`docs/harness-zero-base.md`](docs/harness-zero-base.md) にある。`manage-scrum-artifacts` は、
-    その作り直しの後に加えた（[ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)）。Apple Notes と Apple Reminders の
+    その作り直しの後に加えたもので、これで17件になった（[ADR-0023](docs/adr/0023-keep-scrum-artifacts-in-the-product-repository.md)）。
+    その17件のうち4件（`deliver-change`・`specify-requirements`・`verify-change`・`define-product-strategy`）は、
+    変更を意図から受け入れまで運ぶ基盤を AI-DLC Workflows v2 にしたときに、それらだけを対象にしていた
+    テストとともに [`archive/delivery-gates/`](archive/delivery-gates/README.md) へ退避し、13件が残った
+    （[ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。Apple Notes と Apple Reminders の
     連携は、代わりを置かずに除いた。以前のスキルの一部が持っていたスキル内の README、評価の資料、
     プラグインのマニフェストは引き継いでいない。取り込んでいた `minto-pyramid` プラグイン
     （`pyramid-structure` に置き換え、それは今の `structure-document`）、従来の Minto スイート
@@ -194,9 +179,9 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
   そのままアップロードできるスキルと、その ZIP の作り方も載せている。
   `install.sh` の同期対象ではない
 
-### 役割の木
+### フェーズの木
 
-すべてのスキルとサブエージェントの定義は、3段の木の中の場所を1つ、自分の前付けに宣言します（`metadata.role`、`metadata.branch`、段階が2つ以上の枝にまたがるときは `metadata.stage`）。`description` の末尾にも、同じ場所を `[Developers / execute]` のような標識で書きます。役割は、主な成果物がどの Scrum のアカウンタビリティに属するかで決まります。Product Owner は何をなぜ作るか（Product Goal と Product Backlog の項目の中身）、Developers はどう作りどう確かめるか（Sprint の計画と、Definition of Done を満たす Increment）、Scrum Master は Scrum が成り立っているかです。枝は、その要素が支える `harness/CLAUDE.md` の節で、[`docs/harness/capability-map.json`](docs/harness/capability-map.json) と同じ語を使います。下の表は、宣言から `python3 tests/assert_role_tree.py --table ja` で生成したもので、同じスクリプトが宣言と一致するかも確かめます。目的の列は各 `description` の最初の文です。木の図は [`docs/harness/skill-map/03-role-tree.md`](docs/harness/skill-map/03-role-tree.md)、決定は [ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md) にあります。
+すべてのスキルとサブエージェントの定義は、3段の木の中の場所を1つ、自分の前付けに宣言します（`metadata.phase`、`metadata.branch`、段階が2つ以上の枝にまたがるときは `metadata.stage`）。`description` の末尾にも、同じ場所を `[Construction / execute]` のような標識で書きます。フェーズは、その要素の主な成果物が支える AI-DLC Workflows v2 のフェーズで、`ideation`・`inception`・`construction`・`operation` のいずれか、または1つのフェーズに結び付かないときの `cross-phase` です。今、`operation` を宣言する要素はありません。枝は、その要素が支える `harness/CLAUDE.md` の節で、[`docs/harness/capability-map.json`](docs/harness/capability-map.json) と同じ語を使います。下の表は、宣言から `python3 tests/assert_role_tree.py --table ja` で生成したもので、同じスクリプトが宣言と一致するかも確かめます。目的の列は各 `description` の最初の文です。木の図は [`docs/harness/skill-map/03-role-tree.md`](docs/harness/skill-map/03-role-tree.md)、決定は [ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md) にあります。この木は、Scrum の役割の木（[ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md)。今は置き換え済み）に代わるものです。検査スクリプト、図のページ、表を囲む目印は、その木のときの名前（`assert_role_tree.py`、`03-role-tree.md`、`role-tree`）のままです。
 
 <!-- role-tree:start -->
 | フェーズ | 枝 | 名前 | 種類 | 目的 |
@@ -230,11 +215,11 @@ Claude Code の公式仕様・ベストプラクティス（https://code.claude.
 | ドキュメント | 内容 |
 |---|---|
 | [`docs/claude-config-design.md`](docs/claude-config-design.md) | 常時ロードの指示が通すべき判断基準と、各ファイルが意図的に置いていないもの、ルールが引く参考文献の一覧 |
-| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | harness の再設計。配布元を `harness/` に移し、17件のスキルを16件に作り直した理由、新旧のスキルの対応、すべてのスキルが満たすサンドボックスの契約、残りの作業 |
+| [`docs/harness-zero-base.md`](docs/harness-zero-base.md) | harness の再設計。配布元を `harness/` に移し、17件のスキルを16件に作り直した理由、新旧のスキルの対応、すべてのスキルが満たすサンドボックスの契約、残りの作業。ADR-0029 で4件のスキルを退役させる前の記録 |
 | [`docs/mcp-servers.md`](docs/mcp-servers.md) | MCP サーバーをユーザー自身が入れる理由、`.mcp.json` に書けること・書けないこと、各サーバーのベンダー公式リファレンス、`settings.json` で止めているサーバー、サーバー追加時の更新箇所 |
 | [`docs/harness-eval.md`](docs/harness-eval.md) | harness 全体の振る舞いの基準。対応表とシナリオ集の検査、2つのコミットを費用の上限の下で `claude plugin eval` にかけて比べる手順、実際の環境との違い |
 | [`docs/harness/capability-map.md`](docs/harness/capability-map.md) | 作業の各段階の担い手、担い手のない段階、互いに除外し合うスキル、各段階を覆うシナリオ（`capability-map.json` から生成） |
-| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | harness の組み立てを示す5枚の図。だれが使い何に頼るか、5つの層、すべてのスキルとサブエージェントを Scrum の役割と枝の下に置いた役割の木（宣言から生成）、どのスキルがどれを従え・判断基準を重ね・サブエージェントを起動させるか、変更を1件届けるときにスキルとサブエージェントを使う順 |
+| [`docs/harness/skill-map/`](docs/harness/skill-map/README.md) | harness の組み立てを示す4枚の図。だれが使い何に頼るか、5つの層、すべてのスキルとサブエージェントを AI-DLC のフェーズと枝の下に置いたフェーズの木（宣言から生成）、どのスキルが判断基準を重ね・サブエージェントを起動させるか。退役した親スキルが子スキルを使う順を描いた5枚目の図は、[`archive/delivery-gates/`](archive/delivery-gates/README.md) にある |
 | [`docs/adr/`](docs/adr/) | アーキテクチャ決定記録 — Accepted 後は不変で、supersede のみ |
 
 ## ユーザー設定としてインストール
@@ -300,6 +285,35 @@ bash path/to/my-claude-code/install.sh
 @/absolute/path/to/my-claude-code/harness/CLAUDE.md
 ```
 
+## AI-DLC Workflows v2
+
+[AI-DLC Workflows](https://github.com/awslabs/aidlc-workflows) は、変更を意図から受け入れまで、フェーズと
+ステージに分けて運ぶための、AWS が公開しているワークフローです。実行ファイル `aidlc` が、次に進む
+ステージと承認ゲートを開く時点を決め、作業の状態と監査の記録をプロジェクトの `aidlc/` ディレクトリに
+残します。この設定は、変更を届ける基盤としてこれを使い、harness はその補完です
+（[ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。
+harness のスキル、サブエージェント、ルールは、各ステージの中の作業と、ワークフローの外の作業に
+適用します。`harness/CLAUDE.md` は、ステージの順とゲートをエンジンに任せ、人に代わってゲートを
+承認しないよう Claude に指示します。
+
+AI-DLC Workflows は、利用者がプロジェクトごとに導入します。このリポジトリの `install.sh` は導入しません。
+導入すると、取得したインストーラーを利用者のマシンで実行することになるためです。`aidlc` コマンドを
+一度入れ、そのあとプロジェクトごとに設定し、設定を確かめます:
+
+```sh
+curl -fsSL https://github.com/awslabs/aidlc-workflows/releases/latest/download/install.sh | sh
+cd path/to/your-project
+aidlc config --harness claude --mcp none --yes
+aidlc doctor
+```
+
+- `--mcp none` は、AI-DLC の任意の MCP サーバーを入れません。harness の MCP サーバーの許可リスト
+  （[ADR-0021](docs/adr/0021-block-mcp-servers-by-settings.md)。後述「MCP サーバー」参照）に
+  それらは含まれず、入れても読み込まれないためです。
+- この harness で試した版は v2.11.4 です。
+- 未検証: この harness をインストールした状態で、Claude Code の Bash のサンドボックスの中で
+  ワークフローを最後まで実行すること。
+
 ## 構成
 
 ```text
@@ -317,7 +331,7 @@ my-claude-code/
 ├── specs/                          # このリポジトリ自身の変更の Spec Kit 機能仕様
 ├── .specify/                       # Spec Kit のプロジェクトファイル。チェックアウトごとのローカル(gitignore、ADR-0022)
 ├── scrum/                          # このリポジトリ自身の Scrum の作成物。manage-scrum-artifacts で置いたもの(同期対象外, ADR-0023)
-├── archive/                        # 参照用に残した退役スキル(同期対象外)
+├── archive/                        # 参照用に残した退役スキルとそのテスト(同期対象外)
 ├── team/package-safety/            # チーム配布用バンドル: Claude 設定 + npm/pnpm/uv テンプレート(同期対象外, ADR-0017)
 ├── .github/
 │   ├── workflows/
@@ -333,37 +347,21 @@ my-claude-code/
     │   ├── permissions.md          # 権限と安全性。強制される deny は settings.json
     │   └── pyramid-principle.md    # 読み手本位の構造: ピラミッド、論文の構成の順序、前提と用語
     ├── agents/                     # サブエージェントの定義: 委任する作業の種類ごとにモデル・effort・道具を固定
-    │   ├── read-only-reviewer.md   # 反証役と保証レビュー: Read/Grep/Glob だけ、CLAUDE.md なしで始まる
+    │   ├── read-only-reviewer.md   # 独立したレビュー: Read/Grep/Glob だけ、CLAUDE.md なしで始まる
     │   ├── check-runner.md         # 出力の長い確認: 各コマンド・終了コード・失敗の原文を報告
     │   ├── file-searcher.md        # 読み取り専用の検索: パス:行 の位置を返す
     │   ├── task-worker.md          # 判断を要する閉じた1つの作業。ほかの作業と並行して行う
     │   └── scrum-master-agent.md   # 主の会話の Developer から独立した Scrum Master: Read/Grep/Glob だけ
-    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型。17件
+    └── skills/                     # 必要時のみ: 関連するときに本文を読み込む、自己記述型。13件
         ├── clarify-intent/         # 意図の共通認識の形成(作業)
         │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   枠組みの在庫(ユーザーに名指す)+ 設計根拠(名指さない)
         ├── define-problem/         # 問題 = 現状とあるべき姿のギャップ(作業)
         │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   枠組みの出典
-        ├── specify-requirements/   # 問題カード → 要求グラフ → 反証役 → ready/blocked の判定(作業)
-        │   ├── SKILL.md            #   プレイブック
-        │   ├── references/         #   検査器の形式と規則、受け入れ条件の書き方、反証の手順と指示文
-        │   ├── scripts/            #   check_graph.py(読み取り専用、標準ライブラリのみ)
-        │   ├── examples/           #   判定が ready になる記録の一式の作例
-        │   └── tests/              #   受け入れテストとフィクスチャ
         ├── implement-change/       # 変更手順、テスト先行(作業)
         │   ├── SKILL.md            #   プレイブック
         │   └── references/         #   仕様先行、型安全、システムの境界(それぞれ当てはまるときだけ読む)
-        ├── verify-change/          # 受け入れ条件ごとの証拠 → pass/fail/blocked の判定 + レビューカード(作業)
-        │   ├── SKILL.md            #   プレイブック
-        │   ├── references/         #   検証の記録の形式と規則、保証レビューの手順と指示文、比較実験
-        │   ├── scripts/            #   assure.py(読み取り専用、標準ライブラリのみ)、review_prep.py(git を読み取りだけで使う)、pilot.py
-        │   ├── examples/           #   判定が pass になる記録の一式の作例
-        │   └── tests/              #   受け入れテストとフィクスチャ
-        ├── deliver-change/SKILL.md # 親スキル: define-problem → specify-requirements → implement-change → verify-change(取りまとめ)
-        ├── define-product-strategy/ # 開発着手前のビジョン・ユーザー・提供価値・指標(作業)
-        │   ├── SKILL.md            #   プレイブック
-        │   └── references/         #   節ごとの枠組み
         ├── structure-document/     # 文書の主張の木 + 同梱の構成検査(作業)
         │   ├── SKILL.md            #   プレイブック
         │   ├── references/         #   ひな形、文書の種類、主張の木の形式、文脈なしの読み直し
@@ -436,15 +434,19 @@ bash tests/run-readme-skill-index.sh
 [`tests/assert_skill_contract.py`](tests/assert_skill_contract.py) を実行し、すべてのスキルに規則 C-01 から
 C-11（スクリプトの docstring に一覧がある）を課す: 名前がディレクトリと一致すること、`description` が
 1行で1,024字以内であり、使わない場面を述べていること、許された前付けのキーだけを持ち、モデルを切り替える
-ものがないこと、`metadata` が定義された `kind`・`permission`・`sandbox`・`role`・`branch` を持ち、ネットワークが要る
+ものがないこと、`metadata` が定義された `kind`・`permission`・`sandbox`・`phase`・`branch` を持ち、ネットワークが要る
 スキルがホストを名指していること、本文が大きさの上限に収まること、`Done when` の節があり、同梱の
 参照ファイルのそれぞれに読む条件を書いた `Bundled files` の節があること、サンドボックスを壊す
 コマンド（引数なしの `mktemp`、`/tmp` の直書き、リポジトリの外への書き込み、宣言のないスキルでの
-`osascript` やネットワークのコマンド）がないこと、廃止したスキルを名指さないこと（前付けの `metadata.role` の値は名前に数えない）、宣言した子を名指す取りまとめ役のスキルでなければ、
+`osascript` やネットワークのコマンド）がないこと、廃止したスキルを名指さないこと、宣言した子を名指す取りまとめ役のスキルでなければ、
 ほかのスキルを名指さないこと、インストール先に依存するパスや、このリポジトリの `specs/`・`archive/` への
 参照がないこと、パッケージ内の相対リンクが解決すること、取りまとめ役のスキルが実在する
-子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。次に [`tests/assert_role_tree.py`](tests/assert_role_tree.py) を実行し、すべてのスキルとサブエージェントの定義の[役割の木](#役割の木)を確かめる: `metadata.role` と `metadata.branch` を定義された値で1回ずつ宣言していること、対応表がその要素を持ち、枝が担う段階と合うこと（段階が2つ以上の枝にまたがるときは `metadata.stage` で段階を選ぶ）、`description` の末尾が一致する標識であること、README の表と木の図が宣言から生成したものと一致すること。`--self-test` は、どれか1つの規則を壊した写しが拒まれることを示す。続けて、
-`specify-requirements`・`verify-change`・`draw-system-diagrams`・`structure-document`・`sync-docs`・`manage-scrum-artifacts` に
+子を2件以上宣言し（その子に取りまとめ役はいない）、ほかの種類は子を宣言しないこと。次に [`tests/assert_role_tree.py`](tests/assert_role_tree.py) を実行し、すべてのスキルとサブエージェントの定義の[フェーズの木](#フェーズの木)を確かめる: `metadata.phase` と `metadata.branch` を定義された値で1回ずつ宣言していること、対応表がその要素を持ち、枝が担う段階と合うこと（段階が2つ以上の枝にまたがるときは `metadata.stage` で段階を選ぶ）、`description` の末尾が一致する標識であること、README の表と木の図が宣言から生成したものと一致すること。`--self-test` は、どれか1つの規則を壊した写しが拒まれることを示す。次に
+[`tests/assert_reviewer_agent.py`](tests/assert_reviewer_agent.py) を実行し（検査 HS-05）、サブエージェントの
+各定義がモデル・effort・道具を固定していること、`read-only-reviewer` と `scrum-master-agent` が Read・Grep・Glob
+だけを許すこと、`apply-scrum-guide` が `scrum-master-agent` を名指していること、そのどれか1つを変えた写しが
+拒まれることを確かめる。続けて、
+`draw-system-diagrams`・`structure-document`・`sync-docs`・`manage-scrum-artifacts` に
 同梱した検査スクリプトの単体テストを実行する。1つのスキルの単体テストだけを実行するには:
 
 ```sh
@@ -471,37 +473,11 @@ bash tests/run-package-safety-bundle.sh
 bash tests/run-config-pyramid.sh
 ```
 
-常時ロードの層をオフラインで検査する: apex の3分岐と3つの条件による委任、他のルール・スキル・設定パスを
+常時ロードの層をオフラインで検査する: apex の3分岐と3つの条件による委任、AI-DLC Workflows を使う
+プロジェクトでは apex がステージの順とゲートの承認をそれに委ね、人に代わってゲートを承認しないこと、
+ADR-0029 で退役した4件のスキルが `harness/skills/` に戻っていないこと、他のルール・スキル・設定パスを
 名指さず参考文献の一覧も持たないちょうど4つのルールファイル、各スキルの description が保つべき語句
 （依頼が同じように振り分けられるように）、apex とルールを合わせた大きさが予算の内に収まること。
-
-[`harness/skills/specify-requirements/`](harness/skills/specify-requirements/) を変更したら:
-
-```sh
-bash tests/run-specify-requirements-skill.sh
-bash tests/run-harness-skills.sh
-```
-
-前者は、同梱の検査器の受け入れテスト(Python の標準ライブラリだけを使う)を実行し、例の宣言が通ること、
-このリポジトリの `harness/skills/` を互換モードで読めること、例の問題カード・要求グラフ・反証の記録が
-判定に合格することを確かめる。
-
-[`harness/skills/verify-change/`](harness/skills/verify-change/) を変更したら:
-
-```sh
-bash tests/run-verify-change-skill.sh
-bash tests/run-harness-skills.sh
-```
-
-前者は、同梱の検査器の受け入れテストを実行し、例の検証の記録がその規則を通ること、例の要求グラフと
-検証の記録が判定に合格すること、例のレビューカードが描画されることを確かめる。また、
-`specify-requirements` のテストの要求グラフのうち、その検査器が判定の頼る規則で違反とするものを、
-判定が合格させないこと(`tests/assert_assurance_parity.py`)、1つの架空の変更を分解から受け入れまで進めること
-(`tests/assert_delivery_flow.py`。人の指示による要件、Jest の結果、deploy の前の判定、カードの2つの判定)、
-一時的な Git リポジトリで、`review_prep.py` を使った2回の保証レビューを通すこと
-(`tests/assert_review_prep_flow.py`)も確かめる。さらに、`read-only-reviewer` の定義が Read・Grep・Glob
-だけを許し、2つのレビューの手順がそれを名指していること、`scrum-master-agent` も同じく読み取り専用で
-`apply-scrum-guide` がそれを名指していること(`tests/assert_reviewer_agent.py`)を確かめる。
 
 [`harness/skills/draw-system-diagrams/`](harness/skills/draw-system-diagrams/) を変更したら:
 
