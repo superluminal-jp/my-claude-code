@@ -50,6 +50,7 @@ flowchart LR
 
 - 次の接続先は描いていません。`build-dads-slides` がスライドの検査環境のために取得する Python パッケージとブラウザーの配布元、`settings.json` が許可している Google Fonts です。
 - `install.sh` は、このリポジトリの Claude Code プラグインも入れますが、プラグインはハーネスの外にあるとして描いていません（このリポジトリの `CLAUDE.md`:3）。
+- AI-DLC Workflows v2 は描いていません。変更を意図から受け入れまで運ぶ手順の基盤ですが、利用者が上流の `aidlc` コマンドでプロジェクトごとに導入するもので、ハーネスには含まれず、`install.sh` も導入しないためです（[ADR-0029](../../adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)）。それを動かすプロジェクトでは、ステージの順序とゲートをそのエンジンが決め、ハーネスの指示は各ステージの中の作業に適用されます（`harness/CLAUDE.md`:17）。
 - Claude.ai 用に作り直した写しは、Claude Code とは別の場所で使われるため描いていません。
 
 ## 関連する図

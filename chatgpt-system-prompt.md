@@ -1,6 +1,6 @@
 # ChatGPT Portable Prompt
 
-This file is paste-ready text that carries the working principles of the Claude Code configuration kept in this repository (the one that holds this file) into ChatGPT, as three blocks for two of ChatGPT's settings fields. The blocks compress the configuration's rules and keep a short line or two from each of its skills whose procedure makes sense without files or tools; the table "Where each part of `harness/` went" shows which block line came from which source. They were derived from `harness/` on 2026-11-10. The ChatGPT facts below were checked on official OpenAI pages and on the owner's Plus-plan settings screen on 2026-10-05; only the entry on ChatGPT Skills was attempted again, on 2026-11-10.
+This file is paste-ready text that carries the working principles of the Claude Code configuration kept in this repository (the one that holds this file) into ChatGPT, as three blocks for two of ChatGPT's settings fields. The blocks compress the configuration's rules and keep a short line or two from each of its skills whose procedure makes sense without files or tools; the table "Where each part of `harness/` went" shows which block line came from which source. They were derived from `harness/` on 2026-11-10. On 2026-11-18 four of the skills they draw on or mention were retired from `harness/` to `archive/delivery-gates/`, because AI-DLC Workflows v2, which a person installs in each project with its own `aidlc` command, became the base for carrying a change from intent to acceptance ([ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)); the blocks were not derived again, and the two tables on `harness/` mark those skills. The ChatGPT facts below were checked on official OpenAI pages and on the owner's Plus-plan settings screen on 2026-10-05; only the entry on ChatGPT Skills was attempted again, on 2026-11-10.
 
 ## Terms
 
@@ -106,8 +106,8 @@ Each block line is named by its first word or words.
 | Skill `structure-document` | Show how the answer was reached; the last clause of Horizontal; Decisions | Compact: Decisions; More about you block: Documents |
 | Skill `define-problem` | Problem | — |
 | Skill `clarify-intent` | Intent drift | — |
-| Skill `specify-requirements` | Requirements | — |
-| Skill `define-product-strategy` | Strategy | — |
+| Skill `specify-requirements` (retired on 2026-11-18; now in `archive/delivery-gates/skills/`) | Requirements | — |
+| Skill `define-product-strategy` (retired on 2026-11-18; now in `archive/delivery-gates/skills/`) | Strategy | — |
 | Skill `apply-scrum-guide` | Scrum | — |
 | Skill `implement-change` | Code | — |
 | Skill `build-dads-slides`: slides on Japan's Digital Agency Design System (DADS) | — | More about you block: Slides |
@@ -134,7 +134,8 @@ Read on 2026-10-05, not read again:
 
 | Source | Reason |
 |---|---|
-| Skills `verify-change` (accepting a change by its evidence), `deliver-change` (the order of the change steps), `sync-docs` (keeping documents in step with code), `manage-git` (Git operations) | They need a repository and Git. The owner uses ChatGPT for business writing, not code, so the code skill `implement-change` keeps only its one line. |
+| Skills `sync-docs` (keeping documents in step with code), `manage-git` (Git operations) | They need a repository and Git. The owner uses ChatGPT for business writing, not code, so the code skill `implement-change` keeps only its one line. |
+| Skills `verify-change` (accepting a change by its evidence), `deliver-change` (the order of the change steps), both retired from `harness/` on 2026-11-18 and now in `archive/delivery-gates/skills/` | Not ported on 2026-11-10 for the same reason: they needed a repository and Git. |
 | Skills `research-aws` (AWS answers from AWS documentation tools), `apply-secure-logging` (a logging checklist bundled in that skill), `apply-dads-frontend` (web interfaces on DADS, built in a code repository) | Each depends on a tool, a bundled file, or a repository; none fits a text field. |
 | Subagent delegation; the five subagent definitions under `harness/agents/`; the context-free read | ChatGPT has no subagents. |
 | `harness/settings.json`: the sandbox that limits Claude Code's shell commands, command permissions, and the allowed MCP servers (tool servers Claude Code connects to) | Claude Code settings with no ChatGPT counterpart. |

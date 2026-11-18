@@ -1,12 +1,12 @@
 # Claude.ai Portable Prompt
 
-This file carries the working principles of this repository's Claude Code configuration into Claude.ai in two parts. The first is the instructions block: text you paste into one settings field, which then applies to every chat. The second is eight skills from the configuration that you upload, which Claude.ai loads only when a request matches them. On 2026-11-10 this repository's owner uploaded all eight unchanged (Setup, step 3). Both parts were derived from `harness/` on 2026-11-10. The Claude.ai facts they rely on are listed under Verified facts with the date each was read.
+This file carries the working principles of this repository's Claude Code configuration into Claude.ai in two parts. The first is the instructions block: text you paste into one settings field, which then applies to every chat. The second is eight skills from the configuration that you upload, which Claude.ai loads only when a request matches them. On 2026-11-10 this repository's owner uploaded all eight unchanged (Setup, step 3). Both parts were derived from `harness/` on 2026-11-10. On 2026-11-18 four skills were retired from `harness/` to `archive/delivery-gates/`, because AI-DLC Workflows v2, which a person installs in each project with its own `aidlc` command, became the base for carrying a change from intent to acceptance ([ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)). One of the eight uploaded skills, `define-product-strategy`, is among the four; the block and the uploaded skills were not derived again, and the sections below say where that matters. The Claude.ai facts they rely on are listed under Verified facts with the date each was read.
 
 ## Terms
 
 - **`harness/`**: the folder in this repository that holds the configuration. `install.sh` copies it to `~/.claude/`, where Claude Code, Anthropic's coding agent for the terminal, reads it.
 - **Rules**: the top-level policy `harness/CLAUDE.md` and four files under `harness/rules/` that Claude Code loads in every session: requirements certainty (`clarifier.md`), authorization (`permissions.md`), reader-facing structure (`pyramid-principle.md`), and reasoning completeness (`thinking-lenses.md`).
-- **Skill**: a folder holding a `SKILL.md` file, which gives instructions and a description of when they apply, plus optional reference files and scripts. Claude loads a skill only when a request matches its description. `harness/skills/` holds sixteen.
+- **Skill**: a folder holding a `SKILL.md` file, which gives instructions and a description of when they apply, plus optional reference files and scripts. Claude loads a skill only when a request matches its description. `harness/skills/` holds thirteen.
 - **Subagent**: a second model instance that Claude Code starts with an empty context for one task. Some skills use one for a **context-free read**: the subagent reads a finished document or result without having seen the conversation and lists what it cannot follow or what it finds wrong. The Claude.ai pages read for this file describe no way to start a subagent in chat.
 - **The block**: the fenced text under "The instructions block". It is written for the model in dense notation, not for people to read.
 - **Claude.ai Project**: Claude.ai's feature for grouping chats with their own instructions and files ("project knowledge"). Elsewhere in this file, "repository" means a Git repository of code.
@@ -57,19 +57,22 @@ The block holds the rules and one short line each for a few procedures: framing 
 ### Setup
 
 1. Turn on code execution: **Settings** → **Capabilities** → **Create and edit files** in the current layout, **Code execution and file creation** in the older one. Skills run in the code-execution sandbox, the isolated environment where Claude.ai executes code.
-2. Build one ZIP per skill from the repository root. Each archive has the skill's folder at its top level, the layout Claude.ai requires, and leaves out the skill's own tests:
+2. Build one ZIP per skill from the repository root. Seven of the eight folders are in `harness/skills/`; `define-product-strategy` is in `archive/delivery-gates/skills/` since 2026-11-18 and is no longer maintained or checked with the others. Each archive has the skill's folder at its top level, the layout Claude.ai requires, and leaves out the skill's own tests:
 
    ```sh
    out="$TMPDIR/claude-ai-skills"; mkdir -p "$out"
    cd harness/skills
-   for s in clarify-intent define-problem define-product-strategy structure-document \
-            draw-system-diagrams apply-scrum-guide research-aws apply-secure-logging; do
+   for s in clarify-intent define-problem structure-document draw-system-diagrams \
+            apply-scrum-guide research-aws apply-secure-logging; do
      zip -qr "$out/$s.zip" "$s" -x "$s/tests/*" "*/__pycache__/*" "*.DS_Store"
    done
+   cd ../../archive/delivery-gates/skills
+   s=define-product-strategy
+   zip -qr "$out/$s.zip" "$s" -x "$s/tests/*" "*/__pycache__/*" "*.DS_Store"
    echo "$out"
    ```
 
-3. Upload each ZIP from the folder the command printed: **Customize** → **Skills** → **+** → **Create skill** → **Upload a skill**. Uploaded skills belong to your account only. One official page limits `description` to 200 characters, and every description in `harness/skills/` is between 208 and 851 characters long; even so, all eight were accepted on 2026-11-10 (see Verified facts). If a later upload is refused for the description's length, the limit has changed, and shortening the descriptions would be a separate change.
+3. Upload each ZIP from the folder the command printed: **Customize** → **Skills** → **+** → **Create skill** → **Upload a skill**. Uploaded skills belong to your account only. One official page limits `description` to 200 characters, and every description in `harness/skills/` was between 208 and 851 characters long on 2026-11-10; even so, all eight were accepted on 2026-11-10 (see Verified facts). If a later upload is refused for the description's length, the limit has changed, and shortening the descriptions would be a separate change.
 4. After `harness/skills/` changes, build the ZIPs again and replace the uploaded skills. Nothing synchronizes them.
 
 ### What each skill does on Claude.ai
@@ -78,7 +81,7 @@ The block holds the rules and one short line each for a few procedures: framing 
 |---|---|---|
 | `clarify-intent` | States its reading of your request in a form you can reject, and records the reading you agree to in a memo, a short Markdown document | The skill saves the memo inside a repository; on Claude.ai the memo is produced as a downloadable file |
 | `define-problem` | Turns a vague complaint into one problem statement: current state, ideal state, the gap between them, and why it matters now | The skill saves the statement inside a repository; on Claude.ai it is produced as a downloadable file |
-| `define-product-strategy` | Writes a strategy brief with six sections: vision and problem, target users, value proposition, success metrics, scope and priority, constraints | The skill reads a repository's README and earlier briefs for context; on Claude.ai that context is the files you attach or the Claude.ai Project's knowledge |
+| `define-product-strategy` (retired from `harness/` on 2026-11-18; source in `archive/delivery-gates/skills/`) | Writes a strategy brief with six sections: vision and problem, target users, value proposition, success metrics, scope and priority, constraints | The skill reads a repository's README and earlier briefs for context; on Claude.ai that context is the files you attach or the Claude.ai Project's knowledge |
 | `structure-document` | Structures or reviews a document as one claim tree, the answer at the top with each claim's support nested under it, and can run its bundled Python script that checks the headings against that structure | Its context-free read needs a subagent; the skill skips it and says so |
 | `draw-system-diagrams` | Draws or reviews architecture diagrams in Mermaid, a text notation for diagrams that Markdown viewers render, one view per question, and can run its bundled checker script | The skill reads a repository for facts; on Claude.ai the facts come from your description and attached files |
 | `apply-scrum-guide` | Applies the Scrum Guide 2020, the official definition of Scrum, whose PDF is in the skill: on Claude.ai, mainly to diagnose Scrum events, artifacts and accountabilities | In Claude Code the skill has Claude work as one of the team's Developers in a repository and hands the Scrum Master accountability to a separate subagent. Claude.ai has neither the repository nor a way to start the subagent, so Claude checks the Scrum Master's questions itself and labels the result a self-check, not an independent Scrum Master's findings. Its own instructions are written in Japanese |
@@ -95,7 +98,7 @@ Read on 2026-11-10:
 - Skills are available on the Free, Pro, Max, Ultra, Team and Enterprise plans. Code execution is turned on under **Settings** → **Capabilities** (**Create and edit files**, or **Code execution and file creation** in the older layout), and a skill is uploaded as a ZIP under **Customize** → **Skills** → **+** → **Create skill** → **Upload a skill**. Each person uploads to their own account, and an uploaded skill is not visible to colleagues until shared. — [Use skills in Claude](https://support.claude.com/en/articles/12512180-use-skills-in-claude); [How to create custom skills](https://support.claude.com/en/articles/12512198-how-to-create-custom-skills)
 - The ZIP must hold the skill's folder at its top level (`my-skill.zip/my-skill/SKILL.md`). `name`, the skill's identifier in `SKILL.md`, is up to 64 lowercase letters, digits and hyphens and matches the folder. `description` is up to 1,024 characters on *Create custom skills* and up to 200 characters on *How to create custom skills*; the conflict between the pages is unresolved, but the upload observed below shows that 200 characters is not enforced. In Claude.ai chat the skill's folder is copied into the code-execution sandbox, `${CLAUDE_SKILL_DIR}` is replaced only in Claude Code and Cowork, and the page recommends a path relative to `SKILL.md` for chat. — [Create custom skills](https://claude.com/docs/skills/how-to)
 
-Observed on 2026-11-10: this repository's owner uploaded the eight ZIPs built by the Setup command, and Claude.ai added all eight. The longest description among them, that of `apply-secure-logging`, is 851 characters.
+Observed on 2026-11-10: this repository's owner uploaded the eight ZIPs built by the Setup command, and Claude.ai added all eight. The longest description among them, that of `apply-secure-logging`, was 851 characters on that day.
 
 Read on 2026-10-05, not read again:
 
@@ -107,9 +110,15 @@ Read on 2026-10-05, not read again:
 
 | Source | Reason |
 |---|---|
-| Skills `implement-change`, `verify-change`, `deliver-change`, `sync-docs`, `manage-git`: writing code test-first, accepting a change by its evidence, the order in which those two run, keeping documents in step with code, and Git operations | They need a repository, Git, and the repository's own tests. The block keeps their principles in its paragraph on code. |
-| Skill `specify-requirements`: requirements with an acceptance criterion each | Its step in which a second reader challenges the requirements needs a subagent of the type `read-only-reviewer`, and the skill stops without one. The block keeps one line on acceptance criteria. |
+| Skills `implement-change`, `sync-docs`, `manage-git`: writing code test-first, keeping documents in step with code, and Git operations | They need a repository, Git, and the repository's own tests. The block keeps their principles in its paragraph on code. |
 | Skill `build-dads-slides`: slides on the Digital Agency Design System (DADS) of Japan's Digital Agency | It downloads the design system's files from design.digital.go.jp and github.com, and a browser for Playwright, a library that drives a browser to render the slides. Whether code execution on Claude.ai can reach those hosts was not checked. |
 | Skill `apply-dads-frontend`: web interfaces on DADS | It works inside a repository built with React and Tailwind CSS, a web interface library and a styling framework, and installs the Digital Agency's packages from npm, the JavaScript package registry. |
 | Subagent delegation; the five subagent definitions under `harness/agents/` (`check-runner`, `file-searcher`, `read-only-reviewer`, `task-worker`, `scrum-master-agent`); the context-free read | The Claude.ai pages read for this file describe no way to start a subagent in chat. |
 | `harness/settings.json`: the limits Claude Code puts on its own shell commands (a separate sandbox from Claude.ai's), command permissions, and the allowed MCP servers | Claude Code settings with no Claude.ai counterpart. |
+
+Three more skills were not ported when the block was derived on 2026-11-10 and have since left `harness/`: on 2026-11-18 they were retired to `archive/delivery-gates/skills/` ([ADR-0029](docs/adr/0029-base-delivery-on-ai-dlc-workflows-v2.md)). The block still carries what it kept from them.
+
+| Retired skill | Why it was not ported on 2026-11-10 | What the block still keeps |
+|---|---|---|
+| `verify-change` (accepting a change by its evidence) and `deliver-change` (the order in which a change is specified, implemented and verified) | They needed a repository, Git, and the repository's own tests. | Their principles, in its paragraph on code. |
+| `specify-requirements` (requirements with an acceptance criterion each) | Its step in which a second reader challenges the requirements needed a subagent of the type `read-only-reviewer`, and the skill stopped without one. | One line on acceptance criteria (Requirements). |
