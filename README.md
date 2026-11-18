@@ -822,8 +822,14 @@ How the everyday work it was built for runs:
 
 Every sandboxed command is also kept from reading `~/.git-credentials`,
 `~/.netrc`, `~/.config/gh/hosts.yml`, `~/.docker/config.json`, and
-`~/.kube/config`, on top of the file tools' deny list. No command is taken
-out of the sandbox by name (`excludedCommands` is empty). A profile that
+`~/.kube/config`, on top of the file tools' deny list. Only `gh pr`,
+`gh issue`, and `gh repo view` are taken out of the sandbox by name
+(`excludedCommands`), so they can read the token in `~/.config/gh/hosts.yml`
+that stays closed to every other command; the permission mode
+reviews them ([ADR-0028](docs/adr/0028-run-gh-pr-and-issue-outside-the-sandbox.md)). Such a
+call runs outside only as a plain command: a `cd` before it, a `$(...)`, a
+heredoc, a redirection, or a flag before the subcommand such as `gh -R` keeps
+it inside, where it fails to authenticate; pass a body with `--body-file`. A profile that
 takes long-term keys from `~/.aws/credentials` fails inside; that command
 can be retried outside after the permission check. `aws sso login` runs
 inside with `--use-device-code`, which prints a URL and a code instead of

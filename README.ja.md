@@ -662,7 +662,13 @@ Claude が実行する Bash のコマンドを、許したファイルとホス�
 
 ファイルツールの deny に加えて、サンドボックスの中のコマンドは `~/.git-credentials`、
 `~/.netrc`、`~/.config/gh/hosts.yml`、`~/.docker/config.json`、`~/.kube/config` も
-読めません。名前でサンドボックスの外に出すコマンドはありません（`excludedCommands` は空です）。
+読めません。名前でサンドボックスの外に出すのは、`gh pr`、`gh issue`、`gh repo view` だけです
+（`excludedCommands`）。ほかのコマンドには閉じたままの `~/.config/gh/hosts.yml` のトークンを、
+この3つだけが読めます。外で動く `gh pr` と `gh issue` は、権限モードが審査します
+（[ADR-0028](docs/adr/0028-run-gh-pr-and-issue-outside-the-sandbox.md)）。
+外で動くのは、単独のコマンドとして実行したときだけです。前に `cd` を置く、`$(...)`、ヒアドキュメント、
+リダイレクト、`gh -R` のようにサブコマンドの前にフラグを置く、のいずれかを含む呼び出しは中に残り、
+認証に失敗します。本文は `--body-file` で渡します。
 `~/.aws/credentials` の長期のアクセスキーを使うプロファイルは、中では失敗します。そのコマンドは、
 権限の確認を経て外で再実行できます。`aws sso login` は、`--use-device-code` を付けて中で動かします。
 ブラウザの起動とローカルのポートでの待ち受けの代わりに、URL とコードを表示する方式です。
