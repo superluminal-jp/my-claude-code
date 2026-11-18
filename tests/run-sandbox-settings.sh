@@ -98,8 +98,12 @@ check "SBX-08 every sandbox path is anchored at ~/" \
 check "SBX-09 writes are opened for ~/.gnupg, ~/Library/Fonts, and the two AWS caches only" \
   "$(q '((.sandbox.filesystem.allowWrite // []) | sort) == ["~/.aws/cli/cache", "~/.aws/sso/cache", "~/.gnupg", "~/Library/Fonts"]')"
 
-check "SBX-10 no command is taken out of the sandbox by name" \
-  "$(q '(.sandbox.excludedCommands // []) == []')"
+# ADR-0028: gh needs the token in ~/.config/gh/hosts.yml, which stays in
+# denyRead (SBX-04) for every sandboxed command. Only these gh subcommands run
+# outside the sandbox, so a broad "gh *", an interpreter, or any other tool is
+# not listed; gh auth, gh api, gh gist, gh extension, and gh alias stay inside.
+check "SBX-10 only gh pr, gh issue, and gh repo view are taken out of the sandbox by name" \
+  "$(q '((.sandbox.excludedCommands // []) | sort) == ["gh issue *", "gh pr *", "gh repo view *"]')"
 
 check "SBX-11 no AWS host is reachable without asking" \
   "$(q '[(.sandbox.network.allowedDomains // [])[] | select(test("amazonaws|\\.aws$"))] | length == 0')"
