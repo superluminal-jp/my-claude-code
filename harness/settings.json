@@ -87,8 +87,7 @@
     "microsoft-docs@claude-plugins-official": false
   },
   "allowedMcpServers": [
-    { "serverUrl": "https://knowledge-mcp.global.api.aws" },
-    { "serverCommand": ["uvx", "awslabs.aws-documentation-mcp-server@latest"] }
+    { "serverUrl": "https://knowledge-mcp.global.api.aws" }
   ],
   "deniedMcpServers": [
     { "serverUrl": "https://api.githubcopilot.com/*" },

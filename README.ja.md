@@ -753,7 +753,7 @@ git のコマンドのたびに起動します（1回あたり約 0.16 秒）。
 ## MCP サーバー
 
 読み込める MCP サーバーは、どのプロジェクトでも、AWS の公式ドキュメントを検索する
-2つだけです。`settings.json` がこの2つだけを許可し、ほかは、だれが定義した
+`aws-knowledge` の1つだけです。`settings.json` がこの1つだけを許可し、ほかは、だれが定義した
 サーバーでも読み込みません（ユーザースコープの登録、プロジェクトの `.mcp.json`、
 プラグイン、claude.ai）。理由はセキュリティです。MCP サーバーは Bash の
 サンドボックスの外で動き、いくつかは起動のたびに公開されたばかりの最新版を実行し、
@@ -763,7 +763,6 @@ git のコマンドのたびに起動します（1回あたり約 0.16 秒）。
 | 許可するもの | 照合の方法 | 何をするか |
 |---|---|---|
 | `aws-knowledge` | URL `https://knowledge-mcp.global.api.aws` | AWS のドキュメントを HTTP で検索して読む。認証情報は使わない |
-| `aws-documentation` | コマンド `uvx awslabs.aws-documentation-mcp-server@latest` | AWS のドキュメントを検索して読む。`uvx` で起動し、起動のたびに最新版を実行する |
 
 リモートのサーバーは URL で、ローカルのサーバーはコマンドの完全一致で照合します。
 名前では照合しません。名前は、だれでも付けられるラベルだからです。別のサーバーを
@@ -773,21 +772,20 @@ git のコマンドのたびに起動します（1回あたり約 0.16 秒）。
 このリポジトリが MCP サーバーをユーザー設定に取り込まないことは変わりません。
 `install.sh` は MCP サーバーを登録も削除もせず、`harness/` 配下も特定のサーバーが
 あることを前提にしていません（`research-aws` は、そのセッションで実際に使える
-ドキュメントツールを使います）。2つをユーザースコープに登録するには、次を
-実行してください（2つ目には [uv](https://docs.astral.sh/uv/) が必要です）:
+ドキュメントツールを使います）。ユーザースコープに登録するには、次を
+実行してください:
 
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
-claude mcp add -s user aws-documentation -- uvx awslabs.aws-documentation-mcp-server@latest
 ```
 
-[`.mcp.json`](.mcp.json) は、このリポジトリ内で作業するときのために、同じ2つを
+[`.mcp.json`](.mcp.json) は、このリポジトリ内で作業するときのために、同じ1つを
 定義します。`.mcp.json` に書けること、各サーバーのベンダー公式リファレンス、
 何をいつ止めたかは [`docs/mcp-servers.md`](docs/mcp-servers.md) にあります。
 
 以前に登録していて、許可から外れたサーバーは、設定には残りますが読み込まれません。
 登録そのものを消すときは、各自で実行してください（例:
-`claude mcp remove -s user wolfram`）。
+`claude mcp remove -s user aws-documentation`）。
 
 許可リストに加えて、`settings.json` は次のものを直接拒否します。拒否は、どの
 許可リストでも上書きできません

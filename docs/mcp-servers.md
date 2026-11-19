@@ -1,8 +1,8 @@
 # MCP サーバー — 背景と参照先
 
-読み込める MCP サーバーは、AWS の公式ドキュメントを検索する2つ（`aws-knowledge` と `aws-documentation`）だけである。`harness/settings.json` の許可リストが、だれが定義したサーバーにも、これを適用する（§5）。理由はセキュリティである。
+読み込める MCP サーバーは、AWS の公式ドキュメントを検索する `aws-knowledge` の1つだけである。`harness/settings.json` の許可リストが、だれが定義したサーバーにも、これを適用する（§5）。理由はセキュリティである。
 
-このリポジトリは MCP サーバーをユーザー設定に取り込まない。`install.sh` は MCP サーバーを登録も削除もせず、MCP サーバーを同梱するプラグイン（`github` / `deploy-on-aws` / `microsoft-docs`）もインストールせず、`harness/settings.json` がこの3つを無効にする（§5.2）。許可された2つは、各ユーザーが自分で登録する（手順は README の「MCP Servers」節、判断の経緯は [ADR-0016](adr/0016-do-not-install-mcp-servers-at-user-scope.md)）。`harness/` 配下のルールとスキルも、特定の MCP サーバー名を前提にしない。
+このリポジトリは MCP サーバーをユーザー設定に取り込まない。`install.sh` は MCP サーバーを登録も削除もせず、MCP サーバーを同梱するプラグイン（`github` / `deploy-on-aws` / `microsoft-docs`）もインストールせず、`harness/settings.json` がこの3つを無効にする（§5.2）。許可された1つは、各ユーザーが自分で登録する（手順は README の「MCP Servers」節、判断の経緯は [ADR-0016](adr/0016-do-not-install-mcp-servers-at-user-scope.md)）。`harness/` 配下のルールとスキルも、特定の MCP サーバー名を前提にしない。
 
 `.mcp.json` は、このリポジトリ内で作業するときのプロジェクトスコープ定義である。本書はその背景（`.mcp.json` に何が書けるのか、各サーバーの情報がどこから来ているのか、許可するサーバーを変えたとき何を更新するのか、何を止めているのか）を持つ。
 
@@ -32,7 +32,7 @@
 
 `instructions` は MCP 仕様で `InitializeResult` の任意フィールドとして定義されている [2]。**サーバー作者が書くもので、利用者が手元で補うことはできない。**
 
-さらに tool search が既定で有効なため、ツール**名**はコンテキストにあるが、説明とスキーマは入っていない。必要になった時点で ToolSearch が取得する [1]。`research-aws/SKILL.md` が「利用可能なツール発見の仕組みを使ってから、提供元のドキュメントが手に入らないと判断せよ」とだけ書き、サーバー名を挙げないのはこの挙動に対応している。許可された2つを登録しているかどうかは、ユーザーごとに異なる。
+さらに tool search が既定で有効なため、ツール**名**はコンテキストにあるが、説明とスキーマは入っていない。必要になった時点で ToolSearch が取得する [1]。`research-aws/SKILL.md` が「利用可能なツール発見の仕組みを使ってから、提供元のドキュメントが手に入らないと判断せよ」とだけ書き、サーバー名を挙げないのはこの挙動に対応している。許可された1つを登録しているかどうかは、ユーザーごとに異なる。
 
 `alwaysLoad: true` を設定すると、そのサーバーだけ遅延読み込みから除外され、初回ターンから完全なスキーマが載る [1]。設定側から「把握の度合い」を上げられる唯一のレバーだが、内容そのものを足すことはできない。
 
@@ -42,12 +42,11 @@
 
 | サーバー | ベンダー公式リファレンス |
 |---|---|
-| `aws-documentation` | <https://awslabs.github.io/mcp/servers/aws-documentation-mcp-server/> |
 | `aws-knowledge` | <https://awslabs.github.io/mcp/servers/aws-knowledge-mcp-server/> |
 
-stdio の `aws-documentation` は PyPI のパッケージメタデータ（`https://pypi.org/pypi/<package>/json` の `project_urls`）から取得した。HTTP の `aws-knowledge` はベンダーの公式ドキュメントページで、掲載一覧が返した末尾スラッシュなしの形に、スラッシュを補っている。
+HTTP の `aws-knowledge` はベンダーの公式ドキュメントページで、掲載一覧が返した末尾スラッシュなしの形に、スラッシュを補っている。stdio のサーバーを足すときは、PyPI のパッケージメタデータ（`https://pypi.org/pypi/<package>/json` の `project_urls`）から取得する。
 
-2026-11-10 まで、`.mcp.json` は `google-developer-knowledge`、`microsoft-learn`、`wolfram` も定義していた。その記述は Git の履歴にある。
+2026-11-10 まで、`.mcp.json` は `google-developer-knowledge`、`microsoft-learn`、`wolfram` も定義していた。`aws-documentation` は、`aws-knowledge` に集約するため、2026-11-19 に外した。その記述は Git の履歴にある。
 
 ## 4. 許可するサーバーを変えたとき
 
@@ -63,16 +62,15 @@ stdio の `aws-documentation` は PyPI のパッケージメタデータ（`http
 
 ## 5. 許可しているサーバーと、止めているもの
 
-`harness/settings.json` は、2つの仕組みを重ねている。許可リストが、読み込めるサーバーを2つに限る。拒否リストなどが、許可リストの照合を受けないものと、特に危険なものを、直接止める。
+`harness/settings.json` は、2つの仕組みを重ねている。許可リストが、読み込めるサーバーを1つに限る。拒否リストなどが、許可リストの照合を受けないものと、特に危険なものを、直接止める。
 
-### 5.1 許可リスト: 2つだけを読み込ませる
+### 5.1 許可リスト: 1つだけを読み込ませる
 
-`harness/settings.json` の `allowedMcpServers` は、次の2つに一致するサーバーだけを読み込ませる。許可リストはどの設定ファイルからも効き、ユーザーが登録したサーバーにも、プロジェクトの `.mcp.json` のサーバーにも、プラグインや claude.ai が足すサーバーにも適用される [3]。
+`harness/settings.json` の `allowedMcpServers` は、次の1つに一致するサーバーだけを読み込ませる。許可リストはどの設定ファイルからも効き、ユーザーが登録したサーバーにも、プロジェクトの `.mcp.json` のサーバーにも、プラグインや claude.ai が足すサーバーにも適用される [3]。
 
 | 許可するもの | 照合の方法 | 注意 |
 |---|---|---|
 | `aws-knowledge` | `serverUrl: https://knowledge-mcp.global.api.aws` | HTTP、認証なし |
-| `aws-documentation` | `serverCommand: ["uvx", "awslabs.aws-documentation-mcp-server@latest"]` | 起動のたびに `uvx …@latest` で最新版を実行する。引数が1つでも違う登録（たとえば版を固定した登録）は、一致しない |
 
 照合の規則は次のとおりである [3]。
 
@@ -100,10 +98,11 @@ GitHub と `bedrock-agentcore` の拒否は、許可リストができた今は�
 
 ### 5.3 2026-11-10 に止めたもの
 
-2026-11-07 の棚卸しでは、ドキュメントの検索か計算に使うサーバーを残していた。2026-11-10 に、利用者がセキュリティを理由に、AWS のドキュメントの2つ以外を廃止すると決めた。許可リストによって、次のものが読み込まれなくなる。
+2026-11-07 の棚卸しでは、ドキュメントの検索か計算に使うサーバーを残していた。2026-11-10 に、利用者がセキュリティを理由に、AWS のドキュメントの2つ以外を廃止すると決めた。2026-11-19 には、`aws-knowledge` に集約するため、`aws-documentation` も外した。許可リストによって、次のものが読み込まれなくなる。
 
 | サーバー | 定義の場所 | 止める前の注意 |
 |---|---|---|
+| `aws-documentation` | ユーザー登録、`.mcp.json`（削除済み） | 起動のたびに `uvx …@latest` で最新版を実行する。`aws-knowledge` と同じ AWS のドキュメントを扱うので、`aws-knowledge` に集約した |
 | `strands-agents` | ユーザー登録 | 起動のたびに `uvx …@latest` で最新版を実行する |
 | `google-developer-knowledge` | ユーザー登録、`.mcp.json`（削除済み） | API キーを環境変数 `GOOGLE_DEV_KNOWLEDGE_API_KEY` から渡す |
 | `microsoft-learn` | ユーザー登録、`.mcp.json`（削除済み）、`microsoft-docs` プラグイン（無効にした） | HTTP、認証なし |
@@ -117,7 +116,7 @@ GitHub と `bedrock-agentcore` の拒否は、許可リストができた今は�
 - **登録は残る。** 許可リストは読み込みを止めるだけで、ユーザースコープの登録は消さない（このリポジトリは登録を変えない。ADR-0016）。消すときは、各ユーザーが `claude mcp remove -s user <名前>` を実行する。
 - **プラグインのインストールは残る。** `deploy-on-aws` と `microsoft-docs` は無効にしたので、スキルもサーバーも読み込まれない。インストールそのものは消さない。消すときは、各ユーザーが `claude plugin uninstall <名前>@claude-plugins-official` を実行する。AWS の公式アイコンを使う構成図のスキルは `deploy-on-aws` にあったので、その依頼を受け持つスキルは、今はない。
 
-許可された `aws-documentation` も、起動のたびに `uvx …@latest` で最新版を実行する。版を固定して登録すると、コマンドが許可リストの項目と一致しなくなるので、固定するときは許可リストの項目も同じ引数に変える。
+許可リストに stdio のサーバーを足すときは、コマンドの引数を、許可リストの項目と順序まで同じにする。版を固定して登録すると一致しなくなるので、固定するときは許可リストの項目も同じ引数に変える。
 
 ## References
 

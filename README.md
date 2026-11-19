@@ -924,18 +924,17 @@ Claude Code 2.1.319:
 
 ## MCP Servers
 
-Only two MCP servers may load, in any project: the two that search official
-AWS documentation. `settings.json` allows them and nothing else, whoever
-defines a server - you at user scope, a project's `.mcp.json`, a plugin, or
-claude.ai. The reason is security: an MCP server runs outside the Bash
-sandbox, several start the newest published version on every launch, and each
-one adds outside text, and sometimes credentials or actions, to the same
+Only one MCP server may load, in any project: `aws-knowledge`, which searches
+official AWS documentation. `settings.json` allows it and nothing else,
+whoever defines a server - you at user scope, a project's `.mcp.json`, a
+plugin, or claude.ai. The reason is security: an MCP server runs outside the
+Bash sandbox, several start the newest published version on every launch, and
+each one adds outside text, and sometimes credentials or actions, to the same
 session that can run commands.
 
 | Allowed | Matched by | What it does |
 |---|---|---|
 | `aws-knowledge` | URL `https://knowledge-mcp.global.api.aws` | Searches and reads AWS documentation over HTTP, without credentials |
-| `aws-documentation` | Command `uvx awslabs.aws-documentation-mcp-server@latest` | Searches and reads AWS documentation; started with `uvx`, which runs the newest version on every launch |
 
 A remote server is matched by its URL and a local one by its exact command,
 never by its name: a name is a label that anyone can choose. To use another
@@ -945,22 +944,21 @@ and reinstall.
 This repository still does not install MCP servers into your user
 configuration. `install.sh` neither registers nor removes any, and nothing
 under `harness/` assumes a particular server is present - `research-aws` uses
-whatever documentation tools the session actually exposes. To register the
-two at user scope (the second needs [uv](https://docs.astral.sh/uv/)):
+whatever documentation tools the session actually exposes. To register it at
+user scope:
 
 ```sh
 claude mcp add -s user aws-knowledge --transport http https://knowledge-mcp.global.api.aws
-claude mcp add -s user aws-documentation -- uvx awslabs.aws-documentation-mcp-server@latest
 ```
 
-[`.mcp.json`](.mcp.json) defines the same two for work inside this repository.
+[`.mcp.json`](.mcp.json) defines the same one for work inside this repository.
 Background - what `.mcp.json` can carry, each server's vendor reference, and
 what was stopped and when - is in
 [`docs/mcp-servers.md`](docs/mcp-servers.md).
 
 A server you registered earlier and that is no longer allowed stays in your
 configuration but does not load. Remove it yourself when you want it gone, for
-example `claude mcp remove -s user wolfram`.
+example `claude mcp remove -s user aws-documentation`.
 
 On top of the allowlist, `settings.json` denies these outright. A denial
 cannot be overridden by any allowlist
