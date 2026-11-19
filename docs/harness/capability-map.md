@@ -55,7 +55,7 @@
 | `hooks` | 含めない | PreToolUse の1つは speckit-specify が呼ばれたときだけ specify-cli の更新を確かめるもので、speckit-* は harness に含まれないため動く機会がない。もう1つの PreToolUse（文書の木を宣言したリポジトリで、Bash の git commit の前に check_tree.py の誤りを文脈に足す。ADR-0024）と SessionStart の3つ（Bash から Bedrock の AWS の変数を外す、gpg-agent を外で起動する、Bash が zsh のとき・macOS のとき・aws CLI があるときに注意を文脈に足す）は、組み立てるプラグインのフックを常時ロードの注入に限るため含めない。そのため注意と警告が振る舞いに与える効果は測らない |
 | `sandbox` | 含めない | Bash の OS サンドボックスと、日常作業のために開ける場所。eval の Bash は eval 自身の OS サンドボックスで動き（書き込みは作業領域、ホームは読めず、ネットワークは許さない）、この設定は再現しない。開ける場所と守る場所は tests/run-sandbox-settings.sh で確かめる |
 | `enabledPlugins` | 含めない | MCP サーバーを同梱する github・deploy-on-aws・microsoft-docs の各プラグインを無効にする。eval は評価するプラグインのほかのプラグインを読み込まない |
-| `allowedMcpServers` | 含めない | 読み込んでよい MCP サーバーを、AWS の文書を検索する2つ（aws-knowledge の URL と aws-documentation のコマンド）に限る。eval は MCP サーバーを読み込まない。許可する内容は tests/run-sandbox-settings.sh で確かめる |
+| `allowedMcpServers` | 含めない | 読み込んでよい MCP サーバーを、AWS の文書を検索する aws-knowledge の URL 1つに限る。eval は MCP サーバーを読み込まない。許可する内容は tests/run-sandbox-settings.sh で確かめる |
 | `deniedMcpServers` | 含めない | 使わない MCP サーバーと、許可リストの対象にならない組み込みの Chrome 連携を拒む。eval は MCP サーバーを読み込まない |
 | `disableClaudeAiConnectors` | 含めない | claude.ai のコネクタを止める。eval は一時的なホームと設定で動き、MCP サーバーを読み込まない |
 | `syncClaudeAiPlugins` | 含めない | claude.ai からのプラグインの同期を止める。eval は利用者の設定とほかのプラグインを読み込まない |

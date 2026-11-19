@@ -129,13 +129,13 @@ check "MCP-06 plugins are not synced from claude.ai" \
   "$(q '.syncClaudeAiPlugins == false')"
 
 # --- MCP servers it allows -----------------------------------------------
-# Only the two AWS documentation servers may load, whoever defines them: a
-# user, a project's .mcp.json, a plugin, or claude.ai. A remote server is
-# matched by URL and a stdio server by its exact command; a name is a label
-# anyone can choose, so the allowlist has no name entry.
+# Only the AWS knowledge server may load, whoever defines it: a user, a
+# project's .mcp.json, a plugin, or claude.ai. A remote server is matched by
+# URL and a stdio server by its exact command; a name is a label anyone can
+# choose, so the allowlist has no name entry.
 
-check "MCP-07 the allowlist is exactly the AWS knowledge URL and the AWS documentation command" \
-  "$(q '((.allowedMcpServers // []) | sort_by(tojson)) == ([{"serverUrl": "https://knowledge-mcp.global.api.aws"}, {"serverCommand": ["uvx", "awslabs.aws-documentation-mcp-server@latest"]}] | sort_by(tojson))')"
+check "MCP-07 the allowlist is exactly the AWS knowledge URL" \
+  "$(q '(.allowedMcpServers // []) == [{"serverUrl": "https://knowledge-mcp.global.api.aws"}]')"
 
 check "MCP-08 the allowlist matches by URL and command, never by name" \
   "$(q '[.allowedMcpServers[]? | select(has("serverName"))] | length == 0')"
@@ -149,12 +149,12 @@ check "MCP-09 the built-in Chrome integration is denied" \
 MCP_JSON="$REPO_ROOT/.mcp.json"
 mcp_json_ok="$(jq -e --slurpfile settings "$SETTINGS" '
   ($settings[0].allowedMcpServers // []) as $allowed
-  | (.mcpServers | keys | sort) == ["aws-documentation", "aws-knowledge"]
+  | (.mcpServers | keys | sort) == ["aws-knowledge"]
     and ([.mcpServers[]
           | if has("url") then {serverUrl: .url} else {serverCommand: ([.command] + (.args // []))} end
           | . as $entry | ($allowed | index($entry)) != null] | all)
 ' "$MCP_JSON" >/dev/null 2>&1 && printf 1 || printf 0)"
-check "MCP-10 .mcp.json defines only the two allowed servers, each matching an allowlist entry" "$mcp_json_ok"
+check "MCP-10 .mcp.json defines only the allowed server, matching its allowlist entry" "$mcp_json_ok"
 
 # A plugin whose skills depend on a server the allowlist refuses is turned
 # off as a whole, so that no skill is listed that cannot do its work.
