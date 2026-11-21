@@ -16,21 +16,24 @@ Where the project is silent, the established standard for the thing being writte
 | HTTP APIs | OpenAPI Specification; RFC 9110 (HTTP Semantics); RFC 9457 (Problem Details) for error responses |
 | The structure of an application | The Twelve-Factor App |
 | Dates, times, and text encoding | ISO 8601 / RFC 3339 timestamps in UTC; UTF-8 |
-| A change in behavior | Test-driven development, where the project has a test setup |
+| A change in behavior | Kent Beck's test-driven development (Canon TDD: a test list, one failing test at a time, make it pass, refactor), where the project has a test setup |
+| Code review | Google Engineering Practices Documentation (the code review guidelines) |
 | Comments and API documentation in code | PEP 257 docstrings; TSDoc; a comment gives the reason, which the code cannot show |
 | Cloud architecture | The provider's Well-Architected Framework (AWS, Google Cloud, Azure), with its guidance for the workload: the AWS Serverless Applications and Generative AI lenses, Google Cloud's AI and ML perspective, Azure's AI workload guidance |
+| Cloud account and resource configuration | The provider's CIS Benchmark: CIS Amazon Web Services Foundations, Google Cloud Platform Foundation, Microsoft Azure Foundations |
 | Cloud identity and access | Least privilege as the provider documents it: AWS "Security best practices in IAM", Google Cloud's IAM security best practices, "Best practices for Azure RBAC" |
 | Infrastructure as code | AWS CDK best practices; the Terraform Style Guide |
-| Applications built on language models | OWASP Top 10 for LLM Applications; OWASP Top 10 for Agentic Applications; NIST AI Risk Management Framework; Japan's AI事業者ガイドライン |
+| Applications built on language models | OWASP Top 10 for LLM Applications; OWASP Top 10 for Agentic Applications; MITRE ATLAS for threats to AI systems; NIST AI Risk Management Framework with its Generative AI Profile (NIST AI 600-1); Japan's AI事業者ガイドライン |
 | Prompts, agents, and tools | The model provider's official prompting guidance; the Model Context Protocol specification |
 | Model and dataset documentation | Model Cards; Datasheets for Datasets |
-| Security of any code | OWASP Top 10; OWASP ASVS for requirements |
+| Security of any code | OWASP Top 10; OWASP ASVS for requirements; the OWASP Cheat Sheet Series for how to implement a control |
 | Security of APIs and authorization | OWASP API Security Top 10; RFC 9700 (OAuth 2.0 security) |
-| Dependencies and the build supply chain | SLSA; OpenSSF Scorecard; a committed lockfile |
+| Dependencies and the build supply chain | SLSA; OpenSSF Scorecard; a committed lockfile; an SBOM in SPDX (ISO/IEC 5962) or CycloneDX (ECMA-424), following the format the project already uses |
+| CI/CD pipelines | OWASP Top 10 CI/CD Security Risks |
 | Logging and telemetry | OWASP Logging Cheat Sheet; OWASP ASVS 5.0 V16; OpenTelemetry semantic conventions |
 | Threat models | STRIDE; OWASP Threat Modeling Cheat Sheet |
 | Vulnerability findings and disclosure | CWE identifiers; CVSS for severity; `SECURITY.md` and `security.txt` (RFC 9116) for how to report |
-| Incident reports | The blameless postmortem of Google's Site Reliability Engineering book |
+| Incident response and reports | NIST SP 800-61 Rev. 3 for the response; the blameless postmortem of Google's Site Reliability Engineering book for the report |
 | Defining a problem | Toyota Business Practices, "clarify the problem": current state, ideal state, and the gap; Kepner-Tregoe is / is-not; no cause or solution in the statement |
 | Confirming what was asked | A read-back: restate the request as what will be produced and have it confirmed; the Ladder of Inference to find where two readings parted |
 | The structure of a document | The Minto Pyramid Principle; IMRaD for a report or analysis |
