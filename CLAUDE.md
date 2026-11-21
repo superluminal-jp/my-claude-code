@@ -1,12 +1,13 @@
 # About this repository
 
-This repository keeps the author's Claude Code user-level configuration under Git. The source is `harness/`; `bash install.sh` copies its four managed paths (`CLAUDE.md`, `rules/`, `skills/`, `agents/`) into `~/.claude/`, replacing each so that it matches. `settings.json` is not managed here.
+This repository keeps the author's Claude Code user-level configuration under Git. The source is `harness/`; `bash install.sh` copies its three managed paths (`CLAUDE.md`, `rules/`, `agents/`) into `~/.claude/`, replacing each so that it matches. `settings.json` and `skills/` are not managed here.
 
 - Files under `harness/` apply in every project once installed. Keep them universal: no facts about this repository, and nothing that duplicates a per-project workflow (Spec Kit and AI-DLC are set up in each project, not here).
 - This file is for developing this repository only. It is not installed.
 - Change `harness/` and run `bash install.sh`; do not edit `~/.claude/` directly. A session here runs on the installed copy, so an edit takes effect after the next install and a new session. Inside the Bash sandbox `install.sh` cannot write to `~/.claude/`, so it needs the person's approval to run outside it.
 - Run `bash tests/run.sh` before committing. It checks the format of `harness/` and the installer, and writes only under `$TMPDIR`.
-- Front matter uses only the fields Claude Code reads. A skill description says what the skill does and when to use it, in the third person, within 1,024 characters. A `SKILL.md` body stays under 500 lines, with detail in `references/` one level down.
+- Front matter uses only the fields Claude Code reads.
+- There are no skills at present. Add one only for a procedure that no named standard covers; `harness/skills/<name>/SKILL.md` is checked by `tests/check_harness.py` when present, and `skills` then has to be added to `MANAGED_PATHS` in `install.sh`.
 - Name the established standard instead of restating its contents, and add a specific instruction only for what no standard covers or for a mistake seen twice.
-- Every always-loaded line costs context in every session. Before adding to `harness/CLAUDE.md` or to a rule without `paths`, consider a path-scoped rule or a skill.
+- Every always-loaded line costs context in every session. Before adding to `harness/CLAUDE.md` or to a rule without `paths`, consider a path-scoped rule.
 - Keep `README.md` and `README.ja.md` in step with each other and with the contents of `harness/`.

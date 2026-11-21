@@ -22,6 +22,9 @@ from pathlib import Path
 
 CLAUDE_MD_MAX_LINES = 200
 ALWAYS_LOADED_RULE_MAX_LINES = 60
+# Lines hide long table rows, so the text loaded in every session (CLAUDE.md
+# and the rules without `paths`) also has a budget in bytes.
+ALWAYS_LOADED_MAX_BYTES = 16_000
 SKILL_NAME_MAX = 64
 SKILL_DESCRIPTION_MAX = 1024
 SKILL_BODY_MAX_LINES = 500
@@ -116,11 +119,27 @@ def check_rules(root: Path, errors: list[str]) -> None:
                 )
 
 
+def check_always_loaded_size(root: Path, errors: list[str]) -> None:
+    total = 0
+    paths = [root / "CLAUDE.md", *sorted((root / "rules").rglob("*.md"))]
+    for path in paths:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        fields, _ = split_front_matter(text)
+        if path.name != "CLAUDE.md" and fields and "paths" in fields:
+            continue
+        total += len(text.encode("utf-8"))
+    if total > ALWAYS_LOADED_MAX_BYTES:
+        errors.append(
+            f"always-loaded text is {total} bytes, over {ALWAYS_LOADED_MAX_BYTES}; "
+            "shorten it or scope a rule with `paths`"
+        )
+
+
 def check_skills(root: Path, errors: list[str]) -> None:
     skills_dir = root / "skills"
     skill_dirs = sorted(p for p in skills_dir.iterdir() if p.is_dir() and not p.name.startswith(".")) if skills_dir.is_dir() else []
-    if not skill_dirs:
-        errors.append("skills/: no skills")
     for skill in skill_dirs:
         rel = skill.relative_to(root)
         skill_md = skill / "SKILL.md"
@@ -173,7 +192,7 @@ def check_skills(root: Path, errors: list[str]) -> None:
 
 
 def check_agents(root: Path, errors: list[str]) -> None:
-    agents = sorted((root / "agents").glob("*.md"))
+    agents = sorted((root / "agents").rglob("*.md"))
     if not agents:
         errors.append("agents/: no agent files")
     for path in agents:
@@ -205,6 +224,7 @@ def main() -> int:
     errors: list[str] = []
     check_claude_md(root, errors)
     check_rules(root, errors)
+    check_always_loaded_size(root, errors)
     check_skills(root, errors)
     check_agents(root, errors)
     for error in errors:

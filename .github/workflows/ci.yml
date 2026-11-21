@@ -14,11 +14,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The ruleset on main requires a check named "test"; keep this job's name.
   test:
     name: test
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - name: Run all checks
+        shell: bash
+        run: bash tests/run.sh
+
+  # Runs the scripts under the system Bash 3.2 and the BSD tools.
+  test-macos:
+    name: test (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Run all checks
+        shell: bash
         run: bash tests/run.sh
