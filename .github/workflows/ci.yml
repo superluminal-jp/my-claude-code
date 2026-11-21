@@ -9,60 +9,33 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # The ruleset on main requires a check named "test"; keep this job's name.
   test:
     name: test
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Run all checks
+        shell: bash
+        run: bash tests/run.sh
 
-      - name: Install uv (provides uvx)
-        uses: astral-sh/setup-uv@v3
-
-      - name: Run installer contract tests
-        run: bash tests/run-install.sh
-
-      - name: Run always-loaded layer contract tests
-        run: bash tests/run-config-pyramid.sh
-
-      - name: Run skill contract and bundled script tests
-        run: bash tests/run-harness-skills.sh
-
-      - name: Run removed-guardrails regression tests
-        run: bash tests/run-removed-guardrails.sh
-
-      - name: Run sandbox settings contract tests
-        run: bash tests/run-sandbox-settings.sh
-
-      - name: Run documentation tree commit hook tests
-        run: bash tests/run-commit-tree-hook.sh
-
-      - name: Run package-safety bundle contract tests
-        run: bash tests/run-package-safety-bundle.sh
-
-      - name: Run README skill-index check
-        run: bash tests/run-readme-skill-index.sh
-
-      - name: Run specify-requirements skill tests
-        run: bash tests/run-specify-requirements-skill.sh
-
-      - name: Run verify-change skill tests
-        run: bash tests/run-verify-change-skill.sh
-
-      - name: Run draw-system-diagrams skill tests
-        run: bash tests/run-draw-system-diagrams-skill.sh
-
-      - name: Run apply-secure-logging skill tests
-        run: bash tests/run-apply-secure-logging-skill.sh
-
-      - name: Run apply-dads-frontend skill tests
-        run: bash tests/run-apply-dads-frontend-skill.sh
-
-      - name: Run build-dads-slides skill tests
-        run: bash tests/run-build-dads-slides-skill.sh
-
-      - name: Run harness behavior baseline checks
-        run: bash tests/run-harness-eval.sh
-
-      - name: Run MCP startup smoke test
-        run: bash tests/run-mcp-startup.sh
+  # Runs the scripts under the system Bash 3.2 and the BSD tools.
+  test-macos:
+    name: test (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Run all checks
+        shell: bash
+        run: bash tests/run.sh

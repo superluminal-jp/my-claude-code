@@ -1,4 +1,0 @@
-# python3 -B tests/assert_role_tree.py (2026-11-15, round-1 fix of AR-02: the PURPOSE rule added, before purpose() cuts a Japanese sentence)
-FAIL PURPOSE apply-scrum-guide: the purpose 'Scrum Guide (2020) を唯一の規範として、AI が Scrum Team の Developers の一'... is more than one sentence
-role-tree: 22 elements, 1 violations
-exit=1

@@ -1,7 +1,0 @@
-# command: python3 -I specs/073-scrum-role-tree/evidence/frontmatter_only.py main dcb14259969f0354be32736cc7b337b14891379e
-# commit: dcb14259969f0354be32736cc7b337b14891379e
-# date: 2026-11-14T23:55:14Z
-
-frontmatter-only: 22 files compared with main, 0 failures
-
-exit=0

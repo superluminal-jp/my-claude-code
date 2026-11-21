@@ -1,8 +1,0 @@
-# command: python3 -B harness/skills/draw-system-diagrams/scripts/check_diagrams.py docs/harness/skill-map
-# commit: dcb14259969f0354be32736cc7b337b14891379e
-# date: 2026-11-14T23:55:12Z
-
-W M6 docs/harness/skill-map/03-role-tree.md:10 31 elements (limit 20); split the view by boundary or by flow
-0 error(s), 1 warning(s)
-
-exit=0

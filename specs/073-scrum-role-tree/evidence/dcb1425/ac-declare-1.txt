@@ -1,6 +1,0 @@
-# command: tree_diff
-# commit: dcb14259969f0354be32736cc7b337b14891379e
-# date: 2026-11-14T23:54:32Z
-
-
-exit=0

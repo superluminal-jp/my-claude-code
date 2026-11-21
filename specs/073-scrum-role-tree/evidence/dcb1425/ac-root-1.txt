@@ -1,7 +1,0 @@
-# command: python3 -B tests/assert_role_tree.py
-# commit: dcb14259969f0354be32736cc7b337b14891379e
-# date: 2026-11-14T23:54:32Z
-
-role-tree: 22 elements, 0 violations
-
-exit=0

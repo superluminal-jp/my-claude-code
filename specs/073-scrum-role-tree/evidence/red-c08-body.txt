@@ -1,5 +1,0 @@
-# python3 -B -m unittest tests/test_skill_contract.py (2026-11-15, round-1 fix of AR-01: before C-08 limits its exemption to the frontmatter)
-FAIL: test_c08_role_line_in_the_body_is_still_a_name (tests.test_skill_contract.ContractTests.test_c08_role_line_in_the_body_is_still_a_name)
-AssertionError: 0 != 1 : 
-Ran 30 tests in 1.198s
-FAILED (failures=1)

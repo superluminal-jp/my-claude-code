@@ -1,7 +1,0 @@
-# command: python3 -I specs/073-scrum-role-tree/evidence/check_skill_map.py
-# commit: dcb14259969f0354be32736cc7b337b14891379e
-# date: 2026-11-14T23:55:13Z
-
-skill-map: 7 edges, 5 pages, 0 failures
-
-exit=0

@@ -1,0 +1,53 @@
+# Standards
+
+Where the project is silent, the established standard for the thing being written decides, not a personal style.
+
+- Use standards actively: follow the relevant one in everyday work without being asked and without comment, and use any other well-established standard that fits the work the same way as those listed here.
+- Use them accurately where it counts. When a design choice, a review finding, a requirement, or a disputed point rests on a standard, name it with its section, rule, or criterion number, and read the current text first when it is public. Attribute to a standard only what it says, and say so when a point comes from memory because the text could not be read.
+
+| Writing | Standard or established practice |
+|---|---|
+| Python | PEP 8; PEP 257; the specification for the Python type system (PEP 484) |
+| TypeScript | TSConfig `strict`; the typescript-eslint recommended rules |
+| React | The Rules of React (react.dev) |
+| Shell scripts | Google Shell Style Guide for Bash; POSIX for `#!/bin/sh`; ShellCheck |
+| Web interfaces | WCAG 2.2 level AA; WAI-ARIA Authoring Practices; JIS X 8341-3 for Japanese public services |
+| Interfaces for Japanese public services | The Digital Agency Design System (https://design.digital.go.jp/dads/) |
+| HTTP APIs | OpenAPI Specification; RFC 9110 (HTTP Semantics); RFC 9457 (Problem Details) for error responses |
+| The structure of an application | The Twelve-Factor App |
+| Dates, times, and text encoding | ISO 8601 / RFC 3339 timestamps in UTC; UTF-8 |
+| A change in behavior | Test-driven development, where the project has a test setup |
+| Comments and API documentation in code | PEP 257 docstrings; TSDoc; a comment gives the reason, which the code cannot show |
+| Cloud architecture | The provider's Well-Architected Framework (AWS, Google Cloud, Azure), with its guidance for the workload: the AWS Serverless Applications and Generative AI lenses, Google Cloud's AI and ML perspective, Azure's AI workload guidance |
+| Cloud identity and access | Least privilege as the provider documents it: AWS "Security best practices in IAM", Google Cloud's IAM security best practices, "Best practices for Azure RBAC" |
+| Infrastructure as code | AWS CDK best practices; the Terraform Style Guide |
+| Applications built on language models | OWASP Top 10 for LLM Applications; OWASP Top 10 for Agentic Applications; NIST AI Risk Management Framework; Japan's AI事業者ガイドライン |
+| Prompts, agents, and tools | The model provider's official prompting guidance; the Model Context Protocol specification |
+| Model and dataset documentation | Model Cards; Datasheets for Datasets |
+| Security of any code | OWASP Top 10; OWASP ASVS for requirements |
+| Security of APIs and authorization | OWASP API Security Top 10; RFC 9700 (OAuth 2.0 security) |
+| Dependencies and the build supply chain | SLSA; OpenSSF Scorecard; a committed lockfile |
+| Logging and telemetry | OWASP Logging Cheat Sheet; OWASP ASVS 5.0 V16; OpenTelemetry semantic conventions |
+| Threat models | STRIDE; OWASP Threat Modeling Cheat Sheet |
+| Vulnerability findings and disclosure | CWE identifiers; CVSS for severity; `SECURITY.md` and `security.txt` (RFC 9116) for how to report |
+| Incident reports | The blameless postmortem of Google's Site Reliability Engineering book |
+| Defining a problem | Toyota Business Practices, "clarify the problem": current state, ideal state, and the gap; Kepner-Tregoe is / is-not; no cause or solution in the statement |
+| Confirming what was asked | A read-back: restate the request as what will be produced and have it confirmed; the Ladder of Inference to find where two readings parted |
+| The structure of a document | The Minto Pyramid Principle; IMRaD for a report or analysis |
+| Documents for stakeholders and decision-makers | The Minto Pyramid Principle with a situation-complication-question opening; plain language (ISO 24495-1); Amazon's PR/FAQ and narrative memo for a proposal |
+| Technical writing | Google developer documentation style guide |
+| Japanese prose | JTF日本語標準スタイルガイド; 「公用文作成の考え方」 for public-sector documents |
+| Project documentation | Docs as Code; Diátaxis for the kind of each document; Standard Readme for a README |
+| Requirements | EARS; the key words of RFC 2119 and RFC 8174; Given-When-Then for acceptance criteria |
+| Architecture documentation | arc42; the C4 model for diagrams, written as Mermaid in Markdown |
+| Decision records | ADR in Michael Nygard's format, or MADR |
+| Commits | Conventional Commits 1.0.0 |
+| Branches and pull requests | GitHub flow: a short-lived branch, a pull request, review, then merge |
+| Versions and changelogs | Semantic Versioning 2.0.0; Keep a Changelog |
+| GitHub Actions and repository settings | GitHub's security hardening guidance for Actions |
+
+## Facts no standard covers
+
+- On macOS the interactive shell is zsh, and the system Bash (`/bin/bash`) is 3.2, so Bash 4 features (associative arrays, `mapfile`, `${var,,}`) fail in a script that it runs. The command-line tools are the BSD versions, whose options differ from GNU's.
+- Temporary files go under `${TMPDIR:-/tmp}`.
+- For AWS, assume the Asia Pacific (Tokyo) Region, `ap-northeast-1`, unless another is named, say so in the answer, and check availability for that Region rather than inferring it from another.

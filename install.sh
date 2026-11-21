@@ -1,137 +1,45 @@
 #!/usr/bin/env bash
-# Synchronize the managed configuration in harness/ into the user's ~/.claude/
-# and install its required Claude Code plugins. Re-running is idempotent.
+# Copy the managed configuration in harness/ into ~/.claude/.
 #
-# The source lives in harness/, not in this repository's own .claude/: a
-# sandboxed Bash command cannot write under .claude/, and files there would
-# also load as this repository's project configuration, a second time.
+# Managed paths: CLAUDE.md, rules/, agents/. Each is replaced so that it
+# matches harness/ exactly; a rule or agent removed here is removed there.
+# Everything else under ~/.claude/ (settings.json, skills/, plugins,
+# projects, ...) is left untouched.
 #
-# MCP servers are not installed: register the ones you need yourself (see
-# README.md § MCP Servers). User-scope MCP registrations are left untouched.
-#
-# Requires: claude CLI, jq.
-#
-# Usage (from the cloned repo):
-#   bash path/to/my-claude-code/install.sh
-# Or, after a previous install:
-#   ~/.claude/install.sh
+# Usage: bash install.sh
+# Set CLAUDE_CONFIG_DIR to install somewhere other than ~/.claude.
 
 set -euo pipefail
 
-# 0. Preflight checks, before anything that runs an external command: with
-# claude or jq missing, the run must stop with this message rather than with
-# whatever fails first (newer bash rejects the `cd ""` that a missing
-# `dirname` would leave below).
-for cmd in claude jq; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    echo "Missing required command: $cmd" >&2
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_DIR="$SCRIPT_DIR/harness"
+TARGET_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+MANAGED_PATHS=(CLAUDE.md rules agents)
+
+for rel in "${MANAGED_PATHS[@]}"; do
+  if [ ! -e "$SOURCE_DIR/$rel" ]; then
+    echo "Missing source: $SOURCE_DIR/$rel" >&2
     exit 1
   fi
 done
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_DIR="$SCRIPT_DIR/harness"
-TARGET_DIR="$HOME/.claude"
+mkdir -p "$TARGET_DIR"
 
-sync_path() {
-  local rel="$1"
-  local src="$SOURCE_DIR/$rel"
-  local dst="$TARGET_DIR/$rel"
+# Build the new copy beside the target first, so that a copy that fails
+# leaves the installed files as they were.
+stage_dir="$(mktemp -d "$TARGET_DIR/.install-new.XXXXXX")"
+trap 'rm -rf "$stage_dir"' EXIT
+for rel in "${MANAGED_PATHS[@]}"; do
+  cp -R "$SOURCE_DIR/$rel" "$stage_dir/$rel"
+done
+# Drop what is not configuration: Finder metadata, and the marker directories
+# Claude Code leaves in a directory it has worked in.
+find "$stage_dir" -name .DS_Store -delete
+find "$stage_dir" -type d -name .claude -prune -exec rm -rf {} +
 
-  # Make target match source exactly for managed paths.
-  rm -rf "$dst"
-  if [ -d "$src" ]; then
-    mkdir -p "$(dirname "$dst")"
-    cp -R "$src" "$dst"
-  elif [ -f "$src" ]; then
-    mkdir -p "$(dirname "$dst")"
-    cp "$src" "$dst"
-  fi
-}
-
-sync_settings_json() {
-  local src="$SOURCE_DIR/settings.json"
-  local dst="$TARGET_DIR/settings.json"
-
-  if [ ! -f "$dst" ]; then
-    cp "$src" "$dst"
-    return
-  fi
-
-  # Merge instead of replace: a key this repo declares (model, permissions,
-  # hooks, ...) always takes the repo's value, recursing into shared objects
-  # so e.g. permissions.deny stays enforced (docs/adr/0014) while a sibling
-  # key under the same object survives. A top-level key the repo does not
-  # declare - env, enabledPlugins, agentPushNotifEnabled, and anything else
-  # a user or the CLI itself added - is left untouched. `jq`'s `*` merges
-  # objects recursively and takes the right operand on any non-object
-  # conflict, so the repo file goes second.
-  local merged
-  merged="$(jq -s '.[0] * .[1]' "$dst" "$src")"
-  printf '%s\n' "$merged" >"$dst"
-}
-
-# 1. Sync managed paths from harness/ (prevents stale skills/rules)
-if [ "$SCRIPT_DIR" != "$TARGET_DIR" ]; then
-  mkdir -p "$TARGET_DIR"
-  # Declared paths are replaced exactly. Missing sources are intentional
-  # cleanup paths for artifacts managed by earlier repository versions;
-  # everything else already under ~/.claude remains user-owned and untouched.
-  # settings.json is handled separately below: it is merged, not replaced.
-  # skills/synced/ lies inside a managed path but is not this repository's:
-  # the Claude app syncs its own skills there. Move it aside while skills/ is
-  # replaced, then put it back. If the run stops in between, it survives in
-  # the .install-keep.* directory rather than being lost.
-  keep_dir="$(mktemp -d "$TARGET_DIR/.install-keep.XXXXXX")"
-  if [ -e "$TARGET_DIR/skills/synced" ]; then
-    mv "$TARGET_DIR/skills/synced" "$keep_dir/synced"
-  fi
-  for managed_path in \
-    rules \
-    skills \
-    agents \
-    commands \
-    CLAUDE.md; do
-    sync_path "$managed_path"
-  done
-  if [ -e "$keep_dir/synced" ]; then
-    mkdir -p "$TARGET_DIR/skills"
-    mv "$keep_dir/synced" "$TARGET_DIR/skills/synced"
-  fi
-  rmdir "$keep_dir"
-  sync_settings_json
-
-  # speckit-* skills are generated locally per-project by `specify init`
-  # (gitignored, never committed — see docs/adr/0001-remove-vendored-speckit-skills.md).
-  # Strip generated and OS metadata from the managed user-scope copy.
-  rm -rf "$TARGET_DIR"/skills/speckit-* "$TARGET_DIR/skills/.DS_Store"
-
-  cp "$SCRIPT_DIR/install.sh" "$TARGET_DIR/install.sh"
-  echo "Synced managed paths from $SOURCE_DIR -> $TARGET_DIR"
-fi
-
-# 2. Ensure this installer is executable
-chmod +x "$TARGET_DIR"/install.sh
-
-# 3. Install this repository's Claude Code plugins, all resolved from the
-# claude-plugins-official marketplace catalog: frontend-design (UI/UX
-# implementation guidance), code-review (multi-agent PR review, incl.
-# `/code-review ultra`), skill-creator (scaffold/evaluate skills). Plugins
-# that bundle an MCP server (github, deploy-on-aws, microsoft-docs) are never
-# installed here, and an existing install of them is not removed; the
-# settings.json this script merges turns those three off, because the servers
-# their skills depend on are not allowed to load. Installed at user scope so
-# the plugins work across projects.
-if ! claude plugin marketplace list 2>/dev/null | grep -q "claude-plugins-official"; then
-  claude plugin marketplace add anthropics/claude-plugins-official
-else
-  claude plugin marketplace update claude-plugins-official >/dev/null 2>&1 || true
-fi
-for official_plugin in frontend-design code-review skill-creator; do
-  if ! claude plugin list 2>/dev/null | grep -q "${official_plugin}@claude-plugins-official"; then
-    claude plugin install "${official_plugin}@claude-plugins-official"
-  fi
-  claude plugin enable "${official_plugin}@claude-plugins-official" >/dev/null 2>&1 || true
+for rel in "${MANAGED_PATHS[@]}"; do
+  rm -rf "${TARGET_DIR:?}/$rel"
+  mv "$stage_dir/$rel" "$TARGET_DIR/$rel"
 done
 
-echo "Done. ~/.claude is synced to this repository state."
+echo "Installed ${MANAGED_PATHS[*]} from $SOURCE_DIR to $TARGET_DIR"

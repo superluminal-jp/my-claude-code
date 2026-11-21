@@ -1,7 +1,0 @@
-# command: python3 -B tests/assert_role_tree.py
-# reviewed_commit: c90a58af546f66a26ecee909fa2962c2d1fb96f0 (files outside specs/073-scrum-role-tree/ identical at HEAD 97d42c5)
-# date: 2026-11-15T00:22:45Z
-
-role-tree: 22 elements, 0 violations
-
-exit=0

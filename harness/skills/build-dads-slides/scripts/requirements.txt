@@ -1,3 +1,0 @@
-# Deck tooling dependency. The version resolves at install time: pin it in the
-# consuming project's own lockfile if that project requires reproducible builds.
-playwright
