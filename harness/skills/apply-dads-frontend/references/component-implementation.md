@@ -8,6 +8,13 @@ The rules below are the Digital Agency's own conventions, taken from
 Follow them when working inside that repo. Outside it, apply them as the default
 and record any deliberate departure.
 
+## Contents
+
+- Where each piece actually comes from
+- Token vocabulary
+- Component conventions
+- Toolchain
+
 ## Where each piece actually comes from
 
 The tokens and the Tailwind theme are npm packages. The React components are

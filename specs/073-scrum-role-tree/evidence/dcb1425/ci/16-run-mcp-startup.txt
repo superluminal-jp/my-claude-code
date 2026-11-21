@@ -1,9 +1,0 @@
-# command: bash tests/run-mcp-startup.sh
-# commit: dcb14259969f0354be32736cc7b337b14891379e
-# date: 2026-11-14T23:57:37Z
-
-FAIL awslabs.aws-documentation-mcp-server@latest did not start cleanly
-error: failed to open file `/Users/taikiogihara/.cache/uv/sdists-v9/.git`: Operation not permitted (os error 1)
-MCP startup smoke test failed: 1 package(s).
-
-exit=1

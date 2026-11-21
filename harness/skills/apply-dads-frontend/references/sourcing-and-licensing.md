@@ -3,6 +3,13 @@
 Load this when deciding which DADS source to trust, refreshing the bundled
 archive, or writing attribution.
 
+## Contents
+
+- The bundled archive
+- Which source wins
+- Licensing and attribution
+- Standing limits
+
 ## The bundled archive
 
 `references/dads-docs/` is a verbatim copy of the Digital Agency's official

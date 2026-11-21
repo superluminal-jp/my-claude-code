@@ -1,14 +1,12 @@
-# Purpose of this repository
+# About this repository
 
-This repository manages the author's Claude Code **user-level settings** (what lives in `~/.claude/`) under Git. The source of truth is `harness/` here; `install.sh` synchronizes its managed parts (`rules/`, `skills/`, `agents/`, `commands/`, `CLAUDE.md`, and a merge of `settings.json`) to `~/.claude/`, plus installs this repository's Claude Code plugins. See `README.md` for the full contract.
+This repository keeps the author's Claude Code user-level configuration under Git. The source is `harness/`; `bash install.sh` copies its four managed paths (`CLAUDE.md`, `rules/`, `skills/`, `agents/`) into `~/.claude/`, replacing each so that it matches. `settings.json` is not managed here.
 
-When working here:
-
-- Files under `harness/` are the user-level configuration itself, not project config for this repo. Editing them changes the behavior of Claude Code in every project once installed, so keep them universal and free of repo-specific facts.
-- This file is the only place for facts about developing this repository. It is not synced to `~/.claude/`; do not move its content into `harness/CLAUDE.md`.
-- Never edit `~/.claude/` directly; change `harness/` here and re-run `install.sh`. A session in this repository runs on the installed copy, so an edit under `harness/` takes effect only after the next install.
-- This repository's own `.claude/` holds no managed configuration. Do not put the source back there: a sandboxed Bash command cannot write under it, and files there load a second time as project configuration.
-- Everything a skill or a test runs must work inside the Claude Code Bash sandbox: temporary files under `$TMPDIR` (never a bare `mktemp`), no write outside the repository, no network unless the skill declares its hosts. `bash tests/run-harness-skills.sh` checks every skill against this contract.
-- Every skill and subagent definition declares its place in the role tree (`metadata.role`, `metadata.branch`, and `metadata.stage` when its stages span several branches) and ends its `description` with the matching `[<Role> / <branch>]` tag ([ADR-0026](docs/adr/0026-place-skills-and-agents-in-a-scrum-role-tree.md)). After adding, removing, renaming, or moving one, regenerate the README tables with `python3 tests/assert_role_tree.py --table en` and `--table ja` and the tree diagram with `--mermaid`, and give a new element its stage in `docs/harness/capability-map.json`; `python3 tests/assert_role_tree.py` reports what still disagrees.
-- Decision records live in `docs/adr/` as `NNNN-<kebab-title>.md` with four-digit numbers. Front matter is `status` (`Proposed`, `Accepted`, `Deprecated`, or `Superseded by NNNN`), `date` (`YYYY-MM-DD`), and `deciders`; the heading is `# NNNN. <title>`, and the body is written in Japanese.
-- Keep `README.md` and `README.ja.md` in sync with any change to the managed paths or installer behavior.
+- Files under `harness/` apply in every project once installed. Keep them universal: no facts about this repository, and nothing that duplicates a per-project workflow (Spec Kit and AI-DLC are set up in each project, not here).
+- This file is for developing this repository only. It is not installed.
+- Change `harness/` and run `bash install.sh`; do not edit `~/.claude/` directly. A session here runs on the installed copy, so an edit takes effect after the next install and a new session. Inside the Bash sandbox `install.sh` cannot write to `~/.claude/`, so it needs the person's approval to run outside it.
+- Run `bash tests/run.sh` before committing. It checks the format of `harness/` and the installer, and writes only under `$TMPDIR`.
+- Front matter uses only the fields Claude Code reads. A skill description says what the skill does and when to use it, in the third person, within 1,024 characters. A `SKILL.md` body stays under 500 lines, with detail in `references/` one level down.
+- Every always-loaded line costs context in every session. Before adding to `harness/CLAUDE.md` or to a rule without `paths`, consider a path-scoped rule or a skill.
+- `harness/skills/apply-dads-frontend/references/dads-docs/` is an unmodified copy of official documentation; do not edit it.
+- Keep `README.md` and `README.ja.md` in step with each other and with the contents of `harness/`.

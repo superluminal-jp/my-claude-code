@@ -3,6 +3,12 @@
 Every source below was read from its primary publication on 2026-10-17 unless
 marked otherwise. Re-read the source before relying on a detail that matters.
 
+## Contents
+
+- Sources
+- Group A: verify from code
+- Group B: report as Unverified unless the repository holds the configuration
+
 ## Sources
 
 | Short name | Source | Note |

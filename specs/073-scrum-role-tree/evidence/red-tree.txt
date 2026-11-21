@@ -1,6 +1,0 @@
-# python3 -B tests/assert_role_tree.py --self-test (2026-11-15, round-1 fix of AR-05: before the TREE rule exists)
-refused PURPOSE  a README.ja purpose cell of two sentences
-MISSED  TREE     a node with a second parent in the tree diagram
-refused DIAGRAM  a tree diagram edited by hand
-role-tree self-test: 14 of 15 broken copies refused
-exit=1

@@ -1,62 +1,42 @@
 ---
 name: define-problem
-description: Turn a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the ideal state - in any domain, business, technical, personal, or organizational, keeping the problem apart from any solution or unverified cause brought along with it. Use when the person wants to pin down what a problem actually is before analyzing its cause or proposing a fix. Do not use for root-cause analysis, for evaluating or proposing solutions, for an execution plan, for confirming the scope of an already-agreed feature, or for a product strategy or roadmap. [Product Owner / define]
-metadata:
-  kind: worker
-  role: product-owner
-  branch: define
-  permission: workspace_write
-  sandbox: inside
-  produces: a problem statement with current state, ideal state, gap, and significance
+description: Turns a vague sense that something is wrong into one verifiable problem statement - the gap between the current state and the wanted state - kept apart from causes and solutions, in any domain (technical, business, organizational, personal). Use when the person wants to pin down what the problem actually is before analyzing causes or choosing a fix. Not for root-cause analysis, comparing solutions, or planning the work.
 ---
 
-# Define the problem
+# Define a problem
 
-A problem is the gap between the current state and the ideal state. This skill elicits that gap precisely enough to hand to whatever comes next, as one standalone problem statement. Its job ends there: it does not analyze causes, weigh solutions, or plan.
+A problem is the gap between how things are and how they should be. A statement that names a solution ("we need a cache") or an unverified cause ("the database is slow") closes off better answers before anyone has looked, so this skill writes the gap alone.
 
 ## Steps
 
-1. **Elicit the four elements**, the current state and the ideal state separately.
-   - Current state: what is actually happening, grounded in fact or data where available.
-   - Ideal state: what should be happening - the standard, expectation, or target.
-   - The gap: the problem statement itself, stated as precisely as possible. When both states are measurable, use the form "from X to Y by Z".
-   - Significance: why this gap is worth addressing now.
-2. **Keep the statement clean.** Handle each of these before it reaches the gap:
-   - A solution presented as the problem ("we should add X"): name it as a proposed solution, then elicit the gap that solution is trying to close.
-   - An unverified cause presented as the problem ("the cause is surely X"): name it as an unverified hypothesis and return to the gap.
-   - Conflicting ideal states among stakeholders: present both and ask which governs. Do not adopt one side on your own.
-   - Several distinct gaps bundled into one complaint: split them into separate problem-statement candidates.
-3. **Record what is unresolved instead of deciding silently.** For each open point give what is unresolved, the recommended default, another realistic option, and what changes with the choice.
-4. **Check the output location.** If a problem statement already exists there, ask whether to overwrite it or save a new version, such as `problem-<YYYY-MM-DD>.md`.
-5. **Write the statement** as one self-contained document: `problem.md` inside the change's directory when the project keeps numbered specification directories, otherwise a project default such as `docs/problems/<slug>.md`. Never write to or modify a file this skill did not create.
+1. **Collect what is observed.** Ask for or find the facts: what happens, where, since when, how often, who is affected, how it was noticed. Mark each item as observed, reported by someone, or assumed.
 
-Never fabricate a fact about the situation. When there is no quantitative data, describe the state qualitatively and say that data is absent. When the current and ideal states turn out to match, say plainly that there is no gap.
+2. **Separate what came bundled.** People usually arrive with a cause or a fix attached. Set each aside under its own label - hypothesis or proposed solution - and keep it out of the statement. They are inputs for later, not part of the problem.
 
-## Output shape
+3. **State the current state** in measurable or checkable terms: a number, a rate, a concrete event. "Deploys take 40 minutes", not "deploys are slow".
 
-```markdown
-# Problem Statement: <subject>
+4. **State the wanted state** the same way, and where it comes from: a target, a standard, a commitment, an earlier level, a comparison. When nobody can say what "good" is, that is the first thing to settle; say so and stop there.
 
-**Status**: Complete | Draft (incomplete)
-**Generated**: <YYYY-MM-DD>
-```
+5. **State the gap and why it matters:** who bears it, what it costs or risks, and what happens if nothing changes. A gap nobody bears is not yet a problem worth solving.
 
-A complete statement has all four elements. Add these sections only when they apply, so that neither is folded into the gap:
+6. **Check the statement.** It passes when:
+   - it contains no solution and no unverified cause;
+   - two people reading it would agree on whether the problem is solved;
+   - it covers one problem; split it when the current states, owners, or measures differ.
 
-- `## Identified solution (not part of the problem statement)`: the solution the person proposed, and the gap it is trying to close.
-- `## Identified unverified cause (not part of the problem statement)`: the causal hypothesis, recorded as unverified.
-- `## Disagreement on the ideal state`: each stakeholder's view, with the open point that asks which governs.
+7. **Hand it back** in this form and ask the person to confirm or correct it:
 
-If the session ends before all four elements are answered, save a draft with `**Status**: Draft (incomplete)` and a `## Unanswered elements` list. A later run starts fresh or asks about the existing file as in step 4.
+   ```
+   Current state: ...
+   Wanted state:  ... (source: ...)
+   Gap:           ...
+   Why it matters: ...
+   Set aside - hypotheses: ...   proposed solutions: ...
+   Not yet known: ...
+   ```
 
 ## Done when
 
-- The statement has the four elements, or is saved as a draft that lists the unanswered ones.
-- No solution or unverified cause stands in for the gap; each is recorded in its own section.
-- Every unresolved material point is written as an open point with a default.
-
-## Bundled files
-
-| File | Read when |
-|---|---|
-| `references/frameworks.md` | Naming or citing the framework an element comes from |
+- The person agreed to a statement that passes step 6.
+- Every bundled cause and solution is listed as set aside, not lost.
+- Facts still missing are listed with how each could be obtained.

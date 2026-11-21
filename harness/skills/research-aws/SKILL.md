@@ -1,50 +1,34 @@
 ---
 name: research-aws
-description: Answer a question about a current AWS service from official AWS documentation, read through whatever first-party documentation tools the session has, instead of from recollection. Use when a claim depends on an AWS service's current feature, API, quota, regional availability, pricing, setup, IAM or service-specific behavior, or SDK, CLI, CloudFormation, or CDK syntax. Do not use for an incidental mention of AWS, for another cloud provider, or for a general engineering question whose answer does not depend on the provider. [Developers / define]
-metadata:
-  kind: worker
-  role: developers
-  branch: define
-  permission: read_only
-  sandbox: inside
-  produces: an answer in which every AWS-specific claim cites an official page or is marked unverified
+description: Answers a question about an AWS service from current official AWS documentation instead of from recollection, citing the page behind each claim. Use when an answer depends on an AWS service's current features, API, quotas, regional availability, pricing, IAM behavior, or SDK, CLI, CloudFormation, or CDK syntax. Not for an incidental mention of AWS, another cloud provider, or a general engineering question whose answer does not depend on the provider.
 ---
 
 # Research AWS
 
-Answer AWS-specific questions from current first-party evidence. Service names, APIs, quotas, and regional availability change, so memory and a static list of capabilities are not evidence.
+AWS service names, APIs, quotas, and regional availability change often, so recollection is not evidence for them. Read the current official source and cite it.
 
 ## Steps
 
-1. **Fix what is being asked.** Identify the service and feature by the exact AWS name, the claim or decision that needs evidence, and whether the person wants an explanation, a comparison, implementation guidance, or an exact quotation.
-   - Region and partition: unless the person names another, assume the Asia Pacific (Tokyo) Region, `ap-northeast-1`, in the commercial partition, and state that assumption in the answer.
-   - Note any API version, SDK or CLI version, runtime, language, or date that could change the answer.
-   - Ask only when a missing dimension would change the result; otherwise state the assumption used.
-2. **Find the official capability the session actually has.** Use the available tool-discovery mechanism before concluding that AWS documentation is unreachable. Nothing here assumes that a particular tool is installed, authorized, or healthy; follow the instructions a discovered tool returns, and never invent a tool, a parameter, or a response. Match the claim to the capability that holds its authoritative value:
+1. **Fix the question.** Name the service and feature by their exact AWS names and the claim that needs evidence. Unless the person names another Region, assume Asia Pacific (Tokyo), `ap-northeast-1`, in the commercial partition, and say so in the answer. Note any SDK, CLI, runtime, or API version that could change the answer.
 
-   | Claim | Prefer a tool that can |
+2. **Use the official sources the session has.** Check which AWS documentation tools are available (search for them among the session's tools before concluding there are none) and pick by the kind of claim:
+
+   | Claim | Source to prefer |
    |---|---|
-   | Behavior, concepts, setup | search and read AWS documentation pages |
-   | Quotas, supported models or instance types, other large tables | query table rows rather than read a truncated page |
-   | Regional availability of a service, feature, API, or CloudFormation resource | query availability for the target region directly |
-   | Pricing | query the AWS price list rather than quote a documentation page |
-   | CloudFormation, CDK, or other infrastructure-as-code syntax | search the documentation specific to it |
-   | Recent launches or changes | read the service's "what's new" or related-content listing |
+   | Behavior, concepts, setup | Search, then read the user-guide or API-reference page |
+   | Quotas, supported models or instance types | A table query, since long tables are cut off when a page is read whole |
+   | Availability of a service, feature, or resource type in a Region | A regional-availability query for that Region |
+   | CloudFormation or CDK syntax | The resource or construct reference page |
+   | Recent launches | The service's "What's New" or related-content listing |
 
-   If the capability offers a search over a registry of agent skills, search it first and retrieve only an exact name that the search returned.
-3. **Research and reconcile.**
-   - Search the narrowest official source that can answer the claim, then open the primary page or API reference and check applicability, version, region, and freshness.
-   - For a consequential decision, corroborate across the user guide and the API reference, quotas, or availability data.
-   - Resolve a conflict by preferring the source closest to the product contract and the most specific and current scope, such as a quota table over a prose summary. State a conflict that remains.
-   - Label an inference that combines several sources.
-4. **Answer.** Lead with the direct answer or recommendation. Cite the official page next to every claim whose current value matters. Keep verified AWS behavior apart from architecture advice and local implementation choices. Name the region the answer applies to. Include version, date, prerequisites, quotas and whether they are adjustable, IAM permissions, and exceptions only when they affect the decision. Summarize and link rather than quote at length.
+   Without such tools, read `docs.aws.amazon.com` and `aws.amazon.com` pages directly. If nothing official can be reached, say so and give a clearly marked answer from memory.
 
-If the official documentation tooling cannot be reached, say so. Use other current official AWS pages (docs.aws.amazon.com, aws.amazon.com) if they can be read. Otherwise give a clearly qualified answer from existing knowledge and say what remains unverified.
+3. **Check that the page applies:** the right service and feature, the Region, the version, and the page's date. For a consequential decision, confirm across two official sources, such as the user guide and the API reference. When sources disagree, prefer the one closest to the product contract (API reference, quota table) and report the disagreement.
+
+4. **Answer.** Lead with the direct answer. Put the page URL next to each claim whose current value matters. Keep what AWS documents apart from your own architecture advice, and mark any conclusion drawn by combining pages as an inference. Include quotas, IAM permissions, prerequisites, and exceptions only where they affect the decision.
 
 ## Done when
 
-- Every material AWS-specific claim has current first-party support or is marked unverified.
-- Applicability to the target region was checked directly, not inferred from another region, and anything unavailable there is flagged.
-- Tool availability and authorization were observed, not assumed.
-- Every inference across sources and every remaining freshness risk is labelled.
-- The answer stays within the AWS-specific question that was asked.
+- Every AWS-specific claim that matters cites an official page or is marked unverified.
+- Applicability to the target Region was checked for that Region, not inferred from another.
+- The answer names the Region and any version it assumes.

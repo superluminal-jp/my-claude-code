@@ -1,56 +1,43 @@
 ---
 name: implement-change
-description: Change code, configuration, tests, scripts, interfaces, or other observable behavior test-first, in the smallest coherent step, and verify it before reporting. Use for every such change - a feature, a fix, a refactor, review feedback. Do not use for prose-only documents, for a review that changes nothing, or for research that changes no file. [Developers / execute]
-metadata:
-  kind: worker
-  role: developers
-  branch: execute
-  stage: E-implement
-  permission: workspace_write
-  sandbox: inside
-  produces: a verified change, with the commands run and their results
+description: Changes code, configuration, tests, scripts, or other observable behavior test-first, in the smallest coherent step, and verifies the result before reporting. Use for a feature, a fix whose cause is known, a refactor, or review feedback that changes behavior. Not for finding the cause of a failure, prose-only documents, reviews that change nothing, or research.
 ---
 
 # Implement a change
 
-A change is done when a check that failed before it passes after it, the repository's own checks still pass, and the documents that state the changed contract say what the code now does. Work through the steps in order; skip a step only when its condition does not hold.
+A change is done when a check that failed before it passes after it, the project's own checks still pass, and the documents that describe the changed behavior are correct.
+
+When the project runs its own workflow (Spec Kit, AI-DLC, or another documented process), that workflow decides the specification, the task order, and where artifacts go. Use this skill for how each task is carried out inside it.
 
 ## Steps
 
-1. **Define.** State the purpose, the scope, and the observable completion condition. Resolve a gap that would change the result before editing. When the change has a requirements graph, its acceptance criteria are the completion condition: take one leaf requirement at a time and do not restate the criteria anywhere else.
-2. **Specify, when observable behavior is added or altered.** Read `references/spec-first.md` and write or update the specification first.
-3. **Red.** Add or identify a deterministic check and watch it fail on what it asserts.
-   - For something that does not exist yet (a function, an endpoint, an option), first add it with its final signature returning a wrong result of the right type, then watch the assertion fail. An import, name, compile, or usage error is not a red, because nothing tells it apart from a check that is itself broken.
-   - A check that cannot fail before the change, because it pins behavior the change must keep, is shown able to fail by breaking the implementation on purpose, watching the check fail, and restoring it.
-   - For prose, policy, or structure that cannot be asserted meaningfully, record the concrete current state and how the result will be compared with it. Do not write a token-presence test only to claim a red.
-4. **Green.** Make the smallest change that passes the check, then refactor with the checks still passing.
-5. **Verify.** Run the repository's tests, linter, formatter, and type checker, and read the output before claiming success. Report each command with its result, and say which could not run and why.
-6. **Synchronize.** Update, in the same change, the document that states each changed public contract: usage, configuration, interface, default. When nothing documented changes, say so in one line with the reason.
-7. **Publish only on request.** Committing, pushing, and opening a pull request each need the person's explicit request; a request for one does not cover the others.
+1. **Fix the target.** State what will be observably different when the change is done. If acceptance criteria exist, they are the target; work on one at a time.
 
-Stop and tell the person when a step fails for a reason the change cannot fix, such as a wrong specification or a check that cannot run. Do not skip the step or loosen the check to proceed.
+2. **Read before writing.** Open the code to be changed, its callers, and its tests. Find the project's commands for test, lint, format, type check, and build (README, package manifest, Makefile, CI workflow).
 
-## Constraints on every change
+3. **Red.** Add or pick a check and watch it fail on the thing it asserts.
+   - For something that does not exist yet, first add it with its final signature and a wrong result, so the failure is the assertion. An import or compile error does not show the check works.
+   - For behavior that must stay the same (a refactor), show the existing check can fail: break the code on purpose, see the failure, restore it.
+   - Where no automated check is possible, record the current state concretely (output, screenshot, measurement) and how the result will be compared with it.
 
-- Tests define the contract. Never delete, skip, or weaken a failing test to pass the suite; fix the cause. A test that is hard to write is a signal about the interface, so fix the interface.
-- Name tests by behavior (`user_cannot_login_with_invalid_password`). Use one assertion per test where practical, and several only for one logical outcome. Keep tests deterministic: control time and randomness.
-- Match the repository: its language conventions, linter, formatter, type checker, test runner, logger, and error style. Do not import outside defaults.
-- Change only what the task needs: no speculative abstraction, no drive-by refactor, no comments or annotations on untouched code. When a nearby improvement would clearly help, say so and leave it.
-- Comment the reason and the non-obvious invariant, not the next line.
-- Read `references/type-safety.md` when the language is statically or gradually typed.
-- Read `references/boundaries.md` when the change touches input from outside, output to users, files, network, databases, external APIs, secrets, error handling, or logging.
+4. **Green.** Make the smallest change that passes. Then tidy with the checks still passing.
+
+5. **Verify.** Run the project's full checks through the `check-runner` subagent when the output is long, otherwise directly. Read the results; a command that could not run is reported as not run, with the reason.
+
+6. **Update documents.** In the same change, correct each document that describes what changed: usage, configuration, interface, default. When nothing documented changed, say so in one line.
+
+7. **Report** each command and its result, what changed (paths), and what was not done. Committing and pushing wait for the person's request.
+
+## Constraints
+
+- A failing test is evidence. Fix the cause; skipping, deleting, or loosening a test needs the person's agreement that the test is wrong.
+- Change only what the target needs. Mention a nearby improvement instead of making it.
+- Match the project: its conventions, error style, logger, and libraries. Add a dependency only when the target needs it, and say so.
+- Validate data where it enters the system, and handle errors where something can be done about them.
+- When a step fails for a reason the change cannot fix - a wrong specification, a check that cannot run - stop and tell the person rather than working around it.
 
 ## Done when
 
-- The check from step 3 failed for the right reason before the change and passes after it; or, for a change that cannot be asserted, the recorded earlier state and the comparison are reported.
-- The repository's own checks pass, each command and its result is reported, and anything not run is named.
-- Changed public contracts and their documents agree, or the absence of documentation impact is stated with its reason.
-- Nothing was committed, pushed, or published beyond what the person asked for.
-
-## Bundled files
-
-| File | Read when |
-|---|---|
-| `references/spec-first.md` | The change adds or alters observable behavior (step 2) |
-| `references/type-safety.md` | The language is statically or gradually typed |
-| `references/boundaries.md` | The change touches a system boundary, secrets, errors, or logging |
+- The check from step 3 failed for the intended reason before the change and passes after it, or the recorded before-and-after comparison is reported.
+- The project's checks pass, with each command and result reported and anything not run named.
+- The documents describing the changed behavior agree with it.

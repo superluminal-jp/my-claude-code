@@ -1,4 +1,0 @@
-{
-  "$schema": "harness/skills/sync-docs/schemas/config.schema.json",
-  "exclude_globs": ["specs/**"]
-}
