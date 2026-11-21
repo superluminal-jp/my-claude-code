@@ -44,10 +44,6 @@ AGENT_FIELDS = {
 }
 RULE_FIELDS = {"paths"}
 
-# Files copied unchanged from an official source; their contents are not ours
-# to restructure, so the reference checks skip them.
-VENDORED = ("references/dads-docs/",)
-
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 TAG_RE = re.compile(r"<[^>]+>")
 LINK_RE = re.compile(r"`((?:references|assets|scripts)/[^`\s]+)`")
@@ -167,8 +163,6 @@ def check_skills(root: Path, errors: list[str]) -> None:
 
         for ref in sorted((skill / "references").glob("*.md")) if (skill / "references").is_dir() else []:
             ref_rel = ref.relative_to(root).as_posix()
-            if any(marker in ref_rel for marker in VENDORED):
-                continue
             ref_text = ref.read_text(encoding="utf-8")
             if f"references/{ref.name}" not in body:
                 errors.append(f"{ref_rel}: not mentioned in SKILL.md, so it would never be read")

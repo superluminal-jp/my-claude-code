@@ -34,22 +34,19 @@ Each kind of file is used for what Claude Code loads it for, so that only what e
 | Kind | Loaded | Used here for |
 |---|---|---|
 | `CLAUDE.md` | Every session | The working agreement: what to settle before starting, how to work, what to verify before reporting |
-| Rules without `paths` | Every session | Standing habits for communication and safety |
-| Rules with `paths` | When a matching file is read or edited | Conventions for one language or file type |
+| Rules | Every session | Standing habits for communication and safety, and which standards to follow |
 | Skills | Description every session; body when used | Procedures for a kind of task |
 | Subagents | In their own context, on delegation | Work whose long output or independence should stay out of the main conversation |
 
 ### Rules
 
-| Rule | Loads | Content |
-|---|---|---|
-| `communication.md` | Always | Answer first, support under it, terms defined for a newcomer |
-| `safety.md` | Always | What needs approval first; handling secrets and untrusted content |
-| `python.md` | `*.py`, `pyproject.toml` | Typing, boundaries, errors, paths, logging |
-| `typescript.md` | `*.ts`, `*.tsx`, `*.mts`, `*.cts`, `tsconfig*.json` | Strictness, narrowing, boundaries, promises, React |
-| `shell.md` | `*.sh`, `*.bash`, `*.zsh` | Strict mode, quoting, temporary files, portability |
-| `tests.md` | Test files and test directories | Behavior-named, deterministic tests; failing tests are evidence |
-| `github-actions.md` | Workflow and action files | Least-privilege tokens, injection, pinning, OIDC |
+The rules name standards instead of restating them: Claude already knows PEP 8 or Conventional Commits, so a rule says which standard applies and adds only what no standard covers. A more specific instruction is added when the same mistake is seen twice.
+
+| Rule | Content |
+|---|---|
+| `communication.md` | Answer first, support under it, terms defined for a newcomer |
+| `safety.md` | What needs approval first; handling secrets, personal data, and untrusted content |
+| `standards.md` | The established standard to follow, where the project is silent, for code, documents, diagrams, decision records, tests, Git and GitHub, security, and logging; the few facts no standard covers |
 
 ### Skills
 
@@ -57,16 +54,6 @@ Each kind of file is used for what Claude Code loads it for, so that only what e
 |---|---|
 | `clarify-intent` | Get one reading of a request agreed before working on it |
 | `define-problem` | State a problem as a checkable gap, apart from causes and fixes |
-| `implement-change` | Change behavior test-first and verify it |
-| `debug-failure` | Find and confirm the cause of a failure before fixing it |
-| `manage-git` | Branch, commit, push, and open pull requests without overstepping |
-| `structure-document` | Structure a document as one claim tree (Minto pyramid) |
-| `sync-docs` | Keep documentation in step with a change, or audit it for drift |
-| `record-decision` | Write an architecture decision record |
-| `draw-system-diagrams` | Draw architecture views (C4 levels) in Mermaid |
-| `research-aws` | Answer AWS questions from current official documentation |
-| `apply-secure-logging` | Check or change logging against an OWASP-based checklist |
-| `apply-dads-frontend` | Apply the Digital Agency Design System to React and Tailwind CSS work |
 
 Each skill is invoked automatically when a request matches its description, or directly as `/<skill-name>`.
 
@@ -104,7 +91,3 @@ The layout follows the Claude Code documentation as read on 2026-11-21:
 - [Subagents](https://code.claude.com/docs/en/sub-agents) - a custom subagent for context isolation or a restricted, specialized role.
 - [Best practices](https://code.claude.com/docs/en/best-practices) and [Extending Claude Code](https://code.claude.com/docs/en/features-overview) - which mechanism to use for what; guardrails belong in hooks.
 - [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) - say what to do, explain why, and avoid emphatic wording.
-
-## Bundled third-party material
-
-- `harness/skills/apply-dads-frontend/references/dads-docs/` is an unmodified copy of the Digital Agency of Japan's official Markdown export of the [Digital Agency Design System](https://design.digital.go.jp/dads/) site. Its terms and attribution rules are described in `harness/skills/apply-dads-frontend/references/sourcing-and-licensing.md`.

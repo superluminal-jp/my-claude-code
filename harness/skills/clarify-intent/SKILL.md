@@ -9,6 +9,8 @@ Careful work on the wrong reading is wasted. This skill gets one reading agreed 
 
 If the request has only one reasonable reading, skip this skill and do the work.
 
+When the project's workflow has its own clarification step (for example Spec Kit's clarify command or the requirements stage of AI-DLC), use that step for the specification, and use this skill for drift inside the conversation.
+
 ## Steps
 
 1. **State the reading; do not ask for it.** Write what you take the person to want as the thing you are about to produce, specific enough to be wrong. Present four parts:
@@ -31,8 +33,3 @@ If the request has only one reasonable reading, skip this skill and do the work.
 6. **Record the agreement** in the conversation as one self-contained summary: the request in the person's words, the agreed understanding, scope in and out, assumptions, and the observable result that will show the work is done. Write it to a file only when the person asks or the project's workflow has a place for it.
 
 When the person waives the check ("just build it"), state the reading you adopt as an assumption in one line and proceed.
-
-## Done when
-
-- The person corrected or approved the stated understanding, or waived the check and the adopted reading is stated.
-- The summary names an observable result, so that later work can be checked against it.

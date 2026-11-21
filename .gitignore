@@ -11,8 +11,3 @@ __pycache__/
 specs/
 aidlc-docs/
 tests/harness-eval/
-
-# A macOS global ignore file commonly carries an `Icon` rule, and Git on macOS
-# matches ignore patterns case-insensitively, so that rule would swallow this
-# directory of the bundled DADS documentation.
-!harness/skills/apply-dads-frontend/references/dads-docs/foundations/icon/

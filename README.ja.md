@@ -34,22 +34,19 @@ Claude Code が各種類のファイルを読み込むタイミングに合わ�
 | 種類 | 読み込まれるとき | ここでの用途 |
 |---|---|---|
 | `CLAUDE.md` | 毎セッション | 作業の取り決め。始める前に決めること、進め方、報告前に確かめること |
-| `paths` のないルール | 毎セッション | 伝え方と安全に関する常時の習慣 |
-| `paths` のあるルール | 一致するファイルを読むか編集したとき | 1 つの言語またはファイル種別の規約 |
+| ルール | 毎セッション | 伝え方と安全に関する常時の習慣と、従う標準の指定 |
 | スキル | 説明文は毎セッション、本文は使うとき | ある種類の作業の手順 |
 | サブエージェント | 委任されたとき、独自のコンテキストで | 出力が長い作業や、独立性が必要な作業をメインの会話から切り離す |
 
 ### ルール
 
-| ルール | 読み込み | 内容 |
-|---|---|---|
-| `communication.md` | 常時 | 答えを先に、根拠をその下に、用語は初めて読む人向けに定義する |
-| `safety.md` | 常時 | 事前に承認が必要な操作、秘密情報と信頼できない内容の扱い |
-| `python.md` | `*.py`、`pyproject.toml` | 型、境界での検証、例外、パス、ログ |
-| `typescript.md` | `*.ts`、`*.tsx`、`*.mts`、`*.cts`、`tsconfig*.json` | strict、型の絞り込み、境界での検証、Promise、React |
-| `shell.md` | `*.sh`、`*.bash`、`*.zsh` | strict モード、クォート、一時ファイル、移植性 |
-| `tests.md` | テストファイルとテストディレクトリ | 振る舞いで名付けた決定的なテスト。失敗するテストは証拠として扱う |
-| `github-actions.md` | ワークフローとアクションのファイル | 最小権限のトークン、インジェクション対策、バージョン固定、OIDC |
+ルールは標準の中身を書き写さず、標準の名前を挙げます。Claude は PEP 8 や Conventional Commits を既に知っているので、どの標準を使うかと、どの標準にも書かれていないことだけを書きます。より具体的な指示は、同じ誤りを 2 回見たときに足します。
+
+| ルール | 内容 |
+|---|---|
+| `communication.md` | 答えを先に、根拠をその下に、用語は初めて読む人向けに定義する |
+| `safety.md` | 事前に承認が必要な操作、秘密情報・個人情報・信頼できない内容の扱い |
+| `standards.md` | プロジェクトが決めていない場合に従う確立された標準（コード、文書、構成図、決定の記録、テスト、Git と GitHub、セキュリティ、ログ）と、どの標準にもない少数の事実 |
 
 ### スキル
 
@@ -57,16 +54,6 @@ Claude Code が各種類のファイルを読み込むタイミングに合わ�
 |---|---|
 | `clarify-intent` | 作業の前に、依頼の読み方を 1 つに合意する |
 | `define-problem` | 問題を、原因や解決策と切り分けた検証可能なギャップとして述べる |
-| `implement-change` | 振る舞いをテストファーストで変更し、検証する |
-| `debug-failure` | 修正の前に、失敗の原因を特定して確かめる |
-| `manage-git` | ブランチ、コミット、プッシュ、プルリクエストを、頼まれた範囲で行う |
-| `structure-document` | 文書を 1 つの主張のツリー（ミントのピラミッド）として構成する |
-| `sync-docs` | 変更に合わせて文書を更新する。または文書のずれを監査する |
-| `record-decision` | アーキテクチャ決定記録（ADR）を書く |
-| `draw-system-diagrams` | システム構成図（C4 の各レベル）を Mermaid で描く |
-| `research-aws` | AWS に関する質問に、現行の公式ドキュメントから答える |
-| `apply-secure-logging` | OWASP に基づくチェックリストでログ出力を確認または変更する |
-| `apply-dads-frontend` | デジタル庁デザインシステムを React と Tailwind CSS の作業に適用する |
 
 各スキルは、依頼が説明文に一致すると自動で使われます。`/<スキル名>` で直接呼び出すこともできます。
 
@@ -104,7 +91,3 @@ bash tests/run.sh
 - [Subagents](https://code.claude.com/docs/en/sub-agents) - 独自のサブエージェントは、コンテキストの分離か、ツールを制限した専門の役割のために作る。
 - [Best practices](https://code.claude.com/docs/en/best-practices) と [Extending Claude Code](https://code.claude.com/docs/en/features-overview) - どの仕組みを何に使うか。ガードレールはフックに置く。
 - [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) - すべきことを書き、理由を説明し、強調表現を避ける。
-
-## 同梱している第三者の資料
-
-- `harness/skills/apply-dads-frontend/references/dads-docs/` は、デジタル庁が公開している[デジタル庁デザインシステム](https://design.digital.go.jp/dads/)サイトの公式 Markdown エクスポートを、変更せずにコピーしたものです。利用条件と出典の書き方は `harness/skills/apply-dads-frontend/references/sourcing-and-licensing.md` に記載しています。

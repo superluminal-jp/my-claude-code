@@ -20,9 +20,9 @@ python3 "$REPO_DIR/tests/check_harness.py"
 echo "== the checker rejects a broken harness"
 broken="$WORK_DIR/broken"
 cp -R "$REPO_DIR/harness" "$broken"
-rm -rf "$broken/skills/apply-dads-frontend"
+mkdir "$broken/skills/broken-skill"
 printf -- '---\nname: wrong-name\ndescription: Does a thing.\nmetadata:\n  x: y\n---\nbody\n' \
-  >"$broken/skills/manage-git/SKILL.md"
+  >"$broken/skills/broken-skill/SKILL.md"
 if out="$(python3 "$REPO_DIR/tests/check_harness.py" "$broken")"; then
   fail "the checker passed a skill with a wrong name, an ignored field, and no trigger"
 fi
