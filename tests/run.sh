@@ -48,6 +48,15 @@ if out="$(python3 "$REPO_DIR/tests/check_harness.py" "$big")"; then
 fi
 grep -q "always-loaded text is" <<<"$out" || fail "the checker did not report the byte budget"
 
+echo "== every answer states its premises, assumptions, and method"
+for label in "Premises" "Assumptions" "Method"; do
+  grep -qF "**$label**" "$REPO_DIR/harness/rules/communication.md" \
+    || fail "rules/communication.md does not require a $label line"
+done
+if grep -qF "without comment" "$REPO_DIR/harness/rules/standards.md"; then
+  fail "rules/standards.md still says to use a standard without comment"
+fi
+
 echo "== install.sh"
 target="$WORK_DIR/claude"
 mkdir -p "$target/skills/own-skill" "$target/rules" "$target/agents"
