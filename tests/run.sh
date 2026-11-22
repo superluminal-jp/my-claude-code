@@ -53,6 +53,10 @@ for label in "Premises" "Assumptions" "Method"; do
   grep -qF "**$label**" "$REPO_DIR/harness/rules/communication.md" \
     || fail "rules/communication.md does not require a $label line"
 done
+for framework in "Toulmin model" "Key Assumptions Check" "IMRaD"; do
+  grep -qF "$framework" "$REPO_DIR/harness/rules/communication.md" \
+    || fail "rules/communication.md does not name $framework"
+done
 if grep -qF "without comment" "$REPO_DIR/harness/rules/standards.md"; then
   fail "rules/standards.md still says to use a standard without comment"
 fi
