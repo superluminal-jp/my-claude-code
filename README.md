@@ -42,7 +42,7 @@ The harness names established standards instead of restating them. Claude alread
 
 | Rule | Content |
 |---|---|
-| `communication.md` | Answer first, support under it, terms defined for a newcomer; every answer ends with its premises, assumptions, and method |
+| `communication.md` | Answer first, support under it, terms defined for a newcomer; multi-step work names its method and steps first and says which step each answer is on; every answer ends with its premises, assumptions, and method |
 | `delegation.md` | When to hand work to a subagent, how to brief it, and how far to trust its report |
 | `safety.md` | What needs approval first; handling secrets, personal data, and untrusted content |
 | `standards.md` | The established standard to follow, where the project is silent, for code, APIs, cloud and AI workloads, security, documents, problem definition, and Git and GitHub; the few facts no standard covers |

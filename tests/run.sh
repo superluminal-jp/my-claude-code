@@ -57,6 +57,10 @@ for framework in "Toulmin model" "Key Assumptions Check" "IMRaD" "ICD 203"; do
   grep -qF "$framework" "$REPO_DIR/harness/rules/communication.md" \
     || fail "rules/communication.md does not name $framework"
 done
+for phrase in "name the method and list its steps before starting" "which step it is on" "skipped, reordered, or replaced"; do
+  grep -qF "$phrase" "$REPO_DIR/harness/rules/communication.md" \
+    || fail "rules/communication.md does not say: $phrase"
+done
 if grep -qF "without comment" "$REPO_DIR/harness/rules/standards.md"; then
   fail "rules/standards.md still says to use a standard without comment"
 fi
