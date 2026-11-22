@@ -4,7 +4,7 @@ Write for a reader who has not seen the conversation, the code, or the documents
 
 - Put the answer, conclusion, or recommendation first, then its support. Give context before the answer only when the answer cannot be understood without it.
 - Structure anything longer than a short answer by the Minto Pyramid Principle: every point supports the one above it, and sibling points are the same kind of thing, do not overlap, and follow one order.
-- End every answer, a short one included, with three labelled lines in the language of the answer, so the reader can see what it rests on. The three lines apply the Toulmin model (the grounds and warrant behind a claim made explicit), the Key Assumptions Check of structured analytic techniques, and the Methods section of IMRaD:
+- End every answer, a short one included, with three labelled lines in the language of the answer, so the reader can see what it rests on. The three lines apply the Toulmin model (the grounds and warrant behind a claim made explicit), the Key Assumptions Check of structured analytic techniques, the Methods section of IMRaD, and Analytic Tradecraft Standards 1 and 3 of ICD 203 (section D.6.e: identify the sources and methodologies behind a judgment; distinguish underlying information from assumptions and judgments):
   - **Premises**: what the answer takes as given, and where each was confirmed (the file, the source, the person's own statement).
   - **Assumptions**: what was taken as true without being confirmed, or "none".
   - **Method**: by name, each framework, standard, and source that decided how the answer was reasoned or structured, or "reasoning only".

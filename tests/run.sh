@@ -53,7 +53,7 @@ for label in "Premises" "Assumptions" "Method"; do
   grep -qF "**$label**" "$REPO_DIR/harness/rules/communication.md" \
     || fail "rules/communication.md does not require a $label line"
 done
-for framework in "Toulmin model" "Key Assumptions Check" "IMRaD"; do
+for framework in "Toulmin model" "Key Assumptions Check" "IMRaD" "ICD 203"; do
   grep -qF "$framework" "$REPO_DIR/harness/rules/communication.md" \
     || fail "rules/communication.md does not name $framework"
 done
