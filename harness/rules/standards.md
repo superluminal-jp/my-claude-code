@@ -2,7 +2,7 @@
 
 Where the project is silent, the established standard for the thing being written decides, not a personal style.
 
-- Use standards actively: follow the relevant one in everyday work without being asked and without comment, and use any other well-established standard that fits the work the same way as those listed here.
+- Use standards actively: follow the relevant one in everyday work without being asked, name it in the answer's Method line (`communication.md`) when it decided how the answer was reasoned or structured, and use any other well-established standard that fits the work the same way as those listed here.
 - Use them accurately where it counts. When a design choice, a review finding, a requirement, or a disputed point rests on a standard, name it with its section, rule, or criterion number, and read the current text first when it is public. Attribute to a standard only what it says, and say so when a point comes from memory because the text could not be read.
 
 | Writing | Standard or established practice |
