@@ -66,6 +66,11 @@ if grep -qF "without comment" "$REPO_DIR/harness/rules/standards.md"; then
   fail "rules/standards.md still says to use a standard without comment"
 fi
 
+echo "== the writing-check plugin"
+python3 "$REPO_DIR/tests/test_writing_check.py" 2>&1 | grep -v "^$"
+[ -z "$(find "$REPO_DIR/harness" -path '*writing-check*')" ] \
+  || fail "the writing-check plugin is under harness/, which install.sh copies"
+
 echo "== install.sh"
 target="$WORK_DIR/claude"
 mkdir -p "$target/skills/own-skill" "$target/rules" "$target/agents"
