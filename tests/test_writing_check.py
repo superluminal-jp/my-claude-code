@@ -71,6 +71,10 @@ class Hooks(unittest.TestCase):
         self.assertEqual(named, {"communication.md", "standards.md", "safety.md"})
         for name in named:
             self.assertTrue((REPO / "harness" / "rules" / name).is_file(), name)
+        # Wording is judged against the field of the work, and a field that
+        # cannot be told from the text is not a reason to fail.
+        self.assertIn("fits the field", prompt)
+        self.assertIn("When the field cannot be told", prompt)
         # A finding about a secret must not carry the secret into the reason.
         self.assertIn("without repeating the value", prompt)
         # The list the script writes is where the reviewer looks for it.
@@ -259,6 +263,9 @@ class Reminder(unittest.TestCase):
         self.assertLessEqual(len(text), 1200)
         # The criteria stay in the installed rules: the reminder names the
         # rules the reviewer judges by, and each is one this repository installs.
+        # The field of the work is judged from the conversation, which the
+        # reviewer at the end of the turn does not read.
+        self.assertIn("field of the work from the conversation", text)
         named = set(re.findall(r"rules/([a-z-]+\.md)", text))
         self.assertEqual(named, {"communication.md", "standards.md", "safety.md"})
         for name in named:
