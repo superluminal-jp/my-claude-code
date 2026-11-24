@@ -8,6 +8,7 @@ Standard library only. Writes only under a temporary directory.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -63,8 +64,14 @@ class Hooks(unittest.TestCase):
         self.assertIn("last_assistant_message", prompt)
         self.assertIn('{"ok": true}', prompt)
         self.assertIn('{"ok": false, "reason":', prompt)
-        # The criteria are the installed rule, not a second copy of it.
-        self.assertIn("rules/communication.md", prompt)
+        # The criteria are the installed rules, not a second copy of them,
+        # and each rule the reviewer is sent to is one this repository installs.
+        named = set(re.findall(r"<config>/rules/([a-z-]+\.md)", prompt))
+        self.assertEqual(named, {"communication.md", "standards.md", "safety.md"})
+        for name in named:
+            self.assertTrue((REPO / "harness" / "rules" / name).is_file(), name)
+        # A finding about a secret must not carry the secret into the reason.
+        self.assertIn("without repeating the value", prompt)
         # The list the script writes is where the reviewer looks for it.
         self.assertIn("<config>/writing-check/<session_id>.txt", prompt)
         self.assertIn("three levels above the transcript file", prompt)

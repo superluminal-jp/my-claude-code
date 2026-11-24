@@ -57,7 +57,16 @@ Searching, running checks, and general delegated work use Claude Code's built-in
 
 ## The `writing-check` plugin
 
-`plugins/writing-check/` is a Claude Code plugin that reviews writing once before a turn ends. It checks the answer and the documents written during the turn for three things: language (for Japanese: translated-sounding phrasing, mixed です・ます and だ・である, particles), terminology (the form practitioners use, no coined translation, one name per thing), and structure (as `rules/communication.md` requires). When a reader would be misled, it sends the defects back to Claude, which corrects them in the same turn.
+`plugins/writing-check/` is a Claude Code plugin that reviews writing once before a turn ends. It checks the answer and the documents written during the turn against the installed rules, for what can be judged from the text alone:
+
+| Checked against | What is checked |
+|---|---|
+| `rules/communication.md` | Every requirement: answer first, structure, the method and steps of multi-step work, the closing premises, assumptions, and method, terms, references, no metaphor, length |
+| `rules/standards.md` | The standard for the text's language and kind (for example JTF日本語標準スタイルガイド for Japanese prose, Standard Readme, EARS, Keep a Changelog, ISO 8601 dates); a standard given as a reason is named with its section or criterion number |
+| `rules/safety.md` | No secret value or personal data in the text; a request for approval names the target, the effect, and how to undo it |
+| The hook's prompt | Language that no listed standard covers; for Japanese, translated-sounding phrasing, particles, and overlong sentences |
+
+What the rules say about how Claude works (approval before an action, delegation, verification) cannot be judged from the text and is not checked. When a reader would be misled, it sends the defects back to Claude, which corrects them in the same turn.
 
 ### Install the plugin
 
@@ -74,14 +83,14 @@ The plugin needs Python 3. Claude Code reads it in place from this checkout: an 
 |---|---|---|
 | `UserPromptSubmit` | command | Empties the session's list of written documents, so that the list covers one turn |
 | `PostToolUse` on `Write\|Edit` | command | Adds the file to the list when it is a document (`.md`, `.mdx`, `.markdown`, `.txt`, `.rst`, `.adoc`), marked as written whole or as edited in place; no model is called |
-| `Stop` | agent | A reviewer reads the answer, the listed documents (at most five), and the installed `rules/communication.md`, and returns a pass or the defects to correct |
+| `Stop` | agent | A reviewer reads the answer, the listed documents (at most five), and the installed rules, and returns a pass or the defects to correct |
 
 - **One correction per turn.** When Claude is already continuing after a correction (`stop_hook_active` in the hook input), the reviewer passes without reading anything. An earlier hook of this repository was removed because repeated corrections made Claude restate its output.
 - **Documents are reviewed when the turn ends, not after each edit.** Claude Code documents no way to stop a `PostToolUse` hook from firing again on the edit that answers it, so a review after each edit could not be held to one correction.
-- **Cost.** Every turn that ends runs one reviewer, with a limit of 120 seconds. The hook sets no model; the Claude Code documentation says an agent hook then uses the model Claude Code uses for background work. For a short direct reply with no documents, the reviewer passes without reading the criteria.
+- **Cost.** Every turn that ends runs one reviewer, with a limit of 120 seconds. The hook sets no model; the Claude Code documentation says an agent hook then uses the model Claude Code uses for background work. For a short direct reply with no documents, the reviewer reads only `rules/communication.md` and checks what that rule requires of every answer.
 - **Edited documents.** In a file that was edited in place, most of the text may be older than the turn. The reviewer reports only what would mislead a reader there, and Claude is told to correct only text it wrote in the turn.
 - **The list** is `writing-check/<session_id>.txt` in the Claude configuration directory (`~/.claude/` by default), in a directory only the user can read. The script and the reviewer both derive that directory from the transcript path in the hook input.
-- **Criteria.** Terminology and structure are judged against the installed `rules/communication.md`; change them there. The criteria for language are in the hook's prompt, because no rule states them.
+- **Criteria.** The criteria are the installed rules; change them there. The hook's prompt says which requirements can be judged from the text, and adds only the criteria for language that no rule or listed standard states. A test fails when the prompt names a rule file that `harness/rules/` does not have.
 - **Limits.** Agent hooks are marked experimental in the Claude Code documentation and may change. The review is a model's judgment, not a guarantee.
 
 ## What is deliberately not here
