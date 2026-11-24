@@ -6,6 +6,10 @@
 # Everything else under ~/.claude/ (settings.json, skills/, plugins,
 # projects, ...) is left untouched.
 #
+# harness/plugins/ is not copied: ~/.claude/plugins/ holds Claude Code's own
+# record of installed plugins. Claude Code reads the plugin in place once it
+# is installed with `claude plugin install`; see README.md.
+#
 # Usage: bash install.sh
 # Set CLAUDE_CONFIG_DIR to install somewhere other than ~/.claude.
 

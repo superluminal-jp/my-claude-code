@@ -1,6 +1,6 @@
 # my-claude-code
 
-Claude Code のユーザーレベル設定を Git で管理するリポジトリです。すべてのプロジェクトに適用される `CLAUDE.md` 1 本、ルール 4 本、サブエージェント 1 本を置き、`bash install.sh` で `~/.claude/` にコピーします。これとは別に、プラグイン `writing-check` を置いています。インストールは別の手順です。
+Claude Code のユーザーレベル設定を Git で管理するリポジトリです。すべてのプロジェクトに適用される `CLAUDE.md` 1 本、ルール 4 本、サブエージェント 1 本を置き、`bash install.sh` で `~/.claude/` にコピーします。あわせて、プラグイン `writing-check` を `harness/plugins/` に置いています。こちらは Claude Code のプラグイン用コマンドで、ユーザースコープにインストールします。
 
 English: [README.md](README.md)
 
@@ -33,6 +33,7 @@ bash install.sh
 | `CLAUDE.md` | 毎セッション | 作業の取り決め。始める前に決めること、進め方、報告前に確かめること |
 | ルール | 毎セッション | 伝え方、安全、委任に関する常時の習慣と、従う標準の指定 |
 | サブエージェント | 委任されたとき、独自のコンテキストで | 出力が長い作業や、独立性が必要な作業をメインの会話から切り離す |
+| プラグイン | `claude plugin install` でインストールした後、毎セッション。`install.sh` はコピーしない | ターンの終わりに文章をレビューするフック |
 
 ### 方針: 標準は名前を挙げる
 
@@ -57,7 +58,7 @@ bash install.sh
 
 ## `writing-check` プラグイン
 
-`plugins/writing-check/` は、ターンが終わる前に文章を 1 回レビューする Claude Code のプラグインです。回答と、そのターンで書いた文書を、インストール済みのルールに照らして検査します。対象は、文章だけから判定できることです。
+`harness/plugins/writing-check/` は、ターンが終わる前に文章を 1 回レビューする Claude Code のプラグインです。回答と、そのターンで書いた文書を、インストール済みのルールに照らして検査します。対象は、文章だけから判定できることです。
 
 | 照らすもの | 検査すること |
 |---|---|
@@ -72,10 +73,12 @@ bash install.sh
 
 ```sh
 claude plugin marketplace add /path/to/my-claude-code
-claude plugin install writing-check@local-harness
+claude plugin install writing-check@local-harness --scope user
 ```
 
-プラグインの実行には Python 3 が必要です。Claude Code はこのチェックアウトにあるファイルをそのまま読みます。編集した内容は、次のセッションか `/reload-plugins` の後に有効になり、再インストールは不要です。`install.sh` はプラグインに触れません。削除するには `claude plugin uninstall writing-check@local-harness` を実行します。
+ユーザースコープでインストールすると、プラグインはユーザーレベルの設定の一部になります。`install.sh` がコピーするファイルと同じく、すべてのプロジェクトで有効です。
+
+プラグインの実行には Python 3 が必要です。Claude Code はこのチェックアウトにあるファイルをそのまま読みます。編集した内容は、次のセッションか `/reload-plugins` の後に有効になり、再インストールは不要です。`install.sh` はプラグインをコピーしません。`~/.claude/plugins/` は、Claude Code 自身がインストール済みプラグインの記録を置く場所だからです。削除するには `claude plugin uninstall writing-check@local-harness` を実行します。
 
 ### 仕組み
 
@@ -108,7 +111,7 @@ bash tests/run.sh
 
 `harness/` のすべてのファイルを Claude Code が読む形式（front matter のフィールド、必須のフィールド、毎セッション読み込まれる分量）に照らして検査し、`writing-check` プラグインのテストを実行し、一時ディレクトリに対して `install.sh` を実行します。CI も同じコマンドを Ubuntu と macOS で実行します。
 
-`claude plugin validate . --strict` と `claude plugin validate plugins/writing-check --strict` は、プラグインのマニフェストを検査します。この 2 つは Claude Code が必要で、`tests/run.sh` と CI には含めていません。
+`claude plugin validate . --strict` と `claude plugin validate harness/plugins/writing-check --strict` は、プラグインのマニフェストを検査します。この 2 つは Claude Code が必要で、`tests/run.sh` と CI には含めていません。
 
 `harness/` を編集し、検査を実行し、`bash install.sh` を実行してから、新しいセッションで変更を使います。このリポジトリの規約は [CLAUDE.md](CLAUDE.md) にあります。
 

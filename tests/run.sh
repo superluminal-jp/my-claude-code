@@ -68,8 +68,6 @@ fi
 
 echo "== the writing-check plugin"
 python3 "$REPO_DIR/tests/test_writing_check.py" 2>&1 | grep -v "^$"
-[ -z "$(find "$REPO_DIR/harness" -path '*writing-check*')" ] \
-  || fail "the writing-check plugin is under harness/, which install.sh copies"
 
 echo "== install.sh"
 target="$WORK_DIR/claude"
@@ -104,6 +102,9 @@ done
 [ ! -e "$target/agents/stale.md" ] || fail "an agent removed from harness/ survived the install"
 [ "$(cat "$target/skills/own-skill/SKILL.md")" = keep ] || fail "skills/ was touched"
 [ "$(cat "$target/settings.json")" = keep ] || fail "settings.json was touched"
+# ~/.claude/plugins/ is where Claude Code keeps its own record of installed
+# plugins, so the plugin under harness/plugins/ is not copied there.
+[ ! -e "$target/plugins" ] || fail "plugins/ was created in the target"
 
 CLAUDE_CONFIG_DIR="$target" bash "$REPO_DIR/install.sh" >/dev/null \
   || fail "a second install run failed"

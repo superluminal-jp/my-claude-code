@@ -16,7 +16,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-PLUGIN = REPO / "plugins" / "writing-check"
+PLUGIN = REPO / "harness" / "plugins" / "writing-check"
 SCRIPT = PLUGIN / "scripts" / "written_documents.py"
 SESSION = "0a1b2c3d-test-session"
 
@@ -35,7 +35,7 @@ class Manifests(unittest.TestCase):
         self.assertTrue(market["name"])
         self.assertTrue(market["owner"]["name"])
         entries = {p["name"]: p["source"] for p in market["plugins"]}
-        self.assertEqual(entries, {"writing-check": "./plugins/writing-check"})
+        self.assertEqual(entries, {"writing-check": "./harness/plugins/writing-check"})
 
     def test_plugin_manifest_names_the_plugin(self) -> None:
         manifest = load(PLUGIN / ".claude-plugin" / "plugin.json")

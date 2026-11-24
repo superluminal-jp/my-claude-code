@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "writing-check",
-      "source": "./plugins/writing-check",
+      "source": "./harness/plugins/writing-check",
       "description": "Reviews each answer, and the documents written during the turn, once before the turn ends."
     }
   ]

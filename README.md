@@ -1,6 +1,6 @@
 # my-claude-code
 
-Claude Code user-level configuration, kept under Git: one `CLAUDE.md`, four rules, and one subagent that apply in every project. `bash install.sh` copies them into `~/.claude/`. A plugin, `writing-check`, is kept beside them and installed separately.
+Claude Code user-level configuration, kept under Git: one `CLAUDE.md`, four rules, and one subagent that apply in every project. `bash install.sh` copies them into `~/.claude/`. A plugin, `writing-check`, is kept with them in `harness/plugins/` and installed at user scope with Claude Code's plugin commands.
 
 日本語: [README.ja.md](README.ja.md)
 
@@ -33,6 +33,7 @@ If you already have your own files in those three paths, back them up first; the
 | `CLAUDE.md` | Every session | The working agreement: what to settle before starting, how to work, what to verify before reporting |
 | Rules | Every session | Standing habits for communication, safety, and delegation, and which standards to follow |
 | Subagents | In their own context, on delegation | Work whose long output or independence should stay out of the main conversation |
+| Plugin | In every session once installed with `claude plugin install`; not copied by `install.sh` | The hooks that review writing when a turn ends |
 
 ### The principle: name the standard
 
@@ -57,7 +58,7 @@ Searching, running checks, and general delegated work use Claude Code's built-in
 
 ## The `writing-check` plugin
 
-`plugins/writing-check/` is a Claude Code plugin that reviews writing once before a turn ends. It checks the answer and the documents written during the turn against the installed rules, for what can be judged from the text alone:
+`harness/plugins/writing-check/` is a Claude Code plugin that reviews writing once before a turn ends. It checks the answer and the documents written during the turn against the installed rules, for what can be judged from the text alone:
 
 | Checked against | What is checked |
 |---|---|
@@ -72,10 +73,12 @@ What the rules say about how Claude works (approval before an action, delegation
 
 ```sh
 claude plugin marketplace add /path/to/my-claude-code
-claude plugin install writing-check@local-harness
+claude plugin install writing-check@local-harness --scope user
 ```
 
-The plugin needs Python 3. Claude Code reads it in place from this checkout: an edit takes effect at the next session or after `/reload-plugins`, without reinstalling. `install.sh` does not touch it. To remove it, run `claude plugin uninstall writing-check@local-harness`.
+User scope makes the plugin part of the user-level configuration: it is enabled in every project, like the files `install.sh` copies.
+
+The plugin needs Python 3. Claude Code reads it in place from this checkout: an edit takes effect at the next session or after `/reload-plugins`, without reinstalling. `install.sh` does not copy it, because `~/.claude/plugins/` holds Claude Code's own record of installed plugins. To remove it, run `claude plugin uninstall writing-check@local-harness`.
 
 ### How it works
 
@@ -108,7 +111,7 @@ bash tests/run.sh
 
 This checks every file in `harness/` against the format Claude Code reads (front matter fields, required fields, the size of what loads in every session), runs the tests of the `writing-check` plugin, and runs `install.sh` against a temporary directory. CI runs the same command on Ubuntu and on macOS.
 
-`claude plugin validate . --strict` and `claude plugin validate plugins/writing-check --strict` check the plugin's manifests. They need Claude Code and are not part of `tests/run.sh` or CI.
+`claude plugin validate . --strict` and `claude plugin validate harness/plugins/writing-check --strict` check the plugin's manifests. They need Claude Code and are not part of `tests/run.sh` or CI.
 
 Edit `harness/`, run the checks, run `bash install.sh`, and start a new session to use the change. See [CLAUDE.md](CLAUDE.md) for the conventions of this repository.
 
