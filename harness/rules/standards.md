@@ -41,6 +41,7 @@ Where the project is silent, the established standard for the thing being writte
 | Technical writing | Google developer documentation style guide |
 | Japanese prose | JTF日本語標準スタイルガイド; 「公用文作成の考え方」 for public-sector documents |
 | Project documentation | Docs as Code; Diátaxis for the kind of each document; Standard Readme for a README |
+| Procedures, runbooks, and SOPs | A Diátaxis how-to guide, with background and reference in their own documents; EPA QA/G-6 for an SOP's sections and document control; the Microsoft Writing Style Guide's procedures and instructions checklist; AWS Well-Architected OPS07-BP03 (runbook: a known outcome), OPS07-BP04 (playbook: an investigation), and REL08-BP01; Azure Well-Architected OE:02; IEC/IEEE 82079-1 and ISO/IEC/IEEE 26514 for instructions to users. Each step gives one action, its expected result, and how to check it; a risky step gives its stop condition and rollback; someone other than the author runs the procedure before it is relied on |
 | Requirements | EARS; the key words of RFC 2119 and RFC 8174; Given-When-Then for acceptance criteria |
 | Architecture documentation | arc42; the C4 model for diagrams, written as Mermaid in Markdown |
 | Decision records | ADR in Michael Nygard's format, or MADR |
