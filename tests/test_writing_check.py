@@ -18,6 +18,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 PLUGIN = REPO / "harness" / "plugins" / "writing-check"
 SCRIPT = PLUGIN / "scripts" / "written_documents.py"
+REMINDER = PLUGIN / "reminder.md"
 SESSION = "0a1b2c3d-test-session"
 
 
@@ -90,6 +91,12 @@ class Hooks(unittest.TestCase):
                 self.assertEqual(handler["type"], "command", event)
                 self.assertIn("${CLAUDE_PLUGIN_ROOT}", handler["command"])
                 self.assertIn("written_documents.py", handler["command"])
+
+    def test_a_prompt_resets_the_list_and_brings_the_reminder(self) -> None:
+        commands = [h["command"] for h in handlers(self.hooks, "UserPromptSubmit")]
+        self.assertEqual(
+            [command.rsplit(" ", 1)[-1] for command in commands], ["reset", "remind"]
+        )
 
     def test_post_tool_use_matches_write_and_edit(self) -> None:
         (group,) = self.hooks["hooks"]["PostToolUse"]
@@ -210,6 +217,52 @@ class Script(unittest.TestCase):
         for mode, stdin in (("record", "not json"), ("record", "[]"), ("reset", ""),
                             ("unknown", "{}")):
             self.run_script(mode, stdin)
+
+
+class Reminder(unittest.TestCase):
+    """The text put before Claude when a prompt is submitted."""
+
+    def remind(self, stdin: str, script: Path = SCRIPT) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(script), "remind"],
+            input=stdin, capture_output=True, text=True, check=False,
+        )
+
+    def test_the_reminder_reaches_claude_as_added_context(self) -> None:
+        # The reminder does not depend on the hook input, so a broken input
+        # still brings it.
+        for stdin in (json.dumps({"session_id": SESSION, "prompt": "hello"}), "not json", ""):
+            result = self.remind(stdin)
+            self.assertEqual((result.returncode, result.stderr), (0, ""), stdin)
+            self.assertEqual(
+                json.loads(result.stdout),
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "UserPromptSubmit",
+                        "additionalContext": REMINDER.read_text(encoding="utf-8").strip(),
+                    }
+                },
+            )
+
+    def test_a_missing_reminder_does_not_disturb_the_prompt(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            scripts = Path(tmp) / "plugin" / "scripts"
+            scripts.mkdir(parents=True)
+            copy = scripts / SCRIPT.name
+            copy.write_bytes(SCRIPT.read_bytes())
+            result = self.remind("{}", script=copy)
+        self.assertEqual((result.returncode, result.stdout, result.stderr), (0, "", ""))
+
+    def test_the_reminder_points_at_the_rules_and_stays_short(self) -> None:
+        text = REMINDER.read_text(encoding="utf-8")
+        # It is read with every prompt, so its size is a cost of every turn.
+        self.assertLessEqual(len(text), 1200)
+        # The criteria stay in the installed rules: the reminder names the
+        # rules the reviewer judges by, and each is one this repository installs.
+        named = set(re.findall(r"rules/([a-z-]+\.md)", text))
+        self.assertEqual(named, {"communication.md", "standards.md", "safety.md"})
+        for name in named:
+            self.assertTrue((REPO / "harness" / "rules" / name).is_file(), name)
 
 
 if __name__ == "__main__":

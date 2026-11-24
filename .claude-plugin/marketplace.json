@@ -8,7 +8,7 @@
     {
       "name": "writing-check",
       "source": "./harness/plugins/writing-check",
-      "description": "Reviews each answer, and the documents written during the turn, once before the turn ends."
+      "description": "Reminds Claude of the writing rules with each prompt, and reviews each answer, and the documents written during the turn, once before the turn ends."
     }
   ]
 }

@@ -58,7 +58,7 @@ Searching, running checks, and general delegated work use Claude Code's built-in
 
 ## The `writing-check` plugin
 
-`harness/plugins/writing-check/` is a Claude Code plugin that reviews writing once before a turn ends. It checks the answer and the documents written during the turn against the installed rules, for what can be judged from the text alone:
+`harness/plugins/writing-check/` is a Claude Code plugin that reminds Claude of the writing rules when a prompt is submitted, and reviews writing once before a turn ends. The review checks the answer and the documents written during the turn against the installed rules, for what can be judged from the text alone:
 
 | Checked against | What is checked |
 |---|---|
@@ -85,9 +85,12 @@ The plugin needs Python 3. Claude Code reads it in place from this checkout: an 
 | Hook | Type | What it does |
 |---|---|---|
 | `UserPromptSubmit` | command | Empties the session's list of written documents, so that the list covers one turn |
+| `UserPromptSubmit` | command | Adds `reminder.md` to the context of the turn, so that Claude checks its draft against the rules before the answer is shown; no model is called |
 | `PostToolUse` on `Write\|Edit` | command | Adds the file to the list when it is a document (`.md`, `.mdx`, `.markdown`, `.txt`, `.rst`, `.adoc`), marked as written whole or as edited in place; no model is called |
 | `Stop` | agent | A reviewer reads the answer, the listed documents (at most five), and the installed rules, and returns a pass or the defects to correct |
 
+- **The reminder comes before the answer, the review after it.** Claude Code shows an answer as it is written, and no hook can hold it back, so a defect the reviewer finds is corrected in a second answer that the person also sees. The reminder lowers how often that happens by putting the points the reviewer judges next to the prompt. It is guidance, not a guarantee, and the review stays as the check.
+- **The reminder is short and states no criteria of its own.** `reminder.md` is read with every prompt, so a test holds it to 1,200 characters. It names the rule files and the requirements the reviewer judges; change a criterion in the rule, and change `reminder.md` only when the list of what is judged changes.
 - **One correction per turn.** When Claude is already continuing after a correction (`stop_hook_active` in the hook input), the reviewer passes without reading anything. An earlier hook of this repository was removed because repeated corrections made Claude restate its output.
 - **Documents are reviewed when the turn ends, not after each edit.** Claude Code documents no way to stop a `PostToolUse` hook from firing again on the edit that answers it, so a review after each edit could not be held to one correction.
 - **Cost.** Every turn that ends runs one reviewer, with a limit of 120 seconds. The hook sets no model; the Claude Code documentation says an agent hook then uses the model Claude Code uses for background work. For a short direct reply with no documents, the reviewer reads only `rules/communication.md` and checks what that rule requires of every answer.

@@ -7,6 +7,11 @@
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/written_documents.py\" reset",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/written_documents.py\" remind",
+            "timeout": 10
           }
         ]
       }
