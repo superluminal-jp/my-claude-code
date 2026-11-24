@@ -84,7 +84,13 @@ cp "$REPO_DIR/install.sh" "$source_repo/install.sh"
 cp -R "$REPO_DIR/harness" "$source_repo/harness"
 touch "$source_repo/harness/rules/.DS_Store"
 mkdir -p "$source_repo/harness/agents/.claude/.cc-writes"
-CLAUDE_CONFIG_DIR="$target" bash "$source_repo/install.sh" >/dev/null
+install_out="$(CLAUDE_CONFIG_DIR="$target" bash "$source_repo/install.sh")"
+# The plugin is not copied, so the install says how to enable it, with the
+# path of the checkout it was run from.
+for expected in "claude plugin marketplace add \"$source_repo\"" \
+  "claude plugin install writing-check@local-harness --scope user"; do
+  grep -qF "$expected" <<<"$install_out" || fail "install.sh did not print: $expected"
+done
 [ -z "$(find "$target/rules" "$target/agents" -name .DS_Store -o -name .claude)" ] \
   || fail "Finder metadata or a .claude marker directory was installed"
 [ -z "$(find "$target" -maxdepth 1 -name '.install-new.*')" ] || fail "a staging directory was left behind"

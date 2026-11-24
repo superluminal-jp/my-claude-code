@@ -76,7 +76,7 @@ claude plugin marketplace add /path/to/my-claude-code
 claude plugin install writing-check@local-harness --scope user
 ```
 
-User scope makes the plugin part of the user-level configuration: it is enabled in every project, like the files `install.sh` copies.
+`bash install.sh` prints these two commands with the path of the checkout filled in. User scope makes the plugin part of the user-level configuration: it is enabled in every project, like the files `install.sh` copies.
 
 The plugin needs Python 3. Claude Code reads it in place from this checkout: an edit takes effect at the next session or after `/reload-plugins`, without reinstalling. `install.sh` does not copy it, because `~/.claude/plugins/` holds Claude Code's own record of installed plugins. To remove it, run `claude plugin uninstall writing-check@local-harness`.
 

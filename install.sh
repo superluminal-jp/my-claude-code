@@ -47,3 +47,14 @@ for rel in "${MANAGED_PATHS[@]}"; do
 done
 
 echo "Installed ${MANAGED_PATHS[*]} from $SOURCE_DIR to $TARGET_DIR"
+
+# The plugin is read in place from this checkout, so it is enabled with
+# Claude Code's own commands, once; an edit to it needs no second run.
+cat <<EOF
+
+The writing-check plugin (harness/plugins/writing-check) is not copied.
+To enable it in every project, run these two commands once:
+
+  claude plugin marketplace add "$SCRIPT_DIR"
+  claude plugin install writing-check@local-harness --scope user
+EOF

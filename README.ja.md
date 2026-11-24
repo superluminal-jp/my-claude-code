@@ -76,7 +76,7 @@ claude plugin marketplace add /path/to/my-claude-code
 claude plugin install writing-check@local-harness --scope user
 ```
 
-ユーザースコープでインストールすると、プラグインはユーザーレベルの設定の一部になります。`install.sh` がコピーするファイルと同じく、すべてのプロジェクトで有効です。
+`bash install.sh` を実行すると、チェックアウトのパスを埋めた形でこの 2 つのコマンドが表示されます。ユーザースコープでインストールすると、プラグインはユーザーレベルの設定の一部になります。`install.sh` がコピーするファイルと同じく、すべてのプロジェクトで有効です。
 
 プラグインの実行には Python 3 が必要です。Claude Code はこのチェックアウトにあるファイルをそのまま読みます。編集した内容は、次のセッションか `/reload-plugins` の後に有効になり、再インストールは不要です。`install.sh` はプラグインをコピーしません。`~/.claude/plugins/` は、Claude Code 自身がインストール済みプラグインの記録を置く場所だからです。削除するには `claude plugin uninstall writing-check@local-harness` を実行します。
 
