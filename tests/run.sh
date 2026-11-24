@@ -78,8 +78,10 @@ echo stale >"$target/rules/stale.md"
 echo stale >"$target/agents/stale.md"
 # Install from a copy of the source that carries files which are not
 # configuration, to see that they are left out.
-source_repo="$WORK_DIR/repo"
-mkdir "$source_repo"
+mkdir "$WORK_DIR/repo"
+# The path as install.sh will name it: on macOS $TMPDIR ends in a slash, and
+# install.sh prints its own directory as `pwd` gives it, with single slashes.
+source_repo="$(cd "$WORK_DIR/repo" && pwd)"
 cp "$REPO_DIR/install.sh" "$source_repo/install.sh"
 cp -R "$REPO_DIR/harness" "$source_repo/harness"
 touch "$source_repo/harness/rules/.DS_Store"
