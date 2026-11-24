@@ -66,6 +66,9 @@ if grep -qF "without comment" "$REPO_DIR/harness/rules/standards.md"; then
   fail "rules/standards.md still says to use a standard without comment"
 fi
 
+echo "== the writing-check plugin"
+python3 "$REPO_DIR/tests/test_writing_check.py" 2>&1 | grep -v "^$"
+
 echo "== install.sh"
 target="$WORK_DIR/claude"
 mkdir -p "$target/skills/own-skill" "$target/rules" "$target/agents"
@@ -75,13 +78,21 @@ echo stale >"$target/rules/stale.md"
 echo stale >"$target/agents/stale.md"
 # Install from a copy of the source that carries files which are not
 # configuration, to see that they are left out.
-source_repo="$WORK_DIR/repo"
-mkdir "$source_repo"
+mkdir "$WORK_DIR/repo"
+# The path as install.sh will name it: on macOS $TMPDIR ends in a slash, and
+# install.sh prints its own directory as `pwd` gives it, with single slashes.
+source_repo="$(cd "$WORK_DIR/repo" && pwd)"
 cp "$REPO_DIR/install.sh" "$source_repo/install.sh"
 cp -R "$REPO_DIR/harness" "$source_repo/harness"
 touch "$source_repo/harness/rules/.DS_Store"
 mkdir -p "$source_repo/harness/agents/.claude/.cc-writes"
-CLAUDE_CONFIG_DIR="$target" bash "$source_repo/install.sh" >/dev/null
+install_out="$(CLAUDE_CONFIG_DIR="$target" bash "$source_repo/install.sh")"
+# The plugin is not copied, so the install says how to enable it, with the
+# path of the checkout it was run from.
+for expected in "claude plugin marketplace add \"$source_repo\"" \
+  "claude plugin install writing-check@local-harness --scope user"; do
+  grep -qF "$expected" <<<"$install_out" || fail "install.sh did not print: $expected"
+done
 [ -z "$(find "$target/rules" "$target/agents" -name .DS_Store -o -name .claude)" ] \
   || fail "Finder metadata or a .claude marker directory was installed"
 [ -z "$(find "$target" -maxdepth 1 -name '.install-new.*')" ] || fail "a staging directory was left behind"
@@ -99,6 +110,9 @@ done
 [ ! -e "$target/agents/stale.md" ] || fail "an agent removed from harness/ survived the install"
 [ "$(cat "$target/skills/own-skill/SKILL.md")" = keep ] || fail "skills/ was touched"
 [ "$(cat "$target/settings.json")" = keep ] || fail "settings.json was touched"
+# ~/.claude/plugins/ is where Claude Code keeps its own record of installed
+# plugins, so the plugin under harness/plugins/ is not copied there.
+[ ! -e "$target/plugins" ] || fail "plugins/ was created in the target"
 
 CLAUDE_CONFIG_DIR="$target" bash "$REPO_DIR/install.sh" >/dev/null \
   || fail "a second install run failed"

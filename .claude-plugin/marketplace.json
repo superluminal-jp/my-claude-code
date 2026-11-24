@@ -1,0 +1,14 @@
+{
+  "name": "local-harness",
+  "description": "Plugins kept beside the author's Claude Code user-level configuration.",
+  "owner": {
+    "name": "superluminal-jp"
+  },
+  "plugins": [
+    {
+      "name": "writing-check",
+      "source": "./harness/plugins/writing-check",
+      "description": "Reviews each answer, and the documents written during the turn, once before the turn ends."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # my-claude-code
 
-Claude Code のユーザーレベル設定を Git で管理するリポジトリです。すべてのプロジェクトに適用される `CLAUDE.md` 1 本、ルール 4 本、サブエージェント 1 本を置き、`bash install.sh` で `~/.claude/` にコピーします。
+Claude Code のユーザーレベル設定を Git で管理するリポジトリです。すべてのプロジェクトに適用される `CLAUDE.md` 1 本、ルール 4 本、サブエージェント 1 本を置き、`bash install.sh` で `~/.claude/` にコピーします。あわせて、プラグイン `writing-check` を `harness/plugins/` に置いています。こちらは Claude Code のプラグイン用コマンドで、ユーザースコープにインストールします。
 
 English: [README.md](README.md)
 
@@ -22,7 +22,7 @@ bash install.sh
 | `rules/` | 置き換える。ここで削除したルールはインストール先からも消える |
 | `agents/` | 置き換える。ここで削除したエージェントはインストール先からも消える |
 
-`~/.claude/` のそれ以外には触れません。`settings.json` と `skills/` も対象外で、権限、サンドボックス、フック、プラグイン、MCP サーバー、スキルはこのリポジトリでは管理しません。別のディレクトリにインストールするには `CLAUDE_CONFIG_DIR` を指定します。
+`~/.claude/` のそれ以外には触れません。`settings.json` と `skills/` も対象外で、権限、サンドボックス、フック、プラグイン、MCP サーバー、スキルは `install.sh` では管理しません。このリポジトリのプラグインは `writing-check` だけで、[`writing-check` プラグイン](#writing-check-プラグイン)に書いたとおり、Claude Code のプラグイン用コマンドでインストールします。別のディレクトリにインストールするには `CLAUDE_CONFIG_DIR` を指定します。
 
 この 3 つのパスに自分のファイルがすでにある場合は、上書きされるので先にバックアップしてください。このリポジトリの以前の版は、`~/.claude/skills/` へのスキルと `~/.claude/commands/` へのコマンドのインストール、`~/.claude/settings.json` へのキーのマージ（モデル、権限、サンドボックス、フック、MCP サーバーの一覧）、プラグインのインストールも行っていました。この版はそれらを削除しません。不要なものは自分で削除してください。特に、削除済みのスキルの下のスクリプトを呼ぶ `settings.json` のフックは、何もせずに終わります。
 
@@ -33,6 +33,7 @@ bash install.sh
 | `CLAUDE.md` | 毎セッション | 作業の取り決め。始める前に決めること、進め方、報告前に確かめること |
 | ルール | 毎セッション | 伝え方、安全、委任に関する常時の習慣と、従う標準の指定 |
 | サブエージェント | 委任されたとき、独自のコンテキストで | 出力が長い作業や、独立性が必要な作業をメインの会話から切り離す |
+| プラグイン | `claude plugin install` でインストールした後、毎セッション。`install.sh` はコピーしない | ターンの終わりに文章をレビューするフック |
 
 ### 方針: 標準は名前を挙げる
 
@@ -55,12 +56,52 @@ bash install.sh
 
 検索、検査の実行、一般的な委任作業には、Claude Code 組み込みの `Explore` と `general-purpose` エージェントを使い、`rules/delegation.md` に沿って依頼します。独自のサブエージェントは、ツールの制限そのものが役に立つ場合だけ残しています。レビュー用のエージェントは、編集もコマンド実行もできません。
 
+## `writing-check` プラグイン
+
+`harness/plugins/writing-check/` は、ターンが終わる前に文章を 1 回レビューする Claude Code のプラグインです。回答と、そのターンで書いた文書を、インストール済みのルールに照らして検査します。対象は、文章だけから判定できることです。
+
+| 照らすもの | 検査すること |
+|---|---|
+| `rules/communication.md` | すべての要求。答えを先に書くこと、構成、複数の手順からなる作業の方法と手順、末尾の前提・仮定・方法、用語、指示語の指す先、比喩を使わない説明、長さ |
+| `rules/standards.md` | 文章の言語と種類に対応する標準（たとえば日本語の文章には JTF日本語標準スタイルガイド、ほかに Standard Readme、EARS、Keep a Changelog、日付の ISO 8601）。根拠として挙げた標準に、節や基準の番号が付いていること |
+| `rules/safety.md` | 秘密情報の値や個人情報が文章に含まれていないこと。承認を求めるときに、対象、効果、元に戻す方法を示していること |
+| フックのプロンプト | 上の標準が扱っていない言葉づかい。日本語では、翻訳調、助詞、長すぎる文 |
+
+ルールのうち、Claude の作業の進め方に関する部分（操作の前の承認、委任、検証）は、文章からは判定できないので検査しません。読み手が誤解する欠陥があれば Claude に差し戻し、Claude は同じターンの中で直します。
+
+### プラグインのインストール
+
+```sh
+claude plugin marketplace add /path/to/my-claude-code
+claude plugin install writing-check@local-harness --scope user
+```
+
+`bash install.sh` を実行すると、チェックアウトのパスを埋めた形でこの 2 つのコマンドが表示されます。ユーザースコープでインストールすると、プラグインはユーザーレベルの設定の一部になります。`install.sh` がコピーするファイルと同じく、すべてのプロジェクトで有効です。
+
+プラグインの実行には Python 3 が必要です。Claude Code はこのチェックアウトにあるファイルをそのまま読みます。編集した内容は、次のセッションか `/reload-plugins` の後に有効になり、再インストールは不要です。`install.sh` はプラグインをコピーしません。`~/.claude/plugins/` は、Claude Code 自身がインストール済みプラグインの記録を置く場所だからです。削除するには `claude plugin uninstall writing-check@local-harness` を実行します。
+
+### 仕組み
+
+| フック | 型 | 動作 |
+|---|---|---|
+| `UserPromptSubmit` | command | そのセッションの「書いた文書の一覧」を空にする。これにより、一覧は 1 ターン分になる |
+| `PostToolUse`（`Write\|Edit`） | command | 書いたファイルが文書（`.md`、`.mdx`、`.markdown`、`.txt`、`.rst`、`.adoc`）なら、全体を書いたのか一部を編集したのかの印を付けて一覧に加える。モデルは呼ばない |
+| `Stop` | agent | レビュー担当のエージェントが、回答、一覧にある文書（5 件まで）、インストール済みのルールを読み、合格、または直すべき欠陥を返す |
+
+- **差し戻しは 1 ターンに 1 回です。** Claude が差し戻しを受けて続行している間（フックの入力の `stop_hook_active` が true）は、エージェントは何も読まずに合格を返します。このリポジトリに以前あったフックは、差し戻しの繰り返しで Claude が出力を言い直すことを理由に廃止しました。
+- **文書は編集のたびではなく、ターンの終わりに検査します。** 差し戻しに応じた編集で `PostToolUse` フックが再び動くのを止める方法が、Claude Code のドキュメントにありません。編集のたびに検査すると、差し戻しを 1 回に抑えられません。
+- **費用。** ターンが終わるたびに、エージェントが 1 回動きます。制限時間は 120 秒です。フックではモデルを指定していません。Claude Code のドキュメントによると、その場合 agent 型のフックは、Claude Code がバックグラウンド処理に使うモデルで動きます。文書を書いておらず、回答が一言で済む返事であれば、エージェントは `rules/communication.md` だけを読み、このルールがすべての回答に求めることを検査します。
+- **編集した文書。** 既存のファイルの一部を編集した場合、文章の大半はそのターンより前のものかもしれません。エージェントはそこでは読み手が誤解する欠陥だけを報告し、Claude にはそのターンで書いた文章だけを直すよう伝えます。
+- **一覧**は、Claude の設定ディレクトリ（既定では `~/.claude/`）の `writing-check/<session_id>.txt` で、本人だけが読めるディレクトリに置きます。スクリプトもエージェントも、フックの入力にあるトランスクリプトのパスからこのディレクトリを求めます。
+- **基準。** 基準はインストール済みのルールです。基準を変えるときはルールを変えます。フックのプロンプトには、ルールの要求のうち文章から判定できるものの指定と、ルールにも標準にも書かれていない言葉づかいの基準だけを置いています。プロンプトが `harness/rules/` にないルールのファイルを挙げると、テストが失敗します。
+- **限界。** agent 型のフックは、Claude Code のドキュメントで experimental（実験的）とされており、仕様が変わる可能性があります。レビューはモデルの判断であり、保証ではありません。
+
 ## 意図的に含めていないもの
 
 - **`settings.json`。** `/config` を使うか、`~/.claude/settings.json` を直接編集して管理してください。
 - **スキル。** このリポジトリが以前スキルとして持っていた手順は、どれも名前のある標準かフレームワークだったので、いまは `rules/standards.md` の 1 行になっています。
 - **仕様策定と開発プロセスのワークフロー。** Spec Kit と AI-DLC は、使うプロジェクトごとに導入します。このハーネスはプロジェクト側のワークフローに従い、同じ内容を重ねて持ちません。
-- **強制。** `CLAUDE.md` とルールの指示は Claude が読む指針であり、保証ではありません。例外なく守らせたいことは、権限設定またはフックに置きます。
+- **強制。** `CLAUDE.md` とルールの指示は Claude が読む指針であり、保証ではありません。例外なく守らせたいことは、権限設定またはフックに置きます。`writing-check` プラグインはここに置いている唯一のフックで、修正を求めるものであり、修正を保証するものではありません。
 
 ## 開発
 
@@ -68,7 +109,9 @@ bash install.sh
 bash tests/run.sh
 ```
 
-`harness/` のすべてのファイルを Claude Code が読む形式（front matter のフィールド、必須のフィールド、毎セッション読み込まれる分量）に照らして検査し、一時ディレクトリに対して `install.sh` を実行します。CI も同じコマンドを Ubuntu と macOS で実行します。
+`harness/` のすべてのファイルを Claude Code が読む形式（front matter のフィールド、必須のフィールド、毎セッション読み込まれる分量）に照らして検査し、`writing-check` プラグインのテストを実行し、一時ディレクトリに対して `install.sh` を実行します。CI も同じコマンドを Ubuntu と macOS で実行します。
+
+`claude plugin validate . --strict` と `claude plugin validate harness/plugins/writing-check --strict` は、プラグインのマニフェストを検査します。この 2 つは Claude Code が必要で、`tests/run.sh` と CI には含めていません。
 
 `harness/` を編集し、検査を実行し、`bash install.sh` を実行してから、新しいセッションで変更を使います。このリポジトリの規約は [CLAUDE.md](CLAUDE.md) にあります。
 
@@ -79,5 +122,6 @@ bash tests/run.sh
 - [Memory: CLAUDE.md とルール](https://code.claude.com/docs/en/memory) - `CLAUDE.md` は 200 行未満にする。`paths` のないルールは毎セッション読み込まれる。
 - [Subagents](https://code.claude.com/docs/en/sub-agents) - 独自のサブエージェントは、コンテキストの分離か、ツールを制限した専門の役割のために作る。
 - [Best practices](https://code.claude.com/docs/en/best-practices) と [Extending Claude Code](https://code.claude.com/docs/en/features-overview) - どの仕組みを何に使うか。ガードレールはフックに置く。
+- [Hooks](https://code.claude.com/docs/en/hooks) と [Plugins](https://code.claude.com/docs/en/plugins)（2026-11-24 に読んだもの） - `Stop` の agent 型フック、入力の `stop_hook_active`、ローカルのマーケットプレイスからその場で読まれるプラグイン。
 - [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) - Claude がまだ知らないことだけを足す。
 - [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) - すべきことを書き、理由を説明し、強調表現を避ける。
