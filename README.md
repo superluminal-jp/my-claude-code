@@ -35,7 +35,7 @@ If you already have your own files in those four paths, back them up first; the 
 | Rules | Every session | Standing habits for communication, safety, and delegation, and which standards to follow |
 | Subagents | In their own context, on delegation | Work whose long output or independence should stay out of the main conversation |
 | Skills | When the task matches the skill's description, or when invoked as `/name` | A procedure, with its files, that no named standard covers |
-| Plugin | In every session once installed with `claude plugin install`; not copied by `install.sh` | The hooks that review writing when a turn ends |
+| Plugin | In every session once installed with `claude plugin install`; not copied by `install.sh` | A hook that reminds Claude of the writing rules with each prompt |
 
 ### The principle: name the standard
 
@@ -60,16 +60,16 @@ Searching, running checks, and general delegated work use Claude Code's built-in
 
 ## The `writing-check` plugin
 
-`harness/plugins/writing-check/` is a Claude Code plugin that reminds Claude of the writing rules when a prompt is submitted, and reviews writing once before a turn ends. The review checks the answer and the documents written during the turn against the installed rules, for what can be judged from the text alone:
+`harness/plugins/writing-check/` is a Claude Code plugin that reminds Claude of the writing rules when a prompt is submitted. Claude Code adds `reminder.md` to the context of the turn, so that Claude checks its draft against the installed rules before the answer is shown. The reminder lists what can be judged from the text alone:
 
-| Checked against | What is checked |
+| Rule or source | What the reminder lists |
 |---|---|
-| `rules/communication.md` | Every requirement: answer first, structure, the method and steps of multi-step work, the closing premises, assumptions, and method, terms, references, no metaphor, length |
-| `rules/standards.md` | The standard for the text's language and kind (for example JTF日本語標準スタイルガイド for Japanese prose, Standard Readme, EARS, Keep a Changelog, ISO 8601 dates); a standard given as a reason is named with its section or criterion number |
+| `rules/communication.md` | Answer first, the closing lines, terms defined at first use, references that say what they point to, no metaphor, length |
+| `rules/standards.md` | The standard for the text's language and kind; a standard given as a reason is named with its section or criterion number |
 | `rules/safety.md` | No secret value or personal data in the text; a request for approval names the target, the effect, and how to undo it |
-| The hook's prompt | Language that no listed standard covers; for Japanese, translated-sounding phrasing, particles, and overlong sentences; wording that fits the field of the work (the terms and register its practitioners use) |
+| `reminder.md` itself | Language that reads as written by a careful native writer, with no translated-sounding phrasing; wording that fits the field of the work, judged from the conversation |
 
-What the rules say about how Claude works (approval before an action, delegation, verification) cannot be judged from the text and is not checked. When a reader would be misled, it sends the defects back to Claude, which corrects them in the same turn.
+What the rules say about how Claude works (approval before an action, delegation, verification) is not in the reminder.
 
 ### Install the plugin
 
@@ -86,27 +86,18 @@ The plugin needs Python 3. Claude Code reads it in place from this checkout: an 
 
 | Hook | Type | What it does |
 |---|---|---|
-| `UserPromptSubmit` | command | Empties the session's list of written documents, so that the list covers one turn |
-| `UserPromptSubmit` | command | Adds `reminder.md` to the context of the turn, so that Claude checks its draft against the rules before the answer is shown; no model is called |
-| `PostToolUse` on `Write\|Edit` | command | Adds the file to the list when it is a document (`.md`, `.mdx`, `.markdown`, `.txt`, `.rst`, `.adoc`), marked as written whole or as edited in place; no model is called |
-| `Stop` | agent | A reviewer reads the answer, the listed documents (at most five), and the installed rules, and returns a pass or the defects to correct |
+| `UserPromptSubmit` | command | `scripts/remind.py` prints `reminder.md` as the `additionalContext` of the hook output, which Claude Code adds to the context of the turn; no model is called |
 
-- **The reminder comes before the answer, the review after it.** Claude Code shows an answer as it is written, and no hook can hold it back, so a defect the reviewer finds is corrected in a second answer that the person also sees. The reminder lowers how often that happens by putting the points the reviewer judges next to the prompt. It is guidance, not a guarantee, and the review stays as the check.
-- **The reminder is short and states no criteria of its own.** `reminder.md` is read with every prompt, so a test holds it to 1,200 characters. It names the rule files and the requirements the reviewer judges, and asks Claude to judge the field of the work from the conversation, which the reviewer does not read and so judges from the text alone; change a criterion in the rule, and change `reminder.md` only when the list of what is judged changes.
-- **One correction per turn.** When Claude is already continuing after a correction (`stop_hook_active` in the hook input), the reviewer passes without reading anything. An earlier hook of this repository was removed because repeated corrections made Claude restate its output.
-- **Documents are reviewed when the turn ends, not after each edit.** Claude Code documents no way to stop a `PostToolUse` hook from firing again on the edit that answers it, so a review after each edit could not be held to one correction.
-- **Cost.** Every turn that ends runs one reviewer, with a limit of 120 seconds. The hook sets no model; the Claude Code documentation says an agent hook then uses the model Claude Code uses for background work. For a short direct reply with no documents, the reviewer reads only `rules/communication.md` and checks what that rule requires of every answer.
-- **Edited documents.** In a file that was edited in place, most of the text may be older than the turn. The reviewer reports only what would mislead a reader there, and Claude is told to correct only text it wrote in the turn.
-- **The list** is `writing-check/<session_id>.txt` in the Claude configuration directory (`~/.claude/` by default), in a directory only the user can read. The script and the reviewer both derive that directory from the transcript path in the hook input.
-- **Criteria.** The criteria are the installed rules; change them there. The hook's prompt says which requirements can be judged from the text, and adds only the criteria for language that no rule or listed standard states. A test fails when the prompt names a rule file that `harness/rules/` does not have.
-- **Limits.** Agent hooks are marked experimental in the Claude Code documentation and may change. The review is a model's judgment, not a guarantee.
+- **The reminder is short and states no criteria of its own.** `reminder.md` is read with every prompt, so a test holds it to 1,200 characters. It names the rule files and the requirements that show in the text; change a criterion in the rule, and change `reminder.md` only when the list of what it names changes. A test fails when it names a rule file that `harness/rules/` does not have.
+- **A failure does not disturb the prompt.** When `reminder.md` cannot be read, the script prints nothing, and it always exits 0.
+- **Guidance, not a check.** The reminder is text Claude reads, not a guarantee; nothing checks the answer after it is written.
 
 ## What is deliberately not here
 
 - **`settings.json`.** Manage it yourself with `/config` or by editing `~/.claude/settings.json`.
 - **Skills for named standards.** Every procedure this repository once carried as a skill turned out to be a named standard or framework, and is now one row in `rules/standards.md`. A skill is kept only for a procedure no standard covers; `create-presentation` is the one such skill.
 - **Specification and delivery workflows.** Spec Kit and AI-DLC are set up in each project that uses them. The harness defers to a project's own workflow and does not duplicate it.
-- **Enforcement.** Instructions in `CLAUDE.md` and rules are guidance that Claude reads, not guarantees. Anything that must hold without exception belongs in permission settings or hooks. The `writing-check` plugin is the one hook kept here, and it asks for a correction rather than guaranteeing one.
+- **Enforcement.** Instructions in `CLAUDE.md` and rules are guidance that Claude reads, not guarantees. Anything that must hold without exception belongs in permission settings or hooks. The `writing-check` plugin is the one hook kept here, and it reminds Claude of the rules rather than checking the answer.
 
 ## The `create-presentation` skill
 
@@ -149,7 +140,7 @@ The layout follows the Claude Code documentation as read on 2026-11-21:
 - [Memory: CLAUDE.md and rules](https://code.claude.com/docs/en/memory) - keep `CLAUDE.md` under 200 lines; rules without `paths` load in every session.
 - [Subagents](https://code.claude.com/docs/en/sub-agents) - a custom subagent for context isolation or a restricted, specialized role.
 - [Best practices](https://code.claude.com/docs/en/best-practices) and [Extending Claude Code](https://code.claude.com/docs/en/features-overview) - which mechanism to use for what; guardrails belong in hooks.
-- [Hooks](https://code.claude.com/docs/en/hooks) and [Plugins](https://code.claude.com/docs/en/plugins), read on 2026-11-24 - agent hooks on `Stop`, the `stop_hook_active` input, and a plugin read in place from a local marketplace.
+- [Hooks](https://code.claude.com/docs/en/hooks) and [Plugins](https://code.claude.com/docs/en/plugins), read on 2026-11-24 - a plugin read in place from a local marketplace.
 - [Skills](https://code.claude.com/docs/en/skills), read on 2026-11-25 - `${CLAUDE_SKILL_DIR}` in a skill's text is replaced by the skill's directory. The [Plugins reference](https://code.claude.com/docs/en/plugins/plugins-reference), read the same day, says a plugin cannot carry `CLAUDE.md` or rules, so a plugin is used here only for hooks.
 - [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) - add only what Claude does not already know.
 - [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) - say what to do, explain why, and avoid emphatic wording.
