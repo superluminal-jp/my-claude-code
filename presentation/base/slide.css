@@ -78,11 +78,13 @@ body {
   justify-content: center;
 }
 
-/* Layout: cover. */
+/*
+ * Layout: cover. A white background with the key colour as an accent only:
+ * a slide filled with the key colour is tiring to look at on a screen.
+ */
 .slide[data-layout="cover"] {
   justify-content: center;
-  background-color: var(--color-key-900);
-  color: var(--color-neutral-white);
+  border-top: calc(16 / 16 * 1rem) solid var(--color-key-900);
 }
 
 .slide[data-layout="cover"]::after {
@@ -91,6 +93,16 @@ body {
 
 .slide__cover-title {
   margin: 0;
+}
+
+/* A short bar in the key colour under the title. */
+.slide__cover-title::after {
+  content: "";
+  display: block;
+  width: calc(96 / 16 * 1rem);
+  height: calc(6 / 16 * 1rem);
+  margin-top: calc(16 / 16 * 1rem);
+  background-color: var(--color-key-900);
 }
 
 /* Layout: section. Opens a chapter. */
