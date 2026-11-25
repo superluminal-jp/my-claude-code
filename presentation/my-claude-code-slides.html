@@ -90,6 +90,68 @@
   </div>
 </section>
 
+<!-- Pattern: tree diagram, vertical (root at the top) -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">正本は <code>harness/</code> にあり、<code>install.sh</code> がコピーする</h2>
+  </div>
+  <div class="slide__body" data-align="center">
+    <div class="deck-tree" data-orientation="vertical">
+      <ul>
+        <li><span class="deck-tree__node">my-claude-code</span>
+          <ul>
+            <li><span class="deck-tree__node"><code>harness/</code></span>
+              <ul>
+                <li><span class="deck-tree__node"><code>CLAUDE.md</code></span></li>
+                <li><span class="deck-tree__node"><code>rules/</code></span></li>
+                <li><span class="deck-tree__node"><code>agents/</code></span></li>
+                <li><span class="deck-tree__node"><code>plugins/</code></span></li>
+              </ul>
+            </li>
+            <li><span class="deck-tree__node"><code>install.sh</code></span></li>
+            <li><span class="deck-tree__node"><code>tests/</code></span>
+              <ul>
+                <li><span class="deck-tree__node"><code>run.sh</code></span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Pattern: tree diagram, horizontal (root at the left) -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">インストール後の <code>~/.claude/</code> に入る 6 ファイル</h2>
+  </div>
+  <div class="slide__body" data-align="center">
+    <div class="deck-tree" data-orientation="horizontal">
+      <ul>
+        <li><span class="deck-tree__node"><code>~/.claude/</code></span>
+          <ul>
+            <li><span class="deck-tree__node"><code>CLAUDE.md</code></span></li>
+            <li><span class="deck-tree__node"><code>rules/</code></span>
+              <ul>
+                <li><span class="deck-tree__node"><code>communication.md</code></span></li>
+                <li><span class="deck-tree__node"><code>delegation.md</code></span></li>
+                <li><span class="deck-tree__node"><code>safety.md</code></span></li>
+                <li><span class="deck-tree__node"><code>standards.md</code></span></li>
+              </ul>
+            </li>
+            <li><span class="deck-tree__node"><code>agents/</code></span>
+              <ul>
+                <li><span class="deck-tree__node"><code>independent-reviewer.md</code></span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <!-- Pattern: two columns (description list and note) -->
 <section class="slide">
   <div class="dads-heading" data-size="28" data-rule="4">
