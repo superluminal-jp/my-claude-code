@@ -106,6 +106,10 @@ The plugin needs Python 3. Claude Code reads it in place from this checkout: an 
 - **Specification and delivery workflows.** Spec Kit and AI-DLC are set up in each project that uses them. The harness defers to a project's own workflow and does not duplicate it.
 - **Enforcement.** Instructions in `CLAUDE.md` and rules are guidance that Claude reads, not guarantees. Anything that must hold without exception belongs in permission settings or hooks. The `writing-check` plugin is the one hook kept here, and it asks for a correction rather than guaranteeing one.
 
+## The `presentation/` directory
+
+`presentation/` holds a base for writing explanatory material with the HTML components of the Digital Agency Design System (DADS), in a slide format and a page format, and a trial deck and page about this repository. `install.sh` does not copy it. `bash presentation/setup.sh` clones the DADS components at a pinned tag into `design-system-example-components-html/`, which Git ignores. See [presentation/README.md](presentation/README.md) (Japanese).
+
 ## Develop
 
 ```sh

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>my-claude-code の説明資料（ページ形式）</title>
+<!-- Fonts as the DADS samples load them. Remove these three lines to stay offline; the text then uses the system sans-serif font. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+Mono:wght@100..900&display=swap" rel="stylesheet">
+<!-- DADS, cloned by setup.sh. Not edited. -->
+<link rel="stylesheet" href="../design-system-example-components-html/src/global.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/heading/heading.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/list/list.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/description-list/description-list.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/table/table.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/notice-block/notice-block.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/notification-banner/notification-banner.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/chip-label/chip-label.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/step-navigation/step-navigation.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/link/link.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/toc/toc.css">
+<link rel="stylesheet" href="../design-system-example-components-html/src/components/accordion/accordion.css">
+<!-- This directory. -->
+<link rel="stylesheet" href="base/deck.css">
+<link rel="stylesheet" href="base/page.css">
+</head>
+<body>
+<main class="page">
+
+  <hgroup class="dads-heading" data-size="45">
+    <p class="dads-heading__shoulder">Claude Code のユーザーレベル設定</p>
+    <h1 class="dads-heading__heading">my-claude-code</h1>
+  </hgroup>
+
+  <p>設定の正本は <code>harness/</code> に置き、<code>install.sh</code> が <code>~/.claude/</code> へコピーします。コピーされた設定は、すべてのプロジェクトに適用されます。</p>
+
+  <div class="dads-notification-banner" data-style="standard" data-type="info-1">
+    <h2 class="dads-notification-banner__heading">
+      <svg class="dads-notification-banner__icon" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="インフォメーション">
+        <circle cx="12" cy="12" r="10" fill="currentcolor"/>
+        <circle cx="12" cy="8" r="1" fill="Canvas"/>
+        <path d="M11 11h2v6h-2z" fill="Canvas"/>
+      </svg>
+      <span class="dads-notification-banner__heading-text">この資料は表示の確認用です</span>
+    </h2>
+    <div class="dads-notification-banner__body">
+      <p>内容は <code>README.ja.md</code> の要約です。正確な記述は README を参照してください。</p>
+    </div>
+  </div>
+
+  <nav class="dads-toc" aria-labelledby="toc-heading">
+    <h2 id="toc-heading" class="dads-toc__heading">このページの目次</h2>
+    <ul class="dads-list" data-spacing="8">
+      <li><a class="dads-link" href="#contents">harness/ の内容</a></li>
+      <li><a class="dads-link" href="#install">インストールの手順</a></li>
+      <li><a class="dads-link" href="#policy">設計の方針</a></li>
+      <li><a class="dads-link" href="#excluded">意図的に含めていないもの</a></li>
+    </ul>
+  </nav>
+
+  <section id="contents">
+  <div class="dads-heading" data-size="32" data-rule="4">
+    <h2 class="dads-heading__heading"><code>harness/</code> の内容</h2>
+  </div>
+  <p>4 種類のファイルが、読み込まれる時点で分かれます。</p>
+  <div class="dads-table deck-table-fill">
+    <table class="dads-table__table">
+      <thead>
+        <tr>
+          <th class="dads-table__col-header" scope="col">種類</th>
+          <th class="dads-table__col-header" scope="col">読み込まれるとき</th>
+          <th class="dads-table__col-header" scope="col">ここでの用途</th>
+        </tr>
+      </thead>
+      <tbody data-cell-border="bottom">
+        <tr><td><code>CLAUDE.md</code></td><td>毎セッション</td><td>作業の取り決め</td></tr>
+        <tr><td>ルール（4本）</td><td>毎セッション</td><td>伝え方、安全、委任の習慣と、従う標準の指定</td></tr>
+        <tr><td>サブエージェント（1本）</td><td>委任されたとき</td><td>独立性が必要な作業を、メインの会話から切り離す</td></tr>
+        <tr><td>プラグイン（1本）</td><td>インストール後、毎セッション</td><td>ターンの終わりに文章をレビューするフック</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="dads-heading" data-size="24">
+    <h3 class="dads-heading__heading">ルール</h3>
+  </div>
+  <dl class="dads-description-list">
+      <div class="dads-description-list__item">
+        <dt><code>communication.md</code></dt>
+        <dd>答えを先に書き、根拠をその下に置く。用語は初めて読む人向けに定義する。</dd>
+      </div>
+      <div class="dads-description-list__item">
+        <dt><code>delegation.md</code></dt>
+        <dd>サブエージェントに任せる場面、依頼の書き方、報告をどこまで信頼するか。</dd>
+      </div>
+      <div class="dads-description-list__item">
+        <dt><code>safety.md</code></dt>
+        <dd>事前に承認が必要な操作と、秘密情報・個人情報・信頼できない内容の扱い。</dd>
+      </div>
+      <div class="dads-description-list__item">
+        <dt><code>standards.md</code></dt>
+        <dd>プロジェクトが決めていない場合に従う、確立された標準。</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="install">
+  <div class="dads-heading" data-size="32" data-rule="4">
+    <h2 class="dads-heading__heading">インストールの手順</h2>
+  </div>
+  <div class="dads-step-navigation" data-orientation="horizontal" data-size="normal">
+    <ul>
+      <li class="dads-step-navigation__step" data-first>
+        <span class="dads-step-navigation__header">
+          <span class="dads-u-visually-hidden">ステップ</span>
+          <span class="dads-step-navigation__number">1</span>
+          <span class="dads-step-navigation__title">リポジトリを取得する</span>
+        </span>
+        <p class="dads-step-navigation__description"><code>git clone</code> で手元に置く。</p>
+      </li>
+      <li class="dads-step-navigation__step">
+        <span class="dads-step-navigation__header">
+          <span class="dads-u-visually-hidden">ステップ</span>
+          <span class="dads-step-navigation__number">2</span>
+          <span class="dads-step-navigation__title">インストールする</span>
+        </span>
+        <p class="dads-step-navigation__description"><code>bash install.sh</code> が 3 つのパスを置き換える。</p>
+      </li>
+      <li class="dads-step-navigation__step" data-last>
+        <span class="dads-step-navigation__header">
+          <span class="dads-u-visually-hidden">ステップ</span>
+          <span class="dads-step-navigation__number">3</span>
+          <span class="dads-step-navigation__title">読み込みを確かめる</span>
+        </span>
+        <p class="dads-step-navigation__description">新しいセッションで <code>/context</code> を実行する。</p>
+      </li>
+    </ul>
+  </div>
+  <pre class="deck-code"><code>git clone git@github.com:superluminal-jp/my-claude-code.git
+cd my-claude-code
+bash install.sh</code></pre>
+  <div class="dads-notice-block" role="note" data-style="fill-solid" data-color="light-blue">
+    <div class="dads-notice-block__header">置き換えの範囲</div>
+    <div class="dads-notice-block__body">
+      <p><code>~/.claude/</code> の <code>CLAUDE.md</code>、<code>rules/</code>、<code>agents/</code> だけを置き換えます。<code>settings.json</code> と <code>skills/</code> には触れません。</p>
+    </div>
+  </div>
+  </section>
+
+  <section id="policy">
+  <div class="dads-heading" data-size="32" data-rule="4">
+    <h2 class="dads-heading__heading">設計の方針</h2>
+  </div>
+  <p>方針は、毎セッション読み込む量を小さく保つことです。</p>
+  <div class="deck-columns" data-cols="3">
+    <div class="deck-panel">
+      <span class="dads-chip-label" data-style="filled-1" data-color="blue">方針</span>
+      <h3 class="deck-panel__title">標準は名前を挙げる</h3>
+      <p>PEP 8 や Conventional Commits の中身を書き写さず、どの標準を使うかだけを書く。</p>
+    </div>
+    <div class="deck-panel">
+      <span class="dads-chip-label" data-style="filled-1" data-color="green">上限</span>
+      <h3 class="deck-panel__title">常時読み込みは 16,000 バイト以内</h3>
+      <p>毎セッション読み込まれる文は、どのセッションでもコンテキストを使う。検査が上限を確かめる。</p>
+    </div>
+    <div class="deck-panel">
+      <span class="dads-chip-label" data-style="filled-1" data-color="orange">追加の条件</span>
+      <h3 class="deck-panel__title">同じ誤りを 2 回見たら足す</h3>
+      <p>具体的な指示は、どの標準にも書かれていないことと、繰り返した誤りに限る。</p>
+    </div>
+  </div>
+  </section>
+
+  <section id="excluded">
+  <div class="dads-heading" data-size="32" data-rule="4">
+    <h2 class="dads-heading__heading">意図的に含めていないもの</h2>
+  </div>
+  <ul class="dads-list" data-spacing="8">
+      <li><code>settings.json</code>：<code>/config</code> か直接の編集で管理する。</li>
+      <li>スキル：以前の手順は、いまは <code>rules/standards.md</code> の 1 行になっている。</li>
+      <li>Spec Kit と AI-DLC：使うプロジェクトごとに導入する。</li>
+      <li>強制：ルールは指針であり、保証ではない。守らせたいことは権限設定かフックに置く。</li>
+    </ul>
+  <details class="dads-accordion">
+    <summary id="accordion-1" class="dads-accordion__summary">
+      <span class="dads-accordion__icon">
+        <svg class="dads-accordion__icon-svg" width="24" height="24" viewbox="0 0 24 24" aria-hidden="true">
+          <path d="M3.3 7.3L12 16L20.7 7.3" fill="none" stroke="currentcolor" stroke-width="2"/>
+        </svg>
+      </span>
+      <h3>なぜスキルを置いていないのですか</h3>
+    </summary>
+    <div class="dads-accordion__content">
+      <p>以前スキルとして持っていた手順は、どれも名前のある標準かフレームワークでした。そのため、いまは <code>rules/standards.md</code> の 1 行になっています。</p>
+    </div>
+  </details>
+  <details class="dads-accordion">
+    <summary id="accordion-2" class="dads-accordion__summary">
+      <span class="dads-accordion__icon">
+        <svg class="dads-accordion__icon-svg" width="24" height="24" viewbox="0 0 24 24" aria-hidden="true">
+          <path d="M3.3 7.3L12 16L20.7 7.3" fill="none" stroke="currentcolor" stroke-width="2"/>
+        </svg>
+      </span>
+      <h3>ルールを守らせる仕組みはありますか</h3>
+    </summary>
+    <div class="dads-accordion__content">
+      <p><code>writing-check</code> プラグインのフックが、ターンの終わりに文章を 1 回レビューします。これは修正を求めるもので、修正を保証するものではありません。</p>
+    </div>
+  </details>
+  <p>詳細：<a class="dads-link" href="../README.ja.md">README.ja.md</a></p>
+  </section>
+
+</main>
+</body>
+</html>

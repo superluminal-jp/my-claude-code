@@ -106,6 +106,10 @@ claude plugin install writing-check@local-harness --scope user
 - **仕様策定と開発プロセスのワークフロー。** Spec Kit と AI-DLC は、使うプロジェクトごとに導入します。このハーネスはプロジェクト側のワークフローに従い、同じ内容を重ねて持ちません。
 - **強制。** `CLAUDE.md` とルールの指示は Claude が読む指針であり、保証ではありません。例外なく守らせたいことは、権限設定またはフックに置きます。`writing-check` プラグインはここに置いている唯一のフックで、修正を求めるものであり、修正を保証するものではありません。
 
+## `presentation/` ディレクトリ
+
+`presentation/` には、デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って説明資料を書くための土台（スライド形式とページ形式）と、このリポジトリを題材にした試作を置いています。`install.sh` はこのディレクトリをコピーしません。`bash presentation/setup.sh` は、DADS のコンポーネントを固定したタグで `design-system-example-components-html/` にクローンします。このディレクトリは Git の管理から除外しています。詳細は [presentation/README.md](presentation/README.md) を参照してください。
+
 ## 開発
 
 ```sh
