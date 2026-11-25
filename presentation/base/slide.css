@@ -38,6 +38,10 @@ body {
 
 .slide {
   position: relative;
+  /* A stacking context of its own. DADS draws some lines with z-index: -1
+     (the connectors of the step navigation); without this they are painted
+     behind the slide's background. */
+  isolation: isolate;
   box-sizing: border-box;
   flex: none;
   display: flex;

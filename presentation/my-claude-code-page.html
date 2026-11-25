@@ -102,6 +102,58 @@
         <dd>プロジェクトが決めていない場合に従う、確立された標準。</dd>
       </div>
     </dl>
+  <div class="dads-heading" data-size="24">
+    <h3 class="dads-heading__heading">リポジトリの構成</h3>
+  </div>
+  <p>設定の正本は <code>harness/</code> にあります。</p>
+  <div class="deck-tree" data-orientation="vertical">
+    <ul>
+      <li><span class="deck-tree__node">my-claude-code</span>
+        <ul>
+          <li><span class="deck-tree__node"><code>harness/</code></span>
+            <ul>
+              <li><span class="deck-tree__node"><code>CLAUDE.md</code></span></li>
+              <li><span class="deck-tree__node"><code>rules/</code></span></li>
+              <li><span class="deck-tree__node"><code>agents/</code></span></li>
+              <li><span class="deck-tree__node"><code>plugins/</code></span></li>
+            </ul>
+          </li>
+          <li><span class="deck-tree__node"><code>install.sh</code></span></li>
+          <li><span class="deck-tree__node"><code>tests/</code></span>
+            <ul>
+              <li><span class="deck-tree__node"><code>run.sh</code></span></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div class="dads-heading" data-size="24">
+    <h3 class="dads-heading__heading">インストール後の <code>~/.claude/</code></h3>
+  </div>
+  <p><code>install.sh</code> は、次の 6 ファイルを置きます。</p>
+  <div class="deck-tree" data-orientation="horizontal">
+    <ul>
+      <li><span class="deck-tree__node"><code>~/.claude/</code></span>
+        <ul>
+          <li><span class="deck-tree__node"><code>CLAUDE.md</code></span></li>
+          <li><span class="deck-tree__node"><code>rules/</code></span>
+            <ul>
+              <li><span class="deck-tree__node"><code>communication.md</code></span></li>
+              <li><span class="deck-tree__node"><code>delegation.md</code></span></li>
+              <li><span class="deck-tree__node"><code>safety.md</code></span></li>
+              <li><span class="deck-tree__node"><code>standards.md</code></span></li>
+            </ul>
+          </li>
+          <li><span class="deck-tree__node"><code>agents/</code></span>
+            <ul>
+              <li><span class="deck-tree__node"><code>independent-reviewer.md</code></span></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
   </section>
 
   <section id="install">
