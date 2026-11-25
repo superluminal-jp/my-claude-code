@@ -1,6 +1,6 @@
 # DADS components by format
 
-Which of the 43 components of the DADS HTML components (tag `v20261118`) suit each format. "Limited" means the use in the last column only.
+Which of the 43 components of the DADS HTML components suit each format. The skill carries the release named in `assets/dads/SOURCE`, and only the components marked Yes or Limited here. "Limited" means the use in the last column only.
 
 | Component | Slides | Page | Use |
 |---|---|---|---|

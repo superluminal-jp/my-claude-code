@@ -5,7 +5,7 @@ description: Write explanatory material as HTML built on the components of the D
 
 # Create a presentation with the DADS components
 
-The material is plain HTML that opens from the file system: no server and no build. The DADS components are cloned beside it and are never edited; this skill adds only what DADS does not provide.
+The material is plain HTML that opens from the file system: no server and no build. This skill carries a copy of the DADS components (`assets/dads/`, one tagged release, under the MIT License) and copies into the project only the files the material links; it adds only what DADS does not provide.
 
 ## Before starting
 
@@ -15,26 +15,26 @@ Settle these with the person, in one message, when the request does not say:
 - **Content**: the source to explain, the reader, and the one thing the reader should keep.
 - **Language** of the material. Set `lang` on `<html>` to match.
 
-Cloning DADS contacts github.com, and the templates load Noto Sans JP from Google Fonts as the DADS samples do. Say so before the first run in a project; to stay offline, remove the three font lines from `<head>`.
+The templates load Noto Sans JP from Google Fonts as the DADS samples do. Say so before the first run in a project; to stay offline, remove the three font lines from `<head>`.
 
 ## Steps
 
-1. **Place the base.** In the project root, create `presentation/` and copy into it `${CLAUDE_SKILL_DIR}/assets/base/` (as `presentation/base/`) and `${CLAUDE_SKILL_DIR}/assets/setup.sh`. If `presentation/base/` already exists, keep it unless the person asks for the newer base.
-2. **Fetch DADS.** Run `bash presentation/setup.sh`. It clones the components at a pinned tag into `design-system-example-components-html/` in the project root. Add that directory to `.gitignore` if the project uses Git.
-3. **Start from a template.** Copy `${CLAUDE_SKILL_DIR}/assets/templates/slides.html` or `page.html` to `presentation/<name>.html`. Each pattern in it is marked with a `<!-- Pattern: ... -->` comment. Keep the patterns the content needs and delete the rest.
-4. **Write the content.** One claim per slide, stated in the slide's heading; the body supports it. Choose components with `references/components.md`.
+1. **Place the base.** In the project root, create `presentation/` and copy `${CLAUDE_SKILL_DIR}/assets/base/` into it as `presentation/base/`. If `presentation/base/` already exists, keep it unless the person asks for the newer base.
+2. **Start from a template.** Copy `${CLAUDE_SKILL_DIR}/assets/templates/slides.html` or `page.html` to `presentation/<name>.html`. Each pattern in it is marked with a `<!-- Pattern: ... -->` comment. Keep the patterns the content needs and delete the rest.
+3. **Write the content.** One claim per slide, stated in the slide's heading; the body supports it. Choose components with `references/components.md`.
+4. **Copy the DADS files.** Run `bash ${CLAUDE_SKILL_DIR}/scripts/copy-dads.sh presentation`. It replaces `presentation/dads/` with the license, `global.css`, and each component file the HTML files link. Run it again whenever a file links a new component.
 5. **Check in a browser.** Run `node ${CLAUDE_SKILL_DIR}/scripts/check.cjs --screenshots <dir> presentation/<name>.html`, with `<dir>` outside the project. Fix every `FAIL`, then look at the screenshots: the check finds content that is cut off, not content that is ugly.
 6. **Report** the files written, the result of the check, and what was not checked.
 
 ## Rules that keep the material working
 
-- **Never edit a file under `design-system-example-components-html/`.** Add what is missing to `presentation/base/deck.css`, with DADS colour tokens (the custom properties in `global.css`).
+- **Never edit a file under `presentation/dads/`**: `copy-dads.sh` replaces that directory. Add what is missing to `presentation/base/deck.css`, with DADS colour tokens (the custom properties in `global.css`).
 - **Write every size in `rem`.** `slide.css` sets the root font size to the window width / 1280 x 24px, so a component appears at 1.5 times its web size and scales with the window. A size in `px` does not scale.
-- **Link each DADS stylesheet the page uses**, after `global.css` and before `base/`. A component without its stylesheet is unstyled. The file is `src/components/<name>/<name>.css`.
+- **Link each DADS stylesheet the page uses**, after `global.css` and before `base/`. A component without its stylesheet is unstyled. Link it as `dads/components/<name>/<name>.css`; a component with a script, such as `tab`, also needs its `<script>` linked the same way.
 - **On slides, use `data-size="28"` for headings, `data-size="dense"` for tables, and `data-size="small"` for step navigation.** At 1.5 times, the default sizes do not fit one slide.
 - **Put nothing on a slide that needs a click to read.** Accordions and tabs lose their content in print; use them in the page format only.
 - **Content past the edge of a slide is not shown** (`overflow: hidden`). When a slide is full, split it; do not shrink the text.
-- **Take the markup of a DADS component from its sample**, `src/components/<name>/*.html` in the clone, not from memory. `component-manifest.json` lists every component with its files.
+- **Take the markup of a DADS component from its sample HTML**, in the component's directory under `${CLAUDE_SKILL_DIR}/assets/dads/components/`, not from memory. Only the components marked usable in `references/components.md` are carried.
 
 ## Slide layouts
 

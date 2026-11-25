@@ -73,19 +73,57 @@ python3 "$REPO_DIR/tests/test_writing_check.py" 2>&1 | grep -v "^$"
 
 echo "== the create-presentation skill"
 skill="$REPO_DIR/harness/skills/create-presentation"
-bash -n "$skill/assets/setup.sh" || fail "assets/setup.sh has a syntax error"
+dads="$skill/assets/dads"
+# The DADS files in the skill are a copy of one tagged release, as
+# scripts/vendor-dads.sh writes them; SHA256SUMS catches a hand edit.
+[ -f "$dads/LICENSE" ] || fail "the skill does not carry the DADS license"
+[ -f "$dads/global.css" ] || fail "the skill does not carry DADS global.css"
+python3 - "$dads" <<'PY' || fail "assets/dads differs from its SHA256SUMS; run scripts/vendor-dads.sh"
+import hashlib, sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+listed = {}
+for line in (root / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+    digest, name = line.split("  ", 1)
+    listed[name] = digest
+present = {
+    p.relative_to(root).as_posix()
+    for p in root.rglob("*")
+    if p.is_file() and p.name not in ("SHA256SUMS", "SOURCE")
+}
+bad = [n for n in sorted(present | set(listed))
+       if n not in listed or n not in present
+       or hashlib.sha256((root / n).read_bytes()).hexdigest() != listed[n]]
+for name in bad:
+    print(f"  {name}", file=sys.stderr)
+sys.exit(1 if bad else 0)
+PY
+bash -n "$skill/scripts/copy-dads.sh" || fail "scripts/copy-dads.sh has a syntax error"
 # presentation/ is this repository's own use of the skill, so its base is the
 # copy the skill makes; the skill's assets are the source.
-for rel in base/deck.css base/slide.css base/slide.js base/page.css setup.sh; do
-  cmp -s "$skill/assets/$rel" "$REPO_DIR/presentation/$rel" \
-    || fail "presentation/$rel differs from the skill's assets/$rel"
+for rel in deck.css slide.css slide.js page.css; do
+  cmp -s "$skill/assets/base/$rel" "$REPO_DIR/presentation/base/$rel" \
+    || fail "presentation/base/$rel differs from the skill's assets/base/$rel"
 done
-for template in slides.html page.html; do
-  # Every stylesheet and script a template names in base/ is one the skill ships.
-  for ref in $(grep -o 'base/[a-z]*\.[a-z]*' "$skill/assets/templates/$template" | sort -u); do
-    [ -f "$skill/assets/$ref" ] || fail "templates/$template names $ref, which the skill does not ship"
+# Copy the templates into a project the way the skill does, and see that every
+# file they link resolves, that the license comes along, and that a component
+# no template uses is not copied.
+project="$WORK_DIR/project/presentation"
+mkdir -p "$project"
+cp -R "$skill/assets/base" "$project/base"
+cp "$skill/assets/templates/slides.html" "$skill/assets/templates/page.html" "$project/"
+bash "$skill/scripts/copy-dads.sh" "$project" >/dev/null || fail "copy-dads.sh failed on the templates"
+[ -f "$project/dads/LICENSE" ] || fail "copy-dads.sh did not copy the DADS license"
+[ ! -e "$project/dads/components/tab" ] || fail "copy-dads.sh copied a component no file uses"
+for html in "$project"/*.html "$REPO_DIR"/presentation/*.html; do
+  dir="$(dirname "$html")"
+  for ref in $(grep -oE '(dads|base)/[A-Za-z0-9/_.-]+\.(css|js)' "$html" | sort -u); do
+    [ -f "$dir/$ref" ] || fail "$(basename "$html") links $ref, which is not there"
   done
 done
+grep -q 'design-system-example-components-html' "$project"/*.html "$REPO_DIR"/presentation/*.html \
+  && fail "an HTML file still links the DADS clone"
 
 echo "== install.sh"
 target="$WORK_DIR/claude"

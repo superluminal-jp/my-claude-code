@@ -118,15 +118,17 @@ claude plugin install writing-check@local-harness --scope user
 | `references/components.md` | DADS の各コンポーネントが、スライド、ページ、どちらにも向かない、のどれに当たるか |
 | `assets/base/` | DADS にない要素。スライドの画面、段組み、パネル、コードブロック、樹形図 |
 | `assets/templates/` | すべてのパターンを示した、スライドとページのひな形 |
-| `assets/setup.sh` | DADS のコンポーネントを、固定したタグでプロジェクトにクローンする |
+| `assets/dads/` | DADS のコンポーネントのうち、どちらかの形式で使えるものの写し。1 つのタグの版から、ライセンス、`global.css`、各コンポーネントの CSS、サンプル HTML、スクリプトを持つ |
+| `scripts/copy-dads.sh` | 資料が使う DADS のファイルを、プロジェクトにコピーする |
 | `scripts/check.cjs` | 資料をヘッドレスブラウザで開き、欠けている内容を報告する |
 
-- **プロジェクトに書き込むもの。** `presentation/`（土台のコピー、`setup.sh`、資料）と、DADS のクローンである `design-system-example-components-html/` です。クローンは編集せず、コミットもしません。
-- **外部への接続。** `setup.sh` は github.com からクローンします。ひな形は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を読み込みます。スキルは、プロジェクトで最初に実行する前にこのことを伝えます。
+- **プロジェクトに書き込むもの。** `presentation/` だけです。中身は、土台のコピー、資料、資料が使う DADS のファイル（数十KB）と DADS のライセンスを入れた `dads/` です。DADS のクローンは作らず、資料は単独で開くことも、他人に渡すこともできます。
+- **外部への接続。** 資料を作るときには接続しません。ひな形は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を読み込みます。スキルは、プロジェクトで最初に実行する前にこのことを伝えます。
 - **検査には Node.js と、Chromium を含む Playwright が必要です。** ない場合、スキルは資料を検査していないと報告します。自分では何もインストールしません。
+- **DADS の別の版に移るとき。** `bash scripts/vendor-dads.sh <タグ>` が、そのタグから `assets/dads/` を作り直し、`SOURCE`（タグとコミット）と `SHA256SUMS` を書きます。ファイルが `SHA256SUMS` と違うと、`tests/run.sh` が失敗します。結果をコミットし、`presentation/` に `copy-dads.sh` を実行し、ブラウザでの検査を実行します。
 - **限界。** 検査が見つけるのは、スライドからはみ出した内容、スクロールが必要な樹形図、横にスクロールするページ、読み込めなかったローカルのファイル、スクリプトのエラーです。見た目の良し悪しは判定しません。実行を確認したブラウザは Chromium だけです。
 
-[presentation/](presentation/README.md) は、このリポジトリ自身がこのスキルを使った結果で、このリポジトリを題材にした試作のスライドとページです。その `base/` と `setup.sh` はスキルが作るコピーで、スキルの `assets/` と違っていると `tests/run.sh` が失敗します。
+[presentation/](presentation/README.md) は、このリポジトリ自身がこのスキルを使った結果で、このリポジトリを題材にした試作のスライドとページです。その `base/` と `dads/` はスキルが作るコピーです。`base/` がスキルの `assets/` と違うとき、または HTML が存在しないファイルを読み込んでいるときに、`tests/run.sh` が失敗します。
 
 ## 開発
 

@@ -118,15 +118,17 @@ The plugin needs Python 3. Claude Code reads it in place from this checkout: an 
 | `references/components.md` | Which DADS components suit slides, a page, or neither |
 | `assets/base/` | What DADS does not provide: the slide canvas, columns, panels, a code block, tree diagrams |
 | `assets/templates/` | One slide file and one page file that show every pattern |
-| `assets/setup.sh` | Clones the DADS components at a pinned tag into the project |
+| `assets/dads/` | A copy of the DADS components that suit either format, from one tagged release: the license, `global.css`, and each component's stylesheet, sample HTML, and script |
+| `scripts/copy-dads.sh` | Copies into a project the DADS files its material links |
 | `scripts/check.cjs` | Opens the material in a headless browser and reports content that is cut off |
 
-- **What it writes into a project.** `presentation/` with a copy of the base, `setup.sh`, and the material; and `design-system-example-components-html/`, the DADS clone, which is not edited and not committed.
-- **Network.** `setup.sh` clones from github.com, and the templates load Noto Sans JP from Google Fonts as the DADS samples do. The skill says so before the first run in a project.
+- **What it writes into a project.** `presentation/` only: a copy of the base, the material, and `dads/` with the DADS files the material links (tens of KB) and the DADS license. There is no clone of DADS, and the material opens and can be shared on its own.
+- **Network.** None to make the material; the templates load Noto Sans JP from Google Fonts as the DADS samples do. The skill says so before the first run in a project.
 - **The check needs Node.js and Playwright with Chromium.** Without them the skill reports that the material was not checked; it installs nothing on its own.
+- **Moving to another DADS release.** `bash scripts/vendor-dads.sh <tag>` replaces `assets/dads/` from that tag and writes `SOURCE` (the tag and commit) and `SHA256SUMS`; `tests/run.sh` fails when the files differ from `SHA256SUMS`. Commit the result, run `copy-dads.sh` on `presentation/`, and run the browser check.
 - **Limits.** The check finds content that runs past a slide, a tree diagram that scrolls, a page that scrolls sideways, a local file that failed to load, and script errors. It does not judge appearance, and it has been run with Chromium only.
 
-[presentation/](presentation/README.md) is this repository's own use of the skill: a trial deck and page about this repository (Japanese). Its `base/` and `setup.sh` are the copies the skill makes, and `tests/run.sh` fails when they differ from the skill's assets.
+[presentation/](presentation/README.md) is this repository's own use of the skill: a trial deck and page about this repository (Japanese). Its `base/` and `dads/` are the copies the skill makes, and `tests/run.sh` fails when `base/` differs from the skill's assets or when an HTML file links a file that is not there.
 
 ## Develop
 
