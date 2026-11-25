@@ -12,8 +12,6 @@ The limits come from the Claude Code and Agent Skills documentation:
   characters, without XML tags; body under 500 lines; a reference file over
   100 lines has a table of contents.
 - Subagents: `name` and `description` are required.
-
-Skills are read from `skills/` and from `plugins/<plugin>/skills/`.
 """
 
 from __future__ import annotations
@@ -142,15 +140,8 @@ def check_always_loaded_size(root: Path, errors: list[str]) -> None:
 
 
 def check_skills(root: Path, errors: list[str]) -> None:
-    # Skills of the harness itself, and skills that a plugin carries.
-    skills_dirs = [root / "skills", *sorted((root / "plugins").glob("*/skills"))]
-    skill_dirs = sorted(
-        p
-        for skills_dir in skills_dirs
-        if skills_dir.is_dir()
-        for p in skills_dir.iterdir()
-        if p.is_dir() and not p.name.startswith(".")
-    )
+    skills_dir = root / "skills"
+    skill_dirs = sorted(p for p in skills_dir.iterdir() if p.is_dir() and not p.name.startswith(".")) if skills_dir.is_dir() else []
     for skill in skill_dirs:
         rel = skill.relative_to(root)
         skill_md = skill / "SKILL.md"

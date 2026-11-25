@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Copy the managed configuration in harness/ into ~/.claude/.
 #
-# Managed paths: CLAUDE.md, rules/, agents/. Each is replaced so that it
-# matches harness/ exactly; a rule or agent removed here is removed there.
-# Everything else under ~/.claude/ (settings.json, skills/, plugins,
+# Managed paths: CLAUDE.md, rules/, agents/, skills/. Each is replaced so
+# that it matches harness/ exactly; a rule, agent, or skill removed here is
+# removed there, and so is a skill placed in ~/.claude/skills/ some other way.
+# Everything else under ~/.claude/ (settings.json, commands/, plugins,
 # projects, ...) is left untouched.
 #
 # harness/plugins/ is not copied: ~/.claude/plugins/ holds Claude Code's own
-# record of installed plugins. Claude Code reads each plugin in place once it
+# record of installed plugins. Claude Code reads the plugin in place once it
 # is installed with `claude plugin install`; see README.md.
 #
 # Usage: bash install.sh
@@ -18,7 +19,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$SCRIPT_DIR/harness"
 TARGET_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-MANAGED_PATHS=(CLAUDE.md rules agents)
+MANAGED_PATHS=(CLAUDE.md rules agents skills)
 
 for rel in "${MANAGED_PATHS[@]}"; do
   if [ ! -e "$SOURCE_DIR/$rel" ]; then
@@ -48,14 +49,13 @@ done
 
 echo "Installed ${MANAGED_PATHS[*]} from $SOURCE_DIR to $TARGET_DIR"
 
-# The plugins are read in place from this checkout, so they are enabled with
-# Claude Code's own commands, once; an edit to one needs no second run.
+# The plugin is read in place from this checkout, so it is enabled with
+# Claude Code's own commands, once; an edit to it needs no second run.
 cat <<EOF
 
-The plugins under harness/plugins are not copied.
-To enable them in every project, run these commands once:
+The writing-check plugin (harness/plugins/writing-check) is not copied.
+To enable it in every project, run these two commands once:
 
   claude plugin marketplace add "$SCRIPT_DIR"
   claude plugin install writing-check@local-harness --scope user
-  claude plugin install dads-presentation@local-harness --scope user
 EOF

@@ -1,6 +1,6 @@
 # my-claude-code
 
-Claude Code のユーザーレベル設定を Git で管理するリポジトリです。すべてのプロジェクトに適用される `CLAUDE.md` 1 本、ルール 4 本、サブエージェント 1 本を置き、`bash install.sh` で `~/.claude/` にコピーします。あわせて、プラグイン `writing-check` と `dads-presentation` を `harness/plugins/` に置いています。こちらは Claude Code のプラグイン用コマンドで、ユーザースコープにインストールします。
+Claude Code のユーザーレベル設定を Git で管理するリポジトリです。すべてのプロジェクトに適用される `CLAUDE.md` 1 本、ルール 4 本、サブエージェント 1 本、スキル 1 本を置き、`bash install.sh` で `~/.claude/` にコピーします。あわせて、プラグイン `writing-check` を `harness/plugins/` に置いています。こちらは Claude Code のプラグイン用コマンドで、ユーザースコープにインストールします。
 
 English: [README.md](README.md)
 
@@ -14,17 +14,18 @@ bash install.sh
 
 インストールに必要なものは Bash だけです。検査の実行には Python 3 も必要です。インストール後に Claude Code の新しいセッションを開始し、`/context` または `/memory` でファイルが読み込まれたことを確認してください。
 
-`install.sh` は `~/.claude/` の下の 3 つのパスを、`harness/` と完全に一致するように置き換えます。
+`install.sh` は `~/.claude/` の下の 4 つのパスを、`harness/` と完全に一致するように置き換えます。
 
 | パス | 動作 |
 |---|---|
 | `CLAUDE.md` | 置き換える |
 | `rules/` | 置き換える。ここで削除したルールはインストール先からも消える |
 | `agents/` | 置き換える。ここで削除したエージェントはインストール先からも消える |
+| `skills/` | 置き換える。ここで削除したスキルも、別の方法で置いたスキルも、インストール先から消える |
 
-`~/.claude/` のそれ以外には触れません。`settings.json` と `skills/` も対象外で、権限、サンドボックス、フック、プラグイン、MCP サーバー、スキルは `install.sh` では管理しません。このリポジトリのプラグインは `writing-check` と `dads-presentation` の 2 つで、[`writing-check` プラグイン](#writing-check-プラグイン)と [`dads-presentation` プラグイン](#dads-presentation-プラグイン)に書いたとおり、Claude Code のプラグイン用コマンドでインストールします。別のディレクトリにインストールするには `CLAUDE_CONFIG_DIR` を指定します。
+`~/.claude/` のそれ以外には触れません。`settings.json` と `commands/` も対象外で、権限、サンドボックス、フック、プラグイン、MCP サーバーは `install.sh` では管理しません。ユーザーレベルのスキルは、すべて `harness/skills/` に置きます。`~/.claude/skills/` に手で置いたスキルは、次のインストールで消えます。このリポジトリのプラグインは `writing-check` だけで、[`writing-check` プラグイン](#writing-check-プラグイン)に書いたとおり、Claude Code のプラグイン用コマンドでインストールします。別のディレクトリにインストールするには `CLAUDE_CONFIG_DIR` を指定します。
 
-この 3 つのパスに自分のファイルがすでにある場合は、上書きされるので先にバックアップしてください。このリポジトリの以前の版は、`~/.claude/skills/` へのスキルと `~/.claude/commands/` へのコマンドのインストール、`~/.claude/settings.json` へのキーのマージ（モデル、権限、サンドボックス、フック、MCP サーバーの一覧）、プラグインのインストールも行っていました。この版はそれらを削除しません。不要なものは自分で削除してください。特に、削除済みのスキルの下のスクリプトを呼ぶ `settings.json` のフックは、何もせずに終わります。
+この 4 つのパスに自分のファイルがすでにある場合は、上書きされるので先にバックアップしてください。このリポジトリの以前の版は、`~/.claude/commands/` へのコマンドのインストール、`~/.claude/settings.json` へのキーのマージ（モデル、権限、サンドボックス、フック、MCP サーバーの一覧）、プラグインのインストールも行っていました。この版はそれらを削除しません。不要なものは自分で削除してください。特に、削除済みのスキルの下のスクリプトを呼ぶ `settings.json` のフックは、何もせずに終わります。
 
 ## `harness/` の内容
 
@@ -33,7 +34,8 @@ bash install.sh
 | `CLAUDE.md` | 毎セッション | 作業の取り決め。始める前に決めること、進め方、報告前に確かめること |
 | ルール | 毎セッション | 伝え方、安全、委任に関する常時の習慣と、従う標準の指定 |
 | サブエージェント | 委任されたとき、独自のコンテキストで | 出力が長い作業や、独立性が必要な作業をメインの会話から切り離す |
-| プラグイン | `claude plugin install` でインストールした後。`install.sh` はコピーしない。`writing-check` は毎セッション動き、`dads-presentation` のスキルは資料を頼まれたときに読まれる | `writing-check`: ターンの終わりに文章をレビューするフック。`dads-presentation`: DADS のコンポーネントでスライドとページを書くスキル |
+| スキル | 作業がスキルの説明に合ったとき、または `/名前` で呼び出したとき | 名前のある標準が扱っていない手順を、必要なファイルと一緒に持つ |
+| プラグイン | `claude plugin install` でインストールした後、毎セッション。`install.sh` はコピーしない | ターンの終わりに文章をレビューするフック |
 
 ### 方針: 標準は名前を挙げる
 
@@ -102,19 +104,13 @@ claude plugin install writing-check@local-harness --scope user
 ## 意図的に含めていないもの
 
 - **`settings.json`。** `/config` を使うか、`~/.claude/settings.json` を直接編集して管理してください。
-- **`~/.claude/skills/` のスキル。** `install.sh` はこのディレクトリを管理しません。このリポジトリが以前そこにスキルとして持っていた手順は、どれも名前のある標準かフレームワークだったので、いまは `rules/standards.md` の 1 行になっています。ここに置いているスキルは `create-presentation` だけです。どの標準にもない手順なので、`dads-presentation` プラグインに入れています。
+- **名前のある標準のためのスキル。** このリポジトリが以前スキルとして持っていた手順は、どれも名前のある標準かフレームワークだったので、いまは `rules/standards.md` の 1 行になっています。スキルは、どの標準にもない手順にだけ置きます。いまは `create-presentation` だけです。
 - **仕様策定と開発プロセスのワークフロー。** Spec Kit と AI-DLC は、使うプロジェクトごとに導入します。このハーネスはプロジェクト側のワークフローに従い、同じ内容を重ねて持ちません。
 - **強制。** `CLAUDE.md` とルールの指示は Claude が読む指針であり、保証ではありません。例外なく守らせたいことは、権限設定またはフックに置きます。`writing-check` プラグインはここに置いている唯一のフックで、修正を求めるものであり、修正を保証するものではありません。
 
-## `dads-presentation` プラグイン
+## `create-presentation` スキル
 
-`harness/plugins/dads-presentation/` は、スキル `create-presentation` を 1 つ持つ Claude Code のプラグインです。このスキルは、デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を HTML で書きます。形式は 2 つで、スライド（16:9 の固定画面。1 枚が 1 画面、PDF の 1 ページになる）と、縦にスクロールして読むページです。Claude は、こうした資料を頼まれたときにスキルを読みます。`/dads-presentation:create-presentation` で直接呼び出すこともできます。
-
-```sh
-claude plugin install dads-presentation@local-harness --scope user
-```
-
-`writing-check` と同じく、`claude plugin marketplace add` の後に実行します。このプラグインも、チェックアウトにあるファイルがそのまま読まれます。
+`harness/skills/create-presentation/` は、デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を HTML で書くスキルです。形式は 2 つで、スライド（16:9 の固定画面。1 枚が 1 画面、PDF の 1 ページになる）と、縦にスクロールして読むページです。Claude は、こうした資料を頼まれたときにスキルを読みます。`/create-presentation` で直接呼び出すこともできます。
 
 | スキルの中身 | 内容 |
 |---|---|
@@ -138,9 +134,9 @@ claude plugin install dads-presentation@local-harness --scope user
 bash tests/run.sh
 ```
 
-`harness/` のすべてのファイルを Claude Code が読む形式（front matter のフィールド、必須のフィールド、毎セッション読み込まれる分量）に照らして検査し、`writing-check` プラグインのテストを実行し、`dads-presentation` プラグインをマーケットプレイスと `presentation/` に照らして検査し、一時ディレクトリに対して `install.sh` を実行します。CI も同じコマンドを Ubuntu と macOS で実行します。
+`harness/` のすべてのファイルを Claude Code が読む形式（front matter のフィールド、必須のフィールド、毎セッション読み込まれる分量）に照らして検査し、`writing-check` プラグインのテストを実行し、`create-presentation` スキルを `presentation/` に照らして検査し、一時ディレクトリに対して `install.sh` を実行します。CI も同じコマンドを Ubuntu と macOS で実行します。
 
-`claude plugin validate . --strict` はマーケットプレイスのマニフェストを、`claude plugin validate harness/plugins/<名前> --strict` はプラグイン 1 つのマニフェストを検査します。どちらも Claude Code が必要で、`tests/run.sh` と CI には含めていません。`create-presentation` スキルの `scripts/check.cjs` はブラウザが必要で、これも含めていません。
+`claude plugin validate . --strict` と `claude plugin validate harness/plugins/writing-check --strict` は、プラグインのマニフェストを検査します。この 2 つは Claude Code が必要で、`tests/run.sh` と CI には含めていません。`create-presentation` スキルの `scripts/check.cjs` もブラウザが必要なので、含めていません。
 
 `harness/` を編集し、検査を実行し、`bash install.sh` を実行してから、新しいセッションで変更を使います。このリポジトリの規約は [CLAUDE.md](CLAUDE.md) にあります。
 
@@ -152,6 +148,6 @@ bash tests/run.sh
 - [Subagents](https://code.claude.com/docs/en/sub-agents) - 独自のサブエージェントは、コンテキストの分離か、ツールを制限した専門の役割のために作る。
 - [Best practices](https://code.claude.com/docs/en/best-practices) と [Extending Claude Code](https://code.claude.com/docs/en/features-overview) - どの仕組みを何に使うか。ガードレールはフックに置く。
 - [Hooks](https://code.claude.com/docs/en/hooks) と [Plugins](https://code.claude.com/docs/en/plugins)（2026-11-24 に読んだもの） - `Stop` の agent 型フック、入力の `stop_hook_active`、ローカルのマーケットプレイスからその場で読まれるプラグイン。
-- [Skills](https://code.claude.com/docs/en/skills) と [Plugins reference](https://code.claude.com/docs/en/plugins/plugins-reference)（2026-11-25 に読んだもの） - プラグインのスキルは `skills/<名前>/SKILL.md` から見つかり、`/プラグイン:スキル` という名前になる。スキルの本文の `${CLAUDE_SKILL_DIR}` は、そのスキルのディレクトリに置き換えられる。
+- [Skills](https://code.claude.com/docs/en/skills)（2026-11-25 に読んだもの） - スキルの本文の `${CLAUDE_SKILL_DIR}` は、そのスキルのディレクトリに置き換えられる。同じ日に読んだ [Plugins reference](https://code.claude.com/docs/en/plugins/plugins-reference) によると、プラグインは `CLAUDE.md` もルールも持てない。そのため、ここではプラグインをフックにだけ使う。
 - [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) - Claude がまだ知らないことだけを足す。
 - [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) - すべきことを書き、理由を説明し、強調表現を避ける。

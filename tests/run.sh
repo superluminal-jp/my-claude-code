@@ -23,9 +23,7 @@ cp -R "$REPO_DIR/harness" "$broken"
 mkdir -p "$broken/skills/broken-skill"
 printf -- '---\nname: wrong-name\ndescription: Does a thing.\nmetadata:\n  x: y\n---\nbody\n' \
   >"$broken/skills/broken-skill/SKILL.md"
-mkdir -p "$broken/plugins/some-plugin/skills/plugin-skill"
-printf -- '---\nname: wrong-name\ndescription: Does a thing.\n---\nSee `${CLAUDE_SKILL_DIR}/assets/missing.css`.\n' \
-  >"$broken/plugins/some-plugin/skills/plugin-skill/SKILL.md"
+printf -- 'See `${CLAUDE_SKILL_DIR}/assets/missing.css`.\n' >>"$broken/skills/broken-skill/SKILL.md"
 printf -- '---\nname: other\n---\n' >"$broken/agents/nameless.md"
 printf -- '---\nglobs: "*.py"\n---\nbody\n' >"$broken/rules/bad.md"
 printf -- '---\npaths: "*.py"\n---\n' >"$broken/rules/empty.md"
@@ -35,8 +33,7 @@ fi
 for expected in "skills/broken-skill/SKILL.md: name 'wrong-name' differs from directory" \
   "skills/broken-skill/SKILL.md: front matter fields Claude Code ignores" \
   "skills/broken-skill/SKILL.md: description does not say when" \
-  "plugins/some-plugin/skills/plugin-skill/SKILL.md: name 'wrong-name' differs from directory" \
-  "plugins/some-plugin/skills/plugin-skill/SKILL.md: points to assets/missing.css, which does not exist" \
+  "skills/broken-skill/SKILL.md: points to assets/missing.css, which does not exist" \
   "agents/nameless.md: name 'other' differs from file name" \
   "agents/nameless.md: no description" \
   "rules/bad.md: front matter fields Claude Code ignores" \
@@ -74,23 +71,8 @@ fi
 echo "== the writing-check plugin"
 python3 "$REPO_DIR/tests/test_writing_check.py" 2>&1 | grep -v "^$"
 
-echo "== the dads-presentation plugin"
-plugin="$REPO_DIR/harness/plugins/dads-presentation"
-skill="$plugin/skills/create-presentation"
-python3 - "$REPO_DIR" <<'PY' || fail "the marketplace or the plugin manifest does not name dads-presentation"
-import json, sys
-from pathlib import Path
-
-repo = Path(sys.argv[1])
-market = json.loads((repo / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
-entry = [p for p in market["plugins"] if p["name"] == "dads-presentation"]
-manifest = json.loads(
-    (repo / "harness/plugins/dads-presentation/.claude-plugin/plugin.json").read_text(encoding="utf-8")
-)
-# A relative source is what makes Claude Code read the plugin in place.
-ok = len(entry) == 1 and entry[0]["source"] == "./harness/plugins/dads-presentation"
-sys.exit(0 if ok and manifest["name"] == "dads-presentation" else 1)
-PY
+echo "== the create-presentation skill"
+skill="$REPO_DIR/harness/skills/create-presentation"
 bash -n "$skill/assets/setup.sh" || fail "assets/setup.sh has a syntax error"
 # presentation/ is this repository's own use of the skill, so its base is the
 # copy the skill makes; the skill's assets are the source.
@@ -107,8 +89,9 @@ done
 
 echo "== install.sh"
 target="$WORK_DIR/claude"
-mkdir -p "$target/skills/own-skill" "$target/rules" "$target/agents"
-echo keep >"$target/skills/own-skill/SKILL.md"
+mkdir -p "$target/skills/stale-skill" "$target/commands" "$target/rules" "$target/agents"
+echo stale >"$target/skills/stale-skill/SKILL.md"
+echo keep >"$target/commands/own-command.md"
 echo keep >"$target/settings.json"
 echo stale >"$target/rules/stale.md"
 echo stale >"$target/agents/stale.md"
@@ -126,15 +109,14 @@ install_out="$(CLAUDE_CONFIG_DIR="$target" bash "$source_repo/install.sh")"
 # The plugin is not copied, so the install says how to enable it, with the
 # path of the checkout it was run from.
 for expected in "claude plugin marketplace add \"$source_repo\"" \
-  "claude plugin install writing-check@local-harness --scope user" \
-  "claude plugin install dads-presentation@local-harness --scope user"; do
+  "claude plugin install writing-check@local-harness --scope user"; do
   grep -qF "$expected" <<<"$install_out" || fail "install.sh did not print: $expected"
 done
-[ -z "$(find "$target/rules" "$target/agents" -name .DS_Store -o -name .claude)" ] \
+[ -z "$(find "$target/rules" "$target/agents" "$target/skills" -name .DS_Store -o -name .claude)" ] \
   || fail "Finder metadata or a .claude marker directory was installed"
 [ -z "$(find "$target" -maxdepth 1 -name '.install-new.*')" ] || fail "a staging directory was left behind"
 
-for rel in CLAUDE.md rules agents; do
+for rel in CLAUDE.md rules agents skills; do
   src="$REPO_DIR/harness/$rel"
   if [ -d "$src" ]; then
     diff -r -x .DS_Store -x .claude "$src" "$target/$rel" >/dev/null \
@@ -145,7 +127,10 @@ for rel in CLAUDE.md rules agents; do
 done
 [ ! -e "$target/rules/stale.md" ] || fail "a rule removed from harness/ survived the install"
 [ ! -e "$target/agents/stale.md" ] || fail "an agent removed from harness/ survived the install"
-[ "$(cat "$target/skills/own-skill/SKILL.md")" = keep ] || fail "skills/ was touched"
+[ ! -e "$target/skills/stale-skill" ] || fail "a skill removed from harness/ survived the install"
+# The check script of the skill is run by path, so it has to stay readable.
+[ -r "$target/skills/create-presentation/scripts/check.cjs" ] || fail "the skill's script was not installed"
+[ "$(cat "$target/commands/own-command.md")" = keep ] || fail "commands/ was touched"
 [ "$(cat "$target/settings.json")" = keep ] || fail "settings.json was touched"
 # ~/.claude/plugins/ is where Claude Code keeps its own record of installed
 # plugins, so the plugin under harness/plugins/ is not copied there.
@@ -156,7 +141,7 @@ CLAUDE_CONFIG_DIR="$target" bash "$REPO_DIR/install.sh" >/dev/null \
 
 echo "== a failed install leaves the installed files as they were"
 failing="$WORK_DIR/failing-repo"
-mkdir -p "$failing/harness/rules" "$failing/harness/agents"
+mkdir -p "$failing/harness/rules" "$failing/harness/agents" "$failing/harness/skills"
 cp "$REPO_DIR/install.sh" "$failing/install.sh"
 echo new >"$failing/harness/CLAUDE.md"
 echo new >"$failing/harness/rules/unreadable.md"

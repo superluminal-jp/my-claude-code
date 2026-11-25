@@ -1,6 +1,6 @@
 # presentation
 
-デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を 2 つの形式で作るための土台と、このリポジトリを題材にした試作です。`dads-presentation` プラグインの `create-presentation` スキルを、このリポジトリ自身に使った結果に当たります。
+デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を 2 つの形式で作るための土台と、このリポジトリを題材にした試作です。`create-presentation` スキルを、このリポジトリ自身に使った結果に当たります。
 
 - **スライド形式**: 16:9 の固定画面を 1 枚ずつ表示し、1 枚が PDF の 1 ページになります。
 - **ページ形式**: 1 段組みで縦にスクロールして読みます。
@@ -33,9 +33,9 @@ HTML は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を
 
 ## 別のプロジェクトで使う
 
-`dads-presentation` プラグインをインストールし、Claude に資料の作成を頼みます。スキルが、土台と `setup.sh` をそのプロジェクトの `presentation/` にコピーし、ひな形から資料を書き、ブラウザで検査します。インストールの方法は、リポジトリのルートの [README.ja.md](../README.ja.md) にあります。
+`bash install.sh` でハーネスをインストールし、そのプロジェクトで Claude に資料の作成を頼みます。`create-presentation` スキルが、土台と `setup.sh` をそのプロジェクトの `presentation/` にコピーし、ひな形から資料を書き、ブラウザで検査します。
 
-`base/` と `setup.sh` の正本は、スキルの `assets/`（`harness/plugins/dads-presentation/skills/create-presentation/assets/`）です。ここにあるのはそのコピーなので、変更はスキルの側で行います。
+`base/` と `setup.sh` の正本は、スキルの `assets/`（`harness/skills/create-presentation/assets/`）です。ここにあるのはそのコピーなので、変更はスキルの側で行います。
 
 ## 構成
 

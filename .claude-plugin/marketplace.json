@@ -9,11 +9,6 @@
       "name": "writing-check",
       "source": "./harness/plugins/writing-check",
       "description": "Reminds Claude of the writing rules with each prompt, and reviews each answer, and the documents written during the turn, once before the turn ends."
-    },
-    {
-      "name": "dads-presentation",
-      "source": "./harness/plugins/dads-presentation",
-      "description": "A skill that writes explanatory material as HTML with the components of the Digital Agency Design System (DADS), as slides or as a scrolling page, and checks the result in a browser."
     }
   ]
 }
