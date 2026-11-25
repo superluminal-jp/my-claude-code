@@ -36,7 +36,8 @@ class Manifests(unittest.TestCase):
         self.assertTrue(market["name"])
         self.assertTrue(market["owner"]["name"])
         entries = {p["name"]: p["source"] for p in market["plugins"]}
-        self.assertEqual(entries, {"writing-check": "./harness/plugins/writing-check"})
+        # The marketplace also lists other plugins; tests/run.sh checks those.
+        self.assertEqual(entries.get("writing-check"), "./harness/plugins/writing-check")
 
     def test_plugin_manifest_names_the_plugin(self) -> None:
         manifest = load(PLUGIN / ".claude-plugin" / "plugin.json")

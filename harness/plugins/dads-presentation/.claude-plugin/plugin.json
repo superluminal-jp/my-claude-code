@@ -1,0 +1,8 @@
+{
+  "name": "dads-presentation",
+  "description": "A skill that writes explanatory material as HTML with the components of the Digital Agency Design System (DADS), as slides or as a scrolling page, and checks the result in a browser.",
+  "version": "1.0.0",
+  "author": {
+    "name": "superluminal-jp"
+  }
+}

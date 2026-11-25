@@ -1,0 +1,271 @@
+/*
+ * Shared by the slide format and the page format.
+ * Holds only what the DADS components do not provide. Every size is in rem
+ * and every colour is a DADS token, so slide.css can scale the whole page by
+ * changing the root font size.
+ */
+
+body {
+  margin: 0;
+  color: var(--color-neutral-solid-gray-800);
+  font-family: var(--font-family-sans);
+  font-size: calc(16 / 16 * 1rem);
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+p {
+  margin: 0;
+}
+
+/* Equal columns. On a narrow page they fall back to one column. */
+.deck-columns {
+  display: grid;
+  grid-template-columns: repeat(var(--deck-cols, 2), minmax(0, 1fr));
+  gap: calc(24 / 16 * 1rem);
+  align-items: start;
+}
+
+.deck-columns[data-cols="3"] {
+  --deck-cols: 3;
+}
+
+/* A bordered box for one of several parallel items. */
+.deck-panel {
+  box-sizing: border-box;
+  height: 100%;
+  border: 1px solid var(--color-neutral-solid-gray-420);
+  border-radius: calc(12 / 16 * 1rem);
+  padding: calc(16 / 16 * 1rem) calc(20 / 16 * 1rem);
+  background-color: var(--color-neutral-white);
+}
+
+.deck-panel__title {
+  margin: calc(8 / 16 * 1rem) 0 calc(4 / 16 * 1rem);
+  font-weight: bold;
+  font-size: calc(20 / 16 * 1rem);
+  line-height: 1.5;
+}
+
+/* Code: DADS has no code block component. */
+code {
+  font-family: var(--font-family-mono);
+  letter-spacing: 0;
+}
+
+:not(pre) > code {
+  border-radius: calc(4 / 16 * 1rem);
+  padding: 0 calc(4 / 16 * 1rem);
+  background-color: var(--color-neutral-solid-gray-50);
+}
+
+.deck-code {
+  margin: 0;
+  border: 1px solid var(--color-neutral-solid-gray-420);
+  border-radius: calc(8 / 16 * 1rem);
+  padding: calc(12 / 16 * 1rem) calc(16 / 16 * 1rem);
+  background-color: var(--color-neutral-solid-gray-50);
+  font-size: calc(16 / 16 * 1rem);
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.deck-table-fill .dads-table__table {
+  width: 100%;
+}
+
+/*
+ * Tree diagram: DADS has no such component. The markup is a nested list, so
+ * the hierarchy is still read correctly without this stylesheet.
+ *
+ *   <div class="deck-tree" data-orientation="vertical">
+ *     <ul>
+ *       <li><span class="deck-tree__node">root</span>
+ *         <ul>
+ *           <li><span class="deck-tree__node">child</span></li>
+ *         </ul>
+ *       </li>
+ *     </ul>
+ *   </div>
+ *
+ * data-orientation="vertical" puts the root at the top and each level below
+ * it; "horizontal" puts the root at the left and each level to its right.
+ * A tree wider than its container scrolls sideways.
+ */
+.deck-tree {
+  /* Length of the line between two levels. */
+  --_level-gap: calc(24 / 16 * 1rem);
+  /* Space between two siblings. */
+  --_sibling-gap: calc(8 / 16 * 1rem);
+  --_line: calc(2 / 16 * 1rem);
+  --_line-color: var(--color-neutral-solid-gray-536);
+  /* Keep the full height inside a flex column such as .slide__body. */
+  flex: none;
+  overflow-x: auto;
+}
+
+.deck-tree ul {
+  position: relative;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deck-tree > ul {
+  width: max-content;
+  margin-inline: auto;
+}
+
+.deck-tree li {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.deck-tree li::before,
+.deck-tree li::after,
+.deck-tree li > ul::before {
+  content: "";
+  position: absolute;
+  background-color: var(--_line-color);
+}
+
+/* The root has no line coming in. */
+.deck-tree > ul > li::before,
+.deck-tree > ul > li::after {
+  display: none;
+}
+
+/* An only child needs no bar across its siblings. */
+.deck-tree li:only-child::after {
+  display: none;
+}
+
+.deck-tree__node {
+  box-sizing: border-box;
+  border: 1px solid var(--color-neutral-solid-gray-536);
+  border-radius: calc(8 / 16 * 1rem);
+  padding: calc(4 / 16 * 1rem) calc(12 / 16 * 1rem);
+  background-color: var(--color-neutral-white);
+  line-height: 1.5;
+}
+
+.deck-tree > ul > li > .deck-tree__node {
+  border-color: var(--color-key-900);
+  background-color: var(--color-key-900);
+  color: var(--color-neutral-white);
+  font-weight: bold;
+}
+
+.deck-tree__node code {
+  padding: 0;
+  background: none;
+}
+
+/* Vertical: root at the top. */
+.deck-tree[data-orientation="vertical"] li {
+  flex-direction: column;
+  padding: var(--_level-gap) calc(var(--_sibling-gap) / 2) 0;
+}
+
+.deck-tree[data-orientation="vertical"] > ul > li {
+  padding: 0;
+}
+
+.deck-tree[data-orientation="vertical"] li > ul {
+  padding-top: var(--_level-gap);
+}
+
+.deck-tree[data-orientation="vertical"] .deck-tree__node {
+  max-width: calc(192 / 16 * 1rem);
+  text-align: center;
+}
+
+/* From the bar down to the node. */
+.deck-tree[data-orientation="vertical"] li::before {
+  top: 0;
+  left: calc(50% - var(--_line) / 2);
+  width: var(--_line);
+  height: var(--_level-gap);
+}
+
+/* The bar across the siblings. */
+.deck-tree[data-orientation="vertical"] li::after {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--_line);
+}
+
+.deck-tree[data-orientation="vertical"] li:first-child::after {
+  left: calc(50% - var(--_line) / 2);
+}
+
+.deck-tree[data-orientation="vertical"] li:last-child::after {
+  right: calc(50% - var(--_line) / 2);
+}
+
+/* From the parent node down to the bar. */
+.deck-tree[data-orientation="vertical"] li > ul::before {
+  top: 0;
+  left: calc(50% - var(--_line) / 2);
+  width: var(--_line);
+  height: var(--_level-gap);
+}
+
+/* Horizontal: root at the left. */
+.deck-tree[data-orientation="horizontal"] ul {
+  flex-direction: column;
+}
+
+.deck-tree[data-orientation="horizontal"] li {
+  padding: calc(var(--_sibling-gap) / 2) 0 calc(var(--_sibling-gap) / 2)
+    var(--_level-gap);
+}
+
+.deck-tree[data-orientation="horizontal"] > ul > li {
+  padding: 0;
+}
+
+.deck-tree[data-orientation="horizontal"] li > ul {
+  padding-left: var(--_level-gap);
+}
+
+.deck-tree[data-orientation="horizontal"] li::before {
+  top: calc(50% - var(--_line) / 2);
+  left: 0;
+  width: var(--_level-gap);
+  height: var(--_line);
+}
+
+.deck-tree[data-orientation="horizontal"] li::after {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--_line);
+}
+
+.deck-tree[data-orientation="horizontal"] li:first-child::after {
+  top: calc(50% - var(--_line) / 2);
+}
+
+.deck-tree[data-orientation="horizontal"] li:last-child::after {
+  bottom: calc(50% - var(--_line) / 2);
+}
+
+.deck-tree[data-orientation="horizontal"] li > ul::before {
+  top: calc(50% - var(--_line) / 2);
+  left: 0;
+  width: var(--_level-gap);
+  height: var(--_line);
+}
+
+/*
+ * Vertical rhythm between the direct children of a container. Kept last so
+ * that it wins over the margin: 0 of the blocks above.
+ */
+.deck-stack > * + * {
+  margin-top: calc(var(--deck-stack-gap, 16) / 16 * 1rem);
+}

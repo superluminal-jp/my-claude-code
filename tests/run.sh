@@ -23,6 +23,9 @@ cp -R "$REPO_DIR/harness" "$broken"
 mkdir -p "$broken/skills/broken-skill"
 printf -- '---\nname: wrong-name\ndescription: Does a thing.\nmetadata:\n  x: y\n---\nbody\n' \
   >"$broken/skills/broken-skill/SKILL.md"
+mkdir -p "$broken/plugins/some-plugin/skills/plugin-skill"
+printf -- '---\nname: wrong-name\ndescription: Does a thing.\n---\nSee `${CLAUDE_SKILL_DIR}/assets/missing.css`.\n' \
+  >"$broken/plugins/some-plugin/skills/plugin-skill/SKILL.md"
 printf -- '---\nname: other\n---\n' >"$broken/agents/nameless.md"
 printf -- '---\nglobs: "*.py"\n---\nbody\n' >"$broken/rules/bad.md"
 printf -- '---\npaths: "*.py"\n---\n' >"$broken/rules/empty.md"
@@ -32,6 +35,8 @@ fi
 for expected in "skills/broken-skill/SKILL.md: name 'wrong-name' differs from directory" \
   "skills/broken-skill/SKILL.md: front matter fields Claude Code ignores" \
   "skills/broken-skill/SKILL.md: description does not say when" \
+  "plugins/some-plugin/skills/plugin-skill/SKILL.md: name 'wrong-name' differs from directory" \
+  "plugins/some-plugin/skills/plugin-skill/SKILL.md: points to assets/missing.css, which does not exist" \
   "agents/nameless.md: name 'other' differs from file name" \
   "agents/nameless.md: no description" \
   "rules/bad.md: front matter fields Claude Code ignores" \
@@ -69,6 +74,37 @@ fi
 echo "== the writing-check plugin"
 python3 "$REPO_DIR/tests/test_writing_check.py" 2>&1 | grep -v "^$"
 
+echo "== the dads-presentation plugin"
+plugin="$REPO_DIR/harness/plugins/dads-presentation"
+skill="$plugin/skills/create-presentation"
+python3 - "$REPO_DIR" <<'PY' || fail "the marketplace or the plugin manifest does not name dads-presentation"
+import json, sys
+from pathlib import Path
+
+repo = Path(sys.argv[1])
+market = json.loads((repo / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
+entry = [p for p in market["plugins"] if p["name"] == "dads-presentation"]
+manifest = json.loads(
+    (repo / "harness/plugins/dads-presentation/.claude-plugin/plugin.json").read_text(encoding="utf-8")
+)
+# A relative source is what makes Claude Code read the plugin in place.
+ok = len(entry) == 1 and entry[0]["source"] == "./harness/plugins/dads-presentation"
+sys.exit(0 if ok and manifest["name"] == "dads-presentation" else 1)
+PY
+bash -n "$skill/assets/setup.sh" || fail "assets/setup.sh has a syntax error"
+# presentation/ is this repository's own use of the skill, so its base is the
+# copy the skill makes; the skill's assets are the source.
+for rel in base/deck.css base/slide.css base/slide.js base/page.css setup.sh; do
+  cmp -s "$skill/assets/$rel" "$REPO_DIR/presentation/$rel" \
+    || fail "presentation/$rel differs from the skill's assets/$rel"
+done
+for template in slides.html page.html; do
+  # Every stylesheet and script a template names in base/ is one the skill ships.
+  for ref in $(grep -o 'base/[a-z]*\.[a-z]*' "$skill/assets/templates/$template" | sort -u); do
+    [ -f "$skill/assets/$ref" ] || fail "templates/$template names $ref, which the skill does not ship"
+  done
+done
+
 echo "== install.sh"
 target="$WORK_DIR/claude"
 mkdir -p "$target/skills/own-skill" "$target/rules" "$target/agents"
@@ -90,7 +126,8 @@ install_out="$(CLAUDE_CONFIG_DIR="$target" bash "$source_repo/install.sh")"
 # The plugin is not copied, so the install says how to enable it, with the
 # path of the checkout it was run from.
 for expected in "claude plugin marketplace add \"$source_repo\"" \
-  "claude plugin install writing-check@local-harness --scope user"; do
+  "claude plugin install writing-check@local-harness --scope user" \
+  "claude plugin install dads-presentation@local-harness --scope user"; do
   grep -qF "$expected" <<<"$install_out" || fail "install.sh did not print: $expected"
 done
 [ -z "$(find "$target/rules" "$target/agents" -name .DS_Store -o -name .claude)" ] \

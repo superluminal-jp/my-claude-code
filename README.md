@@ -1,6 +1,6 @@
 # my-claude-code
 
-Claude Code user-level configuration, kept under Git: one `CLAUDE.md`, four rules, and one subagent that apply in every project. `bash install.sh` copies them into `~/.claude/`. A plugin, `writing-check`, is kept with them in `harness/plugins/` and installed at user scope with Claude Code's plugin commands.
+Claude Code user-level configuration, kept under Git: one `CLAUDE.md`, four rules, and one subagent that apply in every project. `bash install.sh` copies them into `~/.claude/`. Two plugins, `writing-check` and `dads-presentation`, are kept with them in `harness/plugins/` and installed at user scope with Claude Code's plugin commands.
 
 日本語: [README.ja.md](README.ja.md)
 
@@ -22,7 +22,7 @@ Installing requires Bash; running the checks also requires Python 3. Start a new
 | `rules/` | Replaced; a rule removed here is removed there |
 | `agents/` | Replaced; an agent removed here is removed there |
 
-Everything else under `~/.claude/` is left untouched, including `settings.json` and `skills/`: permissions, sandbox, hooks, plugins, MCP servers, and skills are not managed by `install.sh`. The one plugin of this repository is installed with Claude Code's own plugin commands, as described under [The `writing-check` plugin](#the-writing-check-plugin). Set `CLAUDE_CONFIG_DIR` to install to another directory.
+Everything else under `~/.claude/` is left untouched, including `settings.json` and `skills/`: permissions, sandbox, hooks, plugins, MCP servers, and skills are not managed by `install.sh`. The two plugins of this repository are installed with Claude Code's own plugin commands, as described under [The `writing-check` plugin](#the-writing-check-plugin) and [The `dads-presentation` plugin](#the-dads-presentation-plugin). Set `CLAUDE_CONFIG_DIR` to install to another directory.
 
 If you already have your own files in those three paths, back them up first; the install overwrites them. Earlier versions of this repository also installed skills into `~/.claude/skills/` and commands into `~/.claude/commands/`, merged keys into `~/.claude/settings.json` (model, permissions, sandbox, hooks, MCP server lists), and installed plugins. This version removes none of that. Delete what you no longer want yourself; in particular, a hook in `settings.json` that calls a script under a deleted skill does nothing.
 
@@ -33,7 +33,7 @@ If you already have your own files in those three paths, back them up first; the
 | `CLAUDE.md` | Every session | The working agreement: what to settle before starting, how to work, what to verify before reporting |
 | Rules | Every session | Standing habits for communication, safety, and delegation, and which standards to follow |
 | Subagents | In their own context, on delegation | Work whose long output or independence should stay out of the main conversation |
-| Plugin | In every session once installed with `claude plugin install`; not copied by `install.sh` | The hooks that review writing when a turn ends |
+| Plugins | Once installed with `claude plugin install`; not copied by `install.sh`. `writing-check` runs in every session; the skill of `dads-presentation` is read when material is asked for | `writing-check`: the hooks that review writing when a turn ends. `dads-presentation`: a skill that writes slides and pages with the DADS components |
 
 ### The principle: name the standard
 
@@ -102,13 +102,35 @@ The plugin needs Python 3. Claude Code reads it in place from this checkout: an 
 ## What is deliberately not here
 
 - **`settings.json`.** Manage it yourself with `/config` or by editing `~/.claude/settings.json`.
-- **Skills.** Every procedure this repository once carried as a skill turned out to be a named standard or framework, and is now one row in `rules/standards.md`.
+- **Skills in `~/.claude/skills/`.** `install.sh` does not manage that directory. Every procedure this repository once carried as a skill there turned out to be a named standard or framework, and is now one row in `rules/standards.md`. The one skill kept here, `create-presentation`, is a procedure no standard covers, and is carried by the `dads-presentation` plugin.
 - **Specification and delivery workflows.** Spec Kit and AI-DLC are set up in each project that uses them. The harness defers to a project's own workflow and does not duplicate it.
 - **Enforcement.** Instructions in `CLAUDE.md` and rules are guidance that Claude reads, not guarantees. Anything that must hold without exception belongs in permission settings or hooks. The `writing-check` plugin is the one hook kept here, and it asks for a correction rather than guaranteeing one.
 
-## The `presentation/` directory
+## The `dads-presentation` plugin
 
-`presentation/` holds a base for writing explanatory material with the HTML components of the Digital Agency Design System (DADS), in a slide format and a page format, and a trial deck and page about this repository. `install.sh` does not copy it. `bash presentation/setup.sh` clones the DADS components at a pinned tag into `design-system-example-components-html/`, which Git ignores. See [presentation/README.md](presentation/README.md) (Japanese).
+`harness/plugins/dads-presentation/` is a Claude Code plugin with one skill, `create-presentation`. The skill writes explanatory material as plain HTML built on the HTML components of the Digital Agency Design System (DADS), in two formats: slides (a fixed 16:9 canvas, one slide per screen and per PDF page) and a page that scrolls. Claude reads the skill when such material is asked for; `/dads-presentation:create-presentation` invokes it directly.
+
+```sh
+claude plugin install dads-presentation@local-harness --scope user
+```
+
+Run this after `claude plugin marketplace add`, as for `writing-check`. Like that plugin, it is read in place from this checkout.
+
+| In the skill | Content |
+|---|---|
+| `SKILL.md` | The steps, the rules that keep the material working, and the slide layouts |
+| `references/components.md` | Which DADS components suit slides, a page, or neither |
+| `assets/base/` | What DADS does not provide: the slide canvas, columns, panels, a code block, tree diagrams |
+| `assets/templates/` | One slide file and one page file that show every pattern |
+| `assets/setup.sh` | Clones the DADS components at a pinned tag into the project |
+| `scripts/check.cjs` | Opens the material in a headless browser and reports content that is cut off |
+
+- **What it writes into a project.** `presentation/` with a copy of the base, `setup.sh`, and the material; and `design-system-example-components-html/`, the DADS clone, which is not edited and not committed.
+- **Network.** `setup.sh` clones from github.com, and the templates load Noto Sans JP from Google Fonts as the DADS samples do. The skill says so before the first run in a project.
+- **The check needs Node.js and Playwright with Chromium.** Without them the skill reports that the material was not checked; it installs nothing on its own.
+- **Limits.** The check finds content that runs past a slide, a tree diagram that scrolls, a page that scrolls sideways, a local file that failed to load, and script errors. It does not judge appearance, and it has been run with Chromium only.
+
+[presentation/](presentation/README.md) is this repository's own use of the skill: a trial deck and page about this repository (Japanese). Its `base/` and `setup.sh` are the copies the skill makes, and `tests/run.sh` fails when they differ from the skill's assets.
 
 ## Develop
 
@@ -116,9 +138,9 @@ The plugin needs Python 3. Claude Code reads it in place from this checkout: an 
 bash tests/run.sh
 ```
 
-This checks every file in `harness/` against the format Claude Code reads (front matter fields, required fields, the size of what loads in every session), runs the tests of the `writing-check` plugin, and runs `install.sh` against a temporary directory. CI runs the same command on Ubuntu and on macOS.
+This checks every file in `harness/` against the format Claude Code reads (front matter fields, required fields, the size of what loads in every session), runs the tests of the `writing-check` plugin, checks the `dads-presentation` plugin against the marketplace and against `presentation/`, and runs `install.sh` against a temporary directory. CI runs the same command on Ubuntu and on macOS.
 
-`claude plugin validate . --strict` and `claude plugin validate harness/plugins/writing-check --strict` check the plugin's manifests. They need Claude Code and are not part of `tests/run.sh` or CI.
+`claude plugin validate . --strict` checks the marketplace manifest, and `claude plugin validate harness/plugins/<name> --strict` the manifest of one plugin. They need Claude Code and are not part of `tests/run.sh` or CI. `scripts/check.cjs` of the `create-presentation` skill needs a browser and is not part of them either.
 
 Edit `harness/`, run the checks, run `bash install.sh`, and start a new session to use the change. See [CLAUDE.md](CLAUDE.md) for the conventions of this repository.
 
@@ -130,5 +152,6 @@ The layout follows the Claude Code documentation as read on 2026-11-21:
 - [Subagents](https://code.claude.com/docs/en/sub-agents) - a custom subagent for context isolation or a restricted, specialized role.
 - [Best practices](https://code.claude.com/docs/en/best-practices) and [Extending Claude Code](https://code.claude.com/docs/en/features-overview) - which mechanism to use for what; guardrails belong in hooks.
 - [Hooks](https://code.claude.com/docs/en/hooks) and [Plugins](https://code.claude.com/docs/en/plugins), read on 2026-11-24 - agent hooks on `Stop`, the `stop_hook_active` input, and a plugin read in place from a local marketplace.
+- [Skills](https://code.claude.com/docs/en/skills) and the [Plugins reference](https://code.claude.com/docs/en/plugins/plugins-reference), read on 2026-11-25 - a plugin's skills are found in `skills/<name>/SKILL.md` and named `/plugin:skill`; `${CLAUDE_SKILL_DIR}` in a skill's text is replaced by the skill's directory.
 - [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) - add only what Claude does not already know.
 - [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) - say what to do, explain why, and avoid emphatic wording.

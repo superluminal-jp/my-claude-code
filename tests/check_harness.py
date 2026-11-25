@@ -12,6 +12,8 @@ The limits come from the Claude Code and Agent Skills documentation:
   characters, without XML tags; body under 500 lines; a reference file over
   100 lines has a table of contents.
 - Subagents: `name` and `description` are required.
+
+Skills are read from `skills/` and from `plugins/<plugin>/skills/`.
 """
 
 from __future__ import annotations
@@ -49,7 +51,9 @@ RULE_FIELDS = {"paths"}
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 TAG_RE = re.compile(r"<[^>]+>")
-LINK_RE = re.compile(r"`((?:references|assets|scripts)/[^`\s]+)`")
+# A path to a bundled file, written from the skill's directory, with or
+# without the variable Claude Code replaces by that directory.
+LINK_RE = re.compile(r"`(?:\$\{CLAUDE_SKILL_DIR\}/)?((?:references|assets|scripts)/[^`\s]+)`")
 
 
 def split_front_matter(text: str) -> tuple[dict[str, str] | None, str]:
@@ -138,8 +142,15 @@ def check_always_loaded_size(root: Path, errors: list[str]) -> None:
 
 
 def check_skills(root: Path, errors: list[str]) -> None:
-    skills_dir = root / "skills"
-    skill_dirs = sorted(p for p in skills_dir.iterdir() if p.is_dir() and not p.name.startswith(".")) if skills_dir.is_dir() else []
+    # Skills of the harness itself, and skills that a plugin carries.
+    skills_dirs = [root / "skills", *sorted((root / "plugins").glob("*/skills"))]
+    skill_dirs = sorted(
+        p
+        for skills_dir in skills_dirs
+        if skills_dir.is_dir()
+        for p in skills_dir.iterdir()
+        if p.is_dir() and not p.name.startswith(".")
+    )
     for skill in skill_dirs:
         rel = skill.relative_to(root)
         skill_md = skill / "SKILL.md"

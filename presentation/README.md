@@ -1,6 +1,6 @@
 # presentation
 
-デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を 2 つの形式で作るための土台と、このリポジトリを題材にした試作です。
+デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を 2 つの形式で作るための土台と、このリポジトリを題材にした試作です。`dads-presentation` プラグインの `create-presentation` スキルを、このリポジトリ自身に使った結果に当たります。
 
 - **スライド形式**: 16:9 の固定画面を 1 枚ずつ表示し、1 枚が PDF の 1 ページになります。
 - **ページ形式**: 1 段組みで縦にスクロールして読みます。
@@ -33,7 +33,9 @@ HTML は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を
 
 ## 別のプロジェクトで使う
 
-`presentation/` をプロジェクトのルートにコピーし、`bash presentation/setup.sh` を実行します。HTML は DADS を `../design-system-example-components-html/` という相対パスで参照するので、`presentation/` をルートの直下に置く限り、書き換えは不要です。
+`dads-presentation` プラグインをインストールし、Claude に資料の作成を頼みます。スキルが、土台と `setup.sh` をそのプロジェクトの `presentation/` にコピーし、ひな形から資料を書き、ブラウザで検査します。インストールの方法は、リポジトリのルートの [README.ja.md](../README.ja.md) にあります。
+
+`base/` と `setup.sh` の正本は、スキルの `assets/`（`harness/plugins/dads-presentation/skills/create-presentation/assets/`）です。ここにあるのはそのコピーなので、変更はスキルの側で行います。
 
 ## 構成
 
@@ -93,7 +95,7 @@ HTML は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を
 
 ## 確認したこと
 
-2026-11-25 に、Chromium で次を確認しました。自動テストにはしていません。
+2026-11-25 に、Chromium で次を確認しました。はみ出しと樹形図の検査は、スキルの `scripts/check.cjs` で再実行できます。ブラウザが必要なので、`tests/run.sh` と CI には含めていません。
 
 - スライド 11 枚のすべてで、内容が画面からはみ出さない（ウィンドウが 1280×720、1920×1080、1000×900 の場合）。
 - キー操作で前後の 1 枚に移動し、URL の `#番号` が更新される。

@@ -7,7 +7,7 @@
 # projects, ...) is left untouched.
 #
 # harness/plugins/ is not copied: ~/.claude/plugins/ holds Claude Code's own
-# record of installed plugins. Claude Code reads the plugin in place once it
+# record of installed plugins. Claude Code reads each plugin in place once it
 # is installed with `claude plugin install`; see README.md.
 #
 # Usage: bash install.sh
@@ -48,13 +48,14 @@ done
 
 echo "Installed ${MANAGED_PATHS[*]} from $SOURCE_DIR to $TARGET_DIR"
 
-# The plugin is read in place from this checkout, so it is enabled with
-# Claude Code's own commands, once; an edit to it needs no second run.
+# The plugins are read in place from this checkout, so they are enabled with
+# Claude Code's own commands, once; an edit to one needs no second run.
 cat <<EOF
 
-The writing-check plugin (harness/plugins/writing-check) is not copied.
-To enable it in every project, run these two commands once:
+The plugins under harness/plugins are not copied.
+To enable them in every project, run these commands once:
 
   claude plugin marketplace add "$SCRIPT_DIR"
   claude plugin install writing-check@local-harness --scope user
+  claude plugin install dads-presentation@local-harness --scope user
 EOF
