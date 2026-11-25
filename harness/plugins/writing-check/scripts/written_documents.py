@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Keep the list of documents a Claude Code session wrote in the current turn.
+"""Keep the list of documents a Claude Code session wrote in the current turn,
+and put the reminder of the writing rules before Claude with each prompt.
 
 Called by the hooks of the writing-check plugin with the hook input as JSON
 on standard input:
 
   written_documents.py record   after Write or Edit: add the file to the list
   written_documents.py reset    when a prompt is submitted: empty the list
+  written_documents.py remind   when a prompt is submitted: print the reminder
 
 The list is <config>/writing-check/<session_id>.txt, where <config> is the
 Claude configuration directory, taken from the input's `transcript_path`
@@ -16,7 +18,13 @@ a tab, and an absolute path, the most recently written last:
   W  the whole file was written in this turn
   E  an existing file was edited in place; its other text may be older
 
-The script prints nothing and always exits 0, because a failure here must not
+The reminder is reminder.md in the plugin's directory. `remind` prints it as
+the `additionalContext` of a UserPromptSubmit hook output, which Claude Code
+adds to the context of the turn, so that Claude reads it before it writes the
+answer. It does not read the hook input.
+
+`record` and `reset` print nothing, `remind` prints nothing when the reminder
+cannot be read, and the script always exits 0, because a failure here must not
 disturb the tool call or the prompt it follows. Standard library only.
 """
 
@@ -31,6 +39,7 @@ from pathlib import Path
 DOCUMENT_SUFFIXES = {".md", ".mdx", ".markdown", ".txt", ".rst", ".adoc"}
 SESSION_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,128}")
 MODES = {"Write": "W", "Edit": "E"}
+REMINDER = Path(__file__).resolve().parent.parent / "reminder.md"
 
 
 def list_path(payload: object) -> Path | None:
@@ -95,10 +104,20 @@ def reset(payload: object) -> None:
         target.unlink(missing_ok=True)
 
 
+def remind() -> None:
+    text = REMINDER.read_text(encoding="utf-8").strip()
+    if text:
+        output = {"hookEventName": "UserPromptSubmit", "additionalContext": text}
+        print(json.dumps({"hookSpecificOutput": output}))
+
+
 def main() -> int:
     try:
-        payload = json.load(sys.stdin)
         mode = sys.argv[1] if len(sys.argv) > 1 else ""
+        if mode == "remind":
+            remind()
+            return 0
+        payload = json.load(sys.stdin)
         if mode == "record":
             record(payload)
         elif mode == "reset":

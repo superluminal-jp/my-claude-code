@@ -1,7 +1,7 @@
 {
   "name": "writing-check",
-  "description": "Reviews each answer, and the documents written during the turn, for language, terminology, and structure once before the turn ends, and asks for one correction when a reader would be misled.",
-  "version": "1.0.0",
+  "description": "Reminds Claude of the writing rules with each prompt, and reviews each answer, and the documents written during the turn, for language, terminology, and structure once before the turn ends, and asks for one correction when a reader would be misled.",
+  "version": "1.2.0",
   "author": {
     "name": "superluminal-jp"
   }
