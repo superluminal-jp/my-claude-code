@@ -71,6 +71,12 @@ if grep -qF "without comment" "$REPO_DIR/harness/rules/standards.md"; then
   fail "rules/standards.md still says to use a standard without comment"
 fi
 
+echo "== standards decide how an answer is thought out, not only how it is written"
+for phrase in "how an answer is thought out as well as how it is written" "do not force one onto a question none fits" \
+  "Kepner-Tregoe problem analysis" "Kepner-Tregoe decision analysis" "Analysis of Competing Hypotheses"; do
+  grep -qF "$phrase" "$REPO_DIR/harness/rules/standards.md" || fail "rules/standards.md does not say: $phrase"
+done
+
 echo "== the writing-check plugin"
 python3 "$REPO_DIR/tests/test_writing_check.py" 2>&1 | grep -v "^$"
 
