@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>資料の題名</title>
+<!-- Fonts as the DADS samples load them. Remove these three lines to stay offline; the text then uses the system sans-serif font. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+Mono:wght@100..900&display=swap" rel="stylesheet">
+<!-- DADS, copied into dads/ by the skill's copy-dads.sh. Not edited. Link only the components this file uses. -->
+<link rel="stylesheet" href="dads/global.css">
+<link rel="stylesheet" href="dads/components/heading/heading.css">
+<link rel="stylesheet" href="dads/components/list/list.css">
+<link rel="stylesheet" href="dads/components/description-list/description-list.css">
+<link rel="stylesheet" href="dads/components/table/table.css">
+<link rel="stylesheet" href="dads/components/notice-block/notice-block.css">
+<link rel="stylesheet" href="dads/components/notification-banner/notification-banner.css">
+<link rel="stylesheet" href="dads/components/chip-label/chip-label.css">
+<link rel="stylesheet" href="dads/components/step-navigation/step-navigation.css">
+<link rel="stylesheet" href="dads/components/link/link.css">
+<link rel="stylesheet" href="dads/components/toc/toc.css">
+<link rel="stylesheet" href="dads/components/accordion/accordion.css">
+<!-- The base in this directory. -->
+<link rel="stylesheet" href="base/deck.css">
+<link rel="stylesheet" href="base/page.css">
+</head>
+<body>
+<main class="page">
+
+  <!-- Pattern: title and lead -->
+  <hgroup class="dads-heading" data-size="45">
+    <p class="dads-heading__shoulder">資料の分類や対象</p>
+    <h1 class="dads-heading__heading">資料の題名</h1>
+  </hgroup>
+
+  <p>この資料が伝えることを、最初の段落に書く。</p>
+
+  <!-- Pattern: banner (no close button: there is nothing to dismiss) -->
+  <div class="dads-notification-banner" data-style="standard" data-type="info-1">
+    <h2 class="dads-notification-banner__heading">
+      <svg class="dads-notification-banner__icon" width="24" height="24" viewBox="0 0 24 24" role="img" aria-label="インフォメーション">
+        <circle cx="12" cy="12" r="10" fill="currentcolor"/>
+        <circle cx="12" cy="8" r="1" fill="Canvas"/>
+        <path d="M11 11h2v6h-2z" fill="Canvas"/>
+      </svg>
+      <span class="dads-notification-banner__heading-text">読み手に先に知らせること</span>
+    </h2>
+    <div class="dads-notification-banner__body">
+      <p>前提や注意を書く。</p>
+    </div>
+  </div>
+
+  <!-- Pattern: table of contents -->
+  <nav class="dads-toc" aria-labelledby="toc-heading">
+    <h2 id="toc-heading" class="dads-toc__heading">このページの目次</h2>
+    <ul class="dads-list" data-spacing="8">
+      <li><a class="dads-link" href="#first">最初の節</a></li>
+      <li><a class="dads-link" href="#second">次の節</a></li>
+      <li><a class="dads-link" href="#third">最後の節</a></li>
+    </ul>
+  </nav>
+
+  <!-- Pattern: section with table, description list and trees -->
+  <section id="first">
+  <div class="dads-heading" data-size="32" data-rule="4">
+    <h2 class="dads-heading__heading">最初の節</h2>
+  </div>
+  <p>節の主張を最初の文に書く。</p>
+  <div class="dads-table deck-table-fill">
+    <table class="dads-table__table">
+      <thead>
+        <tr>
+          <th class="dads-table__col-header" scope="col">ラベル</th>
+          <th class="dads-table__col-header" scope="col">ラベル</th>
+          <th class="dads-table__col-header" scope="col">ラベル</th>
+        </tr>
+      </thead>
+      <tbody data-cell-border="bottom">
+        <tr><td>項目 1</td><td>データ</td><td>データ</td></tr>
+        <tr><td>項目 2</td><td>データ</td><td>データ</td></tr>
+        <tr><td>項目 3</td><td>データ</td><td>データ</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="dads-heading" data-size="24">
+    <h3 class="dads-heading__heading">小見出し</h3>
+  </div>
+  <dl class="dads-description-list">
+    <div class="dads-description-list__item">
+      <dt>用語 1</dt>
+      <dd>用語 1 の説明を 1 文で書く。</dd>
+    </div>
+    <div class="dads-description-list__item">
+      <dt>用語 2</dt>
+      <dd>用語 2 の説明を 1 文で書く。</dd>
+    </div>
+    <div class="dads-description-list__item">
+      <dt>用語 3</dt>
+      <dd>用語 3 の説明を 1 文で書く。</dd>
+    </div>
+  </dl>
+  <div class="dads-heading" data-size="24">
+    <h3 class="dads-heading__heading">樹形図（縦）</h3>
+  </div>
+  <div class="deck-tree" data-orientation="vertical">
+    <ul>
+      <li><span class="deck-tree__node">根</span>
+        <ul>
+          <li><span class="deck-tree__node">枝 1</span>
+            <ul>
+              <li><span class="deck-tree__node">葉 1</span></li>
+              <li><span class="deck-tree__node">葉 2</span></li>
+            </ul>
+          </li>
+          <li><span class="deck-tree__node">枝 2</span></li>
+          <li><span class="deck-tree__node">枝 3</span>
+            <ul>
+              <li><span class="deck-tree__node">葉 3</span></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div class="dads-heading" data-size="24">
+    <h3 class="dads-heading__heading">樹形図（横）</h3>
+  </div>
+  <div class="deck-tree" data-orientation="horizontal">
+    <ul>
+      <li><span class="deck-tree__node">根</span>
+        <ul>
+          <li><span class="deck-tree__node">枝 1</span>
+            <ul>
+              <li><span class="deck-tree__node">葉 1</span></li>
+              <li><span class="deck-tree__node">葉 2</span></li>
+            </ul>
+          </li>
+          <li><span class="deck-tree__node">枝 2</span></li>
+          <li><span class="deck-tree__node">枝 3</span>
+            <ul>
+              <li><span class="deck-tree__node">葉 3</span></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  </section>
+
+  <!-- Pattern: section with steps, code and note -->
+  <section id="second">
+  <div class="dads-heading" data-size="32" data-rule="4">
+    <h2 class="dads-heading__heading">次の節</h2>
+  </div>
+  <div class="dads-step-navigation" data-orientation="horizontal" data-size="normal">
+    <ul>
+      <li class="dads-step-navigation__step" data-first>
+        <span class="dads-step-navigation__header">
+          <span class="dads-u-visually-hidden">ステップ</span>
+          <span class="dads-step-navigation__number">1</span>
+          <span class="dads-step-navigation__title">手順 1 の名前</span>
+        </span>
+        <p class="dads-step-navigation__description">手順 1 で行うこと。</p>
+      </li>
+      <li class="dads-step-navigation__step">
+        <span class="dads-step-navigation__header">
+          <span class="dads-u-visually-hidden">ステップ</span>
+          <span class="dads-step-navigation__number">2</span>
+          <span class="dads-step-navigation__title">手順 2 の名前</span>
+        </span>
+        <p class="dads-step-navigation__description">手順 2 で行うこと。</p>
+      </li>
+      <li class="dads-step-navigation__step" data-last>
+        <span class="dads-step-navigation__header">
+          <span class="dads-u-visually-hidden">ステップ</span>
+          <span class="dads-step-navigation__number">3</span>
+          <span class="dads-step-navigation__title">手順 3 の名前</span>
+        </span>
+        <p class="dads-step-navigation__description">手順 3 で行うこと。</p>
+      </li>
+    </ul>
+  </div>
+  <pre class="deck-code"><code>command --option value
+command two</code></pre>
+  <div class="dads-notice-block" role="note" data-style="fill-rounded" data-color="light-blue">
+    <div class="dads-notice-block__header">補足の見出し</div>
+    <div class="dads-notice-block__body">
+      <p>本文を補う注意や条件を書く。</p>
+    </div>
+  </div>
+  </section>
+
+  <!-- Pattern: section with panels, list and accordion -->
+  <section id="third">
+  <div class="dads-heading" data-size="32" data-rule="4">
+    <h2 class="dads-heading__heading">最後の節</h2>
+  </div>
+  <div class="deck-columns" data-cols="3">
+    <div class="deck-panel">
+      <span class="dads-chip-label" data-style="filled-1" data-color="blue">ラベル</span>
+      <h3 class="deck-panel__title">項目 1 の見出し</h3>
+      <p>項目 1 の説明を 1、2 文で書く。</p>
+    </div>
+    <div class="deck-panel">
+      <span class="dads-chip-label" data-style="filled-1" data-color="green">ラベル</span>
+      <h3 class="deck-panel__title">項目 2 の見出し</h3>
+      <p>項目 2 の説明を 1、2 文で書く。</p>
+    </div>
+    <div class="deck-panel">
+      <span class="dads-chip-label" data-style="filled-1" data-color="orange">ラベル</span>
+      <h3 class="deck-panel__title">項目 3 の見出し</h3>
+      <p>項目 3 の説明を 1、2 文で書く。</p>
+    </div>
+  </div>
+  <ul class="dads-list" data-spacing="8">
+    <li>箇条書きの項目 1</li>
+    <li>箇条書きの項目 2</li>
+    <li>箇条書きの項目 3</li>
+  </ul>
+  <details class="dads-accordion">
+    <summary id="accordion-1" class="dads-accordion__summary">
+      <span class="dads-accordion__icon">
+        <svg class="dads-accordion__icon-svg" width="24" height="24" viewbox="0 0 24 24" aria-hidden="true">
+          <path d="M3.3 7.3L12 16L20.7 7.3" fill="none" stroke="currentcolor" stroke-width="2"/>
+        </svg>
+      </span>
+      <h3>読み手が持ちそうな質問</h3>
+    </summary>
+    <div class="dads-accordion__content">
+      <p>質問への答えを書く。閉じたままでも本文が成り立つ内容に限る。</p>
+    </div>
+  </details>
+  <p>詳細：<a class="dads-link" href="#">参照先の名前</a></p>
+  </section>
+
+</main>
+</body>
+</html>

@@ -8,17 +8,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+Mono:wght@100..900&display=swap" rel="stylesheet">
-<!-- DADS, cloned by setup.sh. Not edited. -->
-<link rel="stylesheet" href="../design-system-example-components-html/src/global.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/heading/heading.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/list/list.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/description-list/description-list.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/table/table.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/notice-block/notice-block.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/chip-label/chip-label.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/step-navigation/step-navigation.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/blockquote/blockquote.css">
-<link rel="stylesheet" href="../design-system-example-components-html/src/components/link/link.css">
+<!-- DADS, copied into dads/ by the skill's copy-dads.sh. Not edited. -->
+<link rel="stylesheet" href="dads/global.css">
+<link rel="stylesheet" href="dads/components/heading/heading.css">
+<link rel="stylesheet" href="dads/components/list/list.css">
+<link rel="stylesheet" href="dads/components/description-list/description-list.css">
+<link rel="stylesheet" href="dads/components/table/table.css">
+<link rel="stylesheet" href="dads/components/notice-block/notice-block.css">
+<link rel="stylesheet" href="dads/components/chip-label/chip-label.css">
+<link rel="stylesheet" href="dads/components/step-navigation/step-navigation.css">
+<link rel="stylesheet" href="dads/components/blockquote/blockquote.css">
+<link rel="stylesheet" href="dads/components/link/link.css">
 <!-- This directory. -->
 <link rel="stylesheet" href="base/deck.css">
 <link rel="stylesheet" href="base/slide.css">
@@ -67,7 +67,7 @@
 <!-- Pattern: title and table -->
 <section class="slide">
   <div class="dads-heading" data-size="28" data-rule="4">
-    <h2 class="dads-heading__heading">4 種類のファイルが、読み込まれる時点で分かれる</h2>
+    <h2 class="dads-heading__heading">5 種類のファイルが、読み込まれる時点で分かれる</h2>
   </div>
   <div class="slide__body">
     <div class="dads-table deck-table-fill" data-size="dense">
@@ -83,6 +83,7 @@
         <tr><td><code>CLAUDE.md</code></td><td>毎セッション</td><td>作業の取り決め</td></tr>
         <tr><td>ルール（4本）</td><td>毎セッション</td><td>伝え方、安全、委任の習慣と、従う標準の指定</td></tr>
         <tr><td>サブエージェント（1本）</td><td>委任されたとき</td><td>独立性が必要な作業を、メインの会話から切り離す</td></tr>
+        <tr><td>スキル（1本）</td><td>頼まれた作業に合ったとき</td><td>標準にない手順を、ファイルと一緒に持つ</td></tr>
         <tr><td>プラグイン（1本）</td><td>インストール後、毎セッション</td><td>ターンの終わりに文章をレビューするフック</td></tr>
       </tbody>
     </table>
@@ -105,15 +106,11 @@
                 <li><span class="deck-tree__node"><code>CLAUDE.md</code></span></li>
                 <li><span class="deck-tree__node"><code>rules/</code></span></li>
                 <li><span class="deck-tree__node"><code>agents/</code></span></li>
+                <li><span class="deck-tree__node"><code>skills/</code></span></li>
                 <li><span class="deck-tree__node"><code>plugins/</code></span></li>
               </ul>
             </li>
             <li><span class="deck-tree__node"><code>install.sh</code></span></li>
-            <li><span class="deck-tree__node"><code>tests/</code></span>
-              <ul>
-                <li><span class="deck-tree__node"><code>run.sh</code></span></li>
-              </ul>
-            </li>
           </ul>
         </li>
       </ul>
@@ -124,7 +121,7 @@
 <!-- Pattern: tree diagram, horizontal (root at the left) -->
 <section class="slide">
   <div class="dads-heading" data-size="28" data-rule="4">
-    <h2 class="dads-heading__heading">インストール後の <code>~/.claude/</code> に入る 6 ファイル</h2>
+    <h2 class="dads-heading__heading">インストール後の <code>~/.claude/</code> の中身</h2>
   </div>
   <div class="slide__body" data-align="center">
     <div class="deck-tree" data-orientation="horizontal">
@@ -143,6 +140,11 @@
             <li><span class="deck-tree__node"><code>agents/</code></span>
               <ul>
                 <li><span class="deck-tree__node"><code>independent-reviewer.md</code></span></li>
+              </ul>
+            </li>
+            <li><span class="deck-tree__node"><code>skills/</code></span>
+              <ul>
+                <li><span class="deck-tree__node"><code>create-presentation/</code></span></li>
               </ul>
             </li>
           </ul>
@@ -207,7 +209,7 @@
           <span class="dads-step-navigation__number">2</span>
           <span class="dads-step-navigation__title">インストールする</span>
         </span>
-        <p class="dads-step-navigation__description"><code>bash install.sh</code> が 3 つのパスを置き換える。</p>
+        <p class="dads-step-navigation__description"><code>bash install.sh</code> が 4 つのパスを置き換える。</p>
       </li>
       <li class="dads-step-navigation__step" data-last>
         <span class="dads-step-navigation__header">
@@ -259,7 +261,7 @@ bash install.sh</code></pre>
   <div class="slide__body deck-stack" style="--deck-stack-gap: 24">
     <ul class="dads-list" data-spacing="8">
       <li><code>settings.json</code>：<code>/config</code> か直接の編集で管理する。</li>
-      <li>スキル：以前の手順は、いまは <code>rules/standards.md</code> の 1 行になっている。</li>
+      <li>標準のためのスキル：以前の手順は、いまは <code>rules/standards.md</code> の 1 行になっている。</li>
       <li>Spec Kit と AI-DLC：使うプロジェクトごとに導入する。</li>
       <li>強制：ルールは指針であり、保証ではない。守らせたいことは権限設定かフックに置く。</li>
     </ul>

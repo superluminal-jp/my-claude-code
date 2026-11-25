@@ -1,6 +1,6 @@
 # presentation
 
-デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を 2 つの形式で作るための土台と、このリポジトリを題材にした試作です。
+デジタル庁デザインシステム（DADS）の HTML コンポーネントを使って、説明資料を 2 つの形式で作るための土台と、このリポジトリを題材にした試作です。`create-presentation` スキルを、このリポジトリ自身に使った結果に当たります。
 
 - **スライド形式**: 16:9 の固定画面を 1 枚ずつ表示し、1 枚が PDF の 1 ページになります。
 - **ページ形式**: 1 段組みで縦にスクロールして読みます。
@@ -9,13 +9,7 @@
 
 ## 使い方
 
-```sh
-bash presentation/setup.sh
-```
-
-`setup.sh` は、DADS の [コードスニペット（HTML版）](https://github.com/digital-go-jp/design-system-example-components-html) を、このディレクトリの隣の `design-system-example-components-html/` にクローンします。取得する版はタグ `v20261118` に固定しています。クローンしたディレクトリは `.gitignore` で除外しているので、使う版の記録は `setup.sh` の `DADS_TAG` だけです。
-
-クローンの後、次のファイルをブラウザで直接開きます。サーバーもビルドも不要です。
+次のファイルをブラウザで直接開きます。サーバーもビルドも、DADS のクローンも不要です。
 
 | ファイル | 形式 |
 |---|---|
@@ -33,13 +27,15 @@ HTML は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を
 
 ## 別のプロジェクトで使う
 
-`presentation/` をプロジェクトのルートにコピーし、`bash presentation/setup.sh` を実行します。HTML は DADS を `../design-system-example-components-html/` という相対パスで参照するので、`presentation/` をルートの直下に置く限り、書き換えは不要です。
+`bash install.sh` でハーネスをインストールし、そのプロジェクトで Claude に資料の作成を頼みます。`create-presentation` スキルが、土台をそのプロジェクトの `presentation/` にコピーし、ひな形から資料を書き、資料が使う DADS のファイルを `presentation/dads/` にコピーし、ブラウザで検査します。
+
+`base/` の正本は、スキルの `assets/base/`（`harness/skills/create-presentation/assets/base/`）です。`dads/` は、スキルが持つ DADS の写し（`assets/dads/`）から、この資料が使うファイルだけをコピーしたものです。どちらもコピーなので、ここでは編集しません。
 
 ## 構成
 
 | ファイル | 役割 |
 |---|---|
-| `setup.sh` | DADS を固定したタグで取得する |
+| `dads/` | 資料が使う DADS のファイル（`global.css`、各コンポーネントの CSS、ライセンス）。スキルの `scripts/copy-dads.sh` が作り直す |
 | `base/deck.css` | 2 形式に共通の、DADS にない要素（段組み、パネル、コードブロック、樹形図、縦の間隔） |
 | `base/slide.css` | スライド形式の土台（固定画面、レイアウト、印刷） |
 | `base/slide.js` | スライド形式のキー操作。なくてもスクロールと印刷はできる |
@@ -88,12 +84,12 @@ HTML は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を
 ```
 
 - 最も外側の `<ul>` には、根の `<li>` を 1 つだけ置きます。
-- 末端の項目が横に多いときは `vertical` が幅を使い切るので、`horizontal` を使います。試作のスライドでは、`vertical` は末端 6 個、`horizontal` は末端 6 個で 1 枚に収まっています。
+- 末端の項目が横に多いときは `vertical` が幅を使い切るので、`horizontal` を使います。試作のスライドでは、`vertical` は末端 6 個、`horizontal` は末端 7 個で 1 枚に収まっています。`vertical` に末端を 1 つ足して 8 個にすると、はみ出しました。
 - 入れ物より幅が広い樹形図は、その中で横にスクロールします。スライドでは、スクロールが要らない大きさに収めてください。
 
 ## 確認したこと
 
-2026-11-25 に、Chromium で次を確認しました。自動テストにはしていません。
+2026-11-25 に、Chromium で次を確認しました。はみ出しと樹形図の検査は、スキルの `scripts/check.cjs` で再実行できます。ブラウザが必要なので、`tests/run.sh` と CI には含めていません。
 
 - スライド 11 枚のすべてで、内容が画面からはみ出さない（ウィンドウが 1280×720、1920×1080、1000×900 の場合）。
 - キー操作で前後の 1 枚に移動し、URL の `#番号` が更新される。
@@ -105,4 +101,4 @@ HTML は、DADS のサンプルと同じく Google Fonts から Noto Sans JP を
 
 ## ライセンス
 
-DADS のコードスニペットは MIT License で、著作権はデジタル庁にあります。このリポジトリには DADS のファイルを含めていません。
+DADS のコードスニペットは MIT License で、著作権はデジタル庁にあります。`dads/LICENSE` に、その全文を置いています。

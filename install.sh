@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Copy the managed configuration in harness/ into ~/.claude/.
 #
-# Managed paths: CLAUDE.md, rules/, agents/. Each is replaced so that it
-# matches harness/ exactly; a rule or agent removed here is removed there.
-# Everything else under ~/.claude/ (settings.json, skills/, plugins,
+# Managed paths: CLAUDE.md, rules/, agents/, skills/. Each is replaced so
+# that it matches harness/ exactly; a rule, agent, or skill removed here is
+# removed there, and so is a skill placed in ~/.claude/skills/ some other way.
+# Everything else under ~/.claude/ (settings.json, commands/, plugins,
 # projects, ...) is left untouched.
 #
 # harness/plugins/ is not copied: ~/.claude/plugins/ holds Claude Code's own
@@ -18,7 +19,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$SCRIPT_DIR/harness"
 TARGET_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-MANAGED_PATHS=(CLAUDE.md rules agents)
+MANAGED_PATHS=(CLAUDE.md rules agents skills)
 
 for rel in "${MANAGED_PATHS[@]}"; do
   if [ ! -e "$SOURCE_DIR/$rel" ]; then

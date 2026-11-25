@@ -105,11 +105,13 @@ body {
   background-color: var(--color-key-900);
 }
 
-/* Layout: section. Opens a chapter. */
+/*
+ * Layout: section. Opens a chapter. White like every other slide, with a
+ * band of the key colour on the left as the only accent.
+ */
 .slide[data-layout="section"] {
   justify-content: center;
   border-left: calc(24 / 16 * 1rem) solid var(--color-key-900);
-  background-color: var(--color-key-50);
 }
 
 /* Layout: statement. One sentence the audience should keep. */

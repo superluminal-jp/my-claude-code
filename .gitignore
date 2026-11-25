@@ -12,5 +12,3 @@ specs/
 aidlc-docs/
 tests/harness-eval/
 
-# The DADS HTML components, cloned by presentation/setup.sh at a pinned tag.
-design-system-example-components-html/

@@ -49,7 +49,9 @@ RULE_FIELDS = {"paths"}
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 TAG_RE = re.compile(r"<[^>]+>")
-LINK_RE = re.compile(r"`((?:references|assets|scripts)/[^`\s]+)`")
+# A path to a bundled file, written from the skill's directory, with or
+# without the variable Claude Code replaces by that directory.
+LINK_RE = re.compile(r"`(?:\$\{CLAUDE_SKILL_DIR\}/)?((?:references|assets|scripts)/[^`\s]+)`")
 
 
 def split_front_matter(text: str) -> tuple[dict[str, str] | None, str]:

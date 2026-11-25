@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>資料の題名</title>
+<!-- Fonts as the DADS samples load them. Remove these three lines to stay offline; the text then uses the system sans-serif font. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans+Mono:wght@100..900&display=swap" rel="stylesheet">
+<!-- DADS, copied into dads/ by the skill's copy-dads.sh. Not edited. Link only the components this file uses. -->
+<link rel="stylesheet" href="dads/global.css">
+<link rel="stylesheet" href="dads/components/heading/heading.css">
+<link rel="stylesheet" href="dads/components/list/list.css">
+<link rel="stylesheet" href="dads/components/description-list/description-list.css">
+<link rel="stylesheet" href="dads/components/table/table.css">
+<link rel="stylesheet" href="dads/components/notice-block/notice-block.css">
+<link rel="stylesheet" href="dads/components/chip-label/chip-label.css">
+<link rel="stylesheet" href="dads/components/step-navigation/step-navigation.css">
+<link rel="stylesheet" href="dads/components/blockquote/blockquote.css">
+<link rel="stylesheet" href="dads/components/link/link.css">
+<!-- The base in this directory. -->
+<link rel="stylesheet" href="base/deck.css">
+<link rel="stylesheet" href="base/slide.css">
+</head>
+<body>
+
+<!-- Pattern: cover -->
+<section class="slide" data-layout="cover">
+  <p class="dads-u-std-20N-150">資料の分類や対象</p>
+  <h1 class="slide__cover-title dads-u-dsp-64B-140">資料の題名</h1>
+  <p class="dads-u-std-24N-150">この資料が伝えることを 1 行で書く</p>
+</section>
+
+<!-- Pattern: agenda (numbered list) -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">この資料の内容</h2>
+  </div>
+  <div class="slide__body" data-align="center">
+    <ul class="dads-list dads-u-std-24N-150" data-marker="number" data-spacing="12">
+      <li><span>1. </span>最初の話題</li>
+      <li><span>2. </span>次の話題</li>
+      <li><span>3. </span>最後の話題</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Pattern: statement (one sentence, with its source) -->
+<section class="slide" data-layout="statement">
+  <p class="slide__statement dads-u-std-36B-140">聞き手に覚えてほしいことを、<br>1 文で書く</p>
+  <blockquote class="dads-blockquote">
+    <p>主張の根拠になる引用を書く。</p>
+  </blockquote>
+  <p class="dads-u-std-16N-170">出典：資料の名前</p>
+</section>
+
+<!-- Pattern: section -->
+<section class="slide" data-layout="section">
+  <hgroup class="dads-heading" data-size="45">
+    <p class="dads-heading__shoulder">第 1 部</p>
+    <h2 class="dads-heading__heading">章の題名</h2>
+  </hgroup>
+</section>
+
+<!-- Pattern: title and table -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">このスライドの主張を見出しに書く</h2>
+  </div>
+  <div class="slide__body">
+    <div class="dads-table deck-table-fill" data-size="dense">
+      <table class="dads-table__table">
+        <thead>
+          <tr>
+            <th class="dads-table__col-header" scope="col">ラベル</th>
+            <th class="dads-table__col-header" scope="col">ラベル</th>
+            <th class="dads-table__col-header" scope="col">ラベル</th>
+          </tr>
+        </thead>
+        <tbody data-cell-border="bottom">
+          <tr><td>項目 1</td><td>データ</td><td>データ</td></tr>
+          <tr><td>項目 2</td><td>データ</td><td>データ</td></tr>
+          <tr><td>項目 3</td><td>データ</td><td>データ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Pattern: tree diagram, vertical (root at the top) -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">このスライドの主張を見出しに書く</h2>
+  </div>
+  <div class="slide__body" data-align="center">
+    <div class="deck-tree" data-orientation="vertical">
+      <ul>
+        <li><span class="deck-tree__node">根</span>
+          <ul>
+            <li><span class="deck-tree__node">枝 1</span>
+              <ul>
+                <li><span class="deck-tree__node">葉 1</span></li>
+                <li><span class="deck-tree__node">葉 2</span></li>
+              </ul>
+            </li>
+            <li><span class="deck-tree__node">枝 2</span></li>
+            <li><span class="deck-tree__node">枝 3</span>
+              <ul>
+                <li><span class="deck-tree__node">葉 3</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Pattern: tree diagram, horizontal (root at the left) -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">このスライドの主張を見出しに書く</h2>
+  </div>
+  <div class="slide__body" data-align="center">
+    <div class="deck-tree" data-orientation="horizontal">
+      <ul>
+        <li><span class="deck-tree__node">根</span>
+          <ul>
+            <li><span class="deck-tree__node">枝 1</span>
+              <ul>
+                <li><span class="deck-tree__node">葉 1</span></li>
+                <li><span class="deck-tree__node">葉 2</span></li>
+              </ul>
+            </li>
+            <li><span class="deck-tree__node">枝 2</span></li>
+            <li><span class="deck-tree__node">枝 3</span>
+              <ul>
+                <li><span class="deck-tree__node">葉 3</span></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Pattern: two columns (description list and note) -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">このスライドの主張を見出しに書く</h2>
+  </div>
+  <div class="slide__body deck-columns">
+    <dl class="dads-description-list">
+      <div class="dads-description-list__item">
+        <dt>用語 1</dt>
+        <dd>用語 1 の説明を 1 文で書く。</dd>
+      </div>
+      <div class="dads-description-list__item">
+        <dt>用語 2</dt>
+        <dd>用語 2 の説明を 1 文で書く。</dd>
+      </div>
+      <div class="dads-description-list__item">
+        <dt>用語 3</dt>
+        <dd>用語 3 の説明を 1 文で書く。</dd>
+      </div>
+    </dl>
+    <div class="dads-notice-block" role="note" data-style="fill-rounded" data-color="light-blue">
+      <div class="dads-notice-block__header">補足の見出し</div>
+      <div class="dads-notice-block__body">
+        <p>本文を補う注意や条件を書く。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pattern: steps and code -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">このスライドの主張を見出しに書く</h2>
+  </div>
+  <div class="slide__body deck-stack" style="--deck-stack-gap: 24">
+    <div class="dads-step-navigation" data-orientation="horizontal" data-size="small">
+      <ul>
+        <li class="dads-step-navigation__step" data-first>
+          <span class="dads-step-navigation__header">
+            <span class="dads-u-visually-hidden">ステップ</span>
+            <span class="dads-step-navigation__number">1</span>
+            <span class="dads-step-navigation__title">手順 1 の名前</span>
+          </span>
+          <p class="dads-step-navigation__description">手順 1 で行うこと。</p>
+        </li>
+        <li class="dads-step-navigation__step">
+          <span class="dads-step-navigation__header">
+            <span class="dads-u-visually-hidden">ステップ</span>
+            <span class="dads-step-navigation__number">2</span>
+            <span class="dads-step-navigation__title">手順 2 の名前</span>
+          </span>
+          <p class="dads-step-navigation__description">手順 2 で行うこと。</p>
+        </li>
+        <li class="dads-step-navigation__step" data-last>
+          <span class="dads-step-navigation__header">
+            <span class="dads-u-visually-hidden">ステップ</span>
+            <span class="dads-step-navigation__number">3</span>
+            <span class="dads-step-navigation__title">手順 3 の名前</span>
+          </span>
+          <p class="dads-step-navigation__description">手順 3 で行うこと。</p>
+        </li>
+      </ul>
+    </div>
+    <pre class="deck-code"><code>command --option value
+command two</code></pre>
+  </div>
+</section>
+
+<!-- Pattern: three panels -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">このスライドの主張を見出しに書く</h2>
+  </div>
+  <div class="slide__body" data-align="center">
+    <div class="deck-columns" data-cols="3">
+      <div class="deck-panel">
+        <span class="dads-chip-label" data-style="filled-1" data-color="blue">ラベル</span>
+        <h3 class="deck-panel__title">項目 1 の見出し</h3>
+        <p>項目 1 の説明を 1、2 文で書く。</p>
+      </div>
+      <div class="deck-panel">
+        <span class="dads-chip-label" data-style="filled-1" data-color="green">ラベル</span>
+        <h3 class="deck-panel__title">項目 2 の見出し</h3>
+        <p>項目 2 の説明を 1、2 文で書く。</p>
+      </div>
+      <div class="deck-panel">
+        <span class="dads-chip-label" data-style="filled-1" data-color="orange">ラベル</span>
+        <h3 class="deck-panel__title">項目 3 の見出し</h3>
+        <p>項目 3 の説明を 1、2 文で書く。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pattern: title and list, closing -->
+<section class="slide">
+  <div class="dads-heading" data-size="28" data-rule="4">
+    <h2 class="dads-heading__heading">まとめ</h2>
+  </div>
+  <div class="slide__body deck-stack" style="--deck-stack-gap: 24">
+    <ul class="dads-list" data-spacing="8">
+      <li>箇条書きの項目 1</li>
+      <li>箇条書きの項目 2</li>
+      <li>箇条書きの項目 3</li>
+    </ul>
+    <p>詳細：<a class="dads-link" href="#">参照先の名前</a></p>
+  </div>
+</section>
+
+<script defer src="base/slide.js"></script>
+</body>
+</html>
