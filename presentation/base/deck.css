@@ -1,0 +1,84 @@
+/*
+ * Shared by the slide format and the page format.
+ * Holds only what the DADS components do not provide. Every size is in rem
+ * and every colour is a DADS token, so slide.css can scale the whole page by
+ * changing the root font size.
+ */
+
+body {
+  margin: 0;
+  color: var(--color-neutral-solid-gray-800);
+  font-family: var(--font-family-sans);
+  font-size: calc(16 / 16 * 1rem);
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+p {
+  margin: 0;
+}
+
+/* Equal columns. On a narrow page they fall back to one column. */
+.deck-columns {
+  display: grid;
+  grid-template-columns: repeat(var(--deck-cols, 2), minmax(0, 1fr));
+  gap: calc(24 / 16 * 1rem);
+  align-items: start;
+}
+
+.deck-columns[data-cols="3"] {
+  --deck-cols: 3;
+}
+
+/* A bordered box for one of several parallel items. */
+.deck-panel {
+  box-sizing: border-box;
+  height: 100%;
+  border: 1px solid var(--color-neutral-solid-gray-420);
+  border-radius: calc(12 / 16 * 1rem);
+  padding: calc(16 / 16 * 1rem) calc(20 / 16 * 1rem);
+  background-color: var(--color-neutral-white);
+}
+
+.deck-panel__title {
+  margin: calc(8 / 16 * 1rem) 0 calc(4 / 16 * 1rem);
+  font-weight: bold;
+  font-size: calc(20 / 16 * 1rem);
+  line-height: 1.5;
+}
+
+/* Code: DADS has no code block component. */
+code {
+  font-family: var(--font-family-mono);
+  letter-spacing: 0;
+}
+
+:not(pre) > code {
+  border-radius: calc(4 / 16 * 1rem);
+  padding: 0 calc(4 / 16 * 1rem);
+  background-color: var(--color-neutral-solid-gray-50);
+}
+
+.deck-code {
+  margin: 0;
+  border: 1px solid var(--color-neutral-solid-gray-420);
+  border-radius: calc(8 / 16 * 1rem);
+  padding: calc(12 / 16 * 1rem) calc(16 / 16 * 1rem);
+  background-color: var(--color-neutral-solid-gray-50);
+  font-size: calc(16 / 16 * 1rem);
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.deck-table-fill .dads-table__table {
+  width: 100%;
+}
+
+/*
+ * Vertical rhythm between the direct children of a container. Kept last so
+ * that it wins over the margin: 0 of the blocks above.
+ */
+.deck-stack > * + * {
+  margin-top: calc(var(--deck-stack-gap, 16) / 16 * 1rem);
+}

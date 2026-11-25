@@ -1,0 +1,130 @@
+/*
+ * Slide format: a fixed 16:9 canvas, one slide per screen and per printed page.
+ *
+ * The DADS components size themselves in rem. This file sets the root font
+ * size so that the canvas is always 1280 / 24 rem wide: the components are
+ * shown 1.5 times their web size and grow with the window, and no DADS file
+ * is edited. Load after global.css.
+ */
+
+:root {
+  --slide-width: 1280;
+  --slide-height: 720;
+  /* Root font size in px when the canvas is shown at 1280 x 720. */
+  --slide-root: 24;
+  --_w: calc(var(--slide-width) / var(--slide-root) * 1rem);
+  --_h: calc(var(--slide-height) / var(--slide-root) * 1rem);
+}
+
+html {
+  font-size: min(
+    calc(100vw * var(--slide-root) / var(--slide-width)),
+    calc(100vh * var(--slide-root) / var(--slide-height))
+  );
+  scroll-snap-type: y mandatory;
+  scrollbar-gutter: auto;
+  scrollbar-width: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(100vh - var(--_h));
+  padding-block: calc((100vh - var(--_h)) / 2);
+  background-color: var(--color-neutral-solid-gray-800);
+  counter-reset: slide;
+}
+
+.slide {
+  position: relative;
+  box-sizing: border-box;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(20 / 16 * 1rem);
+  width: var(--_w);
+  height: var(--_h);
+  padding: calc(40 / 16 * 1rem) calc(56 / 16 * 1rem) calc(48 / 16 * 1rem);
+  overflow: hidden;
+  background-color: var(--color-neutral-white);
+  scroll-snap-align: center;
+  counter-increment: slide;
+}
+
+.slide::after {
+  content: counter(slide);
+  position: absolute;
+  right: calc(24 / 16 * 1rem);
+  bottom: calc(12 / 16 * 1rem);
+  color: var(--color-neutral-solid-gray-600);
+  font-size: calc(14 / 16 * 1rem);
+  line-height: 1;
+}
+
+/* The area under the slide title. */
+.slide__body {
+  flex: 1;
+  min-height: 0;
+}
+
+.slide__body[data-align="center"] {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Layout: cover. */
+.slide[data-layout="cover"] {
+  justify-content: center;
+  background-color: var(--color-key-900);
+  color: var(--color-neutral-white);
+}
+
+.slide[data-layout="cover"]::after {
+  content: none;
+}
+
+.slide__cover-title {
+  margin: 0;
+}
+
+/* Layout: section. Opens a chapter. */
+.slide[data-layout="section"] {
+  justify-content: center;
+  border-left: calc(24 / 16 * 1rem) solid var(--color-key-900);
+  background-color: var(--color-key-50);
+}
+
+/* Layout: statement. One sentence the audience should keep. */
+.slide[data-layout="statement"] {
+  justify-content: center;
+}
+
+.slide__statement {
+  margin: 0;
+}
+
+@page {
+  size: 1280px 720px;
+  margin: 0;
+}
+
+@media print {
+  html {
+    font-size: calc(var(--slide-root) * 1px);
+  }
+
+  body {
+    display: block;
+    padding: 0;
+    background: none;
+  }
+
+  .slide {
+    break-after: page;
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
