@@ -2,7 +2,7 @@
 
 Where the project is silent, the established standard for the thing being written decides, not a personal style.
 
-- Use standards actively: follow the relevant one in everyday work without being asked, name it in the answer's Method line (`communication.md`) when it decided how the answer was reasoned or structured, and use any other well-established standard that fits the work the same way as those listed here.
+- Use standards actively: follow the relevant one in everyday work without being asked, name it in the answer's Method line (`communication.md`) when it decided how the answer was reasoned or structured, and, beyond those listed here, look up the international standards, best practices, and frameworks for the subject at hand and use them the same way. This covers how an answer is thought out as well as how it is written: when the question is of a kind an established method covers, work it out with that method, and do not force one onto a question none fits.
 - Use them accurately where it counts. When a design choice, a review finding, a requirement, or a disputed point rests on a standard, name it with its section, rule, or criterion number, and read the current text first when it is public. Attribute to a standard only what it says, and say so when a point comes from memory because the text could not be read.
 
 | Writing | Standard or established practice |
@@ -35,6 +35,9 @@ Where the project is silent, the established standard for the thing being writte
 | Vulnerability findings and disclosure | CWE identifiers; CVSS for severity; `SECURITY.md` and `security.txt` (RFC 9116) for how to report |
 | Incident response and reports | NIST SP 800-61 Rev. 3 for the response; the blameless postmortem of Google's Site Reliability Engineering book for the report |
 | Defining a problem | Toyota Business Practices, "clarify the problem": current state, ideal state, and the gap; Kepner-Tregoe is / is-not; no cause or solution in the statement |
+| Finding the cause of a problem | Kepner-Tregoe problem analysis: test each possible cause against the is / is-not facts |
+| Weighing evidence for competing explanations | Analysis of Competing Hypotheses (Heuer): seek evidence against each, not for one |
+| Comparing options and deciding | Kepner-Tregoe decision analysis: musts first, then weighted wants, then the risks of the best option |
 | Confirming what was asked | A read-back: restate the request as what will be produced and have it confirmed; the Ladder of Inference to find where two readings parted |
 | The structure of a document | The Minto Pyramid Principle; IMRaD for a report or analysis |
 | Documents for stakeholders and decision-makers | The Minto Pyramid Principle with a situation-complication-question opening; plain language (ISO 24495-1); Amazon's PR/FAQ and narrative memo for a proposal |
