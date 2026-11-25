@@ -50,20 +50,23 @@ if out="$(python3 "$REPO_DIR/tests/check_harness.py" "$big")"; then
 fi
 grep -q "always-loaded text is" <<<"$out" || fail "the checker did not report the byte budget"
 
-echo "== every answer states its premises, assumptions, and method"
-for label in "Premises" "Assumptions" "Method"; do
-  grep -qF "**$label**" "$REPO_DIR/harness/rules/communication.md" \
-    || fail "rules/communication.md does not require a $label line"
+echo "== an answer names the practices that decided its reasoning, and only those"
+comm="$REPO_DIR/harness/rules/communication.md"
+for phrase in "name the method and list its steps before starting" "which step it is on" \
+  "end the answer with one line labelled Method" "never one matched to the reasoning afterwards" \
+  "a standard that only set a format" "skipped, reordered, or replaced" "An answer that applied none has no Method line"; do
+  grep -qF "$phrase" "$comm" || fail "rules/communication.md does not say: $phrase"
 done
-for framework in "Toulmin model" "Key Assumptions Check" "IMRaD" "ICD 203"; do
-  grep -qF "$framework" "$REPO_DIR/harness/rules/communication.md" \
-    || fail "rules/communication.md does not name $framework"
+for removed in "**Premises**" "**Assumptions**" "three labelled lines" "three closing lines"; do
+  if grep -qF "$removed" "$comm"; then
+    fail "rules/communication.md still has: $removed"
+  fi
 done
-for phrase in "name the method and list its steps before starting" "which step it is on" "skipped, reordered, or replaced" \
-  "how the request was read" "what in the answer changes if it is wrong"; do
-  grep -qF "$phrase" "$REPO_DIR/harness/rules/communication.md" \
-    || fail "rules/communication.md does not say: $phrase"
-done
+reminder="$REPO_DIR/harness/plugins/writing-check/reminder.md"
+grep -qF "a Method line" "$reminder" || fail "reminder.md does not mention the Method line"
+if grep -qF "three labelled closing lines" "$reminder"; then
+  fail "reminder.md still lists the three closing lines"
+fi
 if grep -qF "without comment" "$REPO_DIR/harness/rules/standards.md"; then
   fail "rules/standards.md still says to use a standard without comment"
 fi
